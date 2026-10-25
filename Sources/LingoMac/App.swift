@@ -24,6 +24,12 @@ enum LingoMain {
         }
         // Служебный режим: проверка всех ключей и `GET /models` (H-1, P-03). Значения ключей не выводятся.
         // Запускается из подписанного .app: только ему Связка ключей отдаёт ключи без запроса.
+        if args.contains("--ui-click-test") { exit(UIClickTest.run()) }
+        if args.contains("--help-eval") { print("--eval-dialog <cases> <out> [--models m1,m2] [--only ids] [--provider groq]"); exit(0) }
+        if args.contains("--eval-dialog") {
+            setvbuf(stdout, nil, _IOLBF, 0)
+            exit(Headless.evalDialog(args: args))
+        }
         if args.contains("--check-keys") {
             setvbuf(stdout, nil, _IOLBF, 0)
             exit(Headless.checkKeys(showAll: args.contains("--all-models")))
@@ -41,15 +47,36 @@ enum LingoMain {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow?
     let model = AppModel()
-    let settingsStore = SettingsStore()
-    lazy var settings = settingsStore.load()
-    let secrets: SecretStore = KeychainStore()
+    var services: AppServices?
     private let settingsWindow = SettingsWindowController()
-    lazy var keys = KeysController(settings: settings.llm, secrets: secrets) { [weak self] llm in
-        guard let self else { return }
-        self.settings.llm = llm
-        self.settingsStore.save(self.settings)
-        self.model.sourceLabel = llm.primaryLabel ?? "Нет ключа"
+    lazy var keys = KeysController(settings: services?.settings.llm ?? SettingsStore().load().llm, secrets: KeychainStore()) { [weak self] llm in
+        self?.services?.updateSettings { $0.llm = llm }
+    }
+
+    private var keyMonitor: Any?
+
+    /// Клавиатура голосового режима (R-06, DESIGN.md §8): пробел — удержание (если фокус не в тексте), Esc — стоп, ⌥R — «говорю по-русски».
+    func installKeyMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] e in
+            guard let self, let svc = self.services, e.window === self.window, e.window?.attachedSheet == nil else { return e }
+            let textFocused = e.window?.firstResponder is NSText
+            switch (e.type, e.keyCode) {
+            case (.keyDown, 49) where !textFocused:            // пробел
+                if !e.isARepeat { svc.spaceDown() }
+                return nil
+            case (.keyUp, 49) where !textFocused:
+                svc.spaceUp()
+                return nil
+            case (.keyDown, 53):                                 // Esc
+                svc.escape()
+                return textFocused ? e : nil
+            case (.keyDown, 15) where e.modifierFlags.contains(.option):  // ⌥R
+                svc.toggleRussian()
+                return nil
+            default:
+                return e
+            }
+        }
     }
 
     @objc func showSTTCheck(_ sender: Any?) { STTCheckWindow.show(part: "part1") }
@@ -61,12 +88,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("launch")
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count { AudioDiag.step(CommandLine.arguments[i + 1], "didFinishLaunching") }
-        Fixtures.fill(model)
-        model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
+        do {
+            let svc = try AppServices(model: model)
+            services = svc
+            model.services = svc
+            Task { await svc.start() }
+        } catch {
+            model.banner = "Не удалось открыть журнал: \(error)"
+        }
         if CommandLine.arguments.contains("--settings") { showSettings(nil) }
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count {
             exit(AudioDiag.run(to: CommandLine.arguments[i + 1]))
         }
+        installKeyMonitor()
         NSApp.mainMenu = MainMenu.build()
         let w = MainWindow.make(model: model)
         w.makeKeyAndOrderFront(nil)
@@ -161,7 +195,9 @@ enum UISnapshot {
         keys.checks["k1"] = "Ключ работает · моделей: 3"
         let settingsURL = url.deletingPathExtension().appendingPathExtension("settings.png")
         ok = render(SettingsView(keys: keys), size: NSSize(width: 900, height: 1100), to: settingsURL) && ok
-        print(ok ? "ui-snapshot: \(url.path), \(settingsURL.path)" : "ui-snapshot: FAILED")
+        let newURL = url.deletingPathExtension().appendingPathExtension("new-session.png")
+        ok = render(NewSessionView(lang: .de, lastCorrections: [.inline], onStart: { _, _ in }, onCancel: {}), size: NSSize(width: 620, height: 640), to: newURL) && ok
+        print(ok ? "ui-snapshot: \(url.path), \(settingsURL.path), \(newURL.path)" : "ui-snapshot: FAILED")
         return ok ? 0 : 1
     }
 

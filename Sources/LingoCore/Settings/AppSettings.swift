@@ -11,10 +11,11 @@ public struct AppSettings: Codable, Sendable, Hashable {
     /// Папка синхронизации — security-scoped bookmark (R-36).
     public var syncBookmark: Data?
     public var onboardingDone = false
+    public var voice = VoiceSettings()
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, onboardingDone }
+    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, onboardingDone, voice }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -24,6 +25,7 @@ public struct AppSettings: Codable, Sendable, Hashable {
         lastLang = (try? c.decodeIfPresent(Lang.self, forKey: .lastLang)) ?? .en
         syncBookmark = try? c.decodeIfPresent(Data.self, forKey: .syncBookmark)
         onboardingDone = (try? c.decodeIfPresent(Bool.self, forKey: .onboardingDone)) ?? false
+        voice = (try? c.decodeIfPresent(VoiceSettings.self, forKey: .voice)) ?? VoiceSettings()
     }
 }
 

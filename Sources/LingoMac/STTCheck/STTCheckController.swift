@@ -103,19 +103,21 @@ final class STTCheckController {
         guard voice != nil, !busy else { return }
         buffer.clear()
         segmenter = TurnSegmenter(config: TurnConfig(silence: 1.5))
-        vad.reset()
         sampleClock = 0
+        if vad.isSpeech { _ = segmenter.speechStarted(at: 0) }
         levels = []
         recording = true
         status = "Говорите… (стоп — пробел или пауза 1,5 с)"
     }
 
     private func feed(_ s: [Float]) {
+        // VAD слушает всегда: иначе после первой фразы он «застревал» в состоянии речи и запись не останавливалась сама (H-2).
+        let events = vad.processEvents(s)
         guard recording else { return }
         buffer.append(s)
         levels.append(min(1, max(0, (EnergyVAD.rmsDB(s[...]) + 60) / 50)))
         if levels.count > 120 { levels.removeFirst(levels.count - 120) }
-        for e in vad.processEvents(s) {
+        for e in events {
             let t = Double(sampleClock + e.sampleOffset) / 16_000
             _ = e.isSpeech ? segmenter.speechStarted(at: t) : segmenter.speechEnded(at: t - 0.2)
         }

@@ -4,7 +4,7 @@ import Testing
 
 /// Mock-провайдер: поведение по паре «модель + ключ».
 struct MockProvider: LLMProvider {
-    enum Behavior: Sendable { case text([String]), fail(LLMError), hang, failAfterText(String, LLMError) }
+    enum Behavior: Sendable { case text([String]), fail(LLMError), hang, failAfterText(String, LLMError), delayed(Double, [String]) }
     let id: ProviderID
     let behavior: @Sendable (_ model: String, _ key: String) -> Behavior
     let calls: CallLog
@@ -24,6 +24,12 @@ struct MockProvider: LLMProvider {
                     c.finish(throwing: e)
                 case .hang:
                     try? await Task.sleep(for: .seconds(30))
+                    c.finish()
+                case .delayed(let d, let parts):
+                    try? await Task.sleep(for: .seconds(d))
+                    if Task.isCancelled { c.finish(throwing: LLMError.cancelled); return }
+                    c.yield(.model(model))
+                    for p in parts { c.yield(.text(p)) }
                     c.finish()
                 case .failAfterText(let t, let e):
                     c.yield(.text(t))

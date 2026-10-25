@@ -5,6 +5,7 @@ import Foundation
 /// @say de: Fast perfekt! Natürlicher wäre: „Ich heiße Alex. Freut mich.“
 /// @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + Ort
 /// @hint de: Freut mich, Sie kennenzulernen. | Приятно познакомиться.
+/// @heard: Mir gefällt an Rostock, dass es hier das Meer gibt   (R-51: как понята реплика пользователя)
 /// ```
 /// Строка без тега — `@say` на изучаемом языке. Ошибки разбора не ломают ход и считаются метрикой `protocol_violation`.
 public enum ReplyProtocol {
@@ -59,6 +60,9 @@ public enum ReplyProtocol {
         case "fix":
             guard let fix = parseFix(body) else { return (nil, true) }
             return (.fix(fix), false)
+        case "heard":
+            guard !body.isEmpty else { return (nil, true) }
+            return (.heard(body), false)
         case "hint":
             let parts = body.split(separator: "|", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
             guard let phrase = parts.first, !phrase.isEmpty else { return (nil, true) }

@@ -35,13 +35,13 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         SFSpeechRecognizer(locale: Locale(identifier: l.localeIdentifier))?.supportsOnDeviceRecognition ?? false
     }
 
-    public func transcribe(_ samples: [Float], candidates: [Lang], forced: Lang?) async throws -> Transcription {
+    public func transcribe(_ samples: [Float], candidates: [Lang], forced: Lang?, context: String?) async throws -> Transcription {
         guard Self.authorized else { throw AppleSpeechError.notAuthorized }
         let started = DispatchTime.now()
         let langs = forced.map { [$0] } ?? (candidates.isEmpty ? [.en] : candidates)
         let results = try await withThrowingTaskGroup(of: (Lang, String, Float).self) { group in
             for l in langs {
-                group.addTask { try await Self.recognize(samples, lang: l) }
+                group.addTask { try await Self.recognize(samples, lang: l, context: context) }
             }
             var out: [(Lang, String, Float)] = []
             for try await r in group { out.append(r) }
@@ -54,7 +54,7 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         return Transcription(text: best.1, lang: best.0, scores: scores, audioSeconds: Double(samples.count) / 16_000, elapsedMs: elapsed)
     }
 
-    static func recognize(_ samples: [Float], lang: Lang) async throws -> (Lang, String, Float) {
+    static func recognize(_ samples: [Float], lang: Lang, context: String?) async throws -> (Lang, String, Float) {
         guard let rec = SFSpeechRecognizer(locale: Locale(identifier: lang.localeIdentifier)), rec.isAvailable else {
             throw AppleSpeechError.unavailable(lang.localeIdentifier)
         }
@@ -63,6 +63,8 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         req.requiresOnDeviceRecognition = true
         req.shouldReportPartialResults = false
         req.addsPunctuation = true
+        // Контекст разговора (R-51): слова-подсказки.
+        if let c = context { req.contextualStrings = Array(c.split(separator: " ").map(String.init).prefix(100)) }
         guard let buf = PCMConverter.buffer(samples) else { throw AppleSpeechError.failed("buffer") }
         req.append(buf)
         req.endAudio()

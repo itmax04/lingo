@@ -1,0 +1,193 @@
+# Eval `dialog`: команды R-14…R-19, R-22 (модель тоже знает команды из обёртки R-25).
+# repeat ≥ 4
+- id: de-repeat-nochmal
+  category: repeat
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history: [{ role: assistant, text: "Wie lange wohnen Sie schon in Hamburg?" }]
+  user: "Äh, nochmal bitte."
+  expect: { repeats_previous: true }
+- id: de-repeat-ru
+  category: repeat
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Was haben Sie am Wochenende gemacht?" }]
+  user: "Повтори, пожалуйста."
+  user_lang: ru
+  expect: { repeats_previous: true }
+- id: en-repeat-again
+  category: repeat
+  session: { lang: en, mode: questions, level: A2, topic: "Travel", corrections: [inline] }
+  history: [{ role: assistant, text: "Where did you go on your last holiday?" }]
+  user: "Sorry, again please?"
+  expect: { repeats_previous: true }
+- id: en-repeat-ru
+  category: repeat
+  session: { lang: en, mode: free, level: B1, corrections: [on_demand] }
+  history: [{ role: assistant, text: "What do you usually do after work?" }]
+  user: "Ещё раз."
+  user_lang: ru
+  expect: { repeats_previous: true }
+# slower ≥ 4
+- id: de-slower
+  category: slower
+  session: { lang: de, mode: questions, level: A2, topic: "Ferien", corrections: [inline] }
+  history: [{ role: assistant, text: "Was machen Sie normalerweise in den Sommerferien?" }]
+  user: "Langsamer, bitte."
+  expect: { repeats_previous: true }
+- id: de-slower-ru
+  category: slower
+  session: { lang: de, mode: free, level: A2, corrections: [after] }
+  history: [{ role: assistant, text: "Wohnen Sie lieber in der Stadt oder auf dem Land?" }]
+  user: "А можно медленнее?"
+  user_lang: ru
+  expect: { repeats_previous: true }
+- id: en-slower
+  category: slower
+  session: { lang: en, mode: questions, level: A2, topic: "Work", corrections: [inline] }
+  history: [{ role: assistant, text: "How long does it take you to get to work every day?" }]
+  user: "Slower, please."
+  expect: { repeats_previous: true }
+- id: en-slower-ru
+  category: slower
+  session: { lang: en, mode: free, level: B1, corrections: [on_demand] }
+  history: [{ role: assistant, text: "Have you ever tried cooking food from another country?" }]
+  user: "Помедленнее."
+  user_lang: ru
+  expect: { repeats_previous: true }
+# how_to_say ≥ 8
+- id: de-howto-ferien
+  category: how_to_say
+  session: { lang: de, mode: questions, level: A2, topic: "Ferien", corrections: [inline] }
+  history: [{ role: assistant, text: "Was machen Sie gerade?" }]
+  user: "Как сказать «у меня сейчас каникулы»?"
+  user_lang: ru
+  expect: { says: ["Ferien|Urlaub"], hint: true, asks_repeat: true, returns_to_practice: true }
+- id: de-howto-zug
+  category: how_to_say
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Warum sind Sie zu spät gekommen?" }]
+  user: "Как будет «я опоздал на поезд»?"
+  user_lang: ru
+  expect: { says: ["Zug"], hint: true, returns_to_practice: true }
+- id: de-howto-wiesagtman
+  category: how_to_say
+  session: { lang: de, mode: questions, level: A2, topic: "Einkaufen", corrections: [inline] }
+  history: [{ role: assistant, text: "Was kaufen Sie gern?" }]
+  user: "Wie sagt man «скидка» auf Deutsch?"
+  expect: { says: ["Rabatt|Ermäßigung|Sonderangebot"], hint: true, returns_to_practice: true }
+- id: de-howto-meer
+  category: how_to_say
+  session: { lang: de, mode: custom, level: A2, corrections: [inline], custom_prompt: "Du bist mein Nachbar. Wir sprechen über das Leben am Meer." }
+  history: [{ role: assistant, text: "Was gefällt Ihnen hier am meisten?" }]
+  user: "Как ещё можно сказать, что мне нравится, что здесь есть море?"
+  user_lang: ru
+  expect: { says: ["Meer"], hint: true, asks_repeat: true }
+- id: en-howto-holiday
+  category: how_to_say
+  session: { lang: en, mode: questions, level: A2, topic: "Holidays", corrections: [inline] }
+  history: [{ role: assistant, text: "What are you doing at the moment?" }]
+  user: "Как сказать «у меня сейчас отпуск»?"
+  user_lang: ru
+  expect: { says: ["holiday|vacation|time off"], hint: true, asks_repeat: true, returns_to_practice: true }
+- id: en-howto-commute
+  category: how_to_say
+  session: { lang: en, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "How do you get to work?" }]
+  user: "How do I say «я трачу час на дорогу до работы»?"
+  expect: { says: ["hour"], hint: true, returns_to_practice: true }
+- id: en-howto-discount
+  category: how_to_say
+  session: { lang: en, mode: questions, level: A2, topic: "Shopping", corrections: [inline] }
+  history: [{ role: assistant, text: "Do you like shopping?" }]
+  user: "Как будет «скидка»?"
+  user_lang: ru
+  expect: { says: ["discount|sale"], hint: true, returns_to_practice: true }
+- id: en-howto-introduce
+  category: how_to_say
+  session: { lang: en, mode: free, level: A1, topic: "Introductions", corrections: [inline] }
+  history: []
+  user: "How do I introduce myself naturally?"
+  expect: { says: ["I'm|I am|my name"], hint: true, returns_to_practice: true }
+# explain ≥ 8
+- id: de-explain-what-asked
+  category: explain
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history: [{ role: assistant, text: "Seit wann wohnen Sie in Hamburg?" }]
+  user: "Что ты спросил?"
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: de-explain-ru
+  category: explain
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Ich hätte gern gewusst, ob Sie schon mal in Wien waren." }]
+  user: "Объясни по-русски, пожалуйста."
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: de-explain-word
+  category: explain
+  session: { lang: de, mode: questions, level: A2, topic: "Arbeit", corrections: [inline] }
+  history: [{ role: assistant, text: "Was machen Sie nach Feierabend?" }]
+  user: "Что значит «Feierabend»?"
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: de-explain-why
+  category: explain
+  session: { lang: de, mode: questions, level: B1, topic: "Grammatik im Alltag", corrections: [inline] }
+  history: [{ role: assistant, text: "Natürlicher: „Ich wohne seit zwei Jahren hier.“ Sag das bitte noch einmal." }]
+  user: "Почему так? Почему «Jahren»?"
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: en-explain-what-asked
+  category: explain
+  session: { lang: en, mode: questions, level: A2, topic: "Travel", corrections: [inline] }
+  history: [{ role: assistant, text: "Have you ever been abroad on your own?" }]
+  user: "Что ты спросил?"
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: en-explain-word
+  category: explain
+  session: { lang: en, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "How long is your daily commute?" }]
+  user: "What does 'commute' mean? Объясни по-русски."
+  expect: { russian: true, returns_to_practice: true }
+- id: en-explain-erkl
+  category: explain
+  session: { lang: en, mode: questions, level: B2, topic: "Work", corrections: [inline] }
+  history: [{ role: assistant, text: "More natural: “I have been working here for two years.” Please say it again." }]
+  user: "Почему здесь present perfect?"
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+- id: en-explain-translate
+  category: explain
+  session: { lang: en, mode: custom, level: A2, corrections: [inline], custom_prompt: "You are a waiter in a café in London." }
+  history: [{ role: assistant, text: "Would you like anything else with your coffee?" }]
+  user: "Переведи, пожалуйста."
+  user_lang: ru
+  expect: { russian: true, returns_to_practice: true }
+# continue ≥ 4
+- id: de-continue
+  category: continue
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history:
+    - { role: assistant, text: "@say ru: «Seit wann» значит «с какого времени».\n@say de: Seit wann wohnen Sie in Hamburg?" }
+  user: "Понятно. Давай продолжаем."
+  user_lang: ru
+  expect: { returns_to_practice: true, one_question: true }
+- id: de-continue-weiter
+  category: continue
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Gut gemacht! Möchten Sie eine Pause machen?" }]
+  user: "Nein, machen wir weiter."
+  expect: { returns_to_practice: true }
+- id: en-continue
+  category: continue
+  session: { lang: en, mode: questions, level: A2, topic: "Hobbies", corrections: [inline] }
+  history: [{ role: assistant, text: "@say ru: Hobby — это увлечение.\n@say en: What is your hobby?" }]
+  user: "Ok, продолжим."
+  user_lang: ru
+  expect: { returns_to_practice: true, one_question: true }
+- id: en-continue-goon
+  category: continue
+  session: { lang: en, mode: free, level: B1, corrections: [on_demand] }
+  history: [{ role: assistant, text: "Nice! Shall we talk about something else?" }]
+  user: "Let's continue."
+  expect: { returns_to_practice: true }

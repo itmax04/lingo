@@ -87,3 +87,19 @@ import Testing
         #expect(p.needsSummary(msgs(20), through: "a9"))
     }
 }
+
+@Suite struct HeardTests {
+    @Test func parsesHeardAndAttachesToUserMessage() throws {
+        let p = ReplyProtocol.parse("@heard: My sister lives near the river.\n@say en: Oh nice! Is she older or younger?", studyLang: .en)
+        #expect(p.violations == 0)
+        #expect(p.segments.first == .heard("My sister lives near the river."))
+        let created = try JSONValue.from(Payload.SessionCreated(title: "t", settings: SessionSettings(lang: .en, mode: .free, corrections: [.inline])))
+        let u = ev("U1", device: "d", seq: 2, lamport: 2, ms: 2000, type: EventType.messageCreated, payload: msg("My system lives near the river.", lang: .en))
+        let a = ev("A1", device: "d", seq: 3, lamport: 3, ms: 3000, type: EventType.messageCreated,
+                   payload: try JSONValue.from(Payload.MessageCreated(role: .assistant, text: "", lang: .en, segments: p.segments, replyTo: "U1")))
+        let st = Merger.build([ev("C", device: "d", seq: 1, lamport: 1, ms: 1000, type: EventType.sessionCreated, payload: created), u, a])
+        #expect(st.messages["s1"]?.first { $0.id == "U1" }?.heard == "My sister lives near the river.")
+        // В расшифровке для модели @heard не повторяется.
+        #expect(!PromptBuilder.transcriptLine(st.messages["s1"]![1]).contains("@heard"))
+    }
+}

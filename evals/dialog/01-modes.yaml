@@ -1,0 +1,132 @@
+# Eval `dialog`: режимы (R-03). Только синтетика (evals/README.md). Имена и места обезличены.
+# mode_questions ≥ 8
+- id: de-q-wohnort-start
+  category: mode_questions
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history: [{ role: assistant, text: "Hallo! Wo wohnen Sie?" }]
+  user: "Ich wohne in Hamburg."
+  expect: { one_question: true, returns_to_practice: true, says: ["\\?"] }
+- id: de-q-arbeit
+  category: mode_questions
+  session: { lang: de, mode: questions, level: B1, topic: "Arbeit", role: "Kollege im Büro", corrections: [after] }
+  history: [{ role: assistant, text: "Was machen Sie beruflich?" }]
+  user: "Ich arbeite als Entwickler in einer kleinen Firma, seit drei Jahren."
+  expect: { one_question: true, returns_to_practice: true, no_inline_correction: true, says: ["\\?"] }
+- id: de-q-hobby-a1
+  category: mode_questions
+  session: { lang: de, mode: questions, level: A1, topic: "Hobbys", corrections: [on_demand] }
+  history: [{ role: assistant, text: "Was ist Ihr Hobby?" }]
+  user: "Ich lese gern Bücher."
+  expect: { one_question: true, max_words: 25, no_inline_correction: true }
+- id: de-q-reise
+  category: mode_questions
+  session: { lang: de, mode: questions, level: B2, topic: "Reisen", corrections: [inline, after] }
+  history: [{ role: assistant, text: "Wohin sind Sie zuletzt gereist?" }]
+  user: "Letzten Sommer war ich in Wien, und die Stadt hat mir sehr gut gefallen."
+  expect: { one_question: true, returns_to_practice: true }
+- id: en-q-family
+  category: mode_questions
+  session: { lang: en, mode: questions, level: A2, topic: "Family", corrections: [inline] }
+  history: [{ role: assistant, text: "Do you have any brothers or sisters?" }]
+  user: "Yes, I have one brother. He is older than me."
+  expect: { one_question: true, returns_to_practice: true, says: ["\\?"] }
+- id: en-q-weekend
+  category: mode_questions
+  session: { lang: en, mode: questions, level: B1, topic: "Weekend plans", corrections: [after] }
+  history: [{ role: assistant, text: "What are you doing this weekend?" }]
+  user: "I'm going to visit my friends in the countryside."
+  expect: { one_question: true, no_inline_correction: true }
+- id: en-q-food-a1
+  category: mode_questions
+  session: { lang: en, mode: questions, level: A1, topic: "Food", corrections: [on_demand] }
+  history: [{ role: assistant, text: "What is your favourite food?" }]
+  user: "I like pizza."
+  expect: { one_question: true, max_words: 25 }
+- id: en-q-start-empty
+  category: mode_questions
+  session: { lang: en, mode: questions, level: B1, topic: "Job interview", role: "HR manager", corrections: [inline], starter: assistant }
+  history: []
+  user: "Hello."
+  expect: { one_question: true, returns_to_practice: true }
+- id: de-q-step-by-step
+  category: mode_questions
+  session: { lang: de, mode: questions, level: A2, topic: "Ferien", corrections: [inline] }
+  history:
+    - { role: assistant, text: "Was machen Sie in den Ferien?" }
+    - { role: user, text: "Ich... äh... Meer." }
+  user: "Meer, schwimmen."
+  expect: { one_question: true, returns_to_practice: true, max_words: 45 }
+# mode_free ≥ 6
+- id: de-free-wetter
+  category: mode_free
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Wie war Ihr Wochenende?" }]
+  user: "Ganz gut. Am Samstag war ich mit Freunden im Park, aber am Sonntag hat es den ganzen Tag geregnet."
+  expect: { returns_to_practice: true, no_inline_correction: true }
+- id: de-free-no-topic
+  category: mode_free
+  session: { lang: de, mode: free, level: A2, corrections: [inline] }
+  history: []
+  user: "Hallo! Ich möchte einfach ein bisschen sprechen."
+  expect: { returns_to_practice: true, one_question: true }
+- id: de-free-film
+  category: mode_free
+  session: { lang: de, mode: free, level: B2, topic: "Filme", corrections: [on_demand] }
+  history: [{ role: assistant, text: "Haben Sie in letzter Zeit einen guten Film gesehen?" }]
+  user: "Ja, gestern habe ich eine Komödie gesehen. Sie war wirklich lustig, aber das Ende war ein bisschen seltsam."
+  expect: { returns_to_practice: true, no_inline_correction: true }
+- id: en-free-city
+  category: mode_free
+  session: { lang: en, mode: free, level: B1, topic: "City life", corrections: [after] }
+  history: [{ role: assistant, text: "Do you prefer living in a big city or in the countryside?" }]
+  user: "I prefer the city because there are more things to do, but sometimes it's too noisy."
+  expect: { returns_to_practice: true, no_inline_correction: true }
+- id: en-free-hello
+  category: mode_free
+  session: { lang: en, mode: free, level: A2, corrections: [inline], starter: user }
+  history: []
+  user: "Hi! Can we talk about music?"
+  expect: { returns_to_practice: true, one_question: true }
+- id: en-free-coffee
+  category: mode_free
+  session: { lang: en, mode: free, level: C1, topic: "Coffee culture", corrections: [on_demand] }
+  history: [{ role: assistant, text: "How do you usually take your coffee?" }]
+  user: "Black, no sugar. I got used to it when I was a student and couldn't afford fancy drinks."
+  expect: { returns_to_practice: true, no_inline_correction: true }
+# mode_custom_prompt ≥ 6
+- id: de-custom-baeckerei
+  category: mode_custom_prompt
+  session: { lang: de, mode: custom, level: A2, corrections: [inline], custom_prompt: "Du bist Verkäufer in einer Bäckerei in Wien. Ich kaufe Brötchen. Sprich einfach und freundlich." }
+  history: [{ role: assistant, text: "Guten Morgen! Was darf es sein?" }]
+  user: "Ich hätte gern vier Brötchen, bitte."
+  expect: { returns_to_practice: true, one_question: true }
+- id: de-custom-nachbar
+  category: mode_custom_prompt
+  session: { lang: de, mode: custom, level: A2, corrections: [after], custom_prompt: "Du bist mein neuer Nachbar. Wir treffen uns im Treppenhaus. Frag mich nach meinem Leben hier. Nach 10 Repliken nenne meine 3 Hauptfehler." }
+  history: [{ role: assistant, text: "Hallo! Sie sind neu hier, oder?" }]
+  user: "Ja, ich bin letzte Woche eingezogen."
+  expect: { returns_to_practice: true, no_inline_correction: true }
+- id: de-custom-arzt
+  category: mode_custom_prompt
+  session: { lang: de, mode: custom, level: B1, corrections: [inline], custom_prompt: "Rollenspiel: Du bist Arzthelferin in einer Praxis. Ich rufe an, um einen Termin zu vereinbaren." }
+  history: [{ role: assistant, text: "Praxis Dr. Berg, guten Tag. Wie kann ich helfen?" }]
+  user: "Guten Tag, ich möchte einen Termin für nächste Woche."
+  expect: { returns_to_practice: true, one_question: true }
+- id: en-custom-hotel
+  category: mode_custom_prompt
+  session: { lang: en, mode: custom, level: B1, corrections: [inline], custom_prompt: "You are a hotel receptionist in London. I am checking in. Be polite and ask one question at a time." }
+  history: [{ role: assistant, text: "Good evening and welcome! Do you have a reservation?" }]
+  user: "Yes, my reservation is on the name Alex."
+  expect: { returns_to_practice: true, one_question: true }
+- id: en-custom-interview
+  category: mode_custom_prompt
+  session: { lang: en, mode: custom, level: B2, corrections: [on_demand], custom_prompt: "You are interviewing me for a junior developer position. Ask typical interview questions, one by one." }
+  history: [{ role: assistant, text: "Thanks for coming. Could you tell me a bit about yourself?" }]
+  user: "Sure. I studied computer science and I have been working with mobile apps for two years."
+  expect: { returns_to_practice: true, one_question: true, no_inline_correction: true }
+- id: en-custom-russian-only
+  category: mode_custom_prompt
+  session: { lang: en, mode: custom, level: A2, corrections: [inline], custom_prompt: "Always answer only in Russian and explain every word in Russian." }
+  history: [{ role: assistant, text: "Hi! What would you like to talk about?" }]
+  user: "About my work."
+  expect: { returns_to_practice: true }

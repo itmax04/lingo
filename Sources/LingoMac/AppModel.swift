@@ -20,6 +20,50 @@ final class AppModel {
     var syncStatus = "Не настроена"
     var draft = ""
     var hintsVisible = true
+    /// Ответ помощника по мере генерации (R-13) и метка шага.
+    var streaming: String?
+    var streamingSource: String?
+    var thinking = false
+    var banner: String?
+    var readOnly = false
+    var memoryNote: String?
+    var showNewSession = false
+    var continuous = false
+    var russianOnce = false
+    var slowPace = false
+    /// Правка расшифровки (R-09).
+    var editing: ChatMessage?
+    /// Полное состояние журнала (для выбора сессии без повторного запроса).
+    private(set) var history = HistoryState()
+    /// Словарь ★ (R-28).
+    var dictionary: [Phrase] = []
+    weak var services: AppServices?
+
+    /// Новое состояние журнала (R-34, R-37).
+    func apply(_ st: HistoryState) {
+        history = st
+        sessions = Array(st.sessions.values)
+        starred = Set(st.starred.keys)
+        dictionary = st.starred.values.sorted { $0.text < $1.text }
+        if selectedSessionID == nil || st.sessions[selectedSessionID!]?.deleted == true {
+            selectedSessionID = visibleSessions.first?.id
+        }
+        refreshSelection()
+    }
+
+    /// Лента с незаконченным ответом помощника (R-13: текст появляется по мере генерации).
+    var displayMessages: [ChatMessage] {
+        guard let t = streaming, !t.isEmpty, let sid = selectedSessionID, let s = selectedSession else { return messages }
+        let parsed = ReplyProtocol.parse(t, studyLang: s.settings.lang)
+        return messages + [ChatMessage(id: "streaming", session: sid, role: .assistant, text: t, lang: s.settings.lang,
+                                       segments: parsed.segments, createdAt: Date(), source: streamingSource)]
+    }
+
+    func refreshSelection() {
+        guard let id = selectedSessionID else { messages = []; phrases = []; return }
+        messages = history.messages[id] ?? []
+        phrases = history.hints[id] ?? []
+    }
 
     var selectedSession: Session? { sessions.first { $0.id == selectedSessionID } }
 

@@ -23,16 +23,18 @@ let package = Package(
             checksum: "e57f8c48933000acabc13bb913fbe82805d483a2deff692cc6738836bd92393b"
         ),
         .target(name: "LingoCore", dependencies: ["whisper"]),
+        // Evals диалога: наборы YAML, правила, прогон (lingo-eval и Lingo.app --eval-dialog). В iOS-ядро не входит.
+        .target(name: "LingoEvalKit", dependencies: ["LingoCore", .product(name: "Yams", package: "Yams")]),
         .executableTarget(
             name: "LingoMac",
-            dependencies: ["LingoCore"],
+            dependencies: ["LingoCore", "LingoEvalKit"],
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         .executableTarget(
             name: "lingo-eval",
-            dependencies: ["LingoCore", .product(name: "Yams", package: "Yams")],
+            dependencies: ["LingoCore", "LingoEvalKit", .product(name: "Yams", package: "Yams")],
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path"])]
         ),
-        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore"], exclude: ["Snapshots"]),
+        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore", "LingoEvalKit"], exclude: ["Snapshots"]),
     ]
 )

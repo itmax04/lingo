@@ -1,5 +1,6 @@
 import Foundation
 import LingoCore
+import LingoEvalKit
 
 // CLI для evals (plan.md P-02+). Подкоманды добавляются по шагам.
 //   sync-write --device <id> --session <id> --count N [--folder <папка>] [--offline] [--base <папка>]
@@ -106,6 +107,18 @@ case "chunk-debug":
     exit(try ChunkDebug.run(files: (a.values["--files"] ?? "").split(separator: ",").map(String.init)))
 case "tts-bench":
     exit(TTSBench.run())
+case "blind":
+    let from = (a.values["--from"] ?? "").split(separator: ",").map(String.init)
+    exit(try BlindReview.run(from: from, cases: a.values["--cases"] ?? "evals/dialog", n: Int(a.values["--n"] ?? "20") ?? 20,
+                             seed: UInt64(a.values["--seed"] ?? "2026") ?? 2026))
+case "dialog-report":
+    // Сводка по сохранённым прогонам (без сети): lingo-eval dialog-report --from a.json,b.json
+    let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
+    for p in (a.values["--from"] ?? "").split(separator: ",") {
+        let r = try dec.decode(DialogRunner.Report.self, from: Data(contentsOf: URL(fileURLWithPath: String(p))))
+        DialogRunner.verdict(r).lines.forEach { print($0) }
+        print("  категории: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
+    }
 case "commands":
     exit(try CommandsEval.run(set: a.values["--set"] ?? "evals/commands"))
 case "turn":

@@ -1,0 +1,388 @@
+import Foundation
+
+/// Выход озвучки для голосового цикла (реализация — `VoiceIO`; в тестах — фейк).
+@MainActor
+public protocol SpeechSink: AnyObject {
+    func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double, tag: Int)
+    @discardableResult func stopSpeaking() -> (tag: Int, charOffset: Int)?
+    var isSpeaking: Bool { get }
+    var micMuted: Bool { get set }
+}
+
+extension VoiceIO: SpeechSink {}
+
+/// Голосовой цикл (R-06…R-15, S-02…S-07): кнопка/пробел и непрерывный режим, конец реплики по паузе T, склейка по G,
+/// перебивание, локальные «повтори» и «медленнее», ход через `DialogEngine`, озвучка по предложениям, метрики хода.
+@MainActor
+public final class TurnController {
+    public enum Mode: Sendable { case pushToTalk, continuous }
+
+    public struct Context: Sendable {
+        public var session: Session
+        public var lastAssistant: ChatMessage?
+        public var lastUser: ChatMessage?
+        public var phrases: [String]
+        public init(session: Session, lastAssistant: ChatMessage?, lastUser: ChatMessage?, phrases: [String]) {
+            self.session = session
+            self.lastAssistant = lastAssistant
+            self.lastUser = lastUser
+            self.phrases = phrases
+        }
+    }
+
+    // Зависимости
+    public let engine: DialogEngine
+    public let recognizer: SpeechRecognizer
+    public let sink: SpeechSink
+    public let metrics: MetricsRecorder?
+    public var voice: VoiceSettings
+    public var context: () -> Context?
+
+    // Наружу
+    public private(set) var state: VoiceState = .idle { didSet { if state != oldValue { onState?(state) } } }
+    public var onState: ((VoiceState) -> Void)?
+    public var onLevel: ((Float) -> Void)?
+    public var onTurn: ((TurnEvent) -> Void)?
+    public var onNotice: ((String) -> Void)?
+    public private(set) var mode: Mode = .pushToTalk
+    /// «Говорю по-русски» (R-09): одна следующая реплика распознаётся как русская.
+    public var forceRussianOnce = false
+    /// «Медленный темп» в шапке (R-15): все ответы ×0,75.
+    public var slowPace = false
+
+    // Звук
+    private var vad: EnergyVAD
+    private var segmenter: TurnSegmenter
+    private var buffer: [Float] = []
+    private var bufferStart = 0          // абсолютный номер первого сэмпла в буфере
+    private var clock = 0                // абсолютный номер следующего сэмпла
+    private var recording = false        // кнопка/пробел
+    private var paused = false
+
+    // Ход
+    private var turnTask: Task<Void, Never>?
+    private var turnSeq = 0
+    private var currentTurnID = ""
+    private var spokenParts: [(tag: Int, text: String)] = []
+    private var nextTag = 1
+    private var speakingTurn: String?
+    private var interruptedAt: Int?
+    private var lastSpeechEnd: Double = 0
+    private var slowStep = 0
+    private var lastUserID: String?
+    private var lastUserText = ""
+    private var answerStarted = false
+    /// Сообщение помощника, которое сейчас озвучивается (после записи в журнал).
+    private var speakingMessageID: String?
+    private var speakingSessionID: String?
+
+    public init(engine: DialogEngine, recognizer: SpeechRecognizer, sink: SpeechSink, metrics: MetricsRecorder?,
+                voice: VoiceSettings, context: @escaping () -> Context?) {
+        self.engine = engine
+        self.recognizer = recognizer
+        self.sink = sink
+        self.metrics = metrics
+        self.voice = voice
+        self.context = context
+        self.vad = EnergyVAD(config: VoiceDefaults.vad)
+        self.segmenter = TurnSegmenter(config: voice.turn)
+    }
+
+    var seconds: Double { Double(clock) / 16_000 }
+
+    // MARK: Управление (R-06, R-07, R-12)
+
+    public func startContinuous() {
+        mode = .continuous
+        paused = false
+        segmenter = TurnSegmenter(config: voice.turn)
+        if state == .idle || state == .paused { state = .listening }
+    }
+
+    public func stopVoice() {
+        mode = .pushToTalk
+        recording = false
+        paused = false
+        interrupt(reason: "stop")
+        state = .idle
+    }
+
+    /// «Пауза»: прослушивание и озвучка приостанавливаются (R-07).
+    public func togglePause() {
+        if paused {
+            paused = false
+            state = mode == .continuous ? .listening : .idle
+        } else {
+            paused = true
+            interrupt(reason: "pause")
+            state = .paused
+        }
+    }
+
+    /// Пробел/кнопка нажаты (R-06): начать запись; во время озвучки — остановить её (R-12).
+    public func pushDown() {
+        if sink.isSpeaking { interrupt(reason: "key") }
+        recording = true
+        segmenter = TurnSegmenter(config: voice.turn)
+        // Если речь уже идёт (начали говорить чуть раньше нажатия) — реплика начинается сейчас.
+        if vad.isSpeech { _ = segmenter.speechStarted(at: max(0, seconds - 0.3)) }
+        state = .recording
+    }
+
+    /// Пробел/кнопка отпущены: реплика закончена.
+    public func pushUp() {
+        guard recording else { return }
+        recording = false
+        let ev = segmenter.flush(at: seconds)
+        handle(ev)
+        if !ev.contains(where: { if case .utterance = $0 { return true }; if case .merged = $0 { return true }; return false }) {
+            state = mode == .continuous ? .listening : .idle
+        }
+    }
+
+    /// Esc (R-06, R-12): отменить реплику и остановить озвучку.
+    public func cancel() {
+        recording = false
+        segmenter = TurnSegmenter(config: voice.turn)
+        interrupt(reason: "esc")
+        state = mode == .continuous ? .listening : .idle
+    }
+
+    // MARK: Звук
+
+    public func feed(_ s: [Float]) {
+        let level = min(1, max(0, (EnergyVAD.rmsDB(s[...]) + 60) / 50))
+        onLevel?(level)
+        buffer.append(contentsOf: s)
+        clock += s.count
+        let cap = Int(UtteranceBuffer.maxSeconds * 16_000)
+        if buffer.count > cap { let drop = buffer.count - cap; buffer.removeFirst(drop); bufferStart += drop }
+        // VAD слушает всегда (уровень шума и состояние «речь» не застревают между записями по кнопке);
+        // события идут в сегментатор, только когда запись активна.
+        // Во время озвучки порог выше: своё эхо не считается перебиванием (R-12).
+        vad.extraMarginDB = sink.isSpeaking ? voice.bargeInMarginDB : 0
+        let base = clock - s.count
+        let events = vad.processEvents(s)
+        guard !paused, recording || mode == .continuous else { return }
+        for e in events {
+            let t = Double(base + e.sampleOffset) / 16_000
+            if e.isSpeech {
+                let ev = segmenter.speechStarted(at: max(0, t - Double(VoiceDefaults.vad.attackFrames * VoiceDefaults.vad.frameMs) / 1000))
+                // Перебивание (R-12): речь пользователя во время озвучки — остановить не позже 0,5 с.
+                if sink.isSpeaking { interrupt(reason: "barge-in") }
+                handle(ev)
+            } else {
+                handle(segmenter.speechEnded(at: t - Double(VoiceDefaults.vad.hangoverMs) / 1000))
+            }
+        }
+        if !recording { handle(segmenter.advance(to: seconds)) }
+    }
+
+    private func handle(_ events: [TurnSegmenter.Event]) {
+        for e in events {
+            switch e {
+            case .speechBegan:
+                if state == .listening || state == .thinking { /* склейка решается в конце реплики */ }
+            case .utterance(let span):
+                process(span: span, merge: false)
+            case .merged(_, let span):
+                process(span: span, merge: true)
+            case .discarded:
+                break
+            }
+        }
+    }
+
+    private func samples(_ span: TurnSegmenter.Span) -> [Float] {
+        let a = max(bufferStart, Int((span.start - 0.2) * 16_000)), b = min(clock, Int((span.end + 0.25) * 16_000))
+        guard b > a else { return [] }
+        return Array(buffer[(a - bufferStart)..<(b - bufferStart)])
+    }
+
+    // MARK: Реплика → ход
+
+    private func process(span: TurnSegmenter.Span, merge: Bool) {
+        guard let ctx = context() else { onNotice?("Нет выбранной сессии"); return }
+        let study = ctx.session.settings.lang
+        // Склейка (R-11): помощник ещё не начал говорить → отменить незавершённый запрос и отправить объединённый текст.
+        let doMerge = merge && !answerStarted && lastUserID != nil
+        if doMerge { turnTask?.cancel() } else if turnTask != nil { /* прошлый ход дописывается сам */ }
+        let audio = samples(span)
+        let forced: Lang? = forceRussianOnce ? .ru : nil
+        forceRussianOnce = false
+        turnSeq += 1
+        let turnID = "t\(turnSeq)-\(Int(Date().timeIntervalSince1970))"
+        currentTurnID = turnID
+        let speechEnd = MetricsRecorder.now() - (seconds - span.end)
+        metrics?.mark(turnID, "speech_end", at: speechEnd)
+        lastSpeechEnd = speechEnd
+        state = .thinking
+        answerStarted = false
+        let recCtx = RecognitionContext.make(lastAssistant: ctx.lastAssistant?.spokenText, topic: ctx.session.settings.topic, phrases: ctx.phrases)
+        let prevID = lastUserID, prevText = lastUserText
+        turnTask = Task { [weak self] in
+            guard let self else { return }
+            let tr: Transcription
+            do {
+                tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
+            } catch {
+                self.onNotice?("Распознавание: \(error)")
+                self.state = self.mode == .continuous ? .listening : .idle
+                return
+            }
+            if Task.isCancelled { return }
+            self.metrics?.mark(turnID, "stt_final")
+            self.metrics?.note(turnID, "lang", tr.lang.rawValue)
+            self.metrics?.note(turnID, "chars", String(tr.text.count))
+            let text = tr.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else {
+                self.state = self.mode == .continuous ? .listening : .idle
+                return
+            }
+            if doMerge, let pid = prevID {
+                let merged = prevText + " " + text
+                try? await self.engine.edit(pid, session: ctx.session.id, text: merged)
+                self.lastUserText = merged
+                self.metrics?.note(turnID, "merged", "1")
+                await self.runTurn(self.engine.respond(session: ctx.session.id, replyTo: pid), turnID: turnID, ctx: ctx)
+                return
+            }
+            let cmd = CommandDetector.detect(text)
+            if let c = cmd?.kind, c.isLocal {
+                self.metrics?.note(turnID, "command", c.rawValue)
+                _ = try? await self.engine.recordUser(session: ctx.session.id, text: text, lang: tr.lang)
+                self.replayLast(ctx: ctx, slower: c == .slower, turnID: turnID)
+                return
+            }
+            if c(cmd) != .slower { self.slowStep = 0 }
+            await self.runTurn(self.engine.send(session: ctx.session.id, text: text, lang: tr.lang, command: cmd?.kind), turnID: turnID, ctx: ctx)
+        }
+    }
+
+    private nonisolated func c(_ m: CommandMatch?) -> CommandKind? { m?.kind }
+
+    private func runTurn(_ stream: AsyncStream<TurnEvent>, turnID: String, ctx: Context) async {
+        spokenParts = []
+        interruptedAt = nil
+        speakingTurn = turnID
+        speakingMessageID = nil
+        speakingSessionID = ctx.session.id
+        let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        for await e in stream {
+            onTurn?(e)
+            switch e {
+            case .userSaved(let id):
+                lastUserID = id
+                lastUserText = (await engine.store.state.messages[ctx.session.id]?.first { $0.id == id }?.text) ?? lastUserText
+            case .firstToken:
+                metrics?.mark(turnID, "llm_first_token")
+            case .speak(let l, let t):
+                guard speakingTurn == turnID, interruptedAt == nil, !paused else { continue }
+                let tag = nextTag
+                nextTag += 1
+                spokenParts.append((tag, t))
+                if !answerStarted {
+                    answerStarted = true
+                    segmenter.assistantStartedSpeaking()
+                }
+                sink.speak(t, lang: l, voiceID: voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
+                state = .speaking
+            case .restart:
+                if speakingTurn == turnID { sink.stopSpeaking(); spokenParts = [] }
+            case .finished(let mid, _, _, _):
+                if speakingTurn == turnID { speakingMessageID = mid }
+                if let at = interruptedAt, speakingTurn == turnID || speakingTurn == nil {
+                    try? await engine.markInterrupted(mid, session: ctx.session.id, at: at)
+                    metrics?.note(turnID, "interrupted_at", String(at))
+                }
+                metrics?.note(turnID, "message", mid)
+            case .failed(let reason, _):
+                metrics?.note(turnID, "failed", String(reason.prefix(60)))
+                onNotice?("Модели недоступны")
+            default:
+                break
+            }
+        }
+        await waitSpeechEnd()
+        metrics?.mark(turnID, "reply_end")
+        metrics?.flush(turnID)
+        if currentTurnID == turnID, state == .speaking || state == .thinking {
+            state = paused ? .paused : (mode == .continuous ? .listening : .idle)
+        }
+    }
+
+    private func waitSpeechEnd() async {
+        while sink.isSpeaking { try? await Task.sleep(for: .milliseconds(50)) }
+    }
+
+    /// Первый звук части ответа (из `VoiceIO.onPlaybackStarted`) — метрика `first_audio`.
+    public func playbackStarted(tag: Int, uptimeNs: UInt64) {
+        guard spokenParts.first?.tag == tag, let t = speakingTurn else { return }
+        metrics?.mark(t, "first_audio", at: Double(uptimeNs) / 1e9)
+    }
+
+    /// Остановить озвучку; запомнить, где прервано (R-12).
+    private func interrupt(reason: String) {
+        guard let stop = sink.stopSpeaking() else { return }
+        var offset = 0
+        for p in spokenParts {
+            if p.tag == stop.tag { offset += stop.charOffset; break }
+            offset += (p.text as NSString).length + 1
+        }
+        interruptedAt = offset
+        if let t = speakingTurn { metrics?.note(t, "interrupt", reason) }
+        // Ответ уже в журнале — отметка «прервано» сразу (R-12); иначе — при записи ответа.
+        if let mid = speakingMessageID, let sid = speakingSessionID {
+            let e = engine
+            Task { try? await e.markInterrupted(mid, session: sid, at: offset) }
+            speakingMessageID = nil
+        }
+        Log.turns.notice("interrupt reason=\(reason, privacy: .public) at=\(offset, privacy: .public)")
+    }
+
+    // MARK: «Повтори», «Медленнее» (R-14, R-15)
+
+    private func replayLast(ctx: Context, slower: Bool, turnID: String) {
+        guard let last = ctx.lastAssistant else { state = mode == .continuous ? .listening : .idle; return }
+        if slower { slowStep = min(SpeechPace.slowSteps.count - 1, slowStep + 1) } else { slowStep = 0 }
+        let mult = SpeechPace.slowSteps[slowStep]
+        let rate = SpeechPace(base: voice.pace).rate(multiplier: slower ? mult : (slowPace ? 0.75 : 1))
+        let segs: [(Lang, String)] = last.segments.isEmpty ? [(last.lang, last.text)]
+            : last.segments.compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
+        spokenParts = []
+        interruptedAt = nil
+        speakingTurn = turnID
+        speakingMessageID = nil
+        answerStarted = true
+        segmenter.assistantStartedSpeaking()
+        for (l, t) in segs {
+            let parts = slower ? SlowChunks.split(t) : [t]
+            for p in parts {
+                let tag = nextTag
+                nextTag += 1
+                spokenParts.append((tag, p))
+                sink.speak(p, lang: l, voiceID: voice.voiceIDs[l], rate: rate, pauseAfter: slower ? 0.6 : 0, tag: tag)
+            }
+        }
+        state = .speaking
+        Task { [weak self] in
+            await self?.waitSpeechEnd()
+            self?.metrics?.mark(turnID, "reply_end")
+            self?.metrics?.flush(turnID)
+            if let s = self, s.currentTurnID == turnID, s.state == .speaking { s.state = s.mode == .continuous ? .listening : .idle }
+        }
+    }
+
+    /// Повтор озвучки по клику на пузырь помощника (R-41).
+    public func replay(_ m: ChatMessage) {
+        interrupt(reason: "replay")
+        let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        for seg in m.segments {
+            if case .say(let l, let t) = seg {
+                let tag = nextTag
+                nextTag += 1
+                sink.speak(t, lang: l, voiceID: voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
+            }
+        }
+    }
+}

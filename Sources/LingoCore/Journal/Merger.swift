@@ -187,6 +187,17 @@ public enum Merger {
                             segments: p.segments ?? [], createdAt: m.event.ts, source: p.source,
                             interruptedAt: m.interrupted.value, synced: isSynced(m.event), kind: p.kind ?? .normal))
         }
+        // «Понято как» (R-51): `@heard` ответа показывается под репликой пользователя, на которую он ответ.
+        for (sid, list) in st.messages {
+            var out = list
+            for (i, m) in list.enumerated() where m.role == .assistant {
+                guard let h = m.segments.lazy.compactMap({ seg -> String? in if case .heard(let t) = seg { return t }; return nil }).first else { continue }
+                let target = messages[m.id]?.payload.replyTo.flatMap { r in out.firstIndex { $0.id == r } }
+                    ?? out[..<i].lastIndex { $0.role == .user }
+                if let t = target, out[t].role == .user { out[t].heard = h }
+            }
+            st.messages[sid] = out
+        }
         for (key, reg) in stars where reg.value { st.starred[key] = starPhrase[key] }
         return st
     }

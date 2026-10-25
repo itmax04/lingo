@@ -1,0 +1,191 @@
+# Eval `dialog`: режимы исправления R-20 и их сочетания, русская реплика без просьбы (R-18, A-2).
+# correction_inline ≥ 8
+- id: de-inline-an-ort
+  category: correction_inline
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history: [{ role: assistant, text: "Was gefällt Ihnen an Hamburg?" }]
+  user: "Mir gefällt in Hamburg, dass Hafen hier hast."
+  expect: { contains_correction: ["an Hamburg", "es hier .*Hafen gibt", "dass es hier einen Hafen", "den Hafen"], asks_repeat: true, one_question: true }
+- id: de-inline-seit
+  category: correction_inline
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [inline] }
+  history: [{ role: assistant, text: "Wie lange wohnen Sie schon hier?" }]
+  user: "Ich wohne hier seit zwei Jahre."
+  expect: { contains_correction: ["zwei Jahren"], asks_repeat: true }
+- id: de-inline-verb-end
+  category: correction_inline
+  session: { lang: de, mode: free, level: B1, corrections: [inline] }
+  history: [{ role: assistant, text: "Warum lernen Sie Deutsch?" }]
+  user: "Ich lerne Deutsch, weil ich will in Deutschland arbeiten."
+  expect: { contains_correction: ["weil ich in Deutschland arbeiten will", "arbeiten möchte", "arbeiten will"], asks_repeat: true }
+- id: de-inline-perfekt
+  category: correction_inline
+  session: { lang: de, mode: questions, level: A2, topic: "Wochenende", corrections: [inline, on_demand] }
+  history: [{ role: assistant, text: "Was haben Sie am Wochenende gemacht?" }]
+  user: "Am Wochenende ich habe gegangen ins Kino."
+  expect: { contains_correction: ["bin ich ins Kino gegangen", "ins Kino gegangen"], asks_repeat: true }
+- id: de-inline-wrong-question
+  category: correction_inline
+  session: { lang: de, mode: questions, level: A2, topic: "Kennenlernen", corrections: [inline] }
+  history: [{ role: assistant, text: "Wie heißen Sie und woher kommen Sie?" }]
+  user: "Ich heiße Alex."
+  expect: { contains_correction: ["woher|komme aus|Ich komme"], one_question: true }
+- id: en-inline-since
+  category: correction_inline
+  session: { lang: en, mode: questions, level: A2, topic: "Home", corrections: [inline] }
+  history: [{ role: assistant, text: "How long have you lived in your flat?" }]
+  user: "I live here since two years."
+  expect: { contains_correction: ["have lived here for two years", "for two years", "lived here for"], asks_repeat: true }
+- id: en-inline-third-person
+  category: correction_inline
+  session: { lang: en, mode: questions, level: A1, topic: "Family", corrections: [inline] }
+  history: [{ role: assistant, text: "What does your brother do?" }]
+  user: "My brother work in a bank."
+  expect: { contains_correction: ["works in a bank", "brother works"], asks_repeat: true, max_words: 25 }
+- id: en-inline-past
+  category: correction_inline
+  session: { lang: en, mode: free, level: B1, corrections: [inline, after] }
+  history: [{ role: assistant, text: "What did you do yesterday evening?" }]
+  user: "Yesterday I go to the cinema with my friend."
+  expect: { contains_correction: ["went to the cinema", "I went"], asks_repeat: true }
+- id: en-inline-no-mistake
+  category: correction_inline
+  session: { lang: en, mode: questions, level: B1, topic: "Hobbies", corrections: [inline] }
+  history: [{ role: assistant, text: "What do you do in your free time?" }]
+  user: "I usually play football with my colleagues on Fridays."
+  expect: { no_inline_correction: true, one_question: true }
+# correction_after ≥ 6
+- id: de-after-silent-fix
+  category: correction_after
+  session: { lang: de, mode: questions, level: A2, topic: "Wohnort", corrections: [after] }
+  history: [{ role: assistant, text: "Wie lange wohnen Sie schon hier?" }]
+  user: "Ich wohne hier seit zwei Jahre."
+  expect: { no_inline_correction: true, fix_recorded: true, one_question: true }
+- id: de-after-wordorder
+  category: correction_after
+  session: { lang: de, mode: free, level: B1, corrections: [after] }
+  history: [{ role: assistant, text: "Warum lernen Sie Deutsch?" }]
+  user: "Ich lerne Deutsch, weil ich will hier studieren."
+  expect: { no_inline_correction: true, fix_recorded: true }
+- id: de-after-correct
+  category: correction_after
+  session: { lang: de, mode: questions, level: A2, topic: "Essen", corrections: [after] }
+  history: [{ role: assistant, text: "Was essen Sie gern?" }]
+  user: "Ich esse gern Fisch und Gemüse."
+  expect: { no_inline_correction: true }
+- id: en-after-silent-fix
+  category: correction_after
+  session: { lang: en, mode: questions, level: A2, topic: "Family", corrections: [after] }
+  history: [{ role: assistant, text: "What does your sister do?" }]
+  user: "She work as a nurse in hospital."
+  expect: { no_inline_correction: true, fix_recorded: true }
+- id: en-after-past
+  category: correction_after
+  session: { lang: en, mode: free, level: B1, corrections: [after, on_demand] }
+  history: [{ role: assistant, text: "How was your trip?" }]
+  user: "It was great, we see a lot of old buildings."
+  expect: { no_inline_correction: true, fix_recorded: true }
+- id: en-after-correct
+  category: correction_after
+  session: { lang: en, mode: questions, level: B1, topic: "Work", corrections: [after] }
+  history: [{ role: assistant, text: "What do you like about your job?" }]
+  user: "I like my team and the interesting projects."
+  expect: { no_inline_correction: true }
+# correction_on_demand ≥ 6
+- id: de-demand-ask
+  category: correction_on_demand
+  session: { lang: de, mode: free, level: A2, corrections: [on_demand] }
+  history:
+    - { role: assistant, text: "Was haben Sie gestern gemacht?" }
+    - { role: user, text: "Gestern ich bin zu Hause geblieben." }
+    - { role: assistant, text: "Ach so! Und warum?" }
+    - { role: user, text: "Weil es hat geregnet." }
+    - { role: assistant, text: "Verstehe. Was haben Sie zu Hause gemacht?" }
+  user: "Korrigiere mich, bitte. Gab es Fehler?"
+  expect: { min_fixes: 2, contains_correction: ["bin ich zu Hause", "weil es geregnet hat"], one_question: true }
+- id: de-demand-ru
+  category: correction_on_demand
+  session: { lang: de, mode: questions, level: A2, topic: "Arbeit", corrections: [on_demand] }
+  history:
+    - { role: assistant, text: "Wo arbeiten Sie?" }
+    - { role: user, text: "Ich arbeite in eine Firma." }
+    - { role: assistant, text: "Und was machen Sie dort?" }
+  user: "Были ошибки? Объясни по-русски."
+  user_lang: ru
+  expect: { russian: true, fix_recorded: true, contains_correction: ["in einer Firma"] }
+- id: de-demand-none-without-ask
+  category: correction_on_demand
+  session: { lang: de, mode: questions, level: A2, topic: "Arbeit", corrections: [on_demand] }
+  history: [{ role: assistant, text: "Wo arbeiten Sie?" }]
+  user: "Ich arbeite in eine Firma."
+  expect: { no_inline_correction: true, one_question: true }
+- id: en-demand-ask
+  category: correction_on_demand
+  session: { lang: en, mode: free, level: B1, corrections: [on_demand] }
+  history:
+    - { role: assistant, text: "What did you do last weekend?" }
+    - { role: user, text: "I go to the mountains with my friends." }
+    - { role: assistant, text: "Sounds great! How was the weather?" }
+    - { role: user, text: "It was very cold, but we enjoyed." }
+    - { role: assistant, text: "Nice! What did you do there?" }
+  user: "Any mistakes so far?"
+  expect: { min_fixes: 2, contains_correction: ["went to the mountains", "enjoyed it"] }
+- id: en-demand-check
+  category: correction_on_demand
+  session: { lang: en, mode: questions, level: A2, topic: "Food", corrections: [on_demand, after] }
+  history:
+    - { role: assistant, text: "What did you eat for breakfast?" }
+    - { role: user, text: "I eated eggs and toast." }
+    - { role: assistant, text: "Yummy! Do you cook every day?" }
+  user: "Проверь меня, были ошибки?"
+  user_lang: ru
+  expect: { fix_recorded: true, contains_correction: ["ate eggs", "\\bate\\b"] }
+- id: en-demand-none-without-ask
+  category: correction_on_demand
+  session: { lang: en, mode: questions, level: A2, topic: "Food", corrections: [on_demand] }
+  history: [{ role: assistant, text: "What did you eat for breakfast?" }]
+  user: "I eated eggs and toast."
+  expect: { no_inline_correction: true, one_question: true }
+# ru_utterance ≥ 6 (R-18, A-2): по-русски без просьбы объяснить → вариант на изучаемом языке, просьба повторить
+- id: de-ru-ferien
+  category: ru_utterance
+  session: { lang: de, mode: questions, level: A2, topic: "Ferien", corrections: [inline] }
+  history: [{ role: assistant, text: "Was machen Sie in den Ferien?" }]
+  user: "Нет, я хочу сказать, что у меня каникулы."
+  user_lang: ru
+  expect: { says: ["Ferien|Urlaub"], asks_repeat: true, returns_to_practice: true }
+- id: de-ru-meer
+  category: ru_utterance
+  session: { lang: de, mode: free, level: A2, corrections: [after] }
+  history: [{ role: assistant, text: "Was gefällt Ihnen an Ihrer Stadt?" }]
+  user: "Мне нравится, что здесь есть море."
+  user_lang: ru
+  expect: { says: ["Meer"], asks_repeat: true }
+- id: de-ru-tired
+  category: ru_utterance
+  session: { lang: de, mode: questions, level: A2, topic: "Alltag", corrections: [on_demand] }
+  history: [{ role: assistant, text: "Wie geht es Ihnen heute?" }]
+  user: "Я сегодня очень устал после работы."
+  user_lang: ru
+  expect: { says: ["müde"], asks_repeat: true }
+- id: en-ru-holiday
+  category: ru_utterance
+  session: { lang: en, mode: questions, level: A2, topic: "Holidays", corrections: [inline] }
+  history: [{ role: assistant, text: "What are you doing this week?" }]
+  user: "Я хочу сказать, что у меня отпуск."
+  user_lang: ru
+  expect: { says: ["holiday|vacation|time off|day off"], asks_repeat: true, returns_to_practice: true }
+- id: en-ru-like-sea
+  category: ru_utterance
+  session: { lang: en, mode: free, level: A2, corrections: [after] }
+  history: [{ role: assistant, text: "What do you like about your city?" }]
+  user: "Мне нравится, что рядом море."
+  user_lang: ru
+  expect: { says: ["sea"], asks_repeat: true }
+- id: en-ru-late
+  category: ru_utterance
+  session: { lang: en, mode: questions, level: B1, topic: "Work", corrections: [inline] }
+  history: [{ role: assistant, text: "Why were you late this morning?" }]
+  user: "Я опоздал, потому что автобус не пришёл."
+  user_lang: ru
+  expect: { says: ["bus"], asks_repeat: true }

@@ -115,6 +115,10 @@ struct MessageBubble: View {
     private var meta: some View {
         HStack(spacing: Theme.S.s8) {
             if isUser {
+                if let h = message.heard {
+                    // «Понято как» (R-51): мелко, в цвете метаданных, как время.
+                    Text("понято как: \(h)").lineLimit(2).textSelection(.enabled)
+                }
                 Spacer(minLength: 0)
                 Text(message.lang.tag)
                 Text(SessionDateFormat.time(message.createdAt))
@@ -166,7 +170,7 @@ struct SegmentView: View {
             .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Исправление: \(fix.original) — правильно: \(fix.corrected)")
-        case .hint:
+        case .hint, .heard:
             EmptyView()
         }
     }

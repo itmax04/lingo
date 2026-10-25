@@ -33,8 +33,8 @@ public actor JournalStore {
     public var isReadOnly: Bool { readResult.newerSchema }
     public var corruptedLines: Int { readResult.corruptedLines }
 
-    public var ownDir: URL { base.appendingPathComponent("devices/\(deviceID)", isDirectory: true) }
-    public var cacheDir: URL { base.appendingPathComponent("cache", isDirectory: true) }
+    public nonisolated var ownDir: URL { base.appendingPathComponent("devices/\(deviceID)", isDirectory: true) }
+    public nonisolated var cacheDir: URL { base.appendingPathComponent("cache", isDirectory: true) }
 
     /// `deviceID` задаётся явно только в тестах и `lingo-eval`; иначе берётся из `device.json` или создаётся.
     public init(base: URL, deviceName: String, deviceID: String? = nil, clock: @escaping @Sendable () -> Date = { Date() }) throws {

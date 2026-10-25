@@ -115,11 +115,11 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return samples.map { $0 * gain }
     }
 
-    public func transcribe(_ samples: [Float], candidates: [Lang], forced: Lang?) async throws -> Transcription {
-        try transcribeSync(samples, candidates: candidates, forced: forced)
+    public func transcribe(_ samples: [Float], candidates: [Lang], forced: Lang?, context: String?) async throws -> Transcription {
+        try transcribeSync(samples, candidates: candidates, forced: forced, context: context)
     }
 
-    public func transcribeSync(_ input: [Float], candidates: [Lang], forced: Lang?) throws -> Transcription {
+    public func transcribeSync(_ input: [Float], candidates: [Lang], forced: Lang?, context: String? = nil) throws -> Transcription {
         lock.lock()
         defer { lock.unlock() }
         abortFlag.set(false)
@@ -153,7 +153,9 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
             }
             detectMs = Double(DispatchTime.now().uptimeNanoseconds - d0.uptimeNanoseconds) / 1e6
         }
-        currentPrompt = mixedPrompt ? Self.prompt(for: Array(Set(cands + (forced.map { [$0] } ?? [])))) : nil
+        // Затравка: двуязычный образец (D-14) + контекст разговора (R-51): контекст в конце — ближе к распознаваемой фразе.
+        let base = mixedPrompt ? Self.prompt(for: Array(Set(cands + (forced.map { [$0] } ?? [])))) : nil
+        currentPrompt = [base, context].compactMap { $0 }.joined(separator: " ").nilIfEmpty
         defer { currentPrompt = nil }
         var bestRun: Run?
         var runs: [Double] = []
@@ -390,4 +392,8 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         }
         return words.joined(separator: " ")
     }
+}
+
+extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

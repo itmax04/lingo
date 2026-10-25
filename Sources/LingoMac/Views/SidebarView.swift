@@ -8,6 +8,9 @@ private let sidebarListInset: CGFloat = -Theme.S.s8
 struct SidebarView: View {
     @Bindable var model: AppModel
     var onNewSession: () -> Void = {}
+    @State private var renaming: Session?
+    @State private var renameText = ""
+    @State private var deleting: Session?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -44,9 +47,19 @@ struct SidebarView: View {
             ScrollView {
                 LazyVStack(spacing: Theme.S.s4) {
                     ForEach(model.visibleSessions) { s in
-                        SessionRow(session: s, selected: s.id == model.selectedSessionID) {
+                        SessionRow(session: s, selected: s.id == model.selectedSessionID, onSelect: {
                             model.selectedSessionID = s.id
+                            model.refreshSelection()
+                        }, menu: AnyView(Menu {
+                            Button("Переименовать…") { renameText = s.title; renaming = s }
+                            Button("Показать в журнале") { model.services?.revealJournal() }
+                            Divider()
+                            Button("Удалить…", role: .destructive) { deleting = s }
+                        } label: {
+                            Image(systemName: "ellipsis").font(.system(size: 14)).foregroundStyle(Theme.C.textTertiary)
                         }
+                        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                        .accessibilityLabel("Действия с сессией")))
                     }
                 }
             }
@@ -61,6 +74,18 @@ struct SidebarView: View {
         .frame(width: Theme.S.sidebarWidth)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(Theme.C.bgSidebar)
+        .alert("Переименовать сессию", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField("Название", text: $renameText)
+            Button("Отмена", role: .cancel) { renaming = nil }
+            Button("Сохранить") { if let s = renaming { model.services?.rename(s.id, renameText) }; renaming = nil }
+        }
+        .confirmationDialog("Удалить сессию «\(deleting?.title ?? "")»?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+                            titleVisibility: .visible) {
+            Button("Удалить", role: .destructive) { if let s = deleting { model.services?.delete(s.id) }; deleting = nil }
+            Button("Отмена", role: .cancel) { deleting = nil }
+        } message: {
+            Text("Сессия исчезнет на всех устройствах после синхронизации. Сообщения остаются в журнале (событие-надгробие).")
+        }
     }
 }
 
@@ -98,7 +123,8 @@ struct SessionRow: View {
     let session: Session
     let selected: Bool
     let onSelect: () -> Void
-    var menu: AnyView = AnyView(EmptyView())
+    var menu: AnyView = AnyView(Image(systemName: "ellipsis").font(.system(size: 14)).foregroundStyle(Theme.C.textTertiary)
+        .accessibilityLabel("Действия с сессией"))
     @State private var hover = false
 
     var body: some View {
@@ -116,10 +142,7 @@ struct SessionRow: View {
                     .foregroundStyle(Theme.C.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Image(systemName: "ellipsis")
-                .font(.system(size: 14))
-                .foregroundStyle(Theme.C.textTertiary)
-                .accessibilityLabel("Действия с сессией")
+            menu
         }
         .padding(.horizontal, Theme.S.rowPadding)
         .frame(height: Theme.R.rowHeight)

@@ -62,6 +62,8 @@ public enum ReplySegment: Codable, Sendable, Hashable {
     case say(Lang, String)
     case fix(Fix)
     case hint(Phrase)
+    /// Как помощник понял реплику пользователя с учётом контекста (R-24 `@heard`, R-51). Не озвучивается.
+    case heard(String)
 
     public var sayText: String? {
         if case .say(_, let t) = self { return t }
@@ -78,6 +80,8 @@ public struct ChatMessage: Sendable, Hashable, Identifiable {
     public var text: String
     /// Язык реплики пользователя (R-08) или изучаемый язык ответа.
     public var lang: Lang
+    /// «Понято как» (R-51) — из `@heard` ответа на эту реплику; заполняется при построении ленты.
+    public var heard: String?
     /// Разобранные сегменты ответа помощника (R-24). Для пользователя пусто.
     public var segments: [ReplySegment]
     public var createdAt: Date
