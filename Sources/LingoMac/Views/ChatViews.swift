@@ -9,7 +9,8 @@ struct ChatHeader: View {
     let online: Bool
     var memoryNote: String?
     var onSettings: () -> Void = {}
-    var sourceMenu: AnyView = AnyView(EmptyView())
+    var sourceMenu: AnyView?
+    var settingsMenu: AnyView?
 
     var body: some View {
         HStack(spacing: Theme.S.s16) {
@@ -25,14 +26,16 @@ struct ChatHeader: View {
                     .help(memoryNote ?? "")
             }
             Spacer(minLength: Theme.S.s16)
-            SourceChip(label: sourceLabel, ok: online)
-            Button(action: onSettings) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 18))
-                    .foregroundStyle(Theme.C.textSecondary)
+            if let m = sourceMenu { m } else { SourceChip(label: sourceLabel, ok: online) }
+            if let g = settingsMenu { g } else {
+                Button(action: onSettings) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Theme.C.textSecondary)
+                }
+                .buttonStyle(LingoButtonStyle())
+                .accessibilityLabel("Настройки сессии")
             }
-            .buttonStyle(LingoButtonStyle())
-            .accessibilityLabel("Настройки сессии")
         }
         .padding(.horizontal, Theme.S.s24)
         .frame(height: Theme.S.headerHeight)

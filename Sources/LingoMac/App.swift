@@ -25,6 +25,14 @@ enum LingoMain {
         // Служебный режим: проверка всех ключей и `GET /models` (H-1, P-03). Значения ключей не выводятся.
         // Запускается из подписанного .app: только ему Связка ключей отдаёт ключи без запроса.
         if args.contains("--ui-click-test") { exit(UIClickTest.run()) }
+        if let i = args.firstIndex(of: "--selftest") {
+            setvbuf(stdout, nil, _IOLBF, 0)
+            let files = args.dropFirst(i + 1).filter { !$0.hasPrefix("--") }
+            let lang: Lang = args.contains("--en") ? .en : .de
+            let box = Box(Int32(0))
+            Task { @MainActor in box.value = await SelfTest.run(files: Array(files), lang: lang); exit(box.value) }
+            RunLoop.main.run()
+        }
         if args.contains("--help-eval") { print("--eval-dialog <cases> <out> [--models m1,m2] [--only ids] [--provider groq]"); exit(0) }
         if args.contains("--eval-dialog") {
             setvbuf(stdout, nil, _IOLBF, 0)
@@ -79,10 +87,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private var onboardingWindow: NSWindow?
+
+    func showOnboarding() {
+        guard let svc = services else { return }
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 520), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        w.title = "Lingo — первый запуск"
+        w.appearance = NSAppearance(named: .darkAqua)
+        w.contentView = NSHostingView(rootView: OnboardingView(services: svc, keys: keys) { [weak self] in
+            self?.onboardingWindow?.close()
+            self?.onboardingWindow = nil
+        })
+        w.isReleasedWhenClosed = false
+        w.center()
+        w.makeKeyAndOrderFront(nil)
+        onboardingWindow = w
+    }
+
     @objc func showSTTCheck(_ sender: Any?) { STTCheckWindow.show(part: "part1") }
 
     @objc func showSettings(_ sender: Any?) {
-        settingsWindow.show(keys: keys)
+        settingsWindow.show(keys: keys, services: services)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -92,6 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let svc = try AppServices(model: model)
             services = svc
             model.services = svc
+            svc.keys = keys
             Task { await svc.start() }
         } catch {
             model.banner = "Не удалось открыть журнал: \(error)"
@@ -105,6 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let w = MainWindow.make(model: model)
         w.makeKeyAndOrderFront(nil)
         window = w
+        if let svc = services, !svc.settings.onboardingDone, !CommandLine.arguments.contains("--stt-check") { showOnboarding() }
         // Служебное окно проверки — поверх главного (иначе главное окно забирало фокус и закрывало его, H-2).
         if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
             let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"

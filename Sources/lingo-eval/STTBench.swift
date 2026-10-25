@@ -3,13 +3,14 @@ import LingoCore
 
 /// Разбивка задержки whisper на нескольких файлах (P-04): определение языка и прогоны, GPU/CPU, полный/урезанный контекст.
 enum STTBench {
-    static func run(model: String, files: [String], gpu: Bool, reduced: Bool, threads: Int32, minCtx: Int = 64) throws -> Int32 {
+    static func run(model: String, files: [String], gpu: Bool, reduced: Bool, threads: Int32, minCtx: Int = 64, strategy: String? = nil, context: String? = nil) throws -> Int32 {
         let e = try WhisperEngine(modelPath: model, useGPU: gpu, threads: threads)
         e.reducedContext = reduced
         e.minAudioContext = minCtx
+        if let st = strategy.flatMap(WhisperEngine.LanguageStrategy.init(rawValue:)) { e.strategy = st }
         for (i, f) in files.enumerated() {
             let s = try AudioFileReader.read(URL(fileURLWithPath: f))
-            let t = try e.transcribeSync(s, candidates: [.de, .ru], forced: nil)
+            let t = try e.transcribeSync(s, candidates: [.de, .ru], forced: nil, context: context)
             let tm = e.lastTimings
             print(String(format: "%d %@ audio=%.1fs total=%.0fms detect=%.0fms runs=%@ lang=%@ «%@»", i, (f as NSString).lastPathComponent,
                          t.audioSeconds, t.elapsedMs, tm.detectMs, tm.runs.map { String(format: "%.0f", $0) }.joined(separator: "+"),

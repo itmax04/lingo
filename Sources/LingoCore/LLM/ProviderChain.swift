@@ -93,11 +93,15 @@ public struct ProviderChain: Sendable {
     public var steps: [Step]
     public var firstTokenTimeout: Double
     public var health: ProviderHealth
+    /// Если все шаги упёрлись в лимит, а ближайший освободится не позже чем через столько секунд, —
+    /// подождать и пройти цепочку ещё раз (бесплатные лимиты Groq в минуту, P-05; укладывается в Q3 «до 8–10 с»).
+    public var autoRetryWithin: TimeInterval
 
-    public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth()) {
+    public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth(), autoRetryWithin: TimeInterval = 12) {
         self.steps = steps
         self.firstTokenTimeout = firstTokenTimeout
         self.health = health
+        self.autoRetryWithin = autoRetryWithin
     }
 
     /// Шаги без паузы; если все на паузе по таймауту или сети (не 429), они пробуются последними — вдруг сеть вернулась.
@@ -121,11 +125,16 @@ public struct ProviderChain: Sendable {
             let task = Task {
                 let start = DispatchTime.now().uptimeNanoseconds
                 var reasons: [String] = []
-                let (usable, soonest) = plan()
                 if steps.isEmpty {
                     continuation.yield(.exhausted(reason: "нет ключей", retryAfter: nil))
                     continuation.finish()
                     return
+                }
+                var (usable, soonest) = plan()
+                // Все шаги на короткой паузе (429) — подождать ближайший, а не сдаваться сразу.
+                if usable.isEmpty, let s = soonest, s.timeIntervalSinceNow <= autoRetryWithin {
+                    try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
+                    (usable, soonest) = plan()
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
@@ -153,6 +162,28 @@ public struct ProviderChain: Sendable {
                             health.reportFailure(step.info, e)
                         }
                         reasons.append("\(step.info.label) (ключ \(step.info.keyIndex)): \(e.description)")
+                    }
+                }
+                // Все шаги отказали по лимиту, ближайший скоро освободится — второй проход (один раз).
+                if !Task.isCancelled, let s = plan().soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
+                   reasons.allSatisfy({ $0.contains("429") }) {
+                    try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
+                    for step in plan().run where !invalidKeys.contains(step.info.keyID) {
+                        if Task.isCancelled { break }
+                        continuation.yield(.attempt(step.info))
+                        continuation.yield(.restart(step.info))
+                        do {
+                            try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation)
+                            health.reportSuccess(step.info)
+                            continuation.finish()
+                            return
+                        } catch {
+                            let e = (error as? LLMError) ?? .network(error.localizedDescription)
+                            if e == .cancelled { break }
+                            continuation.yield(.stepFailed(step.info, e))
+                            health.reportFailure(step.info, e)
+                            reasons.append("\(step.info.label) (ключ \(step.info.keyIndex)): \(e.description)")
+                        }
                     }
                 }
                 if !Task.isCancelled {
@@ -239,7 +270,9 @@ public enum ChainFactory {
                              providers: [ProviderID: LLMProvider]? = nil) -> ProviderChain {
         var steps: [ProviderChain.Step] = []
         var values: [String: String] = [:]
-        for entry in settings.chain where entry.enabled {
+        let entries = settings.pinnedEntryID.flatMap { pin in settings.chain.filter { $0.id == pin } }.flatMap { $0.isEmpty ? nil : $0 }
+            ?? settings.chain.filter(\.enabled)
+        for entry in entries {
             if entry.provider == .custom, settings.customBase == nil { continue }
             let model = entry.model.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !model.isEmpty else { continue }

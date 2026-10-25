@@ -18,6 +18,8 @@ final class AppServices {
     var voiceIO: VoiceIO?
     var turn: TurnController?
     var memoryTimer: Task<Void, Never>?
+    var scheduler: SyncScheduler?
+    let reachability = Reachability()
 
     init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil) throws {
         self.model = model
@@ -37,18 +39,24 @@ final class AppServices {
         }
         model.langFilter = s.lastLang
         model.sourceLabel = s.llm.primaryLabel ?? "Нет ключа"
-        model.online = s.llm.hasUsableKey
+        model.hasKey = s.llm.hasUsableKey
+        model.recomputeOnline()
         model.memoryNote = s.context.memoryNote()
     }
 
     let settingsRef: SettingsRef
 
+    weak var keys: KeysController?
+
     func updateSettings(_ f: (inout AppSettings) -> Void) {
         f(&settings)
+        if keys?.settings != settings.llm { keys?.replace(settings.llm) }
         settingsStore.save(settings)
         settingsRef.value = settings
         model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
-        model.online = settings.llm.hasUsableKey
+        model.hasKey = settings.llm.hasUsableKey
+        model.recomputeOnline()
+        turn?.voice = settings.voice
     }
 
     func start() async {
@@ -58,6 +66,8 @@ final class AppServices {
         }
         model.readOnly = await store.isReadOnly
         if Permissions.microphone == .granted { prepareVoice() }
+        startSyncAndNetwork()
+        if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }
     }
 
     // MARK: Сессии
@@ -70,6 +80,9 @@ final class AppServices {
                 model.langFilter = s.lang
                 model.selectedSessionID = id
                 if s.starter == .assistant { run(engine.respond(session: id)) }
+                // Фразы темы — фоном, после первого хода (лимит токенов Groq в минуту, R-27).
+                let e = engine
+                Task.detached { try? await Task.sleep(for: .seconds(8)); await e.generateTopicPhrases(id) }
             } catch { model.banner = "Не удалось создать сессию: \(error)" }
         }
     }
@@ -78,6 +91,7 @@ final class AppServices {
     func delete(_ id: String) {
         Task {
             try? await engine.delete(id)
+            await scheduler?.trigger(.manual)
             if model.selectedSessionID == id { model.selectedSessionID = model.visibleSessions.first?.id }
         }
     }
@@ -85,6 +99,17 @@ final class AppServices {
     func select(_ id: String) {
         model.selectedSessionID = id
         model.refreshSelection()
+    }
+
+    /// Плашка источника (R-32).
+    func pin(_ entryID: String?) { updateSettings { $0.llm.pinnedEntryID = entryID } }
+
+    /// Режимы исправления меняются в шапке сессии (R-20); пустой набор не допускается (A-3).
+    func toggleCorrection(_ c: CorrectionMode) {
+        guard let s = model.selectedSession else { return }
+        var st = s.settings
+        if st.corrections.contains(c) { guard st.corrections.count > 1 else { return }; st.corrections.remove(c) } else { st.corrections.insert(c) }
+        Task { try? await engine.updateSettings(s.id, st) }
     }
 
     func revealJournal() {

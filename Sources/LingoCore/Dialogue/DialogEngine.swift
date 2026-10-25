@@ -177,7 +177,10 @@ public actor DialogEngine {
             for seg in full.segments {
                 switch seg {
                 case .fix(let f): items.append((EventType.fixRecorded, session, try JSONValue.from(Payload.FixRecorded(message: replyTo ?? mid, fix: f))))
-                case .hint(let p): items.append((EventType.hintAdded, session, try JSONValue.from(Payload.HintAdded(phrase: p))))
+                case .hint(var p):
+                    // Раздел подсказок (R-27): ответ на «как сказать» — «Как сказать», прочие @hint — к фразам темы.
+                    p.source = command == .howToSay ? .howToSay : .topic
+                    items.append((EventType.hintAdded, session, try JSONValue.from(Payload.HintAdded(phrase: p))))
                 default: break
                 }
             }
@@ -188,6 +191,37 @@ public actor DialogEngine {
             return
         }
         await maybeSummarize(session)
+    }
+
+    // MARK: Фразы темы (R-27)
+
+    /// 6–8 фраз темы с переводом — отдельным фоновым запросом при старте сессии; первый ход не ждёт.
+    public func generateTopicPhrases(_ session: String) async {
+        let st = await store.state
+        guard let s = st.sessions[session], (st.hints[session] ?? []).filter({ $0.source == .topic }).count < 6 else { return }
+        let req = PromptBuilder.topicPhrasesRequest(settings: s.settings)
+        var text = ""
+        for await e in await makeChain().run(req) {
+            if case .text(let t) = e { text += t }
+            if case .restart = e { text = "" }
+            if case .exhausted = e { return }
+        }
+        let phrases = ReplyProtocol.parse(text, studyLang: s.settings.lang).segments.compactMap { seg -> Phrase? in
+            guard case .hint(var p) = seg else { return nil }
+            p.source = .topic
+            return p
+        }
+        guard !phrases.isEmpty else { return }
+        let items = phrases.prefix(8).compactMap { p in
+            (try? JSONValue.from(Payload.HintAdded(phrase: p))).map { (type: EventType.hintAdded, session: session, payload: $0) }
+        }
+        _ = try? await store.appendBatch(Array(items))
+    }
+
+    // MARK: Словарь ★ (R-28)
+
+    public func star(_ p: Phrase, on: Bool) async throws {
+        try await store.append(on ? EventType.phraseStarred : EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
     }
 
     // MARK: Завершение (R-22, R-23)

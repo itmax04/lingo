@@ -142,6 +142,18 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
         if case .exhausted(_, let w)? = ev2.last { #expect((w ?? 0) > 100) } else { Issue.record("нет exhausted") }
     }
 
+    @Test func shortRateLimitWaitsAndRetries() async {
+        let calls = CallLog()
+        let c = chain({ _, _ in
+            calls.add("x")
+            return calls.all.count <= 2 ? .fail(.http(status: 429, message: "", retryAfter: 1)) : .text(["Hallo"])
+        }, keys: ["k1"])
+        let t0 = Date()
+        let ev = await collect(c.run(req))
+        #expect(text(ev) == "Hallo")
+        #expect(Date().timeIntervalSince(t0) >= 0.9 && Date().timeIntervalSince(t0) < 5)
+    }
+
     @Test func defaultPauseWithoutRetryAfter() {
         let h = ProviderHealth()
         let s = StepInfo(provider: .groq, model: "A", keyID: "k")
@@ -246,5 +258,18 @@ struct FixedTransport: StreamingTransport, HTTPTransport {
         #expect(r == .ok(models: ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]))
         let bad = await KeyVerifier(transport: FixedTransport(status: 401, headers: [:], body: [#"{"error":{"message":"Invalid API Key"}}"#])).verify(.groq, key: "k")
         #expect(bad == .invalidKey(status: 401, message: "Invalid API Key"))
+    }
+}
+
+@Suite struct PinnedStepTests {
+    @Test func pinnedEntryUsesOnlyThatStep() {
+        var s = LLMSettings(keys: [KeyRecord(id: "g", provider: .groq, last4: "0000")],
+                            chain: [ChainEntry(id: "a", provider: .groq, model: "A"), ChainEntry(id: "b", provider: .groq, model: "B")])
+        s.pinnedEntryID = "b"
+        let c = ChainFactory.chain(settings: s, secrets: InMemorySecretStore(["g": "v"]), health: ProviderHealth())
+        #expect(c.steps.map(\.info.model) == ["B"])
+        #expect(s.primaryLabel == "Groq · B")
+        s.pinnedEntryID = nil
+        #expect(ChainFactory.chain(settings: s, secrets: InMemorySecretStore(["g": "v"]), health: ProviderHealth()).steps.count == 2)
     }
 }

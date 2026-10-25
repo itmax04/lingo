@@ -30,7 +30,6 @@ public actor SyncScheduler {
         folder = f
         await store.resetSyncWatermark()
         publish(f == nil ? .notConfigured : status)
-        if f != nil { trigger(.folderChanged) }
     }
 
     /// Таймер работает, пока приложение активно (R-38).

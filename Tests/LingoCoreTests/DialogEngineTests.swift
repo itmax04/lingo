@@ -77,3 +77,37 @@ import Testing
         #expect(await store.state.visibleSessions().isEmpty)
     }
 }
+
+@Suite struct HintsTests {
+    @Test func topicPhrasesHowToSayAndStars() async throws {
+        let store = try JournalStore(base: tempDir("hints"), deviceName: "Mac", deviceID: "mac-h")
+        let calls = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, _ in
+            calls.add("x")
+            if calls.all.count == 1 {  // счётчик только для поведения (MockProvider пишет свой журнал)
+                return .text(["@hint de: Ich wohne in Hamburg. | Я живу в Гамбурге.\n@hint de: Seit wann wohnen Sie hier? | С каких пор вы здесь живёте?\n",
+                              "@hint de: Mir gefällt das Meer. | Мне нравится море.\n@hint de: Es ist ruhig hier. | Здесь тихо.\n",
+                              "@hint de: Die Miete ist hoch. | Аренда высокая.\n@hint de: Ich mag den Hafen. | Мне нравится порт."])
+            }
+            return .text(["@say de: Zurzeit habe ich Ferien.\n@hint de: Zurzeit habe ich Ferien. | Сейчас у меня каникулы.\n@say de: Sag das bitte noch einmal."])
+        }, calls: CallLog())
+        let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")])
+        let secrets = InMemorySecretStore(["k": "synthetic"])
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: secrets, health: ProviderHealth(), providers: [.groq: p]) }
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .questions, topic: "Wohnort", level: "A2", corrections: [.inline]))
+        await e.generateTopicPhrases(sid)
+        for await _ in e.send(session: sid, text: "Как сказать «у меня сейчас каникулы»?", lang: .ru, command: .howToSay) {}
+        let st = await store.state
+        let hints = st.hints[sid] ?? []
+        #expect(hints.filter { $0.source == .topic }.count == 6)
+        #expect(hints.first { $0.source == .howToSay }?.text == "Zurzeit habe ich Ferien.")
+        let phrase = hints[0]
+        try await e.star(phrase, on: true)
+        #expect(await store.state.starred[phrase.id]?.text == "Ich wohne in Hamburg.")
+        try await e.star(phrase, on: false)
+        #expect(await store.state.starred.isEmpty)
+        // Повторный запрос фраз темы не дублирует их.
+        await e.generateTopicPhrases(sid)
+        #expect((await store.state.hints[sid] ?? []).filter { $0.source == .topic }.count == 6)
+    }
+}

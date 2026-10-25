@@ -67,7 +67,13 @@ struct SidebarView: View {
             .padding(.horizontal, sidebarListInset)
 
             Spacer(minLength: 0)
-            SyncStatusLine(text: model.syncStatus)
+            Button {
+                if case .unavailable = model.syncState { model.services?.chooseSyncFolder() }
+                else if case .notConfigured = model.syncState { model.services?.chooseSyncFolder() }
+                else { model.services?.syncNow() }
+            } label: { SyncStatusLine(text: model.syncStatus) }
+                .buttonStyle(LingoButtonStyle())
+                .help("Задержку между устройствами определяет iCloud — синхронизация не мгновенная (R-38)")
                 .padding(.vertical, Theme.S.s12)
         }
         .padding(.horizontal, Theme.S.columnPadding)

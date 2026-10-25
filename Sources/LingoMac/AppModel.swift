@@ -29,6 +29,10 @@ final class AppModel {
     var memoryNote: String?
     var showNewSession = false
     var continuous = false
+    var networkUp = true
+    var hasKey = false
+    var syncState: SyncStatus = .notConfigured
+    var syncFolderPath: String?
     var russianOnce = false
     var slowPace = false
     /// Правка расшифровки (R-09).
@@ -37,6 +41,8 @@ final class AppModel {
     private(set) var history = HistoryState()
     /// Словарь ★ (R-28).
     var dictionary: [Phrase] = []
+    /// Раздел «Исправления» (R-27) — из `@fix` сессии.
+    var corrections: [Phrase] = []
     weak var services: AppServices?
 
     /// Новое состояние журнала (R-34, R-37).
@@ -63,9 +69,27 @@ final class AppModel {
         guard let id = selectedSessionID else { messages = []; phrases = []; return }
         messages = history.messages[id] ?? []
         phrases = history.hints[id] ?? []
+        let lang = history.sessions[id]?.settings.lang ?? langFilter
+        corrections = (history.fixes[id] ?? []).map { Phrase(lang: lang, text: $0.fix.corrected, translation: $0.fix.rule, source: .correction) }
     }
 
     var selectedSession: Session? { sessions.first { $0.id == selectedSessionID } }
+
+    /// Голос и ввод доступны, только если есть сеть и действующий ключ (S-17, R-45).
+    func recomputeOnline() {
+        online = networkUp && hasKey
+        if !networkUp { sourceLabel = "Нет сети" }
+        else if let l = services?.settings.llm.primaryLabel { sourceLabel = l }
+    }
+
+    /// Причина, почему голос и ввод неактивны (R-33, S-01).
+    var disabledReason: String {
+        if readOnly { return "Журнал новой версии — только чтение" }
+        if !networkUp { return "Нет сети: ответы модели недоступны" }
+        if !hasKey { return "Нет ключа: Настройки → Ключи и модели" }
+        if selectedSession == nil { return "Создайте сессию" }
+        return ""
+    }
 
     /// Сессии выбранного языка, по последней активности (R-05).
     var visibleSessions: [Session] {

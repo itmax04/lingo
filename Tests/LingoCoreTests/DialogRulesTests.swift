@@ -68,3 +68,23 @@ import Testing
         #expect(DialogRules.check(k, response: "@say de: Was essen Sie gern?").rules["repeats_previous"] == false)
     }
 }
+
+@Suite struct PronunciationRuleTests {
+    func flagged(_ text: String) throws -> Bool {
+        let c = try #require(try DialogCase.load(dir: DialogRulesTests.dir).first { $0.id == "en-q-weekend" })
+        return DialogRules.check(c, response: "@say en: \(text)").rules["no_pronunciation"] == false
+    }
+
+    @Test func realMentionsAreCaught() throws {
+        #expect(try flagged("Your pronunciation is great!"))
+        #expect(try flagged("Try a softer S here."))
+        #expect(try flagged("You have a slight accent."))
+        #expect(try flagged("Ihre Aussprache ist gut."))
+        #expect(try flagged("Хороший акцент."))
+    }
+
+    @Test func idiomsAreNotFlagged() throws {
+        #expect(try !flagged("That sounds like a lot of fun! What will you do there?"))
+        #expect(try !flagged("Мы акцентируем внимание на длительности."))
+    }
+}

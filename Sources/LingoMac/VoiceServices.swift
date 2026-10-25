@@ -124,6 +124,7 @@ extension AppServices {
                 }
             }
             await engine.end(sid)
+            await scheduler?.trigger(.sessionEnded)
         }
     }
 
@@ -137,6 +138,21 @@ extension AppServices {
     func toggleSlowPace() {
         model.slowPace.toggle()
         turn?.slowPace = model.slowPace
+    }
+
+    /// ▶ фразы подсказки (R-27): голос языка фразы, без сети; микрофон не слушает; если помощник говорит — в очередь.
+    func playPhrase(_ p: Phrase) {
+        Task {
+            if voiceIO == nil { _ = await ensureVoice() }
+            guard let io = voiceIO else { return }
+            io.playPhrase(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang],
+                          rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 50_000)
+        }
+    }
+
+    func toggleStar(_ p: Phrase) {
+        let on = !model.starred.contains(p.id)
+        Task { try? await engine.star(p, on: on) }
     }
 
     /// Клик по пузырю помощника — повтор озвучки (R-41).

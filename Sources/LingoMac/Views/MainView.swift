@@ -44,14 +44,18 @@ struct MainView: View {
     }
 
     private var hints: some View {
-        HintsPanel(phrases: model.phrases, starred: model.starred, onClose: { model.hintsVisible = false })
+        HintsPanel(phrases: model.phrases, starred: model.starred, corrections: model.corrections,
+                   dictionary: model.dictionary.filter { $0.lang == (model.selectedSession?.settings.lang ?? model.langFilter) },
+                   onPlay: { model.services?.playPhrase($0) }, onStar: { model.services?.toggleStar($0) },
+                   onClose: { model.hintsVisible = false })
     }
 
     private var center: some View {
         VStack(spacing: 0) {
             ChatHeader(title: model.selectedSession?.title ?? "Lingo",
                        subtitle: model.selectedSession?.settings.subtitle ?? "Создайте сессию: «Новая сессия»",
-                       sourceLabel: model.sourceLabel, online: model.online, memoryNote: model.memoryNote)
+                       sourceLabel: model.sourceLabel, online: model.online, memoryNote: model.memoryNote,
+                       sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
             if let b = model.banner {
                 Text(b).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger).padding(Theme.S.s8)
                     .onTapGesture { model.banner = nil }
@@ -62,11 +66,13 @@ struct MainView: View {
                            onMic: { model.services?.micTapped() }, onPause: { model.services?.pauseTapped() },
                            onEnd: { model.services?.endTapped() },
                            extraControls: AnyView(VoiceToggles(model: model)))
-                    .disabled(!model.online || model.selectedSession == nil || model.readOnly)
-                    .help(model.online ? "" : "Нет ключа или сети: ответы модели недоступны")
-                InputBar(text: $model.draft, enabled: model.online && model.selectedSession != nil && !model.readOnly,
-                         disabledReason: model.readOnly ? "Журнал новой версии — только чтение"
-                            : (model.selectedSession == nil ? "Создайте сессию" : "Нет ключа или сети: ответы модели недоступны"),
+                    .disabled(!model.disabledReason.isEmpty)
+                    .help(model.disabledReason)
+                if !model.disabledReason.isEmpty, model.selectedSession != nil {
+                    Text(model.disabledReason).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger)
+                }
+                InputBar(text: $model.draft, enabled: model.disabledReason.isEmpty,
+                         disabledReason: model.disabledReason,
                          onSend: { model.services?.sendText() })
             }
             .padding(.horizontal, Theme.S.columnPadding)
@@ -112,5 +118,53 @@ struct VoiceToggles: View {
         .buttonStyle(LingoButtonStyle())
         .accessibilityLabel(title)
         .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
+/// Плашка источника (R-32): «Авто (цепочка)» или конкретный шаг цепочки.
+struct SourceMenu: View {
+    @Bindable var model: AppModel
+
+    var body: some View {
+        Menu {
+            let llm = model.services?.settings.llm
+            Button((llm?.pinnedEntryID == nil ? "✓ " : "") + "Авто (цепочка)") { model.services?.pin(nil) }
+            Divider()
+            ForEach(llm?.chain.filter(\.enabled) ?? []) { e in
+                Button((llm?.pinnedEntryID == e.id ? "✓ " : "") + StepInfo(provider: e.provider, model: e.model, keyID: "").label) { model.services?.pin(e.id) }
+            }
+        } label: {
+            SourceChip(label: model.sourceLabel, ok: model.online)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .accessibilityLabel("Источник ответа: \(model.sourceLabel)")
+    }
+}
+
+/// Шестерёнка шапки: режимы исправления сессии (R-20), «Медленный темп» (R-15), память помощника (R-04).
+struct SessionMenu: View {
+    @Bindable var model: AppModel
+
+    var body: some View {
+        Menu {
+            if let s = model.selectedSession {
+                Section("Исправление ошибок") {
+                    ForEach(CorrectionMode.allCases, id: \.self) { c in
+                        Button((s.settings.corrections.contains(c) ? "✓ " : "") + c.title) { model.services?.toggleCorrection(c) }
+                    }
+                }
+                Button((model.slowPace ? "✓ " : "") + "Медленный темп") { model.services?.toggleSlowPace() }
+                Section(model.memoryNote ?? "") {}
+            }
+            Button("Настройки Lingo…") { NSApp.sendAction(#selector(AppDelegate.showSettings(_:)), to: nil, from: nil) }
+        } label: {
+            Image(systemName: "gearshape").font(.system(size: 18)).foregroundStyle(Theme.C.textSecondary)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .accessibilityLabel("Настройки сессии")
     }
 }

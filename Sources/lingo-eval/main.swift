@@ -102,7 +102,8 @@ case "model-install":
 case "stt-bench":
     let files = (a.values["--files"] ?? "").split(separator: ",").map(String.init)
     exit(try STTBench.run(model: a.req("--model"), files: files, gpu: !a.flags.contains("--cpu"), reduced: a.flags.contains("--reduced"),
-                          threads: Int32(a.values["--threads"] ?? "4") ?? 4, minCtx: Int(a.values["--min-ctx"] ?? "64") ?? 64))
+                          threads: Int32(a.values["--threads"] ?? "4") ?? 4, minCtx: Int(a.values["--min-ctx"] ?? "64") ?? 64,
+                          strategy: a.values["--strategy"], context: a.values["--context"]))
 case "chunk-debug":
     exit(try ChunkDebug.run(files: (a.values["--files"] ?? "").split(separator: ",").map(String.init)))
 case "tts-bench":
@@ -111,6 +112,21 @@ case "blind":
     let from = (a.values["--from"] ?? "").split(separator: ",").map(String.init)
     exit(try BlindReview.run(from: from, cases: a.values["--cases"] ?? "evals/dialog", n: Int(a.values["--n"] ?? "20") ?? 20,
                              seed: UInt64(a.values["--seed"] ?? "2026") ?? 2026))
+case "dialog-recheck":
+    // Пересчёт правил по сохранённым ответам (без сети): lingo-eval dialog-recheck --from run1/dialog-x.json[,…]
+    let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
+    let cases = Dictionary(uniqueKeysWithValues: try DialogCase.load(dir: URL(fileURLWithPath: a.values["--cases"] ?? "evals/dialog")).map { ($0.id, $0) })
+    for p in (a.values["--from"] ?? "").split(separator: ",") {
+        var r = try dec.decode(DialogRunner.Report.self, from: Data(contentsOf: URL(fileURLWithPath: String(p))))
+        r.rows = r.rows.map { row in
+            var x = row
+            if x.error == nil, let c = cases[x.id] { x.result = DialogRules.check(c, response: x.response) }
+            return x
+        }
+        let re = DialogRunner.summarize(r.rows, model: r.model + " (пересчёт)", provider: r.provider)
+        DialogRunner.verdict(re).lines.forEach { print($0) }
+        print("  категории: " + re.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
+    }
 case "dialog-report":
     // Сводка по сохранённым прогонам (без сети): lingo-eval dialog-report --from a.json,b.json
     let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601

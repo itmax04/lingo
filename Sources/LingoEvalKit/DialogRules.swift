@@ -13,12 +13,13 @@ public enum DialogRules {
         "contains_correction": 0.85, "returns_to_practice": 0.90, "length_by_level": 0.85,
     ]
 
-    /// Слова о произношении, звуках, акценте и «мягче/твёрже/чётче» (ru, de, en). Совпадение — нарушение R-21.
+    /// Слова о произношении, звуках, акценте и «мягче/твёрже/чётче» (ru, de, en) — регулярные выражения по целым словам.
+    /// Бытовые идиомы «sounds like», «klingt wie», «звучит как» и «акцентировать (внимание)» — не о произношении (ложные срабатывания run1, D-20).
     static let pronunciation: [String] = [
-        "произнош", "произнес", "произнёс", "произноси", "выговор", "акцент", "интонац", "ударени", "мягче", "твёрже", "тверже",
-        "чётче", "четче", "звучит как", "звук ", "звука", "звуки",
-        "aussprache", "aussprech", "ausgesproch", "akzent", "betonung", "weicher", "härter", "deutlicher aus", "klingt wie",
-        "pronunciation", "pronounc", "accent", "intonation", "softer", "harder sound", "sounds like", "your sound",
+        "произнош", "произнес", "произнёс", "произноси", "выговор", "\\bакцент(а|у|ом|е|ы|ов)?\\b", "интонац", "ударени",
+        "мягче", "твёрже", "тверже", "чётче", "четче", "\\bзвук(а|и|ов|ом)?\\b",
+        "aussprache", "aussprech", "ausgesproch", "\\bakzent(e|s)?\\b", "betonung", "weicher", "härter", "deutlicher aus",
+        "pronunciation", "pronounc", "\\baccents?\\b", "intonation", "softer", "harder sound", "your sound",
     ]
 
     /// Признаки исправления в озвучиваемом тексте (для режимов без «по ходу»).
@@ -29,8 +30,8 @@ public enum DialogRules {
     ]
 
     static let repeatAsks: [String] = [
-        "noch einmal", "nochmal", "wiederhol", "sag das", "sagen sie das", "versuch", "probier",
-        "again", "repeat", "say it", "try it", "try saying", "can you say", "say that",
+        "noch einmal", "nochmal", "wiederhol", "sag das", "sagen sie das", "sagen sie:", "bitte sagen", "sag mal", "versuch", "probier",
+        "again", "repeat", "say it", "try it", "try saying", "can you say", "say that", "please say", "say one", "say this",
         "повтори", "скажи",
     ]
 
@@ -65,7 +66,7 @@ public enum DialogRules {
             r["lang_discipline"] = ru.isEmpty
         }
         let low = lower(allSay)
-        r["no_pronunciation"] = !pronunciation.contains { low.contains(lower($0)) }
+        r["no_pronunciation"] = !pronunciation.contains { low.range(of: lower($0), options: .regularExpression) != nil }
         if c.session.mode == .questions || e.one_question == true {
             let q = study.joined(separator: " ").filter { $0 == "?" }.count
             r["one_question"] = q <= 1

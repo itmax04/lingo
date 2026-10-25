@@ -53,6 +53,8 @@ public struct LLMSettings: Codable, Sendable, Hashable {
     /// Модели, полученные `GET /models` (R-30), по провайдерам — для выбора в настройках.
     public var knownModels: [ProviderID: [String]]
     public var knownModelsAt: [ProviderID: Date]
+    /// Плашка источника (R-32): nil — «Авто (цепочка)», иначе — только этот шаг (со всеми его ключами).
+    public var pinnedEntryID: String?
 
     public static let timeoutRange: ClosedRange<Double> = 2...15
 
@@ -77,7 +79,7 @@ public struct LLMSettings: Codable, Sendable, Hashable {
         self.knownModelsAt = knownModelsAt
     }
 
-    enum CodingKeys: String, CodingKey { case keys, chain, firstTokenTimeout, customBaseURL, knownModels, knownModelsAt }
+    enum CodingKeys: String, CodingKey { case keys, chain, firstTokenTimeout, customBaseURL, knownModels, knownModelsAt, pinnedEntryID }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -87,12 +89,16 @@ public struct LLMSettings: Codable, Sendable, Hashable {
         customBaseURL = (try? c.decodeIfPresent(String.self, forKey: .customBaseURL)) ?? ""
         knownModels = (try? c.decodeIfPresent([ProviderID: [String]].self, forKey: .knownModels)) ?? [:]
         knownModelsAt = (try? c.decodeIfPresent([ProviderID: Date].self, forKey: .knownModelsAt)) ?? [:]
+        pinnedEntryID = try? c.decodeIfPresent(String.self, forKey: .pinnedEntryID)
     }
 
     public var customBase: URL? { ProviderEndpoints.customBaseURL(customBaseURL) }
 
     /// Метка первого доступного шага для плашки источника (R-32).
     public var primaryLabel: String? {
+        if let pin = pinnedEntryID, let e = chain.first(where: { $0.id == pin }) {
+            return StepInfo(provider: e.provider, model: e.model, keyID: "").label
+        }
         for e in chain where e.enabled && keys.contains(where: { $0.provider == e.provider && !$0.invalid }) {
             return StepInfo(provider: e.provider, model: e.model, keyID: "").label
         }

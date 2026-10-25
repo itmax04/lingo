@@ -59,7 +59,12 @@ public struct DialogRunner: Sendable {
                     try? await Task.sleep(for: .seconds(wait))
                     continue
                 }
-                if case .http(let s, _, _) = e, s >= 500, attempt <= 3 {
+                // Обрыв сети или таймаут — не ошибка модели: повтор (до 3 раз).
+                if case .network = e, attempt <= 3 {
+                    try? await Task.sleep(for: .seconds(3))
+                    continue
+                }
+                if case .http(let s, _, _) = e, s >= 500 || s == 408, attempt <= 3 {
                     try? await Task.sleep(for: .seconds(5))
                     continue
                 }

@@ -1,13 +1,28 @@
 import LingoCore
 import SwiftUI
 
-/// Правая колонка «Подсказки» (R-27, DESIGN.md §5).
+/// Правая колонка «Подсказки» (R-27, DESIGN.md §5): фразы темы, исправления, «как сказать», словарь ★.
+/// У каждой фразы — ▶ (голос языка фразы, работает без сети), перевод, ★.
 struct HintsPanel: View {
     let phrases: [Phrase]
     let starred: Set<String>
+    var corrections: [Phrase] = []
+    var dictionary: [Phrase] = []
     var onPlay: (Phrase) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
     var onClose: () -> Void = {}
+    @State private var collapsed: Set<String> = []
+
+    var sections: [(String, String, [Phrase])] {
+        let topic = phrases.filter { $0.source == .topic || $0.source == .hint }
+        let how = phrases.filter { $0.source == .howToSay }
+        return [("topic", "Фразы темы", topic), ("fix", "Исправления", uniq(corrections)), ("how", "Как сказать", how), ("dict", "Словарь ★", dictionary)]
+    }
+
+    func uniq(_ p: [Phrase]) -> [Phrase] {
+        var seen = Set<String>()
+        return p.filter { seen.insert($0.id).inserted }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -31,10 +46,31 @@ struct HintsPanel: View {
                 .padding(.bottom, Theme.S.s16)
 
             ScrollView {
-                LazyVStack(spacing: Theme.S.cardGap) {
-                    ForEach(phrases) { p in
-                        HintCard(phrase: p, starred: starred.contains(p.id),
-                                 onPlay: { onPlay(p) }, onStar: { onStar(p) })
+                LazyVStack(alignment: .leading, spacing: Theme.S.cardGap) {
+                    ForEach(sections, id: \.0) { key, title, list in
+                        if !list.isEmpty {
+                            Button {
+                                if collapsed.contains(key) { collapsed.remove(key) } else { collapsed.insert(key) }
+                            } label: {
+                                HStack(spacing: Theme.S.s4) {
+                                    Image(systemName: collapsed.contains(key) ? "chevron.right" : "chevron.down")
+                                        .font(.system(size: 10, weight: .semibold))
+                                    Text("\(title) · \(list.count)").font(Theme.F.section)
+                                }
+                                .foregroundStyle(Theme.C.textSecondary)
+                            }
+                            .buttonStyle(LingoButtonStyle())
+                            .accessibilityLabel("\(title), \(list.count)")
+                            if !collapsed.contains(key) {
+                                ForEach(list) { p in
+                                    HintCard(phrase: p, starred: starred.contains(p.id), onPlay: { onPlay(p) }, onStar: { onStar(p) })
+                                }
+                            }
+                        }
+                    }
+                    if sections.allSatisfy({ $0.2.isEmpty }) {
+                        Text("Фразы появятся после первых ходов разговора.")
+                            .font(Theme.F.hintTranslation).foregroundStyle(Theme.C.textTertiary)
                     }
                 }
             }

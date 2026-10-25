@@ -37,14 +37,15 @@ public struct OpenAICompatibleProvider: LLMProvider {
             if reasoning {
                 body["reasoning_effort"] = "low"
                 body["include_reasoning"] = false
-                body["max_completion_tokens"] = request.maxTokens + 1024
+                // Запас на короткое рассуждение: Groq учитывает max_completion_tokens в лимите токенов в минуту (P-05).
+                body["max_completion_tokens"] = request.maxTokens + 512
             } else {
                 if model.lowercased().contains("qwen") { body["reasoning_effort"] = "none" }
                 body["max_completion_tokens"] = request.maxTokens
             }
         case .mistral, .openrouter, .custom:
             // Общие параметры Chat Completions.
-            body["max_tokens"] = request.maxTokens + (reasoning ? 1024 : 0)
+            body["max_tokens"] = request.maxTokens + (reasoning ? 512 : 0)
             if reasoning { body["reasoning_effort"] = "low" }
         }
         if let t = request.temperature { body["temperature"] = t }

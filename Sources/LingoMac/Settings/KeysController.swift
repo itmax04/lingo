@@ -23,6 +23,9 @@ final class KeysController {
         self.onChange = onChange
     }
 
+    /// Настройки изменились вне окна (плашка источника, недействительный ключ из цепочки) — без обратного вызова.
+    func replace(_ s: LLMSettings) { settings = s }
+
     func update(_ f: (inout LLMSettings) -> Void) {
         f(&settings)
         onChange(settings)
