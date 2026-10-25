@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Testing
 @testable import LingoCore
@@ -100,5 +101,18 @@ import Testing
         #expect(FileManager.default.fileExists(atPath: p.path) && store.isInstalled(m))
         let bad = WhisperModel(file: "m.bin", title: "t", size: 999, sha256: String(repeating: "0", count: 64), url: m.url)
         await #expect(throws: ModelStore.ModelError.self) { try await ModelStore(dir: tempDir("dst2"), cloneSources: [src]).ensure(bad) }
+    }
+}
+
+@Suite struct PCMConverterTests {
+    /// Voice processing на macOS отдаёт 48 кГц, 5 каналов (H-2): в 16 кГц моно должен попасть канал 0, а не тишина.
+    @Test func multichannelInputKeepsFirstChannel() {
+        let fmt = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48_000, channels: 5, interleaved: false)!
+        let b = AVAudioPCMBuffer(pcmFormat: fmt, frameCapacity: 4800)!
+        b.frameLength = 4800
+        for i in 0..<4800 { b.floatChannelData![0][i] = 0.5 * sin(Float(i) / 48_000 * 2 * .pi * 440) }
+        let out = PCMConverter().convert(b)
+        #expect(out.count > 1500 && out.count < 1700)
+        #expect((out.map { abs($0) }.max() ?? 0) > 0.3)
     }
 }

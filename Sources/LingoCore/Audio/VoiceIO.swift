@@ -8,16 +8,22 @@ import Foundation
 public final class VoiceIO: @unchecked Sendable {
     public typealias SamplesHandler = @Sendable ([Float]) -> Void
 
-    private let engine = AVAudioEngine()
-    private let player = AVAudioPlayerNode()
+    private var engine = AVAudioEngine()
+    private var player = AVAudioPlayerNode()
     private let synth = AVSpeechSynthesizer()
     private let converter = PCMConverter()
     private let lock = NSLock()
     private let synthQueue = DispatchQueue(label: "lingo.tts")
-    /// Формат озвучки: моно 24 кГц Float32 (буферы голосов приводятся к нему).
-    let outFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24_000, channels: 1, interleaved: false)!
+    /// Формат озвучки. С voice processing плеер подключается в формате выхода устройства (с 24 кГц моно движок
+    /// не запускался: CoreAudio −10875, диагностика H-2); буферы голосов приводятся к нему.
+    var outFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24_000, channels: 1, interleaved: false)!
+    private var hasOutput = false
 
     public var onSamples: SamplesHandler?
+    /// Формат входа после запуска (диагностика).
+    public private(set) var inputFormatDescription = ""
+    /// Сырые пики по каналам входа (диагностика).
+    public var onRawPeaks: (@Sendable ([Float]) -> Void)?
     /// Первый звук элемента озвучки (момент uptime в нс) — метрика `first_audio` (R-47).
     public var onPlaybackStarted: (@Sendable (_ tag: Int, _ uptimeNs: UInt64) -> Void)?
     /// Элемент озвучки доигран до конца.
@@ -53,20 +59,48 @@ public final class VoiceIO: @unchecked Sendable {
 
     // MARK: Старт и стоп
 
-    /// `voiceProcessing` — эхоподавление системы; если включить не удалось, работа продолжается без него (запись в лог).
-    public func start(voiceProcessing wantVP: Bool = true) throws {
+    /// Последняя ошибка запуска по каждой попытке (диагностика H-2).
+    public private(set) var startLog: [String] = []
+
+    /// `voiceProcessing` — эхоподавление системы. Если запуск с ним не удался (CoreAudio −10875 и т. п.),
+    /// движок пересоздаётся и запускается без эхоподавления; перебивание тогда опирается на порог VAD (риск в plan.md).
+    public func start(voiceProcessing wantVP: Bool = true, output: Bool = true) throws {
         guard !running else { return }
-        let input = engine.inputNode
-        if wantVP {
+        startLog = []
+        var attempts: [Bool] = wantVP ? [true, false] : [false]
+        var lastError: Error?
+        while let vp = attempts.first {
+            attempts.removeFirst()
             do {
-                try input.setVoiceProcessingEnabled(true)
-                voiceProcessing = true
-                if #available(macOS 14.0, iOS 17.0, *) {
-                    input.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: false, duckingLevel: .min)
-                }
+                try startOnce(voiceProcessing: vp, output: output)
+                startLog.append("vp=\(vp) output=\(output): OK")
+                return
             } catch {
-                voiceProcessing = false
-                Log.speech.error("voice processing unavailable: \(error.localizedDescription, privacy: .public)")
+                lastError = error
+                startLog.append("vp=\(vp) output=\(output): \((error as NSError).domain) \((error as NSError).code) \(error.localizedDescription)")
+                Log.speech.error("voice io start failed vp=\(vp, privacy: .public): \(String(describing: error), privacy: .public)")
+                resetEngine()
+            }
+        }
+        throw lastError ?? VoiceIOError.noInput
+    }
+
+    private func resetEngine() {
+        hasOutput = false
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        engine = AVAudioEngine()
+        player = AVAudioPlayerNode()
+        voiceProcessing = false
+    }
+
+    private func startOnce(voiceProcessing vp: Bool, output: Bool) throws {
+        let input = engine.inputNode
+        if vp {
+            try input.setVoiceProcessingEnabled(true)
+            voiceProcessing = true
+            if #available(macOS 14.0, iOS 17.0, *) {
+                input.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: false, duckingLevel: .min)
             }
         }
         #if os(iOS)
@@ -74,27 +108,47 @@ public final class VoiceIO: @unchecked Sendable {
         try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
         try session.setActive(true)
         #endif
-        engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: outFormat)
+        if output || vp {
+            // Схема Apple для voice processing: выход движка должен работать (иначе вход не отдаёт сэмплы),
+            // микшер → выход соединяется в формате голосового входа.
+            let ioFormat = input.outputFormat(forBus: 0)
+            let mixer = engine.mainMixerNode
+            if vp, ioFormat.sampleRate > 0 { engine.connect(mixer, to: engine.outputNode, format: ioFormat) }
+            let rate = vp && ioFormat.sampleRate > 0 ? ioFormat.sampleRate : engine.outputNode.outputFormat(forBus: 0).sampleRate
+            if rate > 0 { outFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: rate, channels: 1, interleaved: false)! }
+            engine.attach(player)
+            engine.connect(player, to: mixer, format: outFormat)
+            hasOutput = true
+        }
         let fmt = input.outputFormat(forBus: 0)
-        guard fmt.sampleRate > 0 else { throw VoiceIOError.noInput }
+        guard fmt.sampleRate > 0, fmt.channelCount > 0 else { throw VoiceIOError.noInput }
+        inputFormatDescription = "\(fmt.sampleRate) Hz, \(fmt.channelCount) ch, \(fmt.commonFormat.rawValue), interleaved=\(fmt.isInterleaved)"
         input.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
             guard let self, !self.micMuted else { return }
+            if let cb = self.onRawPeaks, let d = buffer.floatChannelData {
+                var peaks: [Float] = []
+                for c in 0..<Int(buffer.format.channelCount) {
+                    var p: Float = 0
+                    for i in 0..<Int(buffer.frameLength) { p = max(p, abs(d[c][i])) }
+                    peaks.append(p)
+                }
+                cb(peaks)
+            }
             let s = self.converter.convert(buffer)
             if !s.isEmpty { self.onSamples?(s) }
         }
         engine.prepare()
         try engine.start()
-        player.play()
+        if output { player.play() }
         running = true
-        Log.speech.notice("voice io started vp=\(self.voiceProcessing, privacy: .public)")
+        Log.speech.notice("voice io started vp=\(self.voiceProcessing, privacy: .public) in=\(fmt.sampleRate, privacy: .public)Hz/\(fmt.channelCount, privacy: .public)ch")
     }
 
     public func stop() {
         guard running else { return }
-        _ = stopSpeaking()
+        if hasOutput { _ = stopSpeaking() }
         engine.inputNode.removeTap(onBus: 0)
-        player.stop()
+        if hasOutput { player.stop() }
         engine.stop()
         running = false
     }
@@ -225,8 +279,10 @@ public final class VoiceIO: @unchecked Sendable {
         scheduledTotal = 0
         lock.unlock()
         synth.stopSpeaking(at: .immediate)
-        player.stop()
-        if running { player.play() }
+        if hasOutput {
+            player.stop()
+            if running { player.play() }
+        }
         return result
     }
 

@@ -84,12 +84,13 @@ final class STTCheckController {
         }
         let v = VoiceIO()
         v.onSamples = { [weak self] s in Task { @MainActor in self?.feed(s) } }
-        do { try v.start(voiceProcessing: true) } catch {
-            permissionProblem = "Микрофон: \(error.localizedDescription)"
+        do { try v.start(voiceProcessing: true, output: true) } catch {
+            permissionProblem = "Микрофон: \(error.localizedDescription) [\(v.startLog.joined(separator: "; "))]"
             return
         }
         voice = v
-        status = Permissions.speech == .granted ? "Готово" : "Готово (Apple Speech без разрешения — только whisper)"
+        let vp = v.voiceProcessing ? "" : " · без эхоподавления"
+        status = (Permissions.speech == .granted ? "Готово" : "Готово (Apple Speech без разрешения — только whisper)") + vp
     }
 
     // MARK: Запись

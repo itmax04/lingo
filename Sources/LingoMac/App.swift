@@ -5,8 +5,10 @@ import SwiftUI
 @main
 @MainActor
 enum LingoMain {
+    static var delegate: AppDelegate?
     static func main() {
         let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--audio-diag"), i + 1 < args.count { AudioDiag.step(args[i + 1], "main") }
         if let i = args.firstIndex(of: "--export-iconset"), i + 1 < args.count {
             do {
                 try AppIconView.exportIconset(to: URL(fileURLWithPath: args[i + 1]))
@@ -27,7 +29,8 @@ enum LingoMain {
             exit(Headless.checkKeys(showAll: args.contains("--all-models")))
         }
         let app = NSApplication.shared
-        let delegate = AppDelegate()
+        // `NSApplication.delegate` — слабая ссылка: делегат хранится статически, иначе оптимизатор может освободить его раньше `run()`.
+        delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.regular)
         app.run()
@@ -57,9 +60,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("launch")
+        if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count { AudioDiag.step(CommandLine.arguments[i + 1], "didFinishLaunching") }
         Fixtures.fill(model)
         model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
         if CommandLine.arguments.contains("--settings") { showSettings(nil) }
+        if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count {
+            exit(AudioDiag.run(to: CommandLine.arguments[i + 1]))
+        }
         if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
             let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"
             STTCheckWindow.show(part: part)

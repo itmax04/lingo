@@ -1,0 +1,58 @@
+import AVFoundation
+import Foundation
+import LingoCore
+
+/// `Lingo --audio-diag <файл>`: перебор конфигураций звука (эхоподавление вкл/выкл, с выводом и без), по 1,5 с записи;
+/// в файл — устройство, форматы, итог запуска и уровень сигнала (без звука). Для разбора ошибок H-2.
+@MainActor
+enum AudioDiag {
+    static func step(_ path: String, _ s: String) {
+        let line = "\(Date()) \(s)\n"
+        if let h = FileHandle(forWritingAtPath: path + ".log") { h.seekToEndOfFile(); h.write(Data(line.utf8)); try? h.close() }
+        else { FileManager.default.createFile(atPath: path + ".log", contents: Data(line.utf8)) }
+    }
+
+    static func run(to path: String) -> Int32 {
+        step(path, "start")
+        var lines: [String] = ["audio-diag \(Date())", "mic permission: \(Permissions.microphone.rawValue), speech: \(Permissions.speech.rawValue)"]
+        let probe = AVAudioEngine()
+        let inFmt = probe.inputNode.inputFormat(forBus: 0), outFmt = probe.outputNode.outputFormat(forBus: 0)
+        lines.append("input hw: \(inFmt.sampleRate) Hz, \(inFmt.channelCount) ch; output hw: \(outFmt.sampleRate) Hz, \(outFmt.channelCount) ch")
+        for (vp, out) in [(true, true), (true, false), (false, true), (false, false)] {
+            let v = VoiceIO()
+            final class Acc: @unchecked Sendable { var n = 0; var peak: Float = 0; let l = NSLock() }
+            let acc = Acc()
+            v.onSamples = { s in acc.l.withLock { acc.n += s.count; for x in s { acc.peak = max(acc.peak, abs(x)) } } }
+            final class Raw: @unchecked Sendable { var p: [Float] = []; let l = NSLock() }
+            let raw = Raw()
+            v.onRawPeaks = { ps in raw.l.withLock { if raw.p.count < ps.count { raw.p = ps } else { for i in ps.indices { raw.p[i] = max(raw.p[i], ps[i]) } } } }
+            step(path, "try vp=\(vp) out=\(out)")
+            do {
+                try v.start(voiceProcessing: vp, output: out)
+                step(path, "started \(v.startLog)")
+                var perSec: [String] = []
+                for _ in 0..<4 {
+                    let before = acc.l.withLock { acc.peak }
+                    acc.l.withLock { acc.peak = 0 }
+                    RunLoop.main.run(until: Date().addingTimeInterval(1.0))
+                    perSec.append(String(format: "%.4f", acc.l.withLock { acc.peak }))
+                    acc.l.withLock { acc.peak = max(acc.peak, before) }
+                }
+                lines.append("  input format: \(v.inputFormatDescription); peaks per second: \(perSec.joined(separator: " ")); raw channel peaks: \(raw.l.withLock { raw.p.map { String(format: "%.4f", $0) } })")
+                if out { v.speak("Test.", lang: .en, voiceID: nil, rate: 0.5, tag: 1); RunLoop.main.run(until: Date().addingTimeInterval(1.0)) }
+                step(path, "stopping")
+                v.stop()
+                step(path, "stopped samples=\(acc.n)")
+                lines.append("want vp=\(vp) out=\(out): \(v.startLog.joined(separator: " | ")); got vp=\(v.voiceProcessing); samples=\(acc.n) peak=\(String(format: "%.4f", acc.peak))")
+            } catch {
+                lines.append("want vp=\(vp) out=\(out): FAIL \(v.startLog.joined(separator: " | "))")
+            }
+        }
+        let text = lines.joined(separator: "\n") + "\n"
+        do { try text.write(toFile: path, atomically: true, encoding: .utf8) } catch {
+            FileHandle.standardError.write(Data("audio-diag: cannot write \(path): \(error)\n".utf8))
+        }
+        print(text)
+        return 0
+    }
+}

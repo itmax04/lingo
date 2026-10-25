@@ -12,7 +12,10 @@ public final class PCMConverter: @unchecked Sendable {
 
     public init() {}
 
-    public func convert(_ buffer: AVAudioPCMBuffer) -> [Float] {
+    public func convert(_ input: AVAudioPCMBuffer) -> [Float] {
+        // Многоканальный вход (voice processing на macOS: 48 кГц, 5 каналов — диагностика H-2): берём канал 0,
+        // обработанный голос. AVAudioConverter сводит 5 каналов без раскладки в тишину.
+        let buffer = input.format.channelCount > 1 ? (Self.firstChannel(input) ?? input) : input
         let format = buffer.format
         if format.sampleRate == Self.targetSampleRate, format.channelCount == 1,
            format.commonFormat == .pcmFormatFloat32, let data = buffer.floatChannelData {
@@ -46,6 +49,15 @@ public final class PCMConverter: @unchecked Sendable {
             return []
         }
         return Array(UnsafeBufferPointer(start: data[0], count: Int(out.frameLength)))
+    }
+
+    static func firstChannel(_ b: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard let src = b.floatChannelData,
+              let mono = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: b.format.sampleRate, channels: 1, interleaved: false),
+              let out = AVAudioPCMBuffer(pcmFormat: mono, frameCapacity: b.frameLength), let dst = out.floatChannelData else { return nil }
+        out.frameLength = b.frameLength
+        dst[0].update(from: src[0], count: Int(b.frameLength))
+        return out
     }
 
     /// 16 кГц моно → буфер AVAudio (для Apple Speech).
