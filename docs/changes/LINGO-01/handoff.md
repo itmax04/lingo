@@ -1,6 +1,6 @@
 # Передача LINGO-01
 
-Статус: **P-03 реализован, ожидается H-1** (ключ Groq), затем `GET /models` и завершение P-03 · Обновлено: 2026-10-25 · Ветка: `feat/lingo-01` · Commit: см. `git log -1`
+Статус: **P-03 выполнен (H-1 пройдена), следующий шаг P-04** (речь на Mac) · Обновлено: 2026-10-25 · Ветка: `feat/lingo-01` · Commit: см. `git log -1`
 Цель и границы: [intent.md](intent.md), требования: [spec.md](spec.md), шаги: [plan.md](plan.md).
 
 ## Сделано
@@ -153,6 +153,21 @@ https://docs.mistral.ai/getting-started/quickstarts/developer/first-api-request 
 - `scripts/build-app.sh` — PASS; окно настроек проверено снимком настоящего окна. `scripts/check-core-ios.sh` — PASS. `scripts/secret-scan.sh` — 0 findings.
 - `GET /models` у Groq — **NOT RUN** до H-1 (нет ключа).
 
+**H-1 (2026-10-25).** Владелец добавил ключ Groq в «Настройки → Ключи и модели» (ответ «готово» через сессию-координатор).
+`dist/Lingo.app/Contents/MacOS/Lingo --check-keys --all-models` (та же сборка, запроса Связки ключей не было):
+```
+Groq ключ 1 ••••<4>: Ключ работает · моделей: 4
+  models: allam-2-7b, openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+chain: on  Groq openai/gpt-oss-120b [ok]
+chain: on  Groq qwen/qwen3.8-27b [ok]
+chain: on  Groq openai/gpt-oss-20b [ok]
+chain: on  Mistral mistral-small-latest [?]   (ключа нет)
+chain: on  OpenRouter google/gemma-4-31b-it:free [?]   (ключа нет)
+```
+Чат-модели Groq по `GET /models` на 2026-10-25: `allam-2-7b`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `qwen/qwen3.8-27b`.
+Цепочка по умолчанию совпадает со списком; `allam-2-7b` (модель для арабского) в цепочку не добавлена. Окончательный порядок — по eval `dialog` (P-05).
+Ключей Mistral и OpenRouter нет: запасные шаги пропускаются, пока ключи не добавлены.
+
 ## Решения исполнителя
 - **D-01 (P-00, R-30).** Числовые лимиты Mistral Free не найдены (страницы 404). Не блокирует: R-29 обрабатывает 429 динамически. Значения не придумываются.
 - **D-02 (P-00, ADR-0001 п. 6, диск).** Свободно 12 ГиБ. Модели whisper для Lingo берутся APFS-клоном (`cp -c`) из папки моделей IC
@@ -184,4 +199,4 @@ https://docs.mistral.ai/getting-started/quickstarts/developer/first-api-request 
   «Groq · <модель>» или «Нет сети» (с P-03/P-10).
 
 ## Следующий шаг
-H-1 (ключ Groq в Настройках) → `dist/Lingo.app/Contents/MacOS/Lingo --check-keys` → список моделей в handoff → коммит P-03 → P-04.
+P-04 (речь на Mac: распознавание, VAD, сегментация реплик, озвучка, перебивание, детектор команд, evals `commands`, `turn`, `audio`) → H-2.
