@@ -1,0 +1,434 @@
+[
+  {
+    "accepted" : true,
+    "audioSec" : 4.999875,
+    "id" : "L1-de1",
+    "lang" : "de",
+    "mode" : "auto",
+    "ref" : "Guten Morgen, ich hätte gern zwei Brötchen.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1429.928959,
+        "text" : "Guten Morgen, ich hatte gern zwei Brötchen.",
+        "wer" : 0.14285714285714285
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : false,
+    "audioSec" : 6.1905,
+    "id" : "L1-de2",
+    "lang" : "de",
+    "mode" : "auto",
+    "ref" : "Ich fahre jeden Tag mit dem Fahrrad zur Arbeit.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1417.766208,
+        "text" : "Ich fahre, jeden Dank, mit dem Fahrrad zur Arbeit.",
+        "wer" : 0.1111111111111111
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : false,
+    "audioSec" : 5.4931875,
+    "id" : "L1-de3",
+    "lang" : "de",
+    "mode" : "auto",
+    "ref" : "Um wie viel Uhr fährt der nächste Zug?",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1436.932916,
+        "text" : "Um wieviem Uhr fährt der nächste Zug?",
+        "wer" : 0.25
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 7.7038125,
+    "id" : "L1-de4",
+    "lang" : "de",
+    "mode" : "auto",
+    "ref" : "Meine Schwester wohnt in der Nähe vom Fluss.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1392.521208,
+        "text" : "Meine Schwester wohnt in der Nähe vom Fluss.",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 5.509875,
+    "id" : "L1-en1",
+    "lang" : "en",
+    "mode" : "auto",
+    "ref" : "Good morning, I'd like to book a table for two.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "en",
+        "ms" : 1365.323792,
+        "text" : "Good morning. I'd like to book a table for two.",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "en",
+        "ms" : 556.911,
+        "text" : "Good morning I'd like to book a table for two",
+        "wer" : 0
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 4.999875,
+    "id" : "L1-en2",
+    "lang" : "en",
+    "mode" : "auto",
+    "ref" : "I usually take the bus to work.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "en",
+        "ms" : 1328.648458,
+        "text" : "I usually take the bus to work.",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "en",
+        "ms" : 1030.159334,
+        "text" : "I usually take the pants to work",
+        "wer" : 0.14285714285714285
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 4.999875,
+    "id" : "L1-en3",
+    "lang" : "en",
+    "mode" : "auto",
+    "ref" : "What time does the shop close today?",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "en",
+        "ms" : 1333.661875,
+        "text" : "What time does the shop close today?",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 428.490417,
+        "text" : "Вот так зашёл",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 4.591875,
+    "id" : "L1-en4",
+    "lang" : "en",
+    "mode" : "auto",
+    "ref" : "My sister lives near the river.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "en",
+        "ms" : 1314.690209,
+        "text" : "My system lives near the river.",
+        "wer" : 0.16666666666666666
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 781.73525,
+        "text" : "My news не Server",
+        "wer" : 0.8333333333333334
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 6.8878125,
+    "id" : "L1-mx1",
+    "lang" : "mixed",
+    "mode" : "auto",
+    "ref" : "Ich gehe heute, как это сказать, в магазин, zum Supermarkt.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1412.661542,
+        "text" : "Ich gehe heute, как это сказать, в магазin zum Supermarkt.",
+        "wer" : 0.1
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 6.3945,
+    "id" : "L1-mx1",
+    "lang" : "mixed",
+    "mode" : "button",
+    "ref" : "Ich gehe heute, как это сказать, в магазин, zum Supermarkt.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 712.227,
+        "text" : "Ikea heute, как это сказать, магазин zum Supermarkt.",
+        "wer" : 0.3
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 384.163875,
+        "text" : "IKEA хуй ты как это сказать в магазин цум Supermax",
+        "wer" : 0.5
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 7.0065,
+    "id" : "L1-mx2",
+    "lang" : "mixed",
+    "mode" : "auto",
+    "ref" : "I want to order, ой, нет, с начала. I want to order a pizza.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "en",
+        "ms" : 1432.580583,
+        "text" : "I want to order... Ой, нет, сначала. I want to order a pizza.",
+        "wer" : 0.14285714285714285
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 916.537875,
+        "text" : "I want to I want to on The A Pizza",
+        "wer" : 0.5
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 7.0918125,
+    "id" : "L1-mx2",
+    "lang" : "mixed",
+    "mode" : "button",
+    "ref" : "I want to order, ой, нет, с начала. I want to order a pizza.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 732.3975,
+        "text" : "I want to order... Ой, нет, сначала. I want to order a pizza.",
+        "wer" : 0.14285714285714285
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 679.852708,
+        "text" : "Ай want to on I want to on The Pets",
+        "wer" : 0.6428571428571429
+      }
+    ]
+  },
+  {
+    "accepted" : false,
+    "audioSec" : 7.8058125,
+    "id" : "L1-mx3",
+    "lang" : "mixed",
+    "mode" : "auto",
+    "ref" : "Подожди, сейчас скажу. Ich wohne hier seit drei Jahren.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "de",
+        "ms" : 1467.910833,
+        "text" : "Подожди, сейчас скажу. Ich wanne hier sein Dreisjärren.",
+        "wer" : 0.4444444444444444
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : false,
+    "audioSec" : 8.911125,
+    "id" : "L1-mx3",
+    "lang" : "mixed",
+    "mode" : "button",
+    "ref" : "Подожди, сейчас скажу. Ich wohne hier seit drei Jahren.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 750.532709,
+        "text" : "Подожди, сейчас скажу. Ich wanne, hier, seit, drei, jaren.",
+        "wer" : 0.2222222222222222
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 745.531334,
+        "text" : "Подожди сейчас скажу и Huan Hear Sid try your",
+        "wer" : 0.6666666666666666
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 3.60525,
+    "id" : "L1-ru1",
+    "lang" : "ru",
+    "mode" : "auto",
+    "ref" : "Как сказать, что я опоздал на автобус?",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 2100.414583,
+        "text" : "Как сказать, что я опоздал на автобус?",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 3.60525,
+    "id" : "L1-ru2",
+    "lang" : "ru",
+    "mode" : "auto",
+    "ref" : "Объясни, пожалуйста, почему здесь артикль.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 1373.731542,
+        "text" : "Объясни, пожалуйста, почему здесь артикль?",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "ru",
+        "ms" : 627.255333,
+        "text" : "",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 5.203875,
+    "id" : "L1-ru3",
+    "lang" : "ru",
+    "mode" : "auto",
+    "ref" : "Повтори ещё раз, только медленнее.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 1398.827583,
+        "text" : "Повтори еще раз, только медленней.",
+        "wer" : 0.2
+      },
+      {
+        "engine" : "apple",
+        "lang" : "",
+        "ms" : 0,
+        "text" : "ошибка: Распознавание на устройстве недоступно для de-DE",
+        "wer" : 1
+      }
+    ]
+  },
+  {
+    "accepted" : true,
+    "audioSec" : 3.80925,
+    "id" : "L1-ru4",
+    "lang" : "ru",
+    "mode" : "auto",
+    "ref" : "Я хочу сказать, что люблю гулять в парке.",
+    "results" : [
+      {
+        "engine" : "whisper:ggml-large-v3-turbo-q5_0.bin@dual@512",
+        "lang" : "ru",
+        "ms" : 1369.4415,
+        "text" : "Я хочу сказать, что люблю гулять в парке.",
+        "wer" : 0
+      },
+      {
+        "engine" : "apple",
+        "lang" : "en",
+        "ms" : 1121.474083,
+        "text" : "Yeah, College Park",
+        "wer" : 1
+      }
+    ]
+  }
+]

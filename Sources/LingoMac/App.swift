@@ -67,14 +67,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count {
             exit(AudioDiag.run(to: CommandLine.arguments[i + 1]))
         }
-        if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
-            let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"
-            STTCheckWindow.show(part: part)
-        }
         NSApp.mainMenu = MainMenu.build()
         let w = MainWindow.make(model: model)
         w.makeKeyAndOrderFront(nil)
         window = w
+        // Служебное окно проверки — поверх главного (иначе главное окно забирало фокус и закрывало его, H-2).
+        if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
+            let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"
+            STTCheckWindow.show(part: part)
+        }
         NSApp.activate()
     }
 
