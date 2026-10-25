@@ -2,7 +2,7 @@
 
 Статус: **draft** · Связи: [spec](../docs/changes/LINGO-01/spec.md) (AC-02…AC-06, AC-16; F-04…F-09 — для LINGO-02), [plan](../docs/changes/LINGO-01/plan.md)
 Все данные синтетические. Имена и места обезличены (Alex, Hamburg, Wien и т. п.). Из `private/` в evals ничего не копируется.
-Результаты прогонов — `evals/out/` (в .gitignore). Сводка переносится в handoff, feasibility-report и report.
+Результаты прогонов — `evals/out/` (в .gitignore). Сводка переносится в handoff и report.
 
 ## Наборы
 | Набор | Путь | Состав | Порог | Шаг |
