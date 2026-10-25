@@ -1,9 +1,11 @@
 # LINGO-01: Intent — MVP для Mac
 
-ID: LINGO-01-intent · Статус: **draft** (ждёт приёмки владельцем) · Версия: 2 · Дата: 2026-10-25
+ID: LINGO-01-intent · Статус: **accepted** (2026-10-25) · Версия: 2 · Дата: 2026-10-25
 Владелец результата: itmax04 · Связи: [spec.md](spec.md), [plan.md](plan.md), [ADR-0001](../../decisions/ADR-0001-stack.md),
 [исходное ТЗ](../../reference/owner-brief.md), [паттерны PDF](../../reference/pdf-patterns.md), [DESIGN.md](../../../DESIGN.md)
 Источник решений: брейншторм в сессии Claude Code 2026-10-25, ответы Q1–Q27 (таблица ниже).
+Согласование: владелец принял комплект v2 (intent, spec, plan, ADR-0001, evals/README, DESIGN.md, executor-prompt) с допущениями A-1…A-9 —
+ответ «давай начинаем» в сессии Claude Code 2026-10-25 после коммита `2458d1e`.
 Версия 2: владелец решил начать с Mac, а под iPhone адаптировать потом (Q27). Версия 1 — в Git, коммит `9e8daa0`.
 
 ## Проблема

@@ -1,6 +1,6 @@
 # LINGO-01: Спецификация v2 — MVP для Mac
 
-ID: LINGO-01-spec · Статус: **draft** (ждёт приёмки владельцем) · Версия: 2 · Дата: 2026-10-25 · Владелец: itmax04
+ID: LINGO-01-spec · Статус: **accepted** (2026-10-25) · Версия: 2 · Дата: 2026-10-25 · Владелец: itmax04
 Связи: [intent.md](intent.md) (цель, границы, решения Q1–Q27, допущения A-1…A-9) · [ADR-0001](../../decisions/ADR-0001-stack.md) (стек) ·
 [plan.md](plan.md) (реализация) · [evals/README.md](../../../evals/README.md) (наборы и пороги) · [DESIGN.md](../../../DESIGN.md) (токены) ·
 [pdf-patterns.md](../../reference/pdf-patterns.md) (паттерны P1–P16)
