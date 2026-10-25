@@ -1,0 +1,24 @@
+# личное — никогда не коммитить
+private/
+profile/
+
+# сборка
+.build/
+dist/
+DerivedData/
+ios/*.xcodeproj
+ios/*.xcworkspace
+*.xcarchive
+*.ipa
+
+# модели и данные
+models/
+*.gguf
+*.bin
+*.mlmodelc
+evals/out/
+
+# прочее
+.DS_Store
+.swiftpm/
+*.log
