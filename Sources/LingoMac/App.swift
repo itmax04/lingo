@@ -1,0 +1,136 @@
+import AppKit
+import LingoCore
+import SwiftUI
+
+@main
+@MainActor
+enum LingoMain {
+    static func main() {
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--export-iconset"), i + 1 < args.count {
+            do {
+                try AppIconView.exportIconset(to: URL(fileURLWithPath: args[i + 1]))
+                exit(0)
+            } catch {
+                FileHandle.standardError.write(Data("export-iconset: \(error)\n".utf8))
+                exit(1)
+            }
+        }
+        // Служебный режим: снимок окна на фикстурах в PNG (evidence для AC-11), без звука, сети и журнала.
+        if let i = args.firstIndex(of: "--ui-snapshot"), i + 1 < args.count {
+            exit(UISnapshot.run(to: URL(fileURLWithPath: args[i + 1])))
+        }
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.setActivationPolicy(.regular)
+        app.run()
+    }
+}
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var window: NSWindow?
+    let model = AppModel()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        Log.app.notice("launch")
+        Fixtures.fill(model)
+        NSApp.mainMenu = MainMenu.build()
+        let w = MainWindow.make(model: model)
+        w.makeKeyAndOrderFront(nil)
+        window = w
+        NSApp.activate()
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+}
+
+@MainActor
+enum MainWindow {
+    static func make(model: AppModel) -> NSWindow {
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
+                         styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                         backing: .buffered, defer: false)
+        w.title = "Lingo"
+        w.titleVisibility = .hidden
+        w.titlebarAppearsTransparent = true
+        // Полоса заголовка — `bg.titlebar` (DESIGN.md §1).
+        w.backgroundColor = NSColor(srgbRed: 0x1B / 255, green: 0x21 / 255, blue: 0x25 / 255, alpha: 1)
+        w.appearance = NSAppearance(named: .darkAqua)
+        w.contentMinSize = Theme.S.minWindow
+        w.contentView = NSHostingView(rootView: MainView(model: model))
+        w.setFrameAutosaveName("LingoMain")
+        if !w.setFrameUsingName("LingoMain") { w.center() }
+        w.isReleasedWhenClosed = false
+        return w
+    }
+}
+
+@MainActor
+enum MainMenu {
+    static func build() -> NSMenu {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: "О Lingo", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Настройки…", action: Selector(("showSettings:")), keyEquivalent: ",")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Скрыть Lingo", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(withTitle: "Завершить Lingo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = appMenu
+        main.addItem(appItem)
+
+        let editItem = NSMenuItem()
+        let edit = NSMenu(title: "Правка")
+        edit.addItem(withTitle: "Отменить", action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: "Вернуть", action: Selector(("redo:")), keyEquivalent: "Z")
+        edit.addItem(.separator())
+        edit.addItem(withTitle: "Вырезать", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Скопировать", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Вставить", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Выбрать все", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editItem.submenu = edit
+        main.addItem(editItem)
+
+        let windowItem = NSMenuItem()
+        let win = NSMenu(title: "Окно")
+        win.addItem(withTitle: "Свернуть", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        win.addItem(withTitle: "Закрыть", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowItem.submenu = win
+        main.addItem(windowItem)
+        NSApp.windowsMenu = win
+        return main
+    }
+}
+
+/// `--ui-snapshot <файл.png>`: снимок главного окна 1280×800 на фикстурах (по образцу IC `UISnapshots.render`, коммит cf0e764).
+@MainActor
+enum UISnapshot {
+    static func run(to url: URL) -> Int32 {
+        NSApplication.shared.setActivationPolicy(.accessory)
+        let model = AppModel()
+        Fixtures.fill(model)
+        let size = NSSize(width: 1280, height: 800)
+        let ok = render(MainView(model: model), size: size, to: url)
+        print(ok ? "ui-snapshot: \(url.path)" : "ui-snapshot: FAILED")
+        return ok ? 0 : 1
+    }
+
+    static func render<V: View>(_ view: V, size: NSSize, to url: URL) -> Bool {
+        let hosting = NSHostingView(rootView: view.frame(width: size.width, height: size.height))
+        hosting.frame = NSRect(origin: .zero, size: size)
+        let window = NSWindow(contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
+                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.contentView = hosting
+        window.orderFrontRegardless()
+        for _ in 0..<8 { RunLoop.main.run(until: Date().addingTimeInterval(0.08)); hosting.layoutSubtreeIfNeeded() }
+        guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { return false }
+        hosting.cacheDisplay(in: hosting.bounds, to: rep)
+        window.orderOut(nil)
+        guard let png = rep.representation(using: .png, properties: [:]) else { return false }
+        return (try? png.write(to: url)) != nil
+    }
+}

@@ -101,6 +101,8 @@
 | `size.hintCardMinHeight` | 78 pt |
 | `size.chipHeight` | 32 pt |
 | `stroke.subtle` | 1 pt, `border.subtle` |
+| `size.waveBar` / `space.waveGap` | 3 / 4 pt (добавлено, P-01: столбики волны на макете ≈ 4 px шириной и ≈ 6 px шагом) |
+| `size.statusDot` | 12 pt (добавлено, P-01: точка в плашке источника на макете ≈ 16 px) |
 
 ## 5. Компоненты
 - **Строка сессии.** Иконка «пузырь» в `text.tertiary`, название `type.rowTitle`, дата `type.rowMeta`, «…» справа.

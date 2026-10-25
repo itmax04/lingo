@@ -1,6 +1,6 @@
 # Передача LINGO-01
 
-Статус: **P-00 выполнен, следующий шаг P-01** (точка H-0) · Обновлено: 2026-10-25 · Ветка: `feat/lingo-01` · Commit: см. `git log -1`
+Статус: **P-01 выполнен, ожидается H-0** (сертификат подписи), затем P-02 · Обновлено: 2026-10-25 · Ветка: `feat/lingo-01` · Commit: см. `git log -1`
 Цель и границы: [intent.md](intent.md), требования: [spec.md](spec.md), шаги: [plan.md](plan.md).
 
 ## Сделано
@@ -72,10 +72,43 @@ https://docs.mistral.ai/getting-started/quickstarts/developer/first-api-request 
 **Вывод для плана:** основа цепочки — 2–3 модели Groq (gpt-oss-120b, qwen3.8-27b, gpt-oss-20b), запасные — Mistral Free и OpenRouter `:free`.
 Бюджет 1K запросов в день на модель на организацию учитывается в evals (P-05): прогон `dialog` ≈ 80–160 запросов.
 
+## P-01. Каркас, тема, окно (2026-10-25)
+**Сделано:**
+- `Package.swift` (Swift 6.2 tools): `LingoCore` (macOS 15 / iOS 17), `LingoMac` (продукт `Lingo`), `lingo-eval`, `LingoCoreTests`. Внешних зависимостей нет.
+- `LingoCore/Model`: `Lang`, `SessionSettings` (режимы, исправления, кто начинает; без умолчаний роли/уровня — A-8; `canStart` по A-3), `Session`,
+  `ChatMessage`, `ReplySegment`, `Fix`, `Phrase`, `VoiceState`; `Logging/Log.swift` (R-49, subsystem `com.itmax04.lingo`).
+- `LingoMac/Design/Theme.swift` — все токены DESIGN.md §1–§4, §6. Окно из трёх колонок на фикстурах макета (`Fixtures.swift`):
+  сайдбар, шапка с плашкой источника, лента с пузырями (70% ширины, ✓/✓✓, метка языка), голосовая панель «Слушаю» с волной,
+  поле ввода (Enter — отправить, ⇧Enter — перенос), подсказки. Сворачивание подсказок при ширине < 1280 (R-40). «Уменьшить движение» — статичная полоса.
+- Иконка приложения рисуется из токенов (`--export-iconset`), снимок окна — `Lingo --ui-snapshot <png>`.
+- Скрипты: `scripts/build-app.sh` (сборка во временной папке вне iCloud, подпись A-5), `scripts/check-core-ios.sh`, `scripts/secret-scan.sh`,
+  `scripts/ensure-build-dir.sh`.
+
+**Проверки (2026-10-25):**
+- `swift build` — PASS. `swift test` — PASS, 4 теста (`SessionSettingsTests`).
+- `scripts/build-app.sh` — PASS: `dist/Lingo.app`, `codesign -dvvv` → `Identifier=com.itmax04.lingo.mac`, `Authority=InterviewCopilot`.
+- `scripts/check-core-ios.sh` — PASS: объекты `LingoCore` с `LC_BUILD_VERSION platform 2` (iOS), minos 17.0, SDK 26.2.
+  Отрицательная проверка: `import AppKit` в ядре → FAIL (как и должно).
+- `scripts/secret-scan.sh` — 0 findings. Отрицательная проверка синтетическими значениями (Groq, Mistral, email) → 3 findings, значения замаскированы.
+- AC-11 (часть): [evidence/ui-p01.png](evidence/ui-p01.png) — макет и настоящее окно `dist/Lingo.app` (снимок `screencapture -l`) рядом.
+- Контраст (DESIGN.md §8, WCAG): `text.primary` 13,8–18,2:1, `text.secondary` 6,5–8,6:1 на всех фонах колонок, карточек и пузырей — PASS (≥ 4,5).
+  Справочно: `text.tertiary` 4,0–5,3:1 (плейсхолдер, иконки), `text.metaOnAccent` на `bubble.user` 4,2:1 (время 11 pt) — ниже 4,5, но эти токены сняты с макета и §8 их не нормирует.
+
 ## Решения исполнителя
 - **D-01 (P-00, R-30).** Числовые лимиты Mistral Free не найдены (страницы 404). Не блокирует: R-29 обрабатывает 429 динамически. Значения не придумываются.
 - **D-02 (P-00, ADR-0001 п. 6, диск).** Свободно 12 ГиБ. Модели whisper для Lingo берутся APFS-клоном (`cp -c`) из папки моделей IC
   с проверкой SHA256 по сумме Hugging Face — место на диске не расходуется. Если файла нет — загрузка с Hugging Face с проверкой SHA256.
+- **D-03 (P-01, A-6).** В Xcode 26.3 не установлен компонент платформы iOS 26.2 (`xcodebuild … generic/platform=iOS` → «iOS 26.2 is not installed»),
+  SDK `iphoneos` при этом есть. Скачивать платформу (несколько ГБ при 12 ГиБ свободных) не стал: `check-core-ios.sh` собирает цель `LingoCore`
+  через `swift build --triple arm64-apple-ios17.0 --sdk <iPhoneOS.sdk>` и проверяет платформу объектов. Если платформу установят, скрипт дополнительно
+  запускает xcodebuild. Для LINGO-02 (сборка IPA) платформу придётся установить: Xcode → Settings → Components.
+- **D-04 (P-01, AC-14).** Репозиторий лежит на «Рабочем столе», который синхронизируется с iCloud Drive: File Provider менял файлы во время сборки
+  («modified during the build»). `.build` — симлинк в `~/Library/Caches/com.itmax04.lingo/build` (`scripts/ensure-build-dir.sh`, вызывается из build-app.sh).
+- **D-05 (P-01, DESIGN.md).** Добавлены токены с пометкой «добавлено, P-01»: `size.waveBar` 3 pt / `space.waveGap` 4 pt, `size.statusDot` 12 pt.
+  Внутреннее поле дорожки сегмента — 4 pt (на макете ≈ 1,5 pt, но DESIGN.md §3 разрешает только шаг 4). Строки сессий шире остальных элементов
+  колонки на 8 pt с каждой стороны, как на макете. Иконки робота нет в SF Symbols — нарисована фигурой (`RobotIcon`).
+- **D-06 (P-01, R-32).** На фикстуре плашка источника — «На устройстве», как на макете (для сравнения AC-11). В приложении на Mac значения по R-32:
+  «Groq · <модель>» или «Нет сети» (с P-03/P-10).
 
 ## Следующий шаг
-P-01 (каркас, тема, окно); в конце — H-0 (сертификат подписи).
+H-0 (сертификат подписи) → затем P-02 (журнал и синхронизация, ядро).

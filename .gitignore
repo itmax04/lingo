@@ -4,6 +4,7 @@ profile/
 
 # сборка
 .build/
+.build
 dist/
 DerivedData/
 ios/*.xcodeproj
