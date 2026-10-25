@@ -23,3 +23,7 @@ evals/out/
 .DS_Store
 .swiftpm/
 *.log
+
+# синтетические записи evals (генерируются scripts/make-audio-fixtures.sh)
+evals/audio/*/
+evals/audio/manifest.json

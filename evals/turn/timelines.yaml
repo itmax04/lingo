@@ -1,0 +1,24 @@
+# Eval `turn` (R-10, R-11): таймлайны «речь/тишина» в мс; expect — итоговые реплики [начало, конец] после склеек.
+# По умолчанию T = 1,5 с, G = 2,0 с. assistant_at — когда помощник начал говорить (мс от начала).
+- { id: single, timeline: [speech 1200, silence 3000], expect: [[0, 1200]] }
+- { id: word-search-0800, timeline: [speech 1500, silence 800, speech 900, silence 3000], expect: [[0, 3200]] }
+- { id: word-search-1100, timeline: [speech 1000, silence 1100, speech 1200, silence 3000], expect: [[0, 3300]] }
+- { id: word-search-1400, timeline: [speech 2000, silence 1400, speech 700, silence 3000], expect: [[0, 4100]] }
+- { id: many-short-pauses, timeline: [speech 600, silence 300, speech 800, silence 500, speech 400, silence 900, speech 1100, silence 3000], expect: [[0, 5000]] }
+- { id: two-turns, timeline: [speech 1500, silence 4000, speech 1000, silence 3000], expect: [[0, 1500], [5500, 6500]] }
+- { id: s05-addition-merge, timeline: [speech 1300, silence 1800, speech 600, silence 3000], expect: [[0, 3700]] }
+- { id: addition-at-g, timeline: [speech 1300, silence 1950, speech 600, silence 3000], expect: [[0, 3850]] }
+- { id: beyond-g, timeline: [speech 1300, silence 2600, speech 600, silence 3000], expect: [[0, 1300], [3900, 4500]] }
+- { id: assistant-started, timeline: [speech 1300, silence 1800, speech 600, silence 3000], assistant_at: [3000], expect: [[0, 1300], [3100, 3700]] }
+- { id: noise-only, timeline: [speech 150, silence 3000], expect: [] }
+- { id: noise-then-speech, timeline: [speech 150, silence 500, speech 1200, silence 3000], expect: [[0, 1850]] }
+- { id: p10-fragments, timeline: [speech 700, silence 1200, speech 400, silence 2500, speech 900, silence 3000], expect: [[0, 2300], [4800, 5700]] }
+- { id: long-monologue, timeline: [speech 3000, silence 600, speech 2500, silence 1000, speech 2000, silence 700, speech 1800, silence 3000], expect: [[0, 11600]] }
+- { id: three-turns, timeline: [speech 900, silence 3500, speech 1100, silence 3500, speech 800, silence 3000], expect: [[0, 900], [4400, 5500], [9000, 9800]] }
+- { id: t-short, silence: 0.8, merge: 0, timeline: [speech 1000, silence 1000, speech 1000, silence 3000], expect: [[0, 1000], [2000, 3000]] }
+- { id: t-long, silence: 3.0, timeline: [speech 1000, silence 2500, speech 1000, silence 4000], expect: [[0, 4500]] }
+- { id: g-zero, merge: 0, timeline: [speech 1000, silence 1700, speech 800, silence 3000], expect: [[0, 1000], [2700, 3500]] }
+- { id: g-four, merge: 4, timeline: [speech 1000, silence 3500, speech 800, silence 4000], expect: [[0, 5300]] }
+- { id: hesitation-1300-twice, timeline: [speech 1200, silence 1300, speech 600, silence 1300, speech 900, silence 3000], expect: [[0, 5300]] }
+- { id: short-yes, timeline: [speech 350, silence 3000], expect: [[0, 350]] }
+- { id: double-repeat-p16, timeline: [speech 1800, silence 400, speech 1800, silence 3000], expect: [[0, 4000]] }

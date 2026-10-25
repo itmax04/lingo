@@ -1,0 +1,52 @@
+# Eval `commands` (AC-04): русские фразы. expect — repeat | slower | how_to_say | explain | continue | mistakes | finish | none.
+# Синтетика; варианты с ошибками расшифровки помечены «# asr».
+- { text: "Повтори", expect: repeat }
+- { text: "повтори, пожалуйста", expect: repeat }
+- { text: "Ещё раз", expect: repeat }
+- { text: "Ну, ещё раз, пожалуйста", expect: repeat }
+- { text: "Повтори ещё раз.", expect: repeat }
+- { text: "повтор и", expect: repeat }  # asr
+- { text: "Я не расслышал", expect: repeat }
+- { text: "Медленнее", expect: slower }
+- { text: "А можно медленнее?", expect: slower }
+- { text: "Помедленнее, пожалуйста", expect: slower }
+- { text: "говори медленее", expect: slower }  # asr
+- { text: "Чуть медленнее", expect: slower }
+- { text: "Как сказать «у меня сейчас каникулы»?", expect: how_to_say, argument: "у меня сейчас каникулы" }
+- { text: "Как будет «я опоздал на поезд»?", expect: how_to_say, argument: "я опоздал на поезд" }
+- { text: "Как ещё можно сказать, что мне нравится море?", expect: how_to_say }
+- { text: "ну как сказать я живу здесь два года", expect: how_to_say }
+- { text: "Как по-немецки «скидка»?", expect: how_to_say }
+- { text: "Объясни", expect: explain }
+- { text: "Объясни по-русски", expect: explain }
+- { text: "По-русски, пожалуйста", expect: explain }
+- { text: "Что ты спросил?", expect: explain }
+- { text: "Что значит «Feierabend»?", expect: explain }
+- { text: "Почему так?", expect: explain }
+- { text: "Переведи", expect: explain }
+- { text: "что ты спросил", expect: explain }
+- { text: "Продолжим", expect: continue }
+- { text: "Давай продолжаем", expect: continue }
+- { text: "Дальше", expect: continue }
+- { text: "Готов", expect: continue }
+- { text: "Давай дальше.", expect: continue }
+- { text: "продолжи м", expect: continue }  # asr
+- { text: "Были ошибки?", expect: mistakes }
+- { text: "Проверь меня", expect: mistakes }
+- { text: "Какие были ошибки?", expect: mistakes }
+- { text: "На этом всё", expect: finish }
+- { text: "Я думаю, на это всё", expect: finish }  # P14, «на это» — ошибка расшифровки
+- { text: "Закончим", expect: finish }
+- { text: "на этом все", expect: finish }
+# Отрицательные
+- { text: "Я вчера повторил весь урок", expect: none }
+- { text: "Нет, я хочу сказать, что у меня каникулы", expect: none }
+- { text: "Мне нравится, когда говорят медленно", expect: none }
+- { text: "Как сказал мой друг, Гамбург красивый", expect: none }
+- { text: "Дальше по улице есть кафе", expect: none }
+- { text: "Я не готов к экзамену", expect: none }
+- { text: "Почему ты живёшь в Гамбурге уже так долго?", expect: none }
+- { text: "Ошибки бывают у всех", expect: none }
+- { text: "Давай поговорим о погоде", expect: none }
+- { text: "Ой, не, не, с самого начала", expect: none }
+- { text: "Медленно, но верно я учу немецкий", expect: none }

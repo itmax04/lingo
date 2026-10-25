@@ -47,9 +47,8 @@ ggrep() {
   case "$mode" in
     worktree) git grep -I -n --threads=1 --untracked ${GREP_EXTRA[@]+"${GREP_EXTRA[@]}"} -E "$pattern" -- "$@" ;;
     index)    git grep -I -n --threads=1 --cached ${GREP_EXTRA[@]+"${GREP_EXTRA[@]}"} -E "$pattern" -- "$@" ;;
-    history)  git rev-list --all | while read -r rev; do
-                git grep -I -n --threads=1 ${GREP_EXTRA[@]+"${GREP_EXTRA[@]}"} -E "$pattern" "$rev" -- "$@"
-              done ;;
+    # Все ревизии одним вызовом: по ревизии на вызов проверка шла минутами.
+    history)  git rev-list --all | xargs git grep -I -n --threads=1 ${GREP_EXTRA[@]+"${GREP_EXTRA[@]}"} -E "$pattern" -- "$@" ;;
   esac 2>/dev/null || true
 }
 

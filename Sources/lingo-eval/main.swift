@@ -7,6 +7,9 @@ import LingoCore
 //       без --offline сначала читает папку (сессия, lamport), после записи — пишет свой журнал в папку.
 //   sync-now --device <id> --folder <папка> [--base <папка>]   записать и прочитать папку (появление сети)
 //   sync-view --base <папка>                                    сообщения по сессиям в порядке R-37 (JSON)
+//   commands [--set evals/commands]                             детектор команд (AC-04)
+//   turn [--set evals/turn]                                     конец реплики и склейка (R-10, R-11)
+//   stt --engine whisper:<модель>|apple --set evals/audio       распознавание: WER, язык, задержка, память
 
 func usage() -> Never {
     print("""
@@ -14,6 +17,9 @@ func usage() -> Never {
       sync-write --device <id> --session <id> --count N [--folder <dir>] [--offline] [--base <dir>]
       sync-now   --device <id> --folder <dir> [--base <dir>]
       sync-view  --base <dir>
+      commands   [--set evals/commands]
+      turn       [--set evals/turn]
+      stt        --engine whisper:<model.bin>|apple [--set evals/audio] [--forced]
     """)
     exit(2)
 }
@@ -84,6 +90,28 @@ case "sync-view":
     let enc = JSONEncoder()
     enc.outputFormatting = [.sortedKeys, .prettyPrinted]
     print(String(decoding: try enc.encode(out), as: UTF8.self))
+case "model-install":
+    // Клон из папки моделей IC или загрузка с Hugging Face + SHA256 (D-02).
+    let store = ModelStore.macDefault
+    for m in WhisperModel.catalog where a.values["--model"] == nil || a.values["--model"] == m.file {
+        let t = Date()
+        let p = try await store.ensure(m)
+        print(String(format: "%@ → %@ (%.1f с)", m.file, p.path, Date().timeIntervalSince(t)))
+    }
+case "stt-bench":
+    let files = (a.values["--files"] ?? "").split(separator: ",").map(String.init)
+    exit(try STTBench.run(model: a.req("--model"), files: files, gpu: !a.flags.contains("--cpu"), reduced: a.flags.contains("--reduced"),
+                          threads: Int32(a.values["--threads"] ?? "4") ?? 4, minCtx: Int(a.values["--min-ctx"] ?? "64") ?? 64))
+case "chunk-debug":
+    exit(try ChunkDebug.run(files: (a.values["--files"] ?? "").split(separator: ",").map(String.init)))
+case "tts-bench":
+    exit(TTSBench.run())
+case "commands":
+    exit(try CommandsEval.run(set: a.values["--set"] ?? "evals/commands"))
+case "turn":
+    exit(try TurnEval.run(set: a.values["--set"] ?? "evals/turn"))
+case "stt":
+    exit(try await STTEval.run(engine: a.req("--engine"), set: a.values["--set"] ?? "evals/audio", forcedMixed: a.flags.contains("--forced")))
 default:
     usage()
 }

@@ -1,0 +1,41 @@
+# Eval `commands` (AC-04): английские фразы.
+- { text: "Again", expect: repeat }
+- { text: "Say it again, please", expect: repeat }
+- { text: "Repeat that", expect: repeat }
+- { text: "Sorry, what?", expect: repeat }
+- { text: "Could you repeat please", expect: repeat }
+- { text: "say it agin", expect: repeat }  # asr
+- { text: "Slower", expect: slower }
+- { text: "More slowly, please", expect: slower }
+- { text: "Can you speak more slowly?", expect: slower }
+- { text: "slow down", expect: slower }
+- { text: "slover", expect: slower }  # asr
+- { text: "How do I say «скидка» in English?", expect: how_to_say }
+- { text: "How do you say I'm on holiday", expect: how_to_say, argument: "I'm on holiday" }
+- { text: "how to say I missed the train", expect: how_to_say }
+- { text: "Explain", expect: explain }
+- { text: "Explain that, please", expect: explain }
+- { text: "What does 'commute' mean?", expect: explain }
+- { text: "What did you ask?", expect: explain }
+- { text: "Let's continue", expect: continue }
+- { text: "Go on", expect: continue }
+- { text: "Next question", expect: continue }
+- { text: "lets continue", expect: continue }
+- { text: "Any mistakes?", expect: mistakes }
+- { text: "Did I make any mistakes?", expect: mistakes }
+- { text: "Correct me", expect: mistakes }
+- { text: "That's all", expect: finish }
+- { text: "That's it for today", expect: finish }
+- { text: "Let's stop", expect: finish }
+# Отрицательные
+- { text: "I repeated the exam last year", expect: none }
+- { text: "The next station is far from here", expect: none }
+- { text: "I like to walk slowly in the park", expect: none }
+- { text: "We should go on holiday together", expect: none }
+- { text: "All mistakes are human", expect: none }
+- { text: "That's all I wanted to say about my job", expect: none }
+- { text: "Hi, I'm Alex. Nice to meet you.", expect: none }
+- { text: "When es regnet, I stay at home", expect: none }
+- { text: "Again and again I forget the words", expect: none }
+- { text: "Continue to the next street and turn left", expect: none }
+- { text: "I am ready for my trip to Vienna", expect: none }

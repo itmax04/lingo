@@ -1,0 +1,83 @@
+# Синтетический набор распознавания (evals/README.md, `audio`): 20 фраз на язык + 15 смешанных.
+# Аудио генерирует scripts/make-audio-fixtures.sh (macOS `say` + ffmpeg) в evals/audio/<set>/*.wav — в Git не хранится.
+# study — изучаемый язык сессии (кандидаты распознавания {study, ru}).
+# Смешанные: parts — части разными голосами, склеиваются ffmpeg; ref — эталон целиком.
+en:
+  - { id: en01, voice: Samantha, text: "Hi, I'm Alex. Nice to meet you." }
+  - { id: en02, voice: Daniel, text: "I have lived in Hamburg for two years." }
+  - { id: en03, voice: Samantha, text: "Could you tell me how to get to the station?" }
+  - { id: en04, voice: Daniel, text: "On weekends I usually go for a walk by the sea." }
+  - { id: en05, voice: Samantha, text: "I work as a software developer in a small company." }
+  - { id: en06, voice: Daniel, text: "What do you like most about your city?" }
+  - { id: en07, voice: Samantha, text: "I would like a cup of coffee and a piece of cake, please." }
+  - { id: en08, voice: Daniel, text: "Yesterday I missed the train because it was raining." }
+  - { id: en09, voice: Samantha, text: "My favourite season is autumn." }
+  - { id: en10, voice: Daniel, text: "I'm learning English to travel more." }
+  - { id: en11, voice: Samantha, text: "Can you speak a bit more slowly, please?" }
+  - { id: en12, voice: Daniel, text: "We are planning a trip to Vienna next month." }
+  - { id: en13, voice: Samantha, text: "The weather today is cold but sunny." }
+  - { id: en14, voice: Daniel, text: "I usually cook dinner at home after work." }
+  - { id: en15, voice: Samantha, text: "How long have you been living here?" }
+  - { id: en16, voice: Daniel, text: "I think the museum opens at ten o'clock." }
+  - { id: en17, voice: Samantha, text: "My brother plays the guitar in a band." }
+  - { id: en18, voice: Daniel, text: "Let's meet in front of the cinema at seven." }
+  - { id: en19, voice: Samantha, text: "I don't understand this word, could you explain it?" }
+  - { id: en20, voice: Daniel, text: "That's all for today, thank you very much." }
+de:
+  - { id: de01, voice: Anna, text: "Hallo, ich heiße Alex. Freut mich." }
+  - { id: de02, voice: Anna, text: "Ich wohne seit zwei Jahren in Hamburg." }
+  - { id: de03, voice: Anna, text: "Mir gefällt an Rostock, dass es hier das Meer gibt." }
+  - { id: de04, voice: Anna, text: "Am Wochenende gehe ich gern spazieren." }
+  - { id: de05, voice: Anna, text: "Ich arbeite als Entwickler in einer kleinen Firma." }
+  - { id: de06, voice: Anna, text: "Wie komme ich am besten zum Bahnhof?" }
+  - { id: de07, voice: Anna, text: "Ich hätte gern einen Kaffee und ein Stück Kuchen." }
+  - { id: de08, voice: Anna, text: "Gestern habe ich den Zug verpasst, weil es geregnet hat." }
+  - { id: de09, voice: Anna, text: "Zurzeit habe ich Ferien und viel Zeit." }
+  - { id: de10, voice: Anna, text: "Wenn es regnet, bleibe ich zu Hause." }
+  - { id: de11, voice: Anna, text: "Können Sie bitte etwas langsamer sprechen?" }
+  - { id: de12, voice: Anna, text: "Wir planen nächsten Monat eine Reise nach Wien." }
+  - { id: de13, voice: Anna, text: "Das Wetter ist heute kalt, aber sonnig." }
+  - { id: de14, voice: Anna, text: "Nach der Arbeit koche ich meistens zu Hause." }
+  - { id: de15, voice: Anna, text: "Wie lange wohnen Sie schon hier?" }
+  - { id: de16, voice: Anna, text: "Ich glaube, das Museum öffnet um zehn Uhr." }
+  - { id: de17, voice: Anna, text: "Mein Bruder spielt Gitarre in einer Band." }
+  - { id: de18, voice: Anna, text: "Treffen wir uns um sieben vor dem Kino." }
+  - { id: de19, voice: Anna, text: "Dieses Wort verstehe ich nicht, kannst du es erklären?" }
+  - { id: de20, voice: Anna, text: "Das war's für heute, vielen Dank." }
+ru:
+  - { id: ru01, voice: Milena, study: de, text: "Как сказать, что у меня сейчас каникулы?" }
+  - { id: ru02, voice: Milena, study: en, text: "Объясни, пожалуйста, по-русски." }
+  - { id: ru03, voice: Milena, study: de, text: "Нет, я хочу сказать, что у меня каникулы." }
+  - { id: ru04, voice: Milena, study: en, text: "Что ты спросил?" }
+  - { id: ru05, voice: Milena, study: de, text: "Повтори ещё раз, пожалуйста." }
+  - { id: ru06, voice: Milena, study: en, text: "А можно медленнее?" }
+  - { id: ru07, voice: Milena, study: de, text: "Давай продолжаем." }
+  - { id: ru08, voice: Milena, study: en, text: "Были ошибки в моих ответах?" }
+  - { id: ru09, voice: Milena, study: de, text: "Я думаю, на этом всё." }
+  - { id: ru10, voice: Milena, study: en, text: "Почему здесь нужно прошедшее время?" }
+  - { id: ru11, voice: Milena, study: de, text: "Как будет по-немецки опоздать на поезд?" }
+  - { id: ru12, voice: Milena, study: en, text: "Я живу в Гамбурге уже два года." }
+  - { id: ru13, voice: Milena, study: de, text: "Мне нравится, что здесь есть море." }
+  - { id: ru14, voice: Milena, study: en, text: "Что значит слово commute?" }
+  - { id: ru15, voice: Milena, study: de, text: "Я не понял последний вопрос." }
+  - { id: ru16, voice: Milena, study: en, text: "Переведи это предложение." }
+  - { id: ru17, voice: Milena, study: de, text: "Скажи ещё раз первую часть." }
+  - { id: ru18, voice: Milena, study: en, text: "Хорошо, давай дальше." }
+  - { id: ru19, voice: Milena, study: de, text: "В выходные я обычно гуляю у моря." }
+  - { id: ru20, voice: Milena, study: en, text: "Сегодня холодно, но солнечно." }
+mixed:
+  - { id: mx01, study: de, parts: [[Anna, "Dann musste"], [Milena, "ой, не, не, с самого начала."], [Anna, "Dann muss ich zu Hause bleiben."]] }
+  - { id: mx02, study: de, parts: [[Anna, "Ich wohne in"], [Milena, "как это сказать"], [Anna, "Hamburg seit zwei Jahren."]] }
+  - { id: mx03, study: en, parts: [[Samantha, "I work as a"], [Milena, "как сказать программист"], [Samantha, "developer."]] }
+  - { id: mx04, study: de, parts: [[Milena, "Подожди,"], [Anna, "ich habe Ferien."]] }
+  - { id: mx05, study: en, parts: [[Samantha, "Yesterday I"], [Milena, "нет, не так."], [Samantha, "Yesterday I missed the train."]] }
+  - { id: mx06, study: de, parts: [[Anna, "Am Wochenende gehe ich"], [Milena, "как будет гулять?"]] }
+  - { id: mx07, study: en, parts: [[Milena, "Я хотел сказать,"], [Samantha, "I like the sea."]] }
+  - { id: mx08, study: de, parts: [[Anna, "Mir gefällt"], [Milena, "ой, забыл слово"], [Anna, "das Meer."]] }
+  - { id: mx09, study: en, parts: [[Daniel, "My favourite season is"], [Milena, "осень, как это"], [Daniel, "autumn."]] }
+  - { id: mx10, study: de, parts: [[Milena, "Сейчас попробую."], [Anna, "Zurzeit habe ich Ferien."]] }
+  - { id: mx11, study: en, parts: [[Samantha, "Can I"], [Milena, "как сказать заказать"], [Samantha, "order a coffee?"]] }
+  - { id: mx12, study: de, parts: [[Anna, "Ich arbeite als"], [Milena, "разработчик"], [Anna, "in einer Firma."]] }
+  - { id: mx13, study: en, parts: [[Daniel, "We are planning a trip"], [Milena, "в Вену"], [Daniel, "next month."]] }
+  - { id: mx14, study: de, parts: [[Milena, "Так, ещё раз."], [Anna, "Wie komme ich zum Bahnhof?"]] }
+  - { id: mx15, study: en, parts: [[Samantha, "I think"], [Milena, "нет, с самого начала."], [Samantha, "I think the museum opens at ten."]] }

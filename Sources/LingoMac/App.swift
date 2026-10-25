@@ -49,6 +49,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.model.sourceLabel = llm.primaryLabel ?? "Нет ключа"
     }
 
+    @objc func showSTTCheck(_ sender: Any?) { STTCheckWindow.show(part: "part1") }
+
     @objc func showSettings(_ sender: Any?) {
         settingsWindow.show(keys: keys)
     }
@@ -58,6 +60,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Fixtures.fill(model)
         model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
         if CommandLine.arguments.contains("--settings") { showSettings(nil) }
+        if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
+            let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"
+            STTCheckWindow.show(part: part)
+        }
         NSApp.mainMenu = MainMenu.build()
         let w = MainWindow.make(model: model)
         w.makeKeyAndOrderFront(nil)
@@ -98,6 +104,7 @@ enum MainMenu {
         appMenu.addItem(withTitle: "О Lingo", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Настройки…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
+        appMenu.addItem(withTitle: "Проверка распознавания…", action: #selector(AppDelegate.showSTTCheck(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Скрыть Lingo", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(withTitle: "Завершить Lingo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")

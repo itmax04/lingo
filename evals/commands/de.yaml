@@ -1,0 +1,42 @@
+# Eval `commands` (AC-04): немецкие фразы.
+- { text: "Nochmal, bitte", expect: repeat }
+- { text: "Äh, nochmal bitte.", expect: repeat }
+- { text: "Noch einmal", expect: repeat }
+- { text: "Wiederhol das", expect: repeat }
+- { text: "Wie bitte?", expect: repeat }
+- { text: "noch mall", expect: repeat }  # asr
+- { text: "Langsamer", expect: slower }
+- { text: "Langsam bitte", expect: slower }
+- { text: "Kannst du bitte langsamer sprechen", expect: slower }
+- { text: "Etwas langsamer", expect: slower }
+- { text: "langsammer", expect: slower }  # asr
+- { text: "Wie sagt man „Rabatt“ auf Deutsch?", expect: how_to_say }
+- { text: "wie sagt man ich habe ferien", expect: how_to_say, argument: "ich habe ferien" }
+- { text: "Erklär mal", expect: explain }
+- { text: "Was bedeutet „Feierabend“?", expect: explain }
+- { text: "Was heißt das?", expect: explain }
+- { text: "Weiter", expect: continue }
+- { text: "Machen wir weiter", expect: continue }
+- { text: "Nein, machen wir weiter", expect: continue }
+- { text: "Lass uns weitermachen", expect: continue }
+- { text: "weiter bitte", expect: continue }
+- { text: "Korrigiere mich", expect: mistakes }
+- { text: "Gab es Fehler?", expect: mistakes }
+- { text: "Hab ich Fehler gemacht?", expect: mistakes }
+- { text: "Das war's", expect: finish }
+- { text: "Das war es für heute", expect: finish }
+- { text: "Schluss für heute", expect: finish }
+- { text: "das wars", expect: finish }
+# Отрицательные
+- { text: "Langsam wird es kalt", expect: none }
+- { text: "Wir gehen weiter in den Park", expect: none }
+- { text: "Ich wiederhole die Vokabeln jeden Tag", expect: none }
+- { text: "Ich mache oft Fehler beim Sprechen", expect: none }
+- { text: "Am Wochenende gehe ich spazieren", expect: none }
+- { text: "Mir gefällt in Rostock, dass Meer hier hast", expect: none }
+- { text: "Das war ein schöner Tag", expect: none }
+- { text: "Wie sagt man das in deiner Familie, weiß ich nicht", expect: none }
+- { text: "Noch einmal so ein Wetter und ich ziehe um", expect: none }
+- { text: "Dann musste, ой, не, не, с самого начала. Dann muss ich zu Hause bleiben", expect: none }
+- { text: "Ich bin noch nicht fertig, weiter geht es morgen", expect: none }
+- { text: "Das reicht mir nicht", expect: none }
