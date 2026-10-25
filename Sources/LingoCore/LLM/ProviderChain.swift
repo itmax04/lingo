@@ -38,6 +38,8 @@ public enum ChainEvent: Sendable, Equatable {
     /// Ключ недействителен (400/401/403) — выключить его в настройках (R-29).
     case keyInvalid(keyID: String, LLMError)
     case usage(StepInfo, TokenUsage)
+    /// Остатки квоты шага по заголовкам ответа (R-52).
+    case rateLimits(StepInfo, RateLimitSnapshot)
     /// `model` — фактическая модель из ответа.
     case finished(StepInfo, model: String)
     /// Ни один шаг не ответил (S-18). `retryAfter` — через сколько секунд освободится ближайший шаг.
@@ -65,7 +67,7 @@ public final class ProviderHealth: @unchecked Sendable {
     public func reportFailure(_ s: StepInfo, _ error: LLMError, now: Date = Date()) {
         if error == .cancelled || error.isInvalidKey { return }
         var seconds = defaultPause
-        if case .http(_, _, let ra?) = error { seconds = ra }
+        if let ra = error.retryAfterSeconds { seconds = ra }
         lock.withLock { until[Self.key(s)] = (now.addingTimeInterval(seconds), error) }
     }
 
@@ -73,7 +75,21 @@ public final class ProviderHealth: @unchecked Sendable {
         lock.withLock { until[Self.key(s)] = nil }
     }
 
-    public func reset() { lock.withLock { until.removeAll() } }
+    private var snapshots: [String: RateLimitSnapshot] = [:]
+
+    public func report(_ s: StepInfo, snapshot: RateLimitSnapshot) {
+        lock.withLock { snapshots[Self.key(s)] = snapshot }
+    }
+
+    public func snapshot(for s: StepInfo) -> RateLimitSnapshot? { lock.withLock { snapshots[Self.key(s)] } }
+
+    /// Хватит ли остатка токенов на минуту для запроса (неизвестно — считаем, что хватит).
+    public func hasRoom(_ s: StepInfo, needed: Int, now: Date = Date()) -> Bool {
+        guard let a = snapshot(for: s)?.tokensAvailable(now: now) else { return true }
+        return a >= needed
+    }
+
+    public func reset() { lock.withLock { until.removeAll(); snapshots.removeAll() } }
 }
 
 /// Цепочка шагов с автопереходом (R-29). Переход: 429, 5xx, сетевая ошибка, отказ модели, нет первого токена за таймаут.
@@ -96,27 +112,37 @@ public struct ProviderChain: Sendable {
     /// Если все шаги упёрлись в лимит, а ближайший освободится не позже чем через столько секунд, —
     /// подождать и пройти цепочку ещё раз (бесплатные лимиты Groq в минуту, P-05; укладывается в Q3 «до 8–10 с»).
     public var autoRetryWithin: TimeInterval
+    /// Журнал расхода (R-52): одна запись на попытку.
+    public var usage: UsageRecorder?
 
-    public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth(), autoRetryWithin: TimeInterval = 12) {
+    public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth(), autoRetryWithin: TimeInterval = 12,
+                usage: UsageRecorder? = nil) {
         self.steps = steps
         self.firstTokenTimeout = firstTokenTimeout
         self.health = health
         self.autoRetryWithin = autoRetryWithin
+        self.usage = usage
     }
 
     /// Шаги без паузы; если все на паузе по таймауту или сети (не 429), они пробуются последними — вдруг сеть вернулась.
-    func plan(now: Date = Date()) -> (run: [Step], soonest: Date?) {
-        var fresh: [Step] = [], retryable: [Step] = []
+    /// `needed` — оценка токенов запроса: шаг, у которого по заголовкам осталось меньше на эту минуту, идёт в конец (R-52).
+    /// `soonest` — ближайший конец паузы, срок которой сообщил провайдер (`retry-after` или «try again in»);
+    /// паузы по умолчанию (300 с) в обещание пользователю не попадают (R-52).
+    func plan(now: Date = Date(), needed: Int = 0) -> (run: [Step], soonest: Date?) {
+        var fresh: [Step] = [], tight: [Step] = [], retryable: [Step] = []
         var soonest: Date?
         for s in steps {
             if let p = health.pause(for: s.info, now: now) {
-                soonest = min(soonest ?? p.until, p.until)
+                if p.error.retryAfterSeconds != nil { soonest = min(soonest ?? p.until, p.until) }
                 if p.error.status != 429 { retryable.append(s) }
+            } else if !health.hasRoom(s.info, needed: needed, now: now) {
+                tight.append(s)
             } else {
                 fresh.append(s)
             }
         }
-        return (fresh.isEmpty ? retryable : fresh, soonest)
+        let run = fresh + tight
+        return (run.isEmpty ? retryable : run, soonest)
     }
 
     /// Запуск. Отмена задачи-потребителя (склейка реплик R-11, перебивание R-12) прерывает текущий запрос.
@@ -130,29 +156,38 @@ public struct ProviderChain: Sendable {
                     continuation.finish()
                     return
                 }
-                var (usable, soonest) = plan()
+                let needed = TokenEstimate.input(request) + request.maxTokens / 2
+                var (usable, soonest) = plan(needed: needed)
                 // Все шаги на короткой паузе (429) — подождать ближайший, а не сдаваться сразу.
                 if usable.isEmpty, let s = soonest, s.timeIntervalSinceNow <= autoRetryWithin {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
-                    (usable, soonest) = plan()
+                    (usable, soonest) = plan(needed: needed)
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
+                // Все отказы — по лимиту (429): тогда возможен второй проход после короткого ожидания.
+                var allRateLimited = true
                 for step in usable {
                     if Task.isCancelled { break }
                     if invalidKeys.contains(step.info.keyID) { continue }
                     continuation.yield(.attempt(step.info))
                     if attempted > 0 { continuation.yield(.restart(step.info)) }
                     attempted += 1
+                    let stats = StepStats()
+                    let t0 = Date()
                     do {
-                        try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation)
+                        try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation,
+                                               health: health, stats: stats)
                         health.reportSuccess(step.info)
+                        record(step, request, status: "ok", error: nil, stats: stats, since: t0)
                         continuation.finish()
                         return
                     } catch {
-                        if Task.isCancelled { break }
                         let e = (error as? LLMError) ?? .network(error.localizedDescription)
+                        record(step, request, status: Task.isCancelled ? "cancelled" : e.usageStatus, error: e, stats: stats, since: t0)
+                        if Task.isCancelled { break }
                         if e == .cancelled { break }
+                        if e.status != 429 { allRateLimited = false }
                         Log.llm.error("step \(step.info.provider.rawValue, privacy: .public) model=\(step.info.model, privacy: .public) key#\(step.info.keyIndex, privacy: .public) failed: \(e.description, privacy: .public)")
                         continuation.yield(.stepFailed(step.info, e))
                         if e.isInvalidKey {
@@ -165,20 +200,25 @@ public struct ProviderChain: Sendable {
                     }
                 }
                 // Все шаги отказали по лимиту, ближайший скоро освободится — второй проход (один раз).
-                if !Task.isCancelled, let s = plan().soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
-                   reasons.allSatisfy({ $0.contains("429") }) {
+                if !Task.isCancelled, let s = plan(needed: needed).soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
+                   allRateLimited {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
-                    for step in plan().run where !invalidKeys.contains(step.info.keyID) {
+                    for step in plan(needed: needed).run where !invalidKeys.contains(step.info.keyID) {
                         if Task.isCancelled { break }
                         continuation.yield(.attempt(step.info))
                         continuation.yield(.restart(step.info))
+                        let stats = StepStats()
+                        let t0 = Date()
                         do {
-                            try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation)
+                            try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation,
+                                                   health: health, stats: stats)
                             health.reportSuccess(step.info)
+                            record(step, request, status: "ok", error: nil, stats: stats, since: t0)
                             continuation.finish()
                             return
                         } catch {
                             let e = (error as? LLMError) ?? .network(error.localizedDescription)
+                            record(step, request, status: e.usageStatus, error: e, stats: stats, since: t0)
                             if e == .cancelled { break }
                             continuation.yield(.stepFailed(step.info, e))
                             health.reportFailure(step.info, e)
@@ -188,7 +228,7 @@ public struct ProviderChain: Sendable {
                 }
                 if !Task.isCancelled {
                     let now = Date()
-                    let next = plan(now: now).soonest ?? soonest
+                    let next = plan(now: now, needed: needed).soonest ?? soonest
                     let wait = next.map { max(0, $0.timeIntervalSince(now)) }
                     let reason = reasons.isEmpty ? "все шаги на паузе после ошибок" : reasons.joined(separator: "; ")
                     continuation.yield(.exhausted(reason: reason, retryAfter: wait))
@@ -199,9 +239,19 @@ public struct ProviderChain: Sendable {
         }
     }
 
+    func record(_ step: Step, _ request: LLMRequest, status: String, error: LLMError?, stats: StepStats, since t0: Date) {
+        guard let usage else { return }
+        let snap = stats.snapshot
+        usage.record(UsageRecord(ts: Date(), purpose: request.purpose.rawValue, provider: step.info.provider.rawValue, model: step.info.model,
+                                 keyIndex: step.info.keyIndex, status: status, limitKind: error?.rateLimitKind, retryAfter: error?.retryAfterSeconds,
+                                 inputTokens: stats.usage?.input, outputTokens: stats.usage?.output, cachedTokens: stats.usage?.cached,
+                                 estimatedInput: TokenEstimate.input(request), remainingTokens: snap?.remainingTokens,
+                                 remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000)))
+    }
+
     /// Один шаг; бросает ошибку, если нужен переход. Таймаут первого токена — гонка с часами.
     static func runStep(_ step: Step, request: LLMRequest, timeout: Double, start: UInt64,
-                        continuation: AsyncStream<ChainEvent>.Continuation) async throws {
+                        continuation: AsyncStream<ChainEvent>.Continuation, health: ProviderHealth? = nil, stats: StepStats = StepStats()) async throws {
         let stream = step.provider.stream(request, model: step.info.model, key: step.key)
         let gotFirst = FirstTokenFlag()
         let stepStart = DispatchTime.now().uptimeNanoseconds
@@ -218,7 +268,13 @@ public struct ProviderChain: Sendable {
                             continuation.yield(.firstToken(step.info, afterMs: ms))
                         }
                         continuation.yield(.text(t))
-                    case .usage(let u): usage = u
+                    case .usage(let u):
+                        usage = u
+                        stats.usage = u
+                    case .rateLimits(let snap):
+                        stats.snapshot = snap
+                        health?.report(step.info, snapshot: snap)
+                        continuation.yield(.rateLimits(step.info, snap))
                     case .done: break
                     }
                 }
@@ -245,6 +301,15 @@ public struct ProviderChain: Sendable {
     }
 }
 
+/// Расход и остатки одной попытки — для журнала (R-52).
+final class StepStats: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _usage: TokenUsage?
+    private var _snapshot: RateLimitSnapshot?
+    var usage: TokenUsage? { get { lock.withLock { _usage } } set { lock.withLock { _usage = newValue } } }
+    var snapshot: RateLimitSnapshot? { get { lock.withLock { _snapshot } } set { lock.withLock { _snapshot = newValue } } }
+}
+
 final class FirstTokenFlag: @unchecked Sendable {
     private let lock = NSLock()
     private var value = false
@@ -267,7 +332,7 @@ public enum ChainFactory {
     /// Ключи читаются из хранилища — вызывать не на главном потоке (Keychain может ждать системного запроса).
     public static func chain(settings: LLMSettings, secrets: SecretStore, health: ProviderHealth = .shared,
                              transport: StreamingTransport = URLSessionTransport(),
-                             providers: [ProviderID: LLMProvider]? = nil) -> ProviderChain {
+                             providers: [ProviderID: LLMProvider]? = nil, usage: UsageRecorder? = nil) -> ProviderChain {
         var steps: [ProviderChain.Step] = []
         var values: [String: String] = [:]
         let entries = settings.pinnedEntryID.flatMap { pin in settings.chain.filter { $0.id == pin } }.flatMap { $0.isEmpty ? nil : $0 }
@@ -286,7 +351,7 @@ public enum ChainFactory {
             }
         }
         return ProviderChain(steps: steps, firstTokenTimeout: settings.firstTokenTimeout.clamped(to: LLMSettings.timeoutRange),
-                             health: health)
+                             health: health, usage: usage)
     }
 }
 

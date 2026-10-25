@@ -26,6 +26,11 @@ public actor DialogEngine {
     private let makeChain: @Sendable () async -> ProviderChain
     public var policy: ContextPolicy
     private var summarizing: Set<String> = []
+    /// Диспетчер (R-52): идёт ли сейчас ход пользователя; фоновые запросы ждут его конца.
+    private var dialogInFlight = 0
+    private var pendingTopicPhrases: Set<String> = []
+    /// Журнал расхода — для служебных запросов тоже (передаётся в цепочку снаружи).
+    public var usage: UsageRecorder?
 
     public init(store: JournalStore, policy: ContextPolicy = ContextPolicy(), chain: @escaping @Sendable () async -> ProviderChain) {
         self.store = store
@@ -113,6 +118,15 @@ public actor DialogEngine {
     }
 
     private func reply(session: String, replyTo: String?, command: CommandKind?, cont: AsyncStream<TurnEvent>.Continuation) async {
+        dialogInFlight += 1
+        defer { dialogInFlight -= 1 }
+        await replyInner(session: session, replyTo: replyTo, command: command, cont: cont)
+        // Фоновые запросы — после хода и только при запасе квоты (R-27, R-04, R-52).
+        let engine = self
+        Task.detached { await engine.runBackground(session) }
+    }
+
+    private func replyInner(session: String, replyTo: String?, command: CommandKind?, cont: AsyncStream<TurnEvent>.Continuation) async {
         let st = await store.state
         guard let s = st.sessions[session] else { cont.yield(.failed(reason: "нет сессии", retryAfter: nil)); return }
         var history = st.messages[session] ?? []
@@ -145,13 +159,14 @@ public actor DialogEngine {
                 step = info
                 actualModel = model
             case .exhausted(let reason, let wait):
-                let mins = wait.map { max(1, Int(($0 / 60).rounded(.up))) }
-                let text = "Модели недоступны: \(reason)." + (mins.map { " Повторите через \($0) мин." } ?? "")
+                // Срок — только если его сообщил провайдер (R-52).
+                let text = "Модели недоступны: \(reason)." + (wait.map { " Ближайшая попытка — через \(LLMError.human($0))." }
+                    ?? " Срок восстановления провайдер не сообщил.")
                 _ = try? await store.append(EventType.messageCreated, session: session,
                                             Payload.MessageCreated(role: .assistant, text: text, lang: .ru, kind: .error, replyTo: replyTo))
                 cont.yield(.failed(reason: reason, retryAfter: wait))
                 return
-            case .stepFailed, .usage:
+            case .stepFailed, .usage, .rateLimits:
                 break
             }
         }
@@ -190,7 +205,30 @@ public actor DialogEngine {
             cont.yield(.failed(reason: "\(error)", retryAfter: nil))
             return
         }
+    }
+
+    /// Фоновые запросы после хода: фразы темы (один раз), краткое содержание (каждые 10 ходов) — если ход не идёт и квота есть.
+    func runBackground(_ session: String) async {
+        guard dialogInFlight == 0, await quotaAllowsBackground() else { return }
+        if pendingTopicPhrases.contains(session) {
+            pendingTopicPhrases.remove(session)
+            await generateTopicPhrases(session)
+        }
+        guard dialogInFlight == 0, await quotaAllowsBackground() else { return }
         await maybeSummarize(session)
+    }
+
+    /// Хватает ли квоты для служебного запроса: первый доступный шаг не на паузе и по заголовкам у него ≥ 3000 токенов на минуту.
+    func quotaAllowsBackground() async -> Bool {
+        let chain = await makeChain()
+        let (run, _) = chain.plan(needed: 3000)
+        guard let first = run.first else { return false }
+        return chain.health.pause(for: first.info) == nil && chain.health.hasRoom(first.info, needed: 3000)
+    }
+
+    /// Фразы темы (R-27) запрашиваются после первого ответа помощника, а не сразу: первый ход важнее (R-52).
+    public func requestTopicPhrases(_ session: String) {
+        pendingTopicPhrases.insert(session)
     }
 
     // MARK: Фразы темы (R-27)
@@ -268,7 +306,8 @@ public actor DialogEngine {
         guard force || policy.needsSummary(msgs, through: s.summaryThrough) else { return }
         summarizing.insert(session)
         defer { summarizing.remove(session) }
-        let req = PromptBuilder.summaryRequest(settings: s.settings, previous: s.summary, messages: Array(msgs.suffix(policy.maxTurns * 2 + 2)))
+        // Только новые ходы с прошлого краткого содержания (+2 для связности), а не всё окно (R-52).
+        let req = PromptBuilder.summaryRequest(settings: s.settings, previous: s.summary, messages: Array(msgs.suffix(policy.summaryEvery * 2 + 2)))
         var text = ""
         for await e in await makeChain().run(req) {
             if case .text(let t) = e { text += t }

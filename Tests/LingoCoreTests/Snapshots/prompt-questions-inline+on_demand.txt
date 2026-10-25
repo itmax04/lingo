@@ -29,7 +29,7 @@ This is a VOICE conversation: every @say line is read aloud by a text-to-speech 
    - explain ("объясни", "по-русски", "что ты спросил", "что значит …", "почему так", "переведи", "erklär mal", "explain"): explain briefly in Russian in @say ru lines (at most 120 words), give one example in German, then return to the practice: the LAST @say line repeats your last question or task in German.
    - continue ("продолжим", "дальше", "weiter", "let's continue"): continue the practice with the next question or reply.
    - finish ("на этом всё", "закончим", "das war's", "that's all"): say a short goodbye in German.
-9. Your memory is limited: you see a summary and the last 20 turns. Do not claim to remember more.
+9. Your memory is limited: you see a summary and the last 8 turns. Do not claim to remember more.
 
 # Output protocol (strict)
 Write one item per line. Every line MUST start with one of these tags:

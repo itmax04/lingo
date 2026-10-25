@@ -67,11 +67,37 @@ extension Headless {
             return args[j + 1].split(separator: ",").map(String.init)
         }
         let settings = SettingsStore().load().llm
-        let models = opt("--models") ?? settings.chain.filter { $0.enabled && $0.provider == .groq }.map(\.model)
+        // Защита квоты (Q29, ревью F-01): по умолчанию — одна модель, 10 кейсов, ночью; днём — только с --allow-daytime.
+        let hour = Calendar.current.component(.hour, from: Date())
+        if (8..<23).contains(hour), !args.contains("--allow-daytime") {
+            print("eval dialog: днём не запускается — квота Groq общая с занятиями владельца (Q29). Ночью (23:00–08:00) или с --allow-daytime.")
+            return 3
+        }
+        let models = opt("--models") ?? Array(settings.chain.filter { $0.enabled && $0.provider == .groq }.map(\.model).prefix(1))
+        let maxCases = opt("--max-cases").flatMap { Int($0[0]) } ?? 10
+        let budget = opt("--budget").flatMap { Int($0[0]) } ?? (maxCases + maxCases / 2)
         let provider: ProviderID = ProviderID(rawValue: opt("--provider")?.first ?? "groq") ?? .groq
         var cases: [DialogCase]
         do { cases = try DialogCase.load(dir: casesDir) } catch { print("cases: \(error)"); return 2 }
         if let only = opt("--only") { cases = cases.filter { only.contains($0.id) } }
+        if opt("--only") == nil, cases.count > maxCases {
+            // Порция по кругу категорий: каждая категория представлена, пока хватает лимита.
+            var byCat: [String: [DialogCase]] = [:]
+            for c in cases { byCat[c.category, default: []].append(c) }
+            let offset = opt("--offset").flatMap { Int($0[0]) } ?? 0
+            var picked: [DialogCase] = []
+            var round = offset
+            while picked.count < maxCases, byCat.values.contains(where: { $0.count > round % max(1, $0.count) }) {
+                for k in byCat.keys.sorted() where picked.count < maxCases {
+                    let list = byCat[k]!
+                    let c = list[round % list.count]
+                    if !picked.contains(where: { $0.id == c.id }) { picked.append(c) }
+                }
+                round += 1
+                if round > offset + 20 { break }
+            }
+            cases = picked
+        }
         guard let rec = settings.keys(for: provider).first(where: { !$0.invalid }) else { print("нет действующего ключа \(provider.displayName)"); return 1 }
         let selected = cases, base = settings.customBase
         let done = DispatchSemaphore(value: 0)
@@ -79,12 +105,20 @@ extension Headless {
         Task.detached {
             guard let key = try? KeychainStore().get(rec.id), !key.isEmpty else { print("ключ не прочитан из Связки ключей"); box.value = 1; done.signal(); return }
             try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
-            print("eval dialog: \(selected.count) кейсов × \(models.count) моделей (\(provider.displayName), ключ ••••\(rec.last4))")
+            print("eval dialog: \(selected.count) кейсов × \(models.count) моделей (\(provider.displayName), ключ ••••\(rec.last4)), бюджет \(budget) запросов на модель")
+            let usage = UsageRecorder(dir: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Lingo/usage", isDirectory: true))
             let reports = await withTaskGroup(of: DialogRunner.Report.self) { g in
                 for m in models {
                     g.addTask {
                         let p = OpenAICompatibleProvider(provider, customBase: base)
-                        return await DialogRunner(provider: p, model: m, key: key).run(selected)
+                        var runner = DialogRunner(provider: p, model: m, key: key, maxRequests: budget, usage: usage)
+                        let enc = JSONEncoder()
+                        enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+                        enc.dateEncodingStrategy = .iso8601
+                        let file = outDir.appendingPathComponent("dialog-" + m.replacingOccurrences(of: "/", with: "_") + ".json")
+                        runner.onProgress = { r in try? enc.encode(r).write(to: file) }
+                        return await runner.run(selected)
                     }
                 }
                 var out: [DialogRunner.Report] = []

@@ -75,6 +75,9 @@ public final class TurnController {
     /// Сообщение помощника, которое сейчас озвучивается (после записи в журнал).
     private var speakingMessageID: String?
     private var speakingSessionID: String?
+    private var recordStartedAt: Double = 0
+    private var recordPeakDB: Float = -120
+    private var silentWarned = false
 
     public init(engine: DialogEngine, recognizer: SpeechRecognizer, sink: SpeechSink, metrics: MetricsRecorder?,
                 voice: VoiceSettings, context: @escaping () -> Context?) {
@@ -124,6 +127,9 @@ public final class TurnController {
         if sink.isSpeaking { interrupt(reason: "key") }
         recording = true
         segmenter = TurnSegmenter(config: voice.turn)
+        recordStartedAt = seconds
+        recordPeakDB = -120
+        silentWarned = false
         // Если речь уже идёт (начали говорить чуть раньше нажатия) — реплика начинается сейчас.
         if vad.isSpeech { _ = segmenter.speechStarted(at: max(0, seconds - 0.3)) }
         state = .recording
@@ -175,7 +181,18 @@ public final class TurnController {
                 handle(segmenter.speechEnded(at: t - Double(VoiceDefaults.vad.hangoverMs) / 1000))
             }
         }
-        if !recording { handle(segmenter.advance(to: seconds)) }
+        // По кнопке реплика тоже заканчивается сама после паузы T (как в непрерывном режиме); второе нажатие — сразу.
+        let ev = segmenter.advance(to: seconds)
+        if recording, ev.contains(where: { if case .utterance = $0 { return true }; return false }) { recording = false }
+        handle(ev)
+        // Микрофон молчит во время записи — подсказка (не тот вход, звук выключен, нет доступа).
+        if recording {
+            recordPeakDB = max(recordPeakDB, EnergyVAD.rmsDB(s[...]))
+            if seconds - recordStartedAt > 4, recordPeakDB < -65, !silentWarned {
+                silentWarned = true
+                onNotice?("Микрофон не даёт звука: проверьте вход в «Системные настройки → Звук → Вход»")
+            }
+        }
     }
 
     private func handle(_ events: [TurnSegmenter.Event]) {

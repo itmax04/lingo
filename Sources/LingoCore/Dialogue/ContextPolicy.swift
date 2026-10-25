@@ -3,14 +3,17 @@ import Foundation
 /// Политика контекста модели (R-04): системная обёртка + краткое содержание + последние N ходов.
 /// Ход — реплика пользователя вместе с ответом помощника.
 public struct ContextPolicy: Sendable, Hashable, Codable {
-    /// N: по умолчанию 20, от 6 до 40.
+    /// N: по умолчанию 8 (Q29, было 20), от 6 до 40.
     public var maxTurns: Int
     /// Краткое содержание обновляется каждые 10 ходов и при завершении сессии.
     public var summaryEvery: Int
 
     public static let turnsRange: ClosedRange<Int> = 6...40
 
-    public init(maxTurns: Int = 20, summaryEvery: Int = 10) {
+    /// Бюджет символов расшифровки в запросе (≈ 1800 токенов, R-04 в версии 2.2): старые ходы отбрасываются раньше N.
+    public static let transcriptCharBudget = 6300
+
+    public init(maxTurns: Int = 8, summaryEvery: Int = 10) {
         self.maxTurns = maxTurns.clamped(to: Self.turnsRange)
         self.summaryEvery = summaryEvery
     }
@@ -20,9 +23,13 @@ public struct ContextPolicy: Sendable, Hashable, Codable {
     public func window(_ messages: [ChatMessage]) -> [ChatMessage] {
         let real = messages.filter { $0.kind == .normal }
         let userIdx = real.indices.filter { real[$0].role == .user }
-        guard userIdx.count > maxTurns else { return real }
-        let start = userIdx[userIdx.count - maxTurns]
-        return Array(real[start...])
+        var w = userIdx.count > maxTurns ? Array(real[userIdx[userIdx.count - maxTurns]...]) : real
+        // Бюджет по символам: убираем самые старые ходы, но последний ход остаётся всегда.
+        func size(_ m: [ChatMessage]) -> Int { m.reduce(0) { $0 + ($1.role == .assistant ? $1.spokenText.count + 40 : $1.text.count) + 24 } }
+        while size(w) > Self.transcriptCharBudget, let next = w.dropFirst().firstIndex(where: { $0.role == .user }) {
+            w = Array(w[next...])
+        }
+        return w
     }
 
     /// Сколько ходов (реплик пользователя) после последнего краткого содержания.

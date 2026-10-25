@@ -33,7 +33,7 @@ enum LingoMain {
             Task { @MainActor in box.value = await SelfTest.run(files: Array(files), lang: lang); exit(box.value) }
             RunLoop.main.run()
         }
-        if args.contains("--help-eval") { print("--eval-dialog <cases> <out> [--models m1,m2] [--only ids] [--provider groq]"); exit(0) }
+        if args.contains("--help-eval") { print("--eval-dialog <cases> <out> [--models m1,m2] [--only ids] [--max-cases 10] [--budget 15] [--offset 0] [--allow-daytime] [--provider groq]"); exit(0) }
         if args.contains("--eval-dialog") {
             setvbuf(stdout, nil, _IOLBF, 0)
             exit(Headless.evalDialog(args: args))

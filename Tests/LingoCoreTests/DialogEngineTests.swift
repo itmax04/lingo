@@ -44,7 +44,7 @@ import Testing
         #expect((wait ?? 0) > 100)
         let msgs = await store.state.messages[sid]!
         #expect(msgs.count == 2 && msgs[0].text == "Hello")
-        #expect(msgs[1].kind == .error && msgs[1].text.hasPrefix("Модели недоступны:") && msgs[1].text.contains("Повторите через 2 мин"))
+        #expect(msgs[1].kind == .error && msgs[1].text.hasPrefix("Модели недоступны:") && msgs[1].text.contains("Ближайшая попытка — через 2 мин"))
         // Сообщение об ошибке в контекст модели не идёт (ContextPolicy).
         #expect(ContextPolicy().window(msgs).count == 1)
     }

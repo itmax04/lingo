@@ -52,7 +52,11 @@ extension AppServices {
             return TurnController.Context(session: s, lastAssistant: msgs.last { $0.role == .assistant && $0.kind == .normal },
                                           lastUser: msgs.last { $0.role == .user }, phrases: m.phrases.map(\.text))
         }
-        tc.onState = { s in m.voiceState = s }
+        tc.onState = { [weak tc] s in
+            m.voiceState = s
+            // «Говорю по-русски» действует на одну реплику (R-09): после неё кнопка гаснет.
+            if let tc { m.russianOnce = tc.forceRussianOnce }
+        }
         tc.onLevel = { l in
             m.levels.append(l)
             if m.levels.count > 160 { m.levels.removeFirst(m.levels.count - 160) }

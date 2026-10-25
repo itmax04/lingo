@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Вкладки настроек (R-44). «Голос», «Синхронизация», «Данные» добавляются в P-04 и P-10.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case keys = "Ключи и модели", voice = "Голос", sync = "Синхронизация", data = "Данные"
+    case keys = "Ключи и модели", quota = "Квота", voice = "Голос", sync = "Синхронизация", data = "Данные"
     var id: String { rawValue }
 }
 
@@ -19,6 +19,7 @@ struct SettingsView: View {
                 .tabItem { Text(SettingsTab.keys.rawValue) }
                 .tag(SettingsTab.keys)
             if let svc = services {
+                QuotaView(services: svc).tabItem { Text(SettingsTab.quota.rawValue) }.tag(SettingsTab.quota)
                 VoiceSettingsView(services: svc).tabItem { Text(SettingsTab.voice.rawValue) }.tag(SettingsTab.voice)
                 SyncSettingsView(services: svc, model: svc.model).tabItem { Text(SettingsTab.sync.rawValue) }.tag(SettingsTab.sync)
                 DataSettingsView(services: svc).tabItem { Text(SettingsTab.data.rawValue) }.tag(SettingsTab.data)

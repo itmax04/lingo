@@ -26,65 +26,133 @@ public struct DialogRunner: Sendable {
         public var categoryRates: [String: Double]
         public var medianMs: Double
         public var rows: [Row]
+        /// Почему прогон остановлен раньше (бюджет, длинный лимит, отмена); nil — прошёл весь набор.
+        public var stopped: String?
+        public var requestsUsed: Int?
     }
 
     public var provider: LLMProvider
     public var model: String
     public var key: String
     public var log: @Sendable (String) -> Void
+    /// Бюджет запросов на прогон этой модели, включая повторы (R-52, Q29). Исчерпан — прогон останавливается.
+    public var maxRequests: Int
+    /// Дольше ждать нельзя: длинный `retry-after` (обычно дневной лимит) — остановка с частичным отчётом.
+    public var maxWait: Double
+    public var usage: UsageRecorder?
+    /// После каждого кейса — частичный отчёт (переживает остановку процесса).
+    public var onProgress: (@Sendable (Report) -> Void)?
+    private let counter = Counter()
 
-    public init(provider: LLMProvider, model: String, key: String, log: @escaping @Sendable (String) -> Void = { print($0) }) {
+    final class Counter: @unchecked Sendable {
+        private let lock = NSLock()
+        private var n = 0
+        func next() -> Int { lock.withLock { n += 1; return n } }
+        var value: Int { lock.withLock { n } }
+    }
+
+    public enum Stop: Error, CustomStringConvertible {
+        case budget(Int), longWait(Double, RateLimitKind?), cancelled
+        public var description: String {
+            switch self {
+            case .budget(let n): "бюджет запросов исчерпан (\(n))"
+            case .longWait(let w, let k): "провайдер просит ждать \(LLMError.human(w))" + (k.map { " (\($0.title))" } ?? "")
+            case .cancelled: "отменено"
+            }
+        }
+    }
+
+    public init(provider: LLMProvider, model: String, key: String, maxRequests: Int = 15, maxWait: Double = 60,
+                usage: UsageRecorder? = nil, log: @escaping @Sendable (String) -> Void = { print($0) }) {
         self.provider = provider
         self.model = model
         self.key = key
+        self.maxRequests = maxRequests
+        self.maxWait = maxWait
+        self.usage = usage
         self.log = log
     }
 
-    /// Один запрос с повторами при лимите (не считается ошибкой модели — это ограничение бесплатного тарифа).
-    public func ask(_ req: LLMRequest) async -> (String, Double, String?) {
+    /// Один запрос с повторами при коротком лимите. Длинное ожидание, бюджет и отмена — `Stop`.
+    public func ask(_ req: LLMRequest) async throws -> (String, Double, String?) {
         var attempt = 0
         while true {
+            if Task.isCancelled { throw Stop.cancelled }
+            guard counter.value < maxRequests else { throw Stop.budget(maxRequests) }
+            _ = counter.next()
             attempt += 1
             let t0 = Date()
             var text = ""
+            var u: TokenUsage?
+            var snap: RateLimitSnapshot?
+            func record(_ status: String, _ e: LLMError?) {
+                usage?.record(UsageRecord(ts: Date(), purpose: "eval", provider: provider.id.rawValue, model: model, keyIndex: 1, status: status,
+                                          limitKind: e?.rateLimitKind, retryAfter: e?.retryAfterSeconds, inputTokens: u?.input, outputTokens: u?.output,
+                                          cachedTokens: u?.cached, estimatedInput: TokenEstimate.input(req), remainingTokens: snap?.remainingTokens,
+                                          remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000)))
+            }
             do {
                 for try await e in provider.stream(req, model: model, key: key) {
-                    if case .text(let t) = e { text += t }
+                    switch e {
+                    case .text(let t): text += t
+                    case .usage(let x): u = x
+                    case .rateLimits(let x): snap = x
+                    default: break
+                    }
                 }
+                record("ok", nil)
                 return (text, Date().timeIntervalSince(t0) * 1000, nil)
             } catch let e as LLMError {
-                if case .http(429, _, let ra) = e, attempt <= 8 {
-                    let wait = min(90, max(3, ra ?? 20))
-                    log("  429 \(model): жду \(Int(wait)) с")
-                    try? await Task.sleep(for: .seconds(wait))
+                record(e.usageStatus, e)
+                if case .http(429, _, _) = e {
+                    let wait = max(3, e.retryAfterSeconds ?? 20)
+                    // Полный retry-after соблюдается; если он длинный — остановка, а не обрезка до 90 с (ревью F-02).
+                    if wait > maxWait { throw Stop.longWait(wait, e.rateLimitKind) }
+                    log("  429 \(model): \(e.rateLimitKind?.title ?? "лимит") — жду \(Int(wait)) с")
+                    try await Self.sleep(wait)
                     continue
                 }
-                // Обрыв сети или таймаут — не ошибка модели: повтор (до 3 раз).
-                if case .network = e, attempt <= 3 {
-                    try? await Task.sleep(for: .seconds(3))
-                    continue
-                }
-                if case .http(let s, _, _) = e, s >= 500 || s == 408, attempt <= 3 {
-                    try? await Task.sleep(for: .seconds(5))
-                    continue
-                }
+                if case .network = e, attempt <= 3 { try await Self.sleep(3); continue }
+                if case .http(let s, _, _) = e, s >= 500 || s == 408, attempt <= 3 { try await Self.sleep(5); continue }
                 return (text, Date().timeIntervalSince(t0) * 1000, e.description)
+            } catch let s as Stop {
+                throw s
             } catch {
+                if Task.isCancelled { throw Stop.cancelled }
                 return (text, Date().timeIntervalSince(t0) * 1000, error.localizedDescription)
             }
         }
     }
 
+    /// Ожидание с отменой (ревью F-02: `try?` гасил отмену).
+    static func sleep(_ s: Double) async throws {
+        do { try await Task.sleep(for: .seconds(s)) } catch { throw Stop.cancelled }
+    }
+
     public func run(_ cases: [DialogCase]) async -> Report {
         var rows: [Row] = []
+        var stopped: String?
         for (i, c) in cases.enumerated() {
-            let (text, ms, err) = await ask(c.request())
+            let text: String, ms: Double, err: String?
+            do {
+                (text, ms, err) = try await ask(c.request())
+            } catch {
+                stopped = "\(error)"
+                log("  [\(model)] остановлено на \(i + 1)/\(cases.count): \(error)")
+                break
+            }
             let res = err == nil ? DialogRules.check(c, response: text) : nil
             rows.append(Row(id: c.id, category: c.category, lang: c.studyLang.rawValue, model: model, response: text, ms: ms, result: res, error: err))
             log(String(format: "  [%@] %d/%d %@ %@ %.0f мс", model, i + 1, cases.count, c.id,
                        err != nil ? "ERROR \(err!)" : (res!.pass ? "ok" : "FAIL " + res!.rules.filter { !$0.value }.keys.sorted().joined(separator: ",")), ms))
+            var partial = Self.summarize(rows, model: model, provider: provider.id.rawValue)
+            partial.stopped = "в процессе: \(rows.count)/\(cases.count)"
+            onProgress?(partial)
         }
-        return Self.summarize(rows, model: model, provider: provider.id.rawValue)
+        var r = Self.summarize(rows, model: model, provider: provider.id.rawValue)
+        r.stopped = stopped
+        r.requestsUsed = counter.value
+        return r
     }
 
     public static func summarize(_ rows: [Row], model: String, provider: String) -> Report {
@@ -104,7 +172,7 @@ public struct DialogRunner: Sendable {
                       passed: rows.filter { $0.result?.pass == true }.count, errors: rows.filter { $0.error != nil }.count,
                       ruleRates: counts.mapValues { Double($0[0]) / Double(max(1, $0[1])) }, ruleCounts: counts,
                       categoryRates: cat.mapValues { Double($0[0]) / Double(max(1, $0[1])) },
-                      medianMs: ms.isEmpty ? 0 : ms[ms.count / 2], rows: rows)
+                      medianMs: ms.isEmpty ? 0 : ms[ms.count / 2], rows: rows, stopped: nil, requestsUsed: nil)
     }
 
     /// Итог по порогам evals/README.md: все правила кейса ≥ 90%, `no_pronunciation` = 100%, правила — по своим порогам.
@@ -114,6 +182,8 @@ public struct DialogRunner: Sendable {
         var ok = overall >= 0.90
         lines.append(String(format: "%@: все правила кейса %d/%d = %.1f%% (≥ 90%%)%@, ошибок запроса %d, медиана %.0f мс",
                             r.model, r.passed, r.cases, overall * 100, overall >= 0.90 ? "" : " ✗", r.errors, r.medianMs))
+        if let s = r.stopped { lines.append("  остановлено: \(s)"); ok = false }
+        if let n = r.requestsUsed { lines.append("  запросов к провайдеру: \(n)") }
         for k in DialogRules.all {
             guard let c = r.ruleCounts[k] else { continue }
             let rate = Double(c[0]) / Double(max(1, c[1]))

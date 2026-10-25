@@ -105,6 +105,11 @@ public struct SSEParser {
 enum SSE {
     /// Открывает поток: при статусе не 2xx читает тело и бросает `LLMError.http` с текстом ошибки (без ключа) и `retry-after`.
     static func open(_ request: URLRequest, transport: StreamingTransport, key: String) async throws -> AsyncThrowingStream<SSEEvent, Error> {
+        try await openWithHeaders(request, transport: transport, key: key).1
+    }
+
+    /// То же, плюс остатки квоты из заголовков успешного ответа (R-52).
+    static func openWithHeaders(_ request: URLRequest, transport: StreamingTransport, key: String) async throws -> (RateLimitSnapshot, AsyncThrowingStream<SSEEvent, Error>) {
         let response: HTTPURLResponse
         let lines: AsyncThrowingStream<String, Error>
         do {
@@ -123,7 +128,8 @@ enum SSE {
             throw LLMError.http(status: response.statusCode, message: errorMessage(body, key: key),
                                 retryAfter: retryAfter(response))
         }
-        return AsyncThrowingStream { continuation in
+        let snapshot = RateLimitSnapshot(headers: response.allHeaderFields)
+        return (snapshot, AsyncThrowingStream { continuation in
             let task = Task {
                 var parser = SSEParser()
                 do {
@@ -139,7 +145,7 @@ enum SSE {
                 }
             }
             continuation.onTermination = { _ in task.cancel() }
-        }
+        })
     }
 
     /// `retry-after`: секунды или HTTP-дата.
@@ -161,13 +167,15 @@ enum SSE {
             else if let m = dict["message"] as? String { message = m }
             else if let m = dict["error"] as? String { message = m }
         }
-        return redact(String(message.prefix(200)), key: key)
+        // 400 символов: у Groq вид лимита («tokens per day (TPD)») стоит после имени модели и организации.
+        return redact(String(message.prefix(400)), key: key)
     }
 
-    /// Значение ключа никогда не попадает в текст ошибки (R-48).
+    /// Значение ключа и идентификатор организации никогда не попадают в текст ошибки (R-48).
     static func redact(_ s: String, key: String) -> String {
-        guard key.count >= 8 else { return s }
-        return s.replacingOccurrences(of: key, with: "[key]")
+        var t = s.replacingOccurrences(of: #"org_[A-Za-z0-9]+"#, with: "org_…", options: .regularExpression)
+        if key.count >= 8 { t = t.replacingOccurrences(of: key, with: "[key]") }
+        return t
     }
 
     static func json(_ data: String) -> [String: Any]? {

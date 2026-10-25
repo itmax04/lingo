@@ -47,10 +47,13 @@ public struct LLMRequest: Sendable, Equatable {
 public struct TokenUsage: Sendable, Equatable {
     public var input: Int
     public var output: Int
+    /// Кэшированные входные токены, если провайдер их сообщил (у Groq не идут в лимиты).
+    public var cached: Int?
 
-    public init(input: Int = 0, output: Int = 0) {
+    public init(input: Int = 0, output: Int = 0, cached: Int? = nil) {
         self.input = input
         self.output = output
+        self.cached = cached
     }
 }
 
@@ -59,6 +62,8 @@ public enum LLMEvent: Sendable, Equatable {
     case model(String)
     case text(String)
     case usage(TokenUsage)
+    /// Остатки квоты из заголовков ответа (R-52).
+    case rateLimits(RateLimitSnapshot)
     case done(stopReason: String?)
 }
 
@@ -79,6 +84,30 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
         return nil
     }
 
+    /// Вид лимита из текста 429 (R-52); nil — провайдер не указал.
+    public var rateLimitKind: RateLimitKind? {
+        guard case .http(429, let m, _) = self else { return nil }
+        return RateLimitKind.parse(m)
+    }
+
+    /// Время до повтора: заголовок `retry-after`, иначе «try again in …» из текста.
+    public var retryAfterSeconds: Double? {
+        guard case .http(_, let m, let ra) = self else { return nil }
+        return ra ?? RateLimitKind.tryAgainSeconds(m)
+    }
+
+    /// Короткий код статуса для журнала расхода.
+    public var usageStatus: String {
+        switch self {
+        case .http(let s, _, _): "http_\(s)"
+        case .network: "network"
+        case .firstTokenTimeout: "timeout"
+        case .refusal: "refusal"
+        case .cancelled: "cancelled"
+        default: "other"
+        }
+    }
+
     /// Неверный ключ (R-29): 401/403 — всегда; 400 — если текст ошибки говорит о ключе (D-09).
     public var isInvalidKey: Bool {
         guard case .http(let s, let m, _) = self else { return false }
@@ -96,7 +125,9 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .http(429, _, _): "лимит запросов (429)"
+        case .http(429, _, _):
+            (rateLimitKind?.title ?? "лимит провайдера (429, вид не указан)")
+                + (retryAfterSeconds.map { " — повтор через \(Self.human($0))" } ?? "")
         case .http(let s, let m, _) where s == 401 || s == 403: "ключ недействителен (HTTP \(s))" + (m.isEmpty ? "" : ": \(m)")
         case .http(400, let m, _): "неверный запрос или ключ (HTTP 400)" + (m.isEmpty ? "" : ": \(m)")
         case .http(402, _, _): "нужна оплата (402)"
@@ -112,6 +143,16 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
 }
 
 /// Провайдер языковой модели: свой HTTP-клиент с SSE, без SDK.
+extension LLMError {
+    /// 7 с, 2 мин, 1 ч 5 мин.
+    public static func human(_ s: Double) -> String {
+        if s < 90 { return "\(max(1, Int(s.rounded()))) с" }
+        if s < 3600 { return "\(Int((s / 60).rounded())) мин" }
+        let h = Int(s / 3600), m = Int((s - Double(h) * 3600) / 60)
+        return m > 0 ? "\(h) ч \(m) мин" : "\(h) ч"
+    }
+}
+
 public protocol LLMProvider: Sendable {
     var id: ProviderID { get }
     func stream(_ request: LLMRequest, model: String, key: String) -> AsyncThrowingStream<LLMEvent, Error>

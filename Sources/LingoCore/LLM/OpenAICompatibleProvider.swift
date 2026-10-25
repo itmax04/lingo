@@ -57,8 +57,9 @@ public struct OpenAICompatibleProvider: LLMProvider {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let events = try await SSE.open(try makeRequest(request, model: model, key: key), transport: transport, key: key)
-                    var usage = TokenUsage()
+                    let (limits, events) = try await SSE.openWithHeaders(try makeRequest(request, model: model, key: key), transport: transport, key: key)
+                    if !limits.isEmpty { continuation.yield(.rateLimits(limits)) }
+                    var usage: TokenUsage?
                     var stop: String?
                     var announced = false
                     for try await e in events {
@@ -80,11 +81,15 @@ public struct OpenAICompatibleProvider: LLMProvider {
                         }
                         let u = json["usage"] as? [String: Any] ?? (json["x_groq"] as? [String: Any])?["usage"] as? [String: Any]
                         if let u {
-                            usage.input = u["prompt_tokens"] as? Int ?? usage.input
-                            usage.output = u["completion_tokens"] as? Int ?? usage.output
+                            var x = usage ?? TokenUsage()
+                            x.input = u["prompt_tokens"] as? Int ?? x.input
+                            x.output = u["completion_tokens"] as? Int ?? x.output
+                            if let d = u["prompt_tokens_details"] as? [String: Any], let c = d["cached_tokens"] as? Int { x.cached = c }
+                            usage = x
                         }
                     }
-                    continuation.yield(.usage(usage))
+                    // Нет usage — нет записи расхода (неизвестное не превращается в ноль, R-52).
+                    if let usage { continuation.yield(.usage(usage)) }
                     continuation.yield(.done(stopReason: stop))
                     continuation.finish()
                 } catch {

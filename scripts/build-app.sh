@@ -45,8 +45,13 @@ echo "==> упаковка"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/$APP_NAME"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
+# Версия сборки (ревью F-05): номер сборки — число коммитов, ревизия — commit (+ «-dirty», если есть незакоммиченные изменения).
 GIT_REV="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+[ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ] && GIT_REV="$GIT_REV-dirty"
+BUILD_NO="$(git rev-list --count HEAD 2>/dev/null || echo 0)"
 /usr/libexec/PlistBuddy -c "Add :LingoGitRevision string $GIT_REV" "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NO" "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :LingoBuildDate string $(date -u +%Y-%m-%dT%H:%M:%SZ)" "$APP/Contents/Info.plist"
 find "$ROOT/Resources" -maxdepth 1 -type f ! -name Info.plist -exec cp {} "$APP/Contents/Resources/" \;
 
 # Иконка рисуется самим приложением, затем iconutil собирает .icns.
@@ -73,5 +78,5 @@ mkdir -p "$DIST"
 rm -rf "$FINAL_APP"
 # ditto без расширенных атрибутов: подпись остаётся целой и в папке под iCloud.
 ditto --noextattr --noqtn "$APP" "$FINAL_APP"
-echo "==> $FINAL_APP ($GIT_REV)"
+echo "==> $FINAL_APP (build $BUILD_NO, $GIT_REV)"
 codesign -dv "$FINAL_APP" 2>&1 | grep -E "Identifier|Authority|Signature" || true

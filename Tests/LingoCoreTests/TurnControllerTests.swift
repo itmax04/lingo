@@ -218,3 +218,14 @@ final class Holder {
     var refresh: (() async -> Void)?
 }
 
+
+extension TurnControllerTests {
+    @Test func pushToTalkEndsByItselfAfterPause() async throws {
+        let e = try await env(texts: ["Ich wohne in Hamburg."])
+        e.tc.pushDown()
+        await e.feed(1200, speech: true)
+        await e.feed(1700, speech: false)   // без второго нажатия
+        await e.settle()
+        #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
+    }
+}

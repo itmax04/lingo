@@ -48,7 +48,7 @@ public final class MetricsRecorder: @unchecked Sendable {
         try? h.write(contentsOf: d + Data([0x0A]))
     }
 
-    static func day() -> String {
+    public static func day() -> String {
         let c = Calendar(identifier: .gregorian).dateComponents(in: .current, from: Date())
         return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }

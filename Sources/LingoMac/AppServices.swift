@@ -31,11 +31,16 @@ final class AppServices {
             .appendingPathComponent("Lingo", isDirectory: true)
         store = try JournalStore(base: dir, deviceName: Host.current().localizedName ?? "Mac")
         let secretsRef = secrets
-        let settingsRef = SettingsRef(s)
+        var migrated = s
+        if LLMSettings.migrateOrder(&migrated.llm) { settingsStore.save(migrated); settings = migrated }
+        if migrated.context.maxTurns == 20 { migrated.context = ContextPolicy(); settingsStore.save(migrated); settings = migrated }
+        let settingsRef = SettingsRef(migrated)
         self.settingsRef = settingsRef
-        engine = DialogEngine(store: store, policy: s.context) {
-            // Ключи читаются не на главном потоке (D-11).
-            ChainFactory.chain(settings: settingsRef.value.llm, secrets: secretsRef)
+        let usage = UsageRecorder(dir: dir.appendingPathComponent("usage", isDirectory: true))
+        self.usage = usage
+        engine = DialogEngine(store: store, policy: migrated.context) {
+            // Ключи читаются не на главном потоке (D-11). Каждая попытка — запись расхода (R-52).
+            ChainFactory.chain(settings: settingsRef.value.llm, secrets: secretsRef, usage: usage)
         }
         model.langFilter = s.lastLang
         model.sourceLabel = s.llm.primaryLabel ?? "Нет ключа"
@@ -45,6 +50,7 @@ final class AppServices {
     }
 
     let settingsRef: SettingsRef
+    let usage: UsageRecorder
 
     weak var keys: KeysController?
 
@@ -79,10 +85,9 @@ final class AppServices {
                 let id = try await engine.createSession(s, title: title)
                 model.langFilter = s.lang
                 model.selectedSessionID = id
+                // Фразы темы — после первого ответа и только при запасе квоты (диспетчер R-52).
+                await engine.requestTopicPhrases(id)
                 if s.starter == .assistant { run(engine.respond(session: id)) }
-                // Фразы темы — фоном, после первого хода (лимит токенов Groq в минуту, R-27).
-                let e = engine
-                Task.detached { try? await Task.sleep(for: .seconds(8)); await e.generateTopicPhrases(id) }
             } catch { model.banner = "Не удалось создать сессию: \(error)" }
         }
     }

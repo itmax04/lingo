@@ -61,10 +61,11 @@ public struct LLMSettings: Codable, Sendable, Hashable {
     /// Порядок по умолчанию (P-00: бесплатные чат-модели Groq по console.groq.com/docs/rate-limits, 2026-10-25;
     /// Mistral — `mistral-small-latest` из docs.mistral.ai quickstart; OpenRouter — `:free` из `GET /api/v1/models`).
     /// Уточняется по `GET /models` и eval `dialog` (P-03, P-05).
+    /// Порядок (Q29): сначала модели с кэшем промпта у Groq (gpt-oss — кэшированная обёртка не идёт в лимиты), qwen — после.
     public static let defaultChain: [ChainEntry] = [
         ChainEntry(provider: .groq, model: "openai/gpt-oss-120b"),
-        ChainEntry(provider: .groq, model: "qwen/qwen3.8-27b"),
         ChainEntry(provider: .groq, model: "openai/gpt-oss-20b"),
+        ChainEntry(provider: .groq, model: "qwen/qwen3.8-27b"),
         ChainEntry(provider: .mistral, model: "mistral-small-latest"),
         ChainEntry(provider: .openrouter, model: "google/gemma-4-31b-it:free"),
     ]
@@ -93,6 +94,17 @@ public struct LLMSettings: Codable, Sendable, Hashable {
     }
 
     public var customBase: URL? { ProviderEndpoints.customBaseURL(customBaseURL) }
+
+    /// Перенос сохранённого старого порядка по умолчанию (120b → qwen → 20b) на новый (120b → 20b → qwen). Свой порядок пользователя не трогается.
+    @discardableResult
+    public static func migrateOrder(_ s: inout LLMSettings) -> Bool {
+        let models = s.chain.filter { $0.provider == .groq }.map(\.model)
+        guard models.prefix(3) == ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"],
+              let qi = s.chain.firstIndex(where: { $0.model == "qwen/qwen3.8-27b" }),
+              let si = s.chain.firstIndex(where: { $0.model == "openai/gpt-oss-20b" }) else { return false }
+        s.chain.swapAt(qi, si)
+        return true
+    }
 
     /// Метка первого доступного шага для плашки источника (R-32).
     public var primaryLabel: String? {
