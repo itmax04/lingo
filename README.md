@@ -1,7 +1,7 @@
 # Lingo
 
 Личное приложение для голосовой разговорной практики английского и немецкого. Объяснения на русском даются по просьбе.
-macOS + iPhone 11, без платных сервисов.
+macOS + iPhone (проверка на iPhone Air, позже возможна адаптация под iPhone 11), без платных сервисов.
 
 **Статус:** документы LINGO-01 ждут приёмки владельцем. Кода пока нет.
 
@@ -9,7 +9,7 @@ macOS + iPhone 11, без платных сервисов.
 | Что | Где |
 |---|---|
 | Исходное ТЗ владельца | [docs/reference/owner-brief.md](docs/reference/owner-brief.md) |
-| Цель, границы, решения Q1–Q24 | [docs/changes/LINGO-01/intent.md](docs/changes/LINGO-01/intent.md) |
+| Цель, границы, решения Q1–Q26 | [docs/changes/LINGO-01/intent.md](docs/changes/LINGO-01/intent.md) |
 | Требования R-, проверки F-, критерии AC- | [docs/changes/LINGO-01/spec.md](docs/changes/LINGO-01/spec.md) |
 | Шаги P-00…P-17, точки H, ворота G-1 | [docs/changes/LINGO-01/plan.md](docs/changes/LINGO-01/plan.md) |
 | Стек | [docs/decisions/ADR-0001-stack.md](docs/decisions/ADR-0001-stack.md) |
