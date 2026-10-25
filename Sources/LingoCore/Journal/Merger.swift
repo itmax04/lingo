@@ -87,7 +87,7 @@ public enum Merger {
             var settings: LWW<SessionSettings>?
             var deleted = LWW(false)
             var ended = LWW(false)
-            var summary = LWW("")
+            var summary = LWW(Payload.SummaryUpdated(text: ""))
             var lastActivity = Date.distantPast
         }
         struct MessageAcc {
@@ -137,7 +137,7 @@ public enum Merger {
                 sessions[e.session, default: SessionAcc()].ended.apply(false, ver)
             case EventType.summaryUpdated:
                 guard let p = try? e.payload.decode(Payload.SummaryUpdated.self) else { st.unknownEvents += 1; continue }
-                sessions[e.session, default: SessionAcc()].summary.apply(p.text, ver)
+                sessions[e.session, default: SessionAcc()].summary.apply(p, ver)
             case EventType.messageCreated:
                 guard let p = try? e.payload.decode(Payload.MessageCreated.self) else { st.unknownEvents += 1; continue }
                 messages[e.id] = MessageAcc(event: e, payload: p, text: LWW(p.text))
@@ -174,7 +174,8 @@ public enum Merger {
             guard let created = acc.created, let settings = acc.settings?.value else { continue }
             st.sessions[id] = Session(id: id, title: acc.title.value, settings: settings, createdAt: created.ts,
                                       lastActivity: acc.lastActivity, state: acc.ended.value ? .ended : .active,
-                                      deleted: acc.deleted.value, summary: acc.summary.value)
+                                      deleted: acc.deleted.value, summary: acc.summary.value.text,
+                                      summaryThrough: acc.summary.value.through)
         }
         let ordered = messages.values.sorted { a, b in
             (a.event.tsMillis, a.event.device, a.event.seq, a.event.id) < (b.event.tsMillis, b.event.device, b.event.seq, b.event.id)

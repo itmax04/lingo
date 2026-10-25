@@ -19,6 +19,6 @@ let package = Package(
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         .executableTarget(name: "lingo-eval", dependencies: ["LingoCore"]),
-        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore"]),
+        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore"], exclude: ["Snapshots"]),
     ]
 )

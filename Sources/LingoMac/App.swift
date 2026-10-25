@@ -20,6 +20,12 @@ enum LingoMain {
         if let i = args.firstIndex(of: "--ui-snapshot"), i + 1 < args.count {
             exit(UISnapshot.run(to: URL(fileURLWithPath: args[i + 1])))
         }
+        // Служебный режим: проверка всех ключей и `GET /models` (H-1, P-03). Значения ключей не выводятся.
+        // Запускается из подписанного .app: только ему Связка ключей отдаёт ключи без запроса.
+        if args.contains("--check-keys") {
+            setvbuf(stdout, nil, _IOLBF, 0)
+            exit(Headless.checkKeys(showAll: args.contains("--all-models")))
+        }
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
@@ -32,10 +38,26 @@ enum LingoMain {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow?
     let model = AppModel()
+    let settingsStore = SettingsStore()
+    lazy var settings = settingsStore.load()
+    let secrets: SecretStore = KeychainStore()
+    private let settingsWindow = SettingsWindowController()
+    lazy var keys = KeysController(settings: settings.llm, secrets: secrets) { [weak self] llm in
+        guard let self else { return }
+        self.settings.llm = llm
+        self.settingsStore.save(self.settings)
+        self.model.sourceLabel = llm.primaryLabel ?? "Нет ключа"
+    }
+
+    @objc func showSettings(_ sender: Any?) {
+        settingsWindow.show(keys: keys)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("launch")
         Fixtures.fill(model)
+        model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
+        if CommandLine.arguments.contains("--settings") { showSettings(nil) }
         NSApp.mainMenu = MainMenu.build()
         let w = MainWindow.make(model: model)
         w.makeKeyAndOrderFront(nil)
@@ -75,7 +97,7 @@ enum MainMenu {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "О Lingo", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Настройки…", action: Selector(("showSettings:")), keyEquivalent: ",")
+        appMenu.addItem(withTitle: "Настройки…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Скрыть Lingo", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(withTitle: "Завершить Lingo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
@@ -113,8 +135,18 @@ enum UISnapshot {
         let model = AppModel()
         Fixtures.fill(model)
         let size = NSSize(width: 1280, height: 800)
-        let ok = render(MainView(model: model), size: size, to: url)
-        print(ok ? "ui-snapshot: \(url.path)" : "ui-snapshot: FAILED")
+        var ok = render(MainView(model: model), size: size, to: url)
+        // Настройки на синтетических ключах (значения только в памяти).
+        var llm = LLMSettings()
+        llm.keys = [KeyRecord(id: "k1", provider: .groq, last4: "a1b2"),
+                    KeyRecord(id: "k2", provider: .groq, last4: "c3d4", invalid: true, invalidReason: "HTTP 401")]
+        llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
+        llm.knownModelsAt[.groq] = Date()
+        let keys = KeysController(settings: llm, secrets: InMemorySecretStore(["k1": "synthetic-0000", "k2": "synthetic-1111"])) { _ in }
+        keys.checks["k1"] = "Ключ работает · моделей: 3"
+        let settingsURL = url.deletingPathExtension().appendingPathExtension("settings.png")
+        ok = render(SettingsView(keys: keys), size: NSSize(width: 900, height: 1100), to: settingsURL) && ok
+        print(ok ? "ui-snapshot: \(url.path), \(settingsURL.path)" : "ui-snapshot: FAILED")
         return ok ? 0 : 1
     }
 

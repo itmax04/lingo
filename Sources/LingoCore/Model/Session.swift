@@ -13,9 +13,11 @@ public struct Session: Sendable, Hashable, Identifiable {
     public var deleted: Bool
     /// Краткое содержание для контекста модели (R-04).
     public var summary: String
+    /// Последнее сообщение, учтённое в кратком содержании.
+    public var summaryThrough: String?
 
     public init(id: String, title: String, settings: SessionSettings, createdAt: Date, lastActivity: Date,
-                state: State = .active, deleted: Bool = false, summary: String = "") {
+                state: State = .active, deleted: Bool = false, summary: String = "", summaryThrough: String? = nil) {
         self.id = id
         self.title = title
         self.settings = settings
@@ -24,6 +26,7 @@ public struct Session: Sendable, Hashable, Identifiable {
         self.state = state
         self.deleted = deleted
         self.summary = summary
+        self.summaryThrough = summaryThrough
     }
 }
 

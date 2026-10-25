@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import LingoCore
 
@@ -24,5 +25,23 @@ import Testing
     @Test func defaultTitle() {
         #expect(SessionSettings(lang: .en, mode: .free, topic: "знакомство").defaultTitle == "Свободный разговор: знакомство")
         #expect(SessionSettings(lang: .en, mode: .questions).defaultTitle == "Вопросы")
+    }
+}
+
+@Suite struct AppSettingsTests {
+    @Test func tolerantDecodingAndRoundTrip() throws {
+        let old = #"{"lastLang":"de","llm":{"firstTokenTimeout":9}}"#
+        let s = try JSONDecoder().decode(AppSettings.self, from: Data(old.utf8))
+        #expect(s.lastLang == .de && s.llm.firstTokenTimeout == 9 && s.llm.chain == LLMSettings.defaultChain)
+        let d = UserDefaults(suiteName: "lingo-test-\(UUID().uuidString)")!
+        var x = AppSettings()
+        x.llm.keys = [KeyRecord(id: "k", provider: .groq, last4: "abcd")]
+        x.lastCorrections = [.inline, .after]
+        SettingsStore(defaults: d).save(x)
+        #expect(SettingsStore(defaults: d).load() == x)
+        // В настройках нет значений ключей — только последние 4 символа.
+        let raw = String(decoding: d.data(forKey: SettingsStore.key)!, as: UTF8.self)
+        #expect(raw.contains("abcd") && !raw.contains("secret"))
+        #expect(x.llm.primaryLabel == "Groq · gpt-oss-120b")
     }
 }
