@@ -1,44 +1,28 @@
 # Lingo
 
-Личное приложение для голосовой разговорной практики английского и немецкого. Объяснения на русском даются по просьбе.
-Сначала macOS (LINGO-01), затем адаптация под iPhone (LINGO-02). Без платных сервисов.
+A personal app for voice conversation practice in English and German, with explanations in Russian on request.
+macOS first (LINGO-01), then an iPhone adaptation (LINGO-02). Free services only.
 
-**Статус:** LINGO-01 в работе (шаги и состояние — handoff.md).
+**Start here:** [AGENTS.md](AGENTS.md) — status, architecture, commands, rules and next steps, for humans and AI agents alike.
 
-## Документы
-| Что | Где |
+## Quick start
+```bash
+swift build && swift test        # build and run the tests
+scripts/build-app.sh             # build and sign dist/Lingo.app
+open dist/Lingo.app              # run
+```
+
+## Documents
+| What | Where |
 |---|---|
-| Исходное ТЗ владельца | [docs/reference/owner-brief.md](docs/reference/owner-brief.md) |
-| Цель, границы, решения Q1–Q27 | [docs/changes/LINGO-01/intent.md](docs/changes/LINGO-01/intent.md) |
-| Требования R-, критерии AC- (и черновик проверок F- для iPhone) | [docs/changes/LINGO-01/spec.md](docs/changes/LINGO-01/spec.md) |
-| Шаги P-00…P-12, точки H-0…H-5 | [docs/changes/LINGO-01/plan.md](docs/changes/LINGO-01/plan.md) |
-| Стек | [docs/decisions/ADR-0001-stack.md](docs/decisions/ADR-0001-stack.md) |
+| Agent and contributor guide | [AGENTS.md](AGENTS.md) |
+| The owner's original brief | [docs/reference/owner-brief.md](docs/reference/owner-brief.md) |
+| Goal, scope, owner decisions | [docs/changes/LINGO-01/intent.md](docs/changes/LINGO-01/intent.md) |
+| Requirements and acceptance criteria | [docs/changes/LINGO-01/spec.md](docs/changes/LINGO-01/spec.md) |
+| Steps and owner checkpoints | [docs/changes/LINGO-01/plan.md](docs/changes/LINGO-01/plan.md) |
+| Progress log and next step | [docs/changes/LINGO-01/handoff.md](docs/changes/LINGO-01/handoff.md) |
+| Stack | [docs/decisions/ADR-0001-stack.md](docs/decisions/ADR-0001-stack.md) |
 | Evals | [evals/README.md](evals/README.md) |
-| Дизайн | [DESIGN.md](DESIGN.md), [docs/design/lingo-mac.webp](docs/design/lingo-mac.webp) |
-| Паттерны из PDF-примера | [docs/reference/pdf-patterns.md](docs/reference/pdf-patterns.md) |
-| Где остановилась работа | [docs/changes/LINGO-01/handoff.md](docs/changes/LINGO-01/handoff.md) |
-| Промпт исполнителя | [docs/changes/LINGO-01/executor-prompt.md](docs/changes/LINGO-01/executor-prompt.md) |
+| Design | [DESIGN.md](DESIGN.md), [docs/design/lingo-mac.webp](docs/design/lingo-mac.webp) |
 
-## Структура (план)
-```
-Package.swift            LingoCore, LingoMac, lingo-eval, LingoCoreTests
-Sources/LingoCore/       Journal, LLM, Secrets, Dialogue, Commands, Speech, Metrics (LocalLLM — в LINGO-02)
-Sources/LingoMac/        приложение macOS
-Sources/lingo-eval/      CLI для evals
-ios/                     (LINGO-02) iPhone-приложение
-scripts/                 build-app.sh, check-core-ios.sh, secret-scan.sh, run-evals.sh, metrics.py, sync-check.py
-evals/                   наборы и сценарии живых проверок
-private/                 оригинал PDF (не в Git)
-```
-
-## Команды
-| Команда | Что делает |
-|---|---|
-| `swift build && swift test` | Быстрая проверка |
-| `scripts/build-app.sh` | Собирает и подписывает `dist/Lingo.app` (сертификат по A-5) |
-| `open dist/Lingo.app` | Запуск |
-| `scripts/check-core-ios.sh` | `LingoCore` собирается для iOS (готовность к LINGO-02) |
-| `scripts/secret-scan.sh` | Ключи и личные данные в дереве, индексе и истории Git (перед каждым push) |
-| `.build/debug/Lingo --ui-snapshot out.png` | Снимок окна на фикстурах |
-
-Каталог `.build` вынесен из iCloud Drive симлинком (`scripts/ensure-build-dir.sh`). Остальные команды появятся по шагам plan.md.
+Some documents are still being translated from Russian; see AGENTS.md §8.

@@ -1,155 +1,157 @@
-# LINGO-01: Intent — MVP для Mac
+# LINGO-01: Intent — Mac MVP
 
-ID: LINGO-01-intent · Статус: **accepted** (2026-10-25) · Версия: 2 · Дата: 2026-10-25
-Владелец результата: itmax04 · Связи: [spec.md](spec.md), [plan.md](plan.md), [ADR-0001](../../decisions/ADR-0001-stack.md),
-[исходное ТЗ](../../reference/owner-brief.md), [паттерны PDF](../../reference/pdf-patterns.md), [DESIGN.md](../../../DESIGN.md)
-Источник решений: брейншторм в сессии Claude Code 2026-10-25, ответы Q1–Q27 (таблица ниже).
-Согласование: владелец принял комплект v2 (intent, spec, plan, ADR-0001, evals/README, DESIGN.md, executor-prompt) с допущениями A-1…A-9 —
-ответ «давай начинаем» в сессии Claude Code 2026-10-25 после коммита `2458d1e`.
-Версия 2: владелец решил начать с Mac, а под iPhone адаптировать потом (Q27). Версия 1 — в Git, коммит `9e8daa0`.
+ID: LINGO-01-intent · Status: **accepted** (2026-10-25) · Version: 2 · Date: 2026-10-25
+Result owner: itmax04 · Links: [spec.md](spec.md), [plan.md](plan.md), [ADR-0001](../../decisions/ADR-0001-stack.md),
+[original brief](../../reference/owner-brief.md), [PDF patterns](../../reference/pdf-patterns.md), [DESIGN.md](../../../DESIGN.md)
+Source of decisions: a brainstorm in a Claude Code session on 2026-10-25, answers Q1–Q29 (table below).
+Approval: the owner accepted the v2 set (intent, spec, plan, ADR-0001, evals/README, DESIGN.md, executor-prompt) with assumptions A-1…A-9 —
+the answer "let's start" in the Claude Code session on 2026-10-25 after commit `2458d1e`.
+Version 2: the owner decided to start with the Mac and adapt for the iPhone later (Q27). Version 1 is in Git, commit `9e8daa0`.
+Language: the repository is in English since 2026-10-26; the owner's quotes are translated from Russian.
 
-## Проблема
-Владелец учит немецкий (сейчас в Германии) и английский. Сейчас разговорную практику он ведёт в голосовом режиме ChatGPT
-(пример — 16-страничный PDF). Минусы этого способа:
-- сервис платный;
-- роль и правила приходится каждый раз задавать длинным промптом;
-- помощник «оценивает произношение» по тексту расшифровки;
-- нет удобного личного словаря фраз;
-- нет общей истории между MacBook и iPhone без подписки.
+## Problem
+The owner is learning German (currently living in Germany) and English. Today they practise speaking in ChatGPT's voice mode
+(example: a 16-page PDF). The downsides of this approach:
+- the service is paid;
+- the role and rules have to be set with a long prompt every time;
+- the assistant "rates pronunciation" from the speech-recognition transcript;
+- there is no convenient personal phrase vocabulary;
+- there is no shared history between the MacBook and the iPhone without a subscription.
 
-## Желаемый результат
-Два отдельных устанавливаемых приложения **Lingo** (macOS и iOS) для **голосовой** разговорной практики английского и немецкого:
-1. Владелец говорит, помощник отвечает голосом. Есть кнопка и непрерывный диалог, помощника можно перебить.
-2. По явной просьбе помощник объясняет по-русски и возвращается к практике.
-3. Команды «повтори», «медленнее», «как сказать», «объясни», «продолжим».
-4. Исправление ошибок по выбранным режимам: по ходу, после разговора, по запросу.
-5. Сессии сохраняются, их можно продолжить. История общая между устройствами через папку iCloud Drive.
-6. Всё бесплатно.
+## Desired outcome
+Two separately installable **Lingo** apps (macOS and iOS) for **voice** conversation practice in English and German:
+1. The owner speaks, the assistant answers by voice. There is a push-to-talk button and a continuous dialogue; the assistant can be interrupted.
+2. On an explicit request the assistant explains in Russian and returns to the practice.
+3. Commands "repeat", "slower", "how do I say", "explain", "let's continue".
+4. Error correction in the chosen modes: as we go, after the conversation, on request.
+5. Sessions are saved and can be continued. History is shared between devices through an iCloud Drive folder.
+6. Everything is free.
 
-Голос устроен цепочкой: распознавание речи на устройстве → ответ языковой модели → озвучивание на устройстве (Q24).
+Voice works as a pipeline: on-device speech recognition → language model reply → on-device speech synthesis (Q24).
 
-### Что поставляет LINGO-01
-**MVP для Mac** — полноценное приложение по макету [lingo-mac.webp](../../design/lingo-mac.webp) со всеми функциями из ТЗ:
-три режима, голос по кнопке и непрерывный диалог с перебиванием, русский по просьбе, команды, режимы исправления,
-сессии с продолжением, подсказки и словарь, история в папке iCloud Drive.
-Ядро `LingoCore` пишется так, чтобы собираться и для iOS. Тогда iPhone-приложение в LINGO-02 добавляется без переделки логики и формата истории.
+### What LINGO-01 delivers
+**A Mac MVP** — a complete app following the [lingo-mac.webp](../../design/lingo-mac.webp) mockup with every feature from the brief:
+three modes, push-to-talk and a continuous dialogue with barge-in, Russian on request, commands, correction modes,
+continuable sessions, hints and a vocabulary, history in an iCloud Drive folder.
+The `LingoCore` core is written so that it also builds for iOS. Then the iPhone app in LINGO-02 is added without reworking the logic or the history format.
 
-### Что НЕ поставляет LINGO-01
-**Всё, что касается iPhone, — LINGO-02** (Q27). Туда входят:
-- выбор целевого iPhone: iPhone Air или iPhone 11;
-- проверки осуществимости на реальном устройстве: SideStore, локальный цикл, языки, iCloud, сохранность — раздел 4 spec, F-01…F-10;
-- выбор локальной модели по замерам;
-- интерфейс по дизайну владельца (Q16).
+### What LINGO-01 does NOT deliver
+**Everything about the iPhone is LINGO-02** (Q27). That includes:
+- choosing the target iPhone: iPhone Air or iPhone 11;
+- feasibility checks on a real device: SideStore, the local loop, languages, iCloud, persistence — spec section 4, F-01…F-10;
+- choosing a local model by measurements;
+- the UI according to the owner's design (Q16).
 
-Наблюдаемые метрики и проверки этого intent — AC-01…AC-16 в spec.md.
+The observable metrics and checks of this intent are AC-01…AC-17 in spec.md.
 
-## Пользователи и системы
-- **Пользователь:** один, владелец. Языки: русский — родной, немецкий и английский — изучаемые.
-- **Устройства:**
-  - MacBook Air M1 8 ГБ, macOS 15.7.2, свободно ≈14 ГБ (на 2026-10-25), Xcode 26.3;
-  - iPhone — в LINGO-02 (Q27). Справка на 2026-10-25:
-    - **iPhone Air** (iPhone18,4) на iOS 27.0, подключается по USB-C, «Режим разработчика» выключен, сопряжён с Mac;
-    - **iPhone 11** (A13, 4 ГБ) из исходного ТЗ: кабеля Lightning нет (Q26).
-- **Системы:**
-  - iCloud Drive владельца;
-  - Groq API, бесплатный тариф, ключи владельца;
-  - другие бесплатные OpenAI-совместимые провайдеры по ADR-0001;
-  - Hugging Face — для моделей распознавания whisper;
-  - GitHub, приватный репозиторий `itmax04/lingo`.
-- **Повторное использование:** слой работы с моделями переносится из Interview Copilot:
+## Users and systems
+- **User:** one, the owner. Languages: Russian — native; German and English — being learned.
+- **Devices:**
+  - MacBook Air M1 8 GB, macOS 15.7.2, ≈14 GB free (as of 2026-10-25), Xcode 26.3;
+  - iPhone — in LINGO-02 (Q27). For reference, as of 2026-10-25:
+    - **iPhone Air** (iPhone18,4) on iOS 27.0, connects over USB-C, Developer Mode off, paired with the Mac;
+    - **iPhone 11** (A13, 4 GB) from the original brief: there is no Lightning cable (Q26).
+- **Systems:**
+  - the owner's iCloud Drive;
+  - Groq API, free tier, the owner's keys;
+  - other free OpenAI-compatible providers per ADR-0001;
+  - Hugging Face — for the whisper speech-recognition models;
+  - GitHub, the private repository `itmax04/lingo`.
+- **Reuse:** the model layer is ported from Interview Copilot:
   - `ProviderChain`, `ProviderHealth`, `SSEClient`, `KeyVerifier`, `KeychainStore`;
-  - источник `~/Desktop/InterviewCopilot-redesign/Результат-ImageGen/source/Sources/CopilotCore/LLM`, ветка с коммитом `cf0e764`.
+  - source `~/Desktop/InterviewCopilot-redesign/Результат-ImageGen/source/Sources/CopilotCore/LLM`, the branch with commit `cf0e764`.
 
-## Границы
-Входит в LINGO-01:
-- общее ядро `LingoCore`: модель сессий, журнал событий и синхронизация, цепочка моделей, протокол ответа,
-  команды, политика контекста;
-- macOS: приложение Lingo по макету — сессии, три режима, голос, команды, исправления, подсказки, словарь,
-  синхронизация, настройки, ключи;
-- evals: качество диалога (набор по паттернам PDF), команды, конец фразы, распознавание (синтетические записи), синхронизация (слияние).
+## Scope
+In LINGO-01:
+- the shared `LingoCore` core: session model, event journal and sync, model chain, reply protocol,
+  commands, context policy;
+- macOS: the Lingo app per the mockup — sessions, three modes, voice, commands, corrections, hints, vocabulary,
+  sync, settings, keys;
+- evals: dialogue quality (a set based on the PDF patterns), commands, end of utterance, recognition (synthetic recordings), sync (merging).
 
-Не входит в LINGO-01 (кандидаты в следующие intent):
-- iPhone-приложение, проверки F-01…F-10 и локальная модель для iPhone (LINGO-02, Q27);
-- оценка произношения в любой форме (Q7);
-- локальная модель на Mac: без интернета на Mac доступна только история (Q19);
-- языки, кроме en, de и ru;
-- платные провайдеры, подписки, распространение в App Store или TestFlight, нотаризация.
+Not in LINGO-01 (candidates for the next intents):
+- the iPhone app, the F-01…F-10 checks and a local model for the iPhone (LINGO-02, Q27);
+- pronunciation assessment in any form (Q7);
+- a local model on the Mac: offline, only the history is available on the Mac (Q19);
+- languages other than en, de and ru;
+- paid providers, subscriptions, App Store or TestFlight distribution, notarization.
 
-## Ограничения
-- **Бюджет:** $0. Платные API, подписки и платный аккаунт разработчика Apple исключены.
-  Если провайдер требует привязать карту, он не используется.
-- **Mac:** 8 ГБ памяти, без интернета работает только история (Q19; подтверждено в Q29). Всё приложение — не больше 1,2 ГБ памяти (R-50).
-- **Требования ТЗ к iPhone** (независимость от Mac, SideStore, полный локальный цикл) сохраняются и проверяются в LINGO-02.
-- **Задержка:** приоритет — качество ответа. Пауза от конца фразы до начала ответа допустима до 8–10 с (Q3).
-- **Данные:** текст диалогов можно отправлять бесплатному провайдеру, даже если тот хранит его или учится на нём (Q11).
-  Аудио не покидает устройство и не пишется на диск, кроме синтетических записей для evals.
-- **Регион ЕС (Q10):** бесплатный Gemini API не используется.
-- **Ключи:** только в Keychain. Они не попадают в репозиторий, логи и чат.
-- **Синхронизация:** не мгновенная. Срок задаёт iCloud, интерфейс это честно показывает.
-  История хранится локально, даже если синхронизация недоступна.
-- **Память модели:** ограничена. Помощник видит краткое содержание сессии и последние реплики, а не всю историю. Интерфейс об этом сообщает.
-- **Диск Mac:** ≈14 ГБ свободно. Модели для замеров удаляются после выбора, кроме выбранной.
-- **Git:** приватный репозиторий, работа в ветке `feat/lingo-01`, без force-push и без merge в `main` без решения владельца (Q22).
-- **Исполнитель:** Claude Code, `claude-opus-5-5`, effort high. Вопросы владельцу задаются только в точках H-0…H-5.
+## Constraints
+- **Budget:** $0. Paid APIs, subscriptions and a paid Apple developer account are excluded.
+  If a provider requires a card, it is not used.
+- **Mac:** 8 GB of memory; offline only the history works (Q19; confirmed in Q29). The whole app uses at most 1.2 GB of memory (R-50).
+- **The brief's iPhone requirements** (independence from the Mac, SideStore, a fully local loop) remain and are checked in LINGO-02.
+- **Latency:** reply quality comes first. A pause of up to 8–10 s from the end of an utterance to the start of the reply is acceptable (Q3).
+- **Data:** dialogue text may be sent to a free provider, even if it stores it or trains on it (Q11).
+  Audio never leaves the device and is never written to disk, except synthetic recordings for evals.
+- **EU region (Q10):** the free Gemini API is not used.
+- **Keys:** only in the Keychain. They never get into the repository, logs or chat.
+- **Sync:** not instant. iCloud sets the timing, and the UI says so honestly.
+  History is kept locally even when sync is unavailable.
+- **Model memory:** limited. The assistant sees a session summary and the last utterances, not the whole history. The UI says so.
+- **Mac disk:** ≈14 GB free. Models used for measurements are deleted after the choice, except the chosen one.
+- **Git:** a private repository; work happens on a feature branch (`feat/lingo-01`, then `main-en` since 2026-10-26), no force-push and no merge into `main` without the owner's decision (Q22).
+- **Executor:** Claude Code, `claude-opus-5-5`, effort high. Questions to the owner are asked only at checkpoints H-0…H-5.
 
-## Решения владельца (брейншторм 2026-10-25)
-| № | Вопрос | Решение |
+## Owner decisions (brainstorm 2026-10-25)
+| # | Question | Decision |
 |---|---|---|
-| Q1 | SideStore на iPhone | Не установлен. Владелец ставит сам по инструкции исполнителя |
-| Q2 | Кабель для замеров | Есть (уточнено в Q26: USB-C для iPhone Air, Lightning для iPhone 11 нет) |
-| Q3 | Допустимая задержка ответа | Главное — качество, пауза до 8–10 с допустима |
-| Q4 | Как заниматься голосом | В наушниках (AirPods), через динамик, с заблокированным экраном — всё нужно |
-| Q5 | Смешанная речь, если распознаётся плохо | Оба варианта: язык определяется по фразе автоматически + кнопка «говорю по-русски»; расшифровку можно поправить вручную |
-| Q6 | Когда переходить на русский | Только по явной просьбе |
-| Q7 | Произношение | Не комментировать |
-| Q8 | Модель на Mac | Вместо локальной — бесплатный облачный API (например, Groq) |
-| Q9 | Архитектура API | Как в Interview Copilot: при лимите — автоматический переход на следующий ключ или модель |
-| Q10 | Регион | ЕС (Германия) |
-| Q11 | Текст диалогов у провайдера | Можно, это учебные диалоги |
-| Q12 | Параметры сессии | Три режима (вопросы, свободный разговор, свой промпт) + самостоятельная настройка пользователем |
-| Q13 | Ключи Groq | Неограниченное число ключей на провайдера |
-| Q14 | Режим исправления ошибок | Перед началом сессии пользователь сам выбирает один или несколько режимов |
-| Q15 | Дизайн | DESIGN.md по макету Lingo |
-| Q16 | Интерфейс iPhone | Сейчас только Mac. Для iPhone позже, дизайн пришлёт владелец |
-| Q17 | Порядок работ | Сначала проверка на iPhone, потом MVP для Mac |
-| Q18 | Панель «Подсказки» | Фразы темы, исправленные фразы, ответы «как сказать», личный словарь со звёздочкой. У каждой фразы: прослушать, перевод, сохранить. Панель не мешает голосовому разговору |
-| Q19 | Mac без интернета | Только история, без локальной модели |
-| Q20 | Конец фразы в непрерывном режиме | Пауза, длина настраивается ползунком |
-| Q21 | Локальная модель на iPhone | Остаётся последним звеном цепочки; полный локальный цикл проверяется по ТЗ |
-| Q22 | Репозиторий | `~/Desktop/1/lingo` + приватный GitHub |
-| Q23 | Процесс | SDLC-документы, как в Interview Copilot |
-| Q24 | «Это должна быть голосовая модель» | Подтверждено: голосовое приложение на цепочке «распознавание → модель → озвучивание» («да, готовь SDLC-документы») |
-| Q25 | Целевой iPhone | «Хочу на Air, а потом адаптируем под iPhone 11, если что». Заменено Q27: iPhone целиком перенесён в LINGO-02 |
-| Q26 | Кабель | Lightning-кабеля для iPhone 11 нет; iPhone Air подключается к Mac по USB-C без проблем |
-| Q27 | Порядок работ (заменяет Q17 и Q25) | «Давай всё-таки начнём с Mac, а потом уже будем адаптировать под нужный iPhone». LINGO-01 — только MVP для Mac, iPhone — LINGO-02 |
-| Q28 | Распознавание с акцентом (после H-2, 2026-10-25) | Предложение владельца: «не ограничиваться дословным распознаванием, а использовать контекст, чтобы модель понимала, что хотел сказать пользователь», как в Interview Copilot. Принято («да я полностью согласен»): (1) контекст разговора в подсказке распознавания; (2) модель восстанавливает смысл по контексту и не считает похожие по звучанию слова ошибками; (3) строка `@heard` — «понято как» под репликой пользователя (R-24, R-51) |
-| Q29 | Лимиты бесплатного облака (после внешнего ревью 2026-10-25) | Цель владельца — «чтобы не было совсем никаких лимитов». Принято: этап 1 — диагностика лимитов и расхода, бюджет evals (только ночью, малыми порциями), контекст 8 ходов + бюджет токенов, диспетчер (диалог первым), порядок цепочки по кэшу; этап 2 — Cloudflare Workers AI как второй бесплатный провайдер (регистрирует владелец); этап 3 (локальная модель на Mac) сначала принят, затем отменён владельцем («я передумал не ставь локальную модель на мак») — **Q19 остаётся в силе**, AC-15 без изменений. Colab Pro — не брать (платно, правила Colab запрещают сервис-API). Контрольная 30-минутная сессия — на следующий день после этапа 1 |
+| Q1 | SideStore on the iPhone | Not installed. The owner installs it following the executor's instructions |
+| Q2 | A cable for measurements | Available (clarified in Q26: USB-C for the iPhone Air; no Lightning for the iPhone 11) |
+| Q3 | Acceptable reply latency | Quality matters most; a pause of up to 8–10 s is acceptable |
+| Q4 | How voice practice happens | With headphones (AirPods), through the speaker, with the screen locked — all are needed |
+| Q5 | Mixed speech if recognition is poor | Both options: the language is detected per utterance automatically + an "I'm speaking Russian" button; the transcript can be fixed by hand |
+| Q6 | When to switch to Russian | Only on an explicit request |
+| Q7 | Pronunciation | Do not comment on it |
+| Q8 | The model on the Mac | Instead of a local one — a free cloud API (for example, Groq) |
+| Q9 | API architecture | As in Interview Copilot: on a limit — automatic fallback to the next key or model |
+| Q10 | Region | EU (Germany) |
+| Q11 | Dialogue text at the provider | Allowed; these are practice dialogues |
+| Q12 | Session parameters | Three modes (questions, free conversation, custom prompt) + the user's own settings |
+| Q13 | Groq keys | Any number of keys per provider |
+| Q14 | Error-correction mode | Before a session starts the user chooses one or more modes |
+| Q15 | Design | DESIGN.md from the Lingo mockup |
+| Q16 | iPhone UI | Only the Mac for now. The iPhone comes later; the owner will send the design |
+| Q17 | Order of work | First an iPhone check, then the Mac MVP |
+| Q18 | The "Hints" panel | Topic phrases, corrected phrases, "how to say" answers, a personal vocabulary with a star. Each phrase: play, translation, save. The panel does not get in the way of the voice conversation |
+| Q19 | The Mac offline | Only the history, no local model |
+| Q20 | End of utterance in continuous mode | A pause whose length is set with a slider |
+| Q21 | A local model on the iPhone | Stays the last link of the chain; the fully local loop is checked per the brief |
+| Q22 | Repository | `~/Desktop/1/lingo` + a private GitHub repository |
+| Q23 | Process | SDLC documents, as in Interview Copilot |
+| Q24 | "It must be a voice model" | Confirmed: a voice app on a "recognition → model → synthesis" pipeline ("yes, prepare the SDLC documents") |
+| Q25 | Target iPhone | "I want it on the Air, and then we adapt it for the iPhone 11 if needed". Replaced by Q27: the iPhone moved entirely to LINGO-02 |
+| Q26 | Cable | There is no Lightning cable for the iPhone 11; the iPhone Air connects to the Mac over USB-C without problems |
+| Q27 | Order of work (replaces Q17 and Q25) | "Let's start with the Mac after all, and then adapt it for the right iPhone". LINGO-01 is only the Mac MVP, the iPhone is LINGO-02 |
+| Q28 | Recognition with an accent (after H-2, 2026-10-25) | The owner's proposal: "do not stop at word-for-word recognition, use the context so the model understands what the user meant", as in Interview Copilot. Accepted ("yes, I fully agree"): (1) the conversation context in the recognition prompt; (2) the model reconstructs the meaning from context and does not treat similar-sounding words as mistakes; (3) a `@heard` line — "understood as" under the user's utterance (R-24, R-51) |
+| Q29 | Free cloud limits (after the external review, 2026-10-25) | The owner's goal is "no limits at all". Accepted: stage 1 — limit and usage diagnostics, an eval budget (only at night, in small batches), an 8-turn context + a token budget, a dispatcher (dialogue first), chain order by caching; stage 2 — Cloudflare Workers AI as a second free provider (the owner registers); stage 3 (a local model on the Mac) was first accepted, then cancelled by the owner ("I changed my mind, don't install a local model on the Mac") — **Q19 stays in force**, AC-15 unchanged. Colab Pro — not taken (paid; Colab's terms forbid service APIs). A 30-minute control session — the day after stage 1 |
+| Q30 | Repository language (2026-10-26) | "The whole repository must be in English", with a branch where a person or another AI agent can easily understand the project. Accepted: branch `main-en` in `itmax04/lingo` (private), UI strings in a String Catalog (English in code, Russian translation), work continues on `main-en` |
 
-## Допущения (не блокируют, можно исправить при приёмке)
-- **A-1.** Q24 понимается так: модель «речь → речь» не требуется. Бесплатных вариантов, доступных в ЕС, нет, а на устройстве такие модели не помещаются.
-- **A-2.** Русская реплика без просьбы объяснить (как P8 в PDF) — это попытка сказать мысль. Помощник:
-  - даёт вариант на изучаемом языке;
-  - просит его повторить;
-  - сам на русский не переходит.
+## Assumptions (non-blocking; can be corrected at acceptance)
+- **A-1.** Q24 is read as: a speech-to-speech model is not required. There are no free options available in the EU, and such models do not fit on the device.
+- **A-2.** A Russian utterance without a request for an explanation (like P8 in the PDF) is an attempt to express a thought. The assistant:
+  - gives a version in the target language;
+  - asks the learner to repeat it;
+  - does not switch to Russian itself.
 
-  Явной просьбой считаются: «объясни», «по-русски», «что ты спросил», «что значит …», «почему так», «переведи».
-- **A-3.** Режимы исправления в первой сессии не выбраны заранее. В следующих сессиях подставляется прошлый выбор, но он виден и меняется на экране настройки.
-  Пока не выбран хотя бы один режим, начать сессию нельзя.
-- **A-4.** За соблюдение условий Groq при использовании нескольких ключей отвечает владелец (Q13).
-  По имеющимся данным, ключи одной организации делят общий лимит, а лимиты считаются для каждой модели.
-  Исполнитель не создаёт аккаунты и не обходит ограничения.
-- **A-5.** Mac-приложение подписывается локальным самоподписанным сертификатом, по образцу Interview Copilot.
-  По умолчанию используется существующий сертификат «InterviewCopilot». Владелец может создать отдельный «Lingo Dev» в H-0.
-- **A-6.** `LingoCore` с первого шага собирается и для iOS (`scripts/check-core-ios.sh`). Формат журнала (R-34…R-39) общий для Mac и будущего iPhone-приложения.
-- **A-7.** Пороги AC предложены исполнителем на основе Q3 и ТЗ. Владелец принимает их вместе со spec. Пороги F-01…F-10 — черновик для LINGO-02.
-- **A-8.** Уровень (A1–C2 или «свой текст»), роль и тема задаются в каждой сессии. Значений Thomas и A2 по умолчанию нет.
-- **A-9.** Решения по iPhone из брейншторма (Q1, Q4, Q21, Q25, Q26) сохраняются как вводные для LINGO-02. Целевой iPhone выбирается там.
-  Встроенная модель Apple, по найденным данным, не поддерживает русский и есть только на устройствах с Apple Intelligence.
-  Поэтому основной локальный путь для iPhone — llama.cpp.
+  Explicit requests are: "explain", "in Russian", "what did you ask", "what does … mean", "why is it so", "translate".
+- **A-3.** Correction modes are not preselected in the first session. Later sessions prefill the previous choice, but it is visible and can be changed on the setup screen.
+  A session cannot start until at least one mode is selected.
+- **A-4.** The owner is responsible for complying with Groq's terms when using several keys (Q13).
+  As far as is known, keys of one organization share a common limit, and limits are counted per model.
+  The executor does not create accounts and does not circumvent limits.
+- **A-5.** The Mac app is signed with a local self-signed certificate, as in Interview Copilot.
+  By default the existing "InterviewCopilot" certificate is used. The owner may create a separate "Lingo Dev" one at H-0.
+- **A-6.** `LingoCore` builds for iOS from the first step (`scripts/check-core-ios.sh`). The journal format (R-34…R-39) is shared by the Mac and the future iPhone app.
+- **A-7.** The AC thresholds were proposed by the executor based on Q3 and the brief. The owner accepts them together with the spec. The F-01…F-10 thresholds are a draft for LINGO-02.
+- **A-8.** Level (A1–C2 or "custom text"), role and topic are set per session. There are no Thomas and A2 defaults.
+- **A-9.** The iPhone decisions from the brainstorm (Q1, Q4, Q21, Q25, Q26) are kept as inputs for LINGO-02. The target iPhone is chosen there.
+  According to the data found, Apple's built-in model does not support Russian and exists only on devices with Apple Intelligence.
+  So the main local path for the iPhone is llama.cpp.
 
-## Открытые вопросы
-Блокеров для документов нет. Ответы дадут измерения:
-- какой движок распознавания на Mac лучше справится с en/de/ru и смешанной речью: whisper.cpp или Apple (P-04);
-- какие бесплатные модели Groq дают лучшее качество по eval `dialog` (P-05);
-- даёт ли macOS приложению без песочницы доступ к папке iCloud Drive без лишних разрешений (P-10, H-3);
-- хватит ли системного эхоподавления, чтобы перебивать помощника без наушников на колонках MacBook (P-07, P-11).
+## Open questions
+No blockers for the documents. Measurements will answer:
+- which recognition engine on the Mac handles en/de/ru and mixed speech better: whisper.cpp or Apple (P-04);
+- which free Groq models give the best quality on the `dialog` eval (P-05);
+- whether macOS gives an app without a sandbox access to an iCloud Drive folder without extra permissions (P-10, H-3);
+- whether system echo cancellation is enough to interrupt the assistant without headphones on the MacBook speakers (P-07, P-11).

@@ -382,8 +382,40 @@ spec 2.2: R-04 (N = 8 + бюджет), R-52 (лимиты и расход), AC-1
 - **D-06 (P-01, R-32).** На фикстуре плашка источника — «На устройстве», как на макете (для сравнения AC-11). В приложении на Mac значения по R-32:
   «Groq · <модель>» или «Нет сети» (с P-03/P-10).
 
+## Исправление захвата микрофона (2026-10-26)
+
+- Причина подтверждена журналом: после старта VP движок останавливался при изменении аудиоконфигурации;
+  входной многоканальный формат использовался на стороне динамиков. Безусловные перезапуски усиливали проблему.
+  Ограничитель записывал даже отклонённые попытки, поэтому секундный watchdog продлевал блокировку бесконечно.
+- `VoiceIO`: выход соединяется в формате выходного узла после включения VP; уведомления объединяются и проверяют
+  фактическое состояние захвата. При повторном асинхронном отказе VP есть восстановление без эхоподавления.
+  Старый I/O освобождается до создания нового. Ограничитель учитывает только принятые попытки и снимает блокировку.
+- Отсутствие входных буферов/конвертированных сэмплов проверяется независимым таймером. При потере захвата панель
+  перестаёт показывать запись, выключает непрерывный режим и предлагает повторить реплику. Отмена watchdog завершает таймер.
+  Старый callback синтеза не уменьшает счётчик новой очереди; остановленный engine не запускает player.
+- Добавлен `--audio-stability <путь>`: только счётчики, без сохранения аудио и без запросов API. 20 секунд захвата
+  после прогрева, принудительный restart на 11-й секунде, проверка отсутствия самозапуска после stop.
+- PASS: `swift test` — 96 тестов; после последней правки — AudioRecoveryTests + TurnControllerTests, 9 тестов.
+  PASS: `scripts/check-core-ios.sh`. PASS: аппаратная проверка — 20/20 секунд, 367874 сэмпла суммарно с прогревом,
+  один запрошенный перезапуск, ноль сбоев захвата; VP включён. Голос пользователя и 30-минутная сессия этим не проверены.
+- Обновление: версия macOS 0.2.1, сборка через `scripts/build-app.sh` с прежним идентификатором и сертификатом.
+  Изменения вносятся поверх существующего рабочего дерева `main-en`; чужие изменения не коммитились и не публиковались.
+
 ## Следующий шаг
 1. Владелец: ключ Cloudflare Workers AI («Свой адрес») — затем один проверочный запрос и запись в журнал расхода.
 2. H-3: папка iCloud (мастер пропустил шаг 3 — «Синхронизация не настроена») → S-19 на реальной папке.
 3. Завтра на свежей квоте: контрольная 30-минутная сессия по протоколу ревью (AC-17) = часть H-4; затем ночью — eval `dialog` порциями
    по 10 кейсов (`--offset`), blind-review → P-11/P-12.
+
+## Repository in English, branch `main-en` (2026-10-26)
+
+- Owner decision Q30: the whole repository is in English; a branch where a person or another AI agent can understand the project easily.
+  Work continues on **`main-en`** (branched from `feat/lingo-01` at `d2b82b5`); `feat/lingo-01` stays as the Russian history.
+- Done: code, tests, scripts, `intent.md`, new `AGENTS.md` (entry point), English `README.md` and `CLAUDE.md`.
+  UI strings use `String(localized:)` / `LocalizedStringKey`; LLM prompts unchanged (snapshots identical).
+- Not done yet (AGENTS.md §8): the Russian String Catalog — **the app UI is English until it lands**; in-app interface language;
+  remaining documents (this file included); `scripts/check-english.sh`.
+- Cloudflare Workers AI added by the owner as a "Custom endpoint" chain step (`@cf/openai/gpt-oss-120b`, last in the chain);
+  two single test requests through the signed app: PASS, 3.7 s and 3.8 s, recorded in the usage log. `GET /models` returns HTTP 405 there (no model list) — harmless.
+- Checks: `swift test` — 96 tests PASS. `scripts/secret-scan.sh` before the push.
+- Next: AC-17 control 30-minute session (owner), Premium voices Ava (en) and Anna (de) downloaded by the owner, then H-3, H-4.
