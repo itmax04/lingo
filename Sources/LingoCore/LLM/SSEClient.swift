@@ -1,19 +1,19 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/LLM/SSEClient.swift` и `Net/HTTPTransport.swift`, коммит cf0e764).
-// Изменение для R-29: при ошибке HTTP читается заголовок `retry-after`.
+// Ported from Interview Copilot (`Sources/CopilotCore/LLM/SSEClient.swift` and `Net/HTTPTransport.swift`, commit cf0e764).
+// Change for R-29: on an HTTP error the `retry-after` header is read.
 import Foundation
 
-/// Событие Server-Sent Events.
+/// A Server-Sent Events event.
 public struct SSEEvent: Sendable, Equatable {
     public var event: String?
     public var data: String
 }
 
-/// Потоковый HTTP: статус и строки тела. Подменяется в тестах.
+/// Streaming HTTP: status and body lines. Replaced in tests.
 public protocol StreamingTransport: Sendable {
     func lines(for request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<String, Error>)
 }
 
-/// Обычный HTTP (список моделей, проверка ключа).
+/// Plain HTTP (model list, key check).
 public protocol HTTPTransport: Sendable {
     func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse)
 }
@@ -41,7 +41,7 @@ public struct URLSessionTransport: HTTPTransport, StreamingTransport {
 
     public func lines(for request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<String, Error>) {
         let (bytes, response) = try await session.bytes(for: request)
-        guard let http = response as? HTTPURLResponse else { throw LLMError.badResponse("не HTTP") }
+        guard let http = response as? HTTPURLResponse else { throw LLMError.badResponse("not HTTP") }
         let stream = AsyncThrowingStream<String, Error> { continuation in
             let task = Task {
                 do {
@@ -57,8 +57,8 @@ public struct URLSessionTransport: HTTPTransport, StreamingTransport {
     }
 }
 
-/// Разбор SSE: строки `event:` / `data:`, событие заканчивается пустой строкой.
-/// `URLSession.AsyncBytes.lines` пропускает пустые строки, поэтому новое событие начинается и с нового `data:`.
+/// SSE parsing: `event:` / `data:` lines, an event ends with an empty line.
+/// `URLSession.AsyncBytes.lines` skips empty lines, so a new event also starts at a new `data:`.
 public struct SSEParser {
     private var event: String?
     private var data: [String] = []
@@ -103,12 +103,12 @@ public struct SSEParser {
 }
 
 enum SSE {
-    /// Открывает поток: при статусе не 2xx читает тело и бросает `LLMError.http` с текстом ошибки (без ключа) и `retry-after`.
+    /// Opens the stream: on a non-2xx status reads the body and throws `LLMError.http` with the error text (without the key) and `retry-after`.
     static func open(_ request: URLRequest, transport: StreamingTransport, key: String) async throws -> AsyncThrowingStream<SSEEvent, Error> {
         try await openWithHeaders(request, transport: transport, key: key).1
     }
 
-    /// То же, плюс остатки квоты из заголовков успешного ответа (R-52).
+    /// The same, plus remaining quota from the headers of a successful response (R-52).
     static func openWithHeaders(_ request: URLRequest, transport: StreamingTransport, key: String) async throws -> (RateLimitSnapshot, AsyncThrowingStream<SSEEvent, Error>) {
         let response: HTTPURLResponse
         let lines: AsyncThrowingStream<String, Error>
@@ -148,7 +148,7 @@ enum SSE {
         })
     }
 
-    /// `retry-after`: секунды или HTTP-дата.
+    /// `retry-after`: seconds or an HTTP date.
     static func retryAfter(_ r: HTTPURLResponse) -> Double? {
         guard let v = r.value(forHTTPHeaderField: "retry-after")?.trimmingCharacters(in: .whitespaces), !v.isEmpty else { return nil }
         if let s = Double(v) { return max(0, s) }
@@ -167,11 +167,11 @@ enum SSE {
             else if let m = dict["message"] as? String { message = m }
             else if let m = dict["error"] as? String { message = m }
         }
-        // 400 символов: у Groq вид лимита («tokens per day (TPD)») стоит после имени модели и организации.
+        // 400 characters: on Groq the limit kind ("tokens per day (TPD)") comes after the model and organization names.
         return redact(String(message.prefix(400)), key: key)
     }
 
-    /// Значение ключа и идентификатор организации никогда не попадают в текст ошибки (R-48).
+    /// The key value and the organization id never appear in the error text (R-48).
     static func redact(_ s: String, key: String) -> String {
         var t = s.replacingOccurrences(of: #"org_[A-Za-z0-9]+"#, with: "org_…", options: .regularExpression)
         if key.count >= 8 { t = t.replacingOccurrences(of: key, with: "[key]") }

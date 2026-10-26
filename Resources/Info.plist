@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.2.0</string>
+	<string>0.2.1</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSApplicationCategoryType</key>
@@ -29,9 +29,9 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Lingo слушает вашу речь для разговорной практики. Аудио распознаётся на этом Mac и не сохраняется; в модель уходит только текст.</string>
+	<string>Lingo listens to your speech for conversation practice. Audio is recognized on this Mac and is not saved; only text is sent to the model.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Lingo распознаёт речь на этом Mac, чтобы превратить реплики в текст для разговорной практики.</string>
+	<string>Lingo recognizes speech on this Mac to turn your utterances into text for conversation practice.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

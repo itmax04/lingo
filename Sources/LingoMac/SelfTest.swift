@@ -1,9 +1,9 @@
 import Foundation
 import LingoCore
 
-/// `Lingo --selftest <wav>`: сквозная проверка голосового хода на настоящих компонентах без окна и микрофона:
-/// файл (синтетика evals/audio) → VAD → сегментация → whisper → цепочка Groq (ключ из Связки ключей) → протокол → «озвучка» без звука.
-/// История — во временной папке. Печатает расшифровку, ответ и отметки хода (R-47).
+/// `Lingo --selftest <wav>`: end-to-end check of a voice turn on the real components without a window or microphone:
+/// file (evals/audio synthetic data) → VAD → segmentation → whisper → Groq chain (key from the Keychain) → protocol → silent "speech".
+/// History lives in a temporary folder. Prints the transcript, the reply and the turn marks (R-47).
 @MainActor
 enum SelfTest {
     final class SilentSink: SpeechSink {
@@ -24,7 +24,7 @@ enum SelfTest {
         let base = FileManager.default.temporaryDirectory.appendingPathComponent("lingo-selftest-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: base) }
         let settings = SettingsStore().load()
-        guard settings.llm.hasUsableKey else { print("selftest: нет ключа"); return 1 }
+        guard settings.llm.hasUsableKey else { print("selftest: no key"); return 1 }
         do {
             let store = try JournalStore(base: base, deviceName: "selftest", deviceID: "mac-selftest")
             let secrets = KeychainStore()
@@ -56,7 +56,7 @@ enum SelfTest {
                         let n = min(320, s.count - i)
                         tc.feed(Array(s[i..<(i + n)]))
                         i += n
-                        try? await Task.sleep(for: .milliseconds(20))   // реальное время
+                        try? await Task.sleep(for: .milliseconds(20))   // real time
                     }
                 }
                 let noise = (0..<16_000).map { _ in Float.random(in: -0.0025...0.0025) }
@@ -64,7 +64,7 @@ enum SelfTest {
                 sink.firstAt = nil
                 await feed(samples)
                 await feed(noise + noise)
-                // Ждём ответа и «озвучки».
+                // Wait for the reply and the "speech".
                 for _ in 0..<300 {
                     try? await Task.sleep(for: .milliseconds(100))
                     if sink.firstAt != nil && !sink.isSpeaking && tc.state == .listening { break }
@@ -81,8 +81,8 @@ enum SelfTest {
                 for line in text.split(separator: "\n") {
                     guard let o = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any], o["type"] as? String == "turn",
                           let se = o["speech_end"] as? Double else { continue }
-                    func d(_ k: String) -> String { (o[k] as? Double).map { String(format: "%.2f с", $0 - se) } ?? "—" }
-                    print("  speech_end→stt_final \(d("stt_final")), →llm_first_token \(d("llm_first_token")), →first_audio \(d("first_audio")), →reply_end \(d("reply_end")), память \(o["footprint_mb"] ?? "-") МБ")
+                    func d(_ k: String) -> String { (o[k] as? Double).map { String(format: "%.2f s", $0 - se) } ?? "—" }
+                    print("  speech_end→stt_final \(d("stt_final")), →llm_first_token \(d("llm_first_token")), →first_audio \(d("first_audio")), →reply_end \(d("reply_end")), memory \(o["footprint_mb"] ?? "-") MB")
                 }
             }
             return 0

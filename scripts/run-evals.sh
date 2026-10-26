@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Прогон evals (evals/README.md). Результаты — evals/out/ (в .gitignore).
+# Runs the evals (evals/README.md). Results go to evals/out/ (in .gitignore).
 #   scripts/run-evals.sh commands | turn | audio | dialog | all
-# audio: синтетические записи (scripts/make-audio-fixtures.sh) через whisper; Apple Speech — из Lingo.app (нужно разрешение).
-# dialog: нужен ключ — запускается из подписанного dist/Lingo.app (Связка ключей, D-11).
+# audio: synthetic recordings (scripts/make-audio-fixtures.sh) through whisper; Apple Speech — from Lingo.app (needs permission).
+# dialog: needs a key — run from the signed dist/Lingo.app (Keychain, D-11).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -28,7 +28,7 @@ if want dialog; then
   if [ -x dist/Lingo.app/Contents/MacOS/Lingo ] && dist/Lingo.app/Contents/MacOS/Lingo --help-eval >/dev/null 2>&1; then
     run dialog dist/Lingo.app/Contents/MacOS/Lingo --eval-dialog "$ROOT/evals/dialog" "$ROOT/evals/out"
   else
-    echo "== dialog: NOT RUN (появится в P-05: dist/Lingo.app --eval-dialog)"
+    echo "== dialog: NOT RUN here (use dist/Lingo.app --eval-dialog, see evals/README.md)"
   fi
 fi
 exit $rc

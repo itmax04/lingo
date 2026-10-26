@@ -1,15 +1,15 @@
 import LingoCore
 import SwiftUI
 
-/// Настройки → «Ключи и модели» (R-44): провайдеры, неограниченный список ключей, «Проверить», порядок цепочки,
-/// модели из `GET /models`, таймаут первого токена. Ключ после сохранения показывается только последними 4 символами (R-48).
+/// Settings → "Keys and models" (R-44): providers, an unlimited list of keys, "Check", chain order,
+/// models from `GET /models`, first-token timeout. After saving, a key is shown only by its last 4 characters (R-48).
 struct KeysSettingsView: View {
     @Bindable var keys: KeysController
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
-                Text("Ключи хранятся только в Связке ключей этого Mac. В модель уходит текст реплик; аудио не покидает Mac.")
+                Text("Keys are stored only in this Mac's Keychain. The model receives the text of utterances; audio never leaves the Mac.")
                     .font(Theme.F.section)
                     .foregroundStyle(Theme.C.textSecondary)
                 ForEach(ProviderID.allCases, id: \.self) { p in
@@ -24,8 +24,8 @@ struct KeysSettingsView: View {
 }
 
 struct SettingsCard<Content: View>: View {
-    let title: String
-    var subtitle: String?
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -49,23 +49,23 @@ struct ProviderKeysCard: View {
     let provider: ProviderID
     @State private var newKey = ""
 
-    private var subtitle: String {
+    private var subtitle: LocalizedStringKey {
         switch provider {
-        case .groq: "Основной провайдер, бесплатный тариф. Можно добавить сколько угодно ключей: при лимите цепочка перейдёт к следующему."
-        case .mistral: "Запасной: бесплатный режим Free без карты."
-        case .openrouter: "Запасной: только бесплатные модели «:free»."
-        case .custom: "Любой OpenAI-совместимый адрес: https://…/v1 (или http://localhost для своего сервера)."
+        case .groq: "Main provider, free tier. Add as many keys as you like: on a limit the chain moves to the next one."
+        case .mistral: "Fallback: the free Free plan without a card."
+        case .openrouter: "Fallback: only free “:free” models."
+        case .custom: "Any OpenAI-compatible endpoint: https://…/v1 (or http://localhost for your own server)."
         }
     }
 
     var body: some View {
-        SettingsCard(title: provider.displayName, subtitle: subtitle) {
+        SettingsCard(title: LocalizedStringKey(provider.displayName), subtitle: subtitle) {
             if provider == .custom {
                 TextField("https://example.org/v1", text: Binding(get: { keys.settings.customBaseURL },
                                                                   set: { v in keys.update { $0.customBaseURL = v } }))
                     .textFieldStyle(.roundedBorder)
                 if !keys.settings.customBaseURL.isEmpty && keys.settings.customBase == nil {
-                    Text("Нужен адрес https:// (http — только localhost)").font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
+                    Text("An https:// address is required (http — localhost only)").font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
                 }
             }
             let list = keys.settings.keys(for: provider)
@@ -73,32 +73,32 @@ struct ProviderKeysCard: View {
                 HStack(spacing: Theme.S.s12) {
                     Circle().fill(k.invalid ? Theme.C.statusDanger : Theme.C.statusSuccess)
                         .frame(width: Theme.S.s8, height: Theme.S.s8)
-                    Text("Ключ \(i + 1)  ••••\(k.last4)").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
+                    Text("Key \(i + 1)  ••••\(k.last4)").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
                         .monospacedDigit()
                     VStack(alignment: .leading, spacing: 0) {
-                        if k.invalid { Text("Недействителен" + (k.invalidReason.map { " (\($0))" } ?? "")).foregroundStyle(Theme.C.statusDanger) }
+                        if k.invalid { Text(String(localized: "Invalid") + (k.invalidReason.map { " (\($0))" } ?? "")).foregroundStyle(Theme.C.statusDanger) }
                         if let c = keys.checks[k.id] { Text(c).foregroundStyle(Theme.C.textSecondary).lineLimit(2) }
                     }
                     .font(Theme.F.meta)
                     Spacer(minLength: 0)
-                    Button("Проверить") { keys.verify(k.id) }.disabled(keys.busy.contains(k.id))
-                    Button("Удалить", role: .destructive) { keys.delete(k.id) }
+                    Button("Check") { keys.verify(k.id) }.disabled(keys.busy.contains(k.id))
+                    Button("Delete", role: .destructive) { keys.delete(k.id) }
                 }
             }
             HStack(spacing: Theme.S.s12) {
-                SecureField(list.isEmpty ? "Вставьте ключ" : "Ещё один ключ", text: $newKey)
+                SecureField(list.isEmpty ? "Paste a key" : "One more key", text: $newKey)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit(add)
-                Button("Добавить", action: add).disabled(newKey.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button("Add", action: add).disabled(newKey.trimmingCharacters(in: .whitespaces).isEmpty)
                 if provider.keysPage != nil {
-                    Button("Получить ключ…") { keys.openKeysPage(provider) }
+                    Button("Get a key…") { keys.openKeysPage(provider) }
                 }
             }
             if let e = keys.addError[provider] {
                 Text(e).font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
             }
             if let models = keys.settings.knownModels[provider], !models.isEmpty {
-                Text("Модели (GET /models): \(models.count)" + (keys.settings.knownModelsAt[provider].map { ", \(SessionDateFormat.rowDate($0))" } ?? ""))
+                Text(String(localized: "Models (GET /models): \(models.count)") + (keys.settings.knownModelsAt[provider].map { ", \(SessionDateFormat.rowDate($0))" } ?? ""))
                     .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
             }
         }
@@ -116,8 +116,8 @@ struct ChainCard: View {
     @State private var newModel = ""
 
     var body: some View {
-        SettingsCard(title: "Порядок цепочки",
-                     subtitle: "Шаги пробуются сверху вниз, у каждого шага — все действующие ключи провайдера по порядку. Переход дальше: лимит (429), ошибка сервера или сети, отказ модели, нет первого токена за таймаут.") {
+        SettingsCard(title: "Chain order",
+                     subtitle: "Steps are tried top to bottom; each step uses all working keys of its provider in order. It moves on after a rate limit (429), a server or network error, a model refusal, or no first token within the timeout.") {
             ForEach(Array(keys.settings.chain.enumerated()), id: \.element.id) { i, e in
                 HStack(spacing: Theme.S.s8) {
                     Toggle("", isOn: Binding(get: { e.enabled }, set: { keys.setEnabled(e.id, $0) })).labelsHidden()
@@ -125,14 +125,14 @@ struct ChainCard: View {
                         .frame(width: 120, alignment: .leading)
                     ModelField(model: e.model, options: keys.settings.knownModels[e.provider] ?? []) { keys.setModel(e.id, $0) }
                     let n = keys.settings.keys(for: e.provider).filter { !$0.invalid }.count
-                    Text(n == 0 ? "нет ключей" : "ключей: \(n)").font(Theme.F.meta)
+                    Text(n == 0 ? "no keys" : "keys: \(n)").font(Theme.F.meta)
                         .foregroundStyle(n == 0 ? Theme.C.statusDanger : Theme.C.textSecondary)
                         .frame(width: 80, alignment: .leading)
                     Button { keys.move(e.id, by: -1) } label: { Image(systemName: "chevron.up") }.disabled(i == 0)
-                        .accessibilityLabel("Выше")
+                        .accessibilityLabel("Move up")
                     Button { keys.move(e.id, by: 1) } label: { Image(systemName: "chevron.down") }
-                        .disabled(i == keys.settings.chain.count - 1).accessibilityLabel("Ниже")
-                    Button { keys.removeStep(e.id) } label: { Image(systemName: "trash") }.accessibilityLabel("Удалить шаг")
+                        .disabled(i == keys.settings.chain.count - 1).accessibilityLabel("Move down")
+                    Button { keys.removeStep(e.id) } label: { Image(systemName: "trash") }.accessibilityLabel("Delete step")
                 }
             }
             HStack(spacing: Theme.S.s8) {
@@ -142,21 +142,21 @@ struct ChainCard: View {
                 .labelsHidden()
                 .frame(width: 140)
                 ModelField(model: newModel, options: keys.settings.knownModels[newProvider] ?? []) { newModel = $0 }
-                Button("Добавить шаг") { keys.addStep(newProvider, model: newModel); newModel = "" }
+                Button("Add step") { keys.addStep(newProvider, model: newModel); newModel = "" }
                     .disabled(newModel.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             HStack(spacing: Theme.S.s12) {
-                Text("Таймаут первого токена").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
+                Text("First-token timeout").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
                 Slider(value: Binding(get: { keys.settings.firstTokenTimeout }, set: { v in keys.update { $0.firstTokenTimeout = v.rounded() } }),
                        in: LLMSettings.timeoutRange, step: 1)
                     .frame(maxWidth: 240)
-                Text("\(Int(keys.settings.firstTokenTimeout)) с").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textSecondary).monospacedDigit()
+                Text("\(Int(keys.settings.firstTokenTimeout)) s").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textSecondary).monospacedDigit()
             }
         }
     }
 }
 
-/// Поле модели: выбор из `GET /models` или свой ID.
+/// Model field: pick from `GET /models` or type your own ID.
 struct ModelField: View {
     let model: String
     let options: [String]
@@ -165,7 +165,7 @@ struct ModelField: View {
 
     var body: some View {
         HStack(spacing: Theme.S.s4) {
-            TextField("ID модели", text: $text)
+            TextField("Model ID", text: $text)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit { onChange(text) }
                 .onChange(of: text) { _, v in onChange(v) }
@@ -175,12 +175,12 @@ struct ModelField: View {
                 } label: { Image(systemName: "list.bullet") }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                .accessibilityLabel("Выбрать модель из списка")
+                .accessibilityLabel("Choose a model from the list")
             }
             if !options.isEmpty && !model.isEmpty && !options.contains(model) {
                 Image(systemName: "exclamationmark.triangle").foregroundStyle(Theme.C.statusDanger)
-                    .help("Этой модели нет в списке GET /models")
-                    .accessibilityLabel("Модели нет в списке провайдера")
+                    .help("This model is not in the GET /models list")
+                    .accessibilityLabel("The model is not in the provider's list")
             }
         }
         .onAppear { text = model }

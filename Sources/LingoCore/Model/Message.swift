@@ -1,11 +1,11 @@
 import Foundation
 
-/// Кто говорит.
+/// Who is speaking.
 public enum Role: String, Codable, Sendable, Hashable {
     case user, assistant
 }
 
-/// Исправление `@fix` (R-20, R-24): «было → правильно | правило».
+/// A `@fix` correction (R-20, R-24): "wrong → right | rule".
 public struct Fix: Codable, Sendable, Hashable {
     public var original: String
     public var corrected: String
@@ -18,28 +18,28 @@ public struct Fix: Codable, Sendable, Hashable {
     }
 }
 
-/// Раздел панели «Подсказки» (R-27).
+/// A section of the "Hints" panel (R-27).
 public enum PhraseSource: String, Codable, Sendable, Hashable, CaseIterable {
     case topic, correction, howToSay = "how_to_say", hint
 
     public var title: String {
         switch self {
-        case .topic: "Фразы темы"
-        case .correction: "Исправления"
-        case .howToSay: "Как сказать"
-        case .hint: "Подсказки"
+        case .topic: String(localized: "Topic phrases")
+        case .correction: String(localized: "Corrections")
+        case .howToSay: String(localized: "How to say")
+        case .hint: String(localized: "Hints")
         }
     }
 }
 
-/// Фраза подсказки или словаря: текст на изучаемом языке и перевод (R-27, R-28).
+/// A hint or vocabulary phrase: text in the target language plus a translation (R-27, R-28).
 public struct Phrase: Codable, Sendable, Hashable, Identifiable {
     public var lang: Lang
     public var text: String
     public var translation: String
     public var source: PhraseSource
 
-    /// Стабильный ключ фразы — для ★ и дедупликации (R-28): язык + нормализованный текст.
+    /// Stable phrase key — for ★ and deduplication (R-28): language + normalized text.
     public var id: String { Phrase.key(lang: lang, text: text) }
 
     public init(lang: Lang, text: String, translation: String, source: PhraseSource) {
@@ -57,12 +57,12 @@ public struct Phrase: Codable, Sendable, Hashable, Identifiable {
     }
 }
 
-/// Сегмент ответа помощника по протоколу R-24.
+/// A segment of the assistant's reply per the R-24 protocol.
 public enum ReplySegment: Codable, Sendable, Hashable {
     case say(Lang, String)
     case fix(Fix)
     case hint(Phrase)
-    /// Как помощник понял реплику пользователя с учётом контекста (R-24 `@heard`, R-51). Не озвучивается.
+    /// How the assistant understood the user's utterance given the context (R-24 `@heard`, R-51). Not spoken.
     case heard(String)
 
     public var sayText: String? {
@@ -71,27 +71,27 @@ public enum ReplySegment: Codable, Sendable, Hashable {
     }
 }
 
-/// Сообщение ленты (R-41). Строится из событий журнала (R-35).
+/// A feed message (R-41). Built from journal events (R-35).
 public struct ChatMessage: Sendable, Hashable, Identifiable {
     public var id: String
     public var session: String
     public var role: Role
-    /// Текст пользователя (с учётом правки `message.edited`) или сырой ответ помощника.
+    /// The user's text (including a `message.edited` change) or the assistant's raw reply.
     public var text: String
-    /// Язык реплики пользователя (R-08) или изучаемый язык ответа.
+    /// Language of the user's utterance (R-08) or the target language of the reply.
     public var lang: Lang
-    /// «Понято как» (R-51) — из `@heard` ответа на эту реплику; заполняется при построении ленты.
+    /// "Understood as" (R-51) — from the `@heard` of the reply to this utterance; filled in when the feed is built.
     public var heard: String?
-    /// Разобранные сегменты ответа помощника (R-24). Для пользователя пусто.
+    /// Parsed segments of the assistant's reply (R-24). Empty for the user.
     public var segments: [ReplySegment]
     public var createdAt: Date
-    /// Метка «провайдер · модель» (R-29).
+    /// "provider · model" label (R-29).
     public var source: String?
-    /// Позиция (в символах текста `@say`), где озвучка прервана (R-12). `nil` — не прерывалось.
+    /// Position (in characters of the `@say` text) where speech was interrupted (R-12). `nil` — not interrupted.
     public var interruptedAt: Int?
-    /// Записано в папку синхронизации (✓✓, R-38).
+    /// Written to the sync folder (✓✓, R-38).
     public var synced: Bool
-    /// Служебное: итог сессии (R-23) или сообщение об ошибке цепочки (S-18).
+    /// Service message: a session recap (R-23) or a chain error message (S-18).
     public var kind: Kind
 
     public enum Kind: String, Codable, Sendable, Hashable {
@@ -113,7 +113,7 @@ public struct ChatMessage: Sendable, Hashable, Identifiable {
         self.kind = kind
     }
 
-    /// Текст для показа и озвучивания: строки `@say` через пробел; для пользователя — сам текст.
+    /// Text for display and speech: `@say` lines joined with spaces; for the user — the text itself.
     public var spokenText: String {
         guard role == .assistant, !segments.isEmpty else { return text }
         return segments.compactMap(\.sayText).joined(separator: " ")

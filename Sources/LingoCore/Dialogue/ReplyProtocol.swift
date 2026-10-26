@@ -1,13 +1,13 @@
 import Foundation
 
-/// Протокол ответа модели (R-24), построчный:
+/// The model reply protocol (R-24), line by line:
 /// ```
 /// @say de: Fast perfekt! Natürlicher wäre: „Ich heiße Alex. Freut mich.“
 /// @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + Ort
 /// @hint de: Freut mich, Sie kennenzulernen. | Приятно познакомиться.
-/// @heard: Mir gefällt an Rostock, dass es hier das Meer gibt   (R-51: как понята реплика пользователя)
+/// @heard: Mir gefällt an Rostock, dass es hier das Meer gibt   (R-51: how the user's utterance was understood)
 /// ```
-/// Строка без тега — `@say` на изучаемом языке. Ошибки разбора не ломают ход и считаются метрикой `protocol_violation`.
+/// A line without a tag is `@say` in the target language. Parse errors never break the turn and are counted as the `protocol_violation` metric.
 public enum ReplyProtocol {
     public struct Parsed: Sendable, Equatable {
         public var segments: [ReplySegment]
@@ -25,7 +25,7 @@ public enum ReplyProtocol {
         return Parsed(segments: mergeAdjacentSay(segs), violations: bad)
     }
 
-    /// Убирает блоки рассуждений `<think>…</think>` (некоторые модели присылают их в тексте).
+    /// Removes `<think>…</think>` reasoning blocks (some models send them in the text).
     public static func stripThinking(_ s: String) -> String {
         guard s.contains("<think>") else { return s }
         var out = s
@@ -39,10 +39,10 @@ public enum ReplyProtocol {
         return out
     }
 
-    /// Разбор одной строки. `violation` — строка без тега или с неверным тегом.
+    /// Parses one line. `violation` — a line without a tag or with a wrong tag.
     public static func parseLine<S: StringProtocol>(_ raw: S, studyLang: Lang) -> (ReplySegment?, violation: Bool) {
         var line = Substring(raw).trimmingCharacters(in: .whitespaces)
-        // Модель иногда оформляет строки как список или жирным: «- @say de: …», «**@say de:** …».
+        // Models sometimes format lines as a list or in bold: "- @say de: …", "**@say de:** …".
         while let f = line.first, "-*•>".contains(f) { line.removeFirst(); line = line.trimmingCharacters(in: .whitespaces) }
         line = line.replacingOccurrences(of: "**", with: "")
         guard !line.isEmpty else { return (nil, false) }
@@ -72,7 +72,7 @@ public enum ReplyProtocol {
         }
     }
 
-    /// «было → правильно | правило»; стрелки «→», «->», «=>».
+    /// "wrong → right | rule"; arrows "→", "->", "=>".
     static func parseFix(_ body: String) -> Fix? {
         let parts = body.split(separator: "|", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
         guard let pair = parts.first else { return nil }
@@ -91,23 +91,23 @@ public enum ReplyProtocol {
         s.trimmingCharacters(in: CharacterSet(charactersIn: "\"'«»„“”‚‘’ "))
     }
 
-    /// Соседние `@say` одного языка не склеиваются: каждая строка — отдельная часть для озвучки и показа.
+    /// Adjacent `@say` lines of the same language are not merged: each line is a separate part for speech and display.
     static func mergeAdjacentSay(_ s: [ReplySegment]) -> [ReplySegment] { s }
 }
 
-/// Потоковый разбор: строки по мере поступления и готовые к озвучке предложения `@say` (R-13:
-/// «озвучка начинается с первого законченного предложения»).
+/// Streaming parser: lines as they arrive and `@say` sentences ready to be spoken (R-13:
+/// "speech starts with the first finished sentence").
 public struct ReplyStreamParser: Sendable {
     public enum Item: Sendable, Equatable {
-        /// Законченное предложение строки `@say` — можно озвучивать.
+        /// A finished sentence of a `@say` line — ready to be spoken.
         case speak(Lang, String)
-        /// Законченная строка протокола.
+        /// A finished protocol line.
         case segment(ReplySegment)
     }
 
     public let studyLang: Lang
     private var line = ""
-    /// Сколько символов тела текущей строки `@say` уже отдано на озвучку.
+    /// How many characters of the current `@say` line body have already been sent to speech.
     private var spokenUpTo = 0
     private var inThink = false
     private var pending = ""
@@ -120,7 +120,7 @@ public struct ReplyStreamParser: Sendable {
         text += chunk
         var out: [Item] = []
         pending += chunk
-        // Блоки рассуждений вырезаются до разбора строк.
+        // Reasoning blocks are cut out before lines are parsed.
         while true {
             if inThink {
                 guard let end = pending.range(of: "</think>") else { return out }
@@ -133,7 +133,7 @@ public struct ReplyStreamParser: Sendable {
                 inThink = true
                 continue
             }
-            // Возможное начало «<think>» в конце куска — подождать следующий кусок.
+            // A possible start of "<think>" at the end of a chunk — wait for the next chunk.
             if let lt = pending.lastIndex(of: "<"), "<think>".hasPrefix(pending[lt...]) {
                 consume(String(pending[..<lt]), into: &out)
                 pending = String(pending[lt...])
@@ -164,7 +164,7 @@ public struct ReplyStreamParser: Sendable {
         emitSentences(into: &out)
     }
 
-    /// Тело незаконченной строки `@say` (или строки без тега), если её начало уже понятно.
+    /// Body of an unfinished `@say` line (or an untagged line) once its start is clear.
     private func sayBody() -> (Lang, String)? {
         let t = line.trimmingCharacters(in: .whitespaces)
         guard !t.isEmpty else { return nil }

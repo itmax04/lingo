@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// Иконка приложения из токенов DESIGN.md: пузырь `accent.primary` с волной `voice.accent` на фоне `bg.window`.
-/// `scripts/build-app.sh` вызывает `Lingo --export-iconset <папка>` и собирает .icns через iconutil.
+/// App icon from DESIGN.md tokens: an `accent.primary` bubble with a `voice.accent` wave on `bg.window`.
+/// `scripts/build-app.sh` calls `Lingo --export-iconset <dir>` and builds the .icns with iconutil.
 struct AppIconView: View {
     var body: some View {
         GeometryReader { g in

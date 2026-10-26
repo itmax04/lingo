@@ -19,7 +19,7 @@ import Testing
         for (k, n) in mins { #expect(all.filter { $0.category == k }.count >= n, "\(k)") }
         let en = all.filter { $0.studyLang == .en }.count, de = all.filter { $0.studyLang == .de }.count
         #expect(abs(en - de) <= 10)
-        for x in all { _ = x.request() } // каждый кейс собирается в запрос
+        for x in all { _ = x.request() } // every case builds a request
     }
 
     @Test func goodInlineCorrectionPasses() throws {

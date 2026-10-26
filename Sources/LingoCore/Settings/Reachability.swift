@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-/// Есть ли сеть (S-17, R-33): без сети на Mac доступна только история, подсказки, словарь и прослушивание фраз.
+/// Whether there is a network (S-17, R-33): offline on the Mac only history, hints, vocabulary and phrase playback are available.
 public final class Reachability: @unchecked Sendable {
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "lingo.reachability")

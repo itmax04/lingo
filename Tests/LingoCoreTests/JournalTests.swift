@@ -2,14 +2,14 @@ import Foundation
 import Testing
 @testable import LingoCore
 
-/// Временная папка теста.
+/// A temporary folder for the test.
 func tempDir(_ name: String = "t") -> URL {
     let u = FileManager.default.temporaryDirectory.appendingPathComponent("lingo-\(name)-\(UUID().uuidString)", isDirectory: true)
     try! FileManager.default.createDirectory(at: u, withIntermediateDirectories: true)
     return u
 }
 
-/// Событие вручную (для проверок слияния).
+/// A hand-made event (for merge checks).
 func ev(_ id: String, device: String, seq: Int, lamport: Int, ms: Int64, type: String, session: String = "s1",
         payload: JSONValue = .object([:])) -> Event {
     Event(id: id, device: device, seq: seq, lamport: lamport, ts: Date(timeIntervalSince1970: Double(ms) / 1000),
@@ -22,7 +22,7 @@ func msg(_ text: String, role: Role = .user, lang: Lang = .de) -> JSONValue {
 
 let settingsDE = SessionSettings(lang: .de, mode: .free, topic: "Wohnort", level: "A2", corrections: [.inline])
 
-func created(_ title: String = "Свободный разговор: Wohnort") -> JSONValue {
+func created(_ title: String = "Free conversation: Wohnort") -> JSONValue {
     try! JSONValue.from(Payload.SessionCreated(title: title, settings: settingsDE))
 }
 
@@ -70,7 +70,7 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
         let e1 = ev("A", device: "d", seq: 1, lamport: 1, ms: 1_761_386_400_000, type: EventType.messageCreated, payload: msg("eins"))
         try w.append([e1])
         let url = dir.appendingPathComponent(JournalWriter.fileName(for: e1.ts))
-        // Обрыв записи: половина строки без перевода строки.
+        // A cut-off write: half a line without a newline.
         let h = try FileHandle(forWritingTo: url)
         try h.seekToEnd()
         try h.write(contentsOf: Data(#"{"v":1,"id":"TORN","dev"#.utf8))
@@ -103,9 +103,9 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
 
     @Test func orderByTsDeviceSeq() {
         let st = Merger.build(base())
-        // Равные ts (2000): порядок по device — «ios-b» < «mac-a».
+        // Equal ts (2000): ordered by device — "ios-b" < "mac-a".
         #expect(st.messages["s1"]!.map(\.id) == ["E3", "E2", "E4"])
-        #expect(st.sessions["s1"]!.title == "Свободный разговор: Wohnort")
+        #expect(st.sessions["s1"]!.title == "Free conversation: Wohnort")
     }
 
     @Test func permutationsAndDuplicatesGiveSameState() {
@@ -127,9 +127,9 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
         let rename = { (t: String) in try JSONValue.from(Payload.SessionUpdated(title: t)) }
         events.append(ev("R1", device: "mac-a", seq: 4, lamport: 10, ms: 9000, type: EventType.sessionUpdated, payload: try rename("A")))
         events.append(ev("R2", device: "ios-b", seq: 2, lamport: 11, ms: 5000, type: EventType.sessionUpdated, payload: try rename("B")))
-        #expect(Merger.build(events).sessions["s1"]!.title == "B") // больший lamport, хотя ts меньше
+        #expect(Merger.build(events).sessions["s1"]!.title == "B") // larger lamport, even though ts is smaller
         events.append(ev("R3", device: "mac-a", seq: 5, lamport: 11, ms: 4000, type: EventType.sessionUpdated, payload: try rename("C")))
-        #expect(Merger.build(events).sessions["s1"]!.title == "C") // равный lamport: «mac-a» > «ios-b»
+        #expect(Merger.build(events).sessions["s1"]!.title == "C") // equal lamport: "mac-a" > "ios-b"
         #expect(Merger.build(events.reversed()).sessions["s1"]!.title == "C")
     }
 
@@ -154,10 +154,10 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
         st = Merger.build(events)
         #expect(st.sessions["s1"]!.deleted)
         #expect(st.visibleSessions().isEmpty)
-        #expect(st.messages["s1"]!.count == 3) // сообщения не теряются, сессия скрыта надгробием
+        #expect(st.messages["s1"]!.count == 3) // messages are not lost; the session is hidden by a tombstone
     }
 
-    /// Свойство: объединение коммутативно и идемпотентно на случайных журналах двух устройств.
+    /// Property: merging is commutative and idempotent on random journals of two devices.
     @Test func unionIsCommutativeAndIdempotent() {
         var rng = SeededRNG(seed: 7)
         for round in 0..<30 {
@@ -176,7 +176,7 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
     func randomJournal(device: String, count: Int, rng: inout SeededRNG) -> [Event] {
         var out = [ev("\(device)-c", device: device, seq: 1, lamport: 1, ms: 1000, type: EventType.sessionCreated, payload: created())]
         for i in 2...count {
-            let ms = Int64(1000 + Int.random(in: 0..<50, using: &rng) * 100) // частые равные ts
+            let ms = Int64(1000 + Int.random(in: 0..<50, using: &rng) * 100) // frequent equal ts
             let lam = Int.random(in: 1..<20, using: &rng)
             if Int.random(in: 0..<5, using: &rng) == 0 {
                 out.append(ev("\(device)-\(i)", device: device, seq: i, lamport: lam, ms: ms, type: EventType.sessionUpdated,
@@ -189,7 +189,7 @@ func created(_ title: String = "Свободный разговор: Wohnort") -
     }
 }
 
-/// Детерминированный генератор для повторяемых тестов.
+/// A deterministic generator for repeatable tests.
 struct SeededRNG: RandomNumberGenerator {
     var state: UInt64
     init(seed: UInt64) { state = seed &+ 0x9E37_79B9_7F4A_7C15 }

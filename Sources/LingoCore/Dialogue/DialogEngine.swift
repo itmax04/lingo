@@ -1,35 +1,35 @@
 import Foundation
 
-/// События хода (для интерфейса и голосового цикла).
+/// Turn events (for the UI and the voice loop).
 public enum TurnEvent: Sendable, Equatable {
-    /// Реплика пользователя записана в журнал (✓, R-38).
+    /// The user's utterance has been written to the journal (✓, R-38).
     case userSaved(messageID: String)
     case attempt(StepInfo)
     case firstToken(afterMs: Double)
-    /// Законченное предложение `@say` — можно озвучивать (R-13).
+    /// A finished `@say` sentence — ready to be spoken (R-13).
     case speak(Lang, String)
-    /// Частичный текст ответа для показа по мере генерации.
+    /// Partial reply text, shown while it is being generated.
     case partial(String)
-    /// Ответ начат заново на другом шаге цепочки: показанное и озвученное — сбросить.
+    /// The reply restarted on another chain step: discard what was shown and spoken.
     case restart
     case keyInvalid(keyID: String, reason: String)
-    /// Ответ записан. `label` — «провайдер · модель» (R-29).
+    /// The reply has been saved. `label` — "provider · model" (R-29).
     case finished(messageID: String, label: String, segments: [ReplySegment], violations: Int)
-    /// Цепочка исчерпана (S-18): реплика пользователя сохранена, «Ответить заново» доступна.
+    /// The chain is exhausted (S-18): the user's utterance is saved and "Reply again" is available.
     case failed(reason: String, retryAfter: TimeInterval?)
     case cancelled
 }
 
-/// Диалог поверх журнала (R-01…R-04, R-09, R-20, R-22…R-25): все изменения — события `JournalStore`, ответы — через `ProviderChain`.
+/// Dialogue on top of the journal (R-01…R-04, R-09, R-20, R-22…R-25): every change is a `JournalStore` event, replies come through `ProviderChain`.
 public actor DialogEngine {
     public let store: JournalStore
     private let makeChain: @Sendable () async -> ProviderChain
     public var policy: ContextPolicy
     private var summarizing: Set<String> = []
-    /// Диспетчер (R-52): идёт ли сейчас ход пользователя; фоновые запросы ждут его конца.
+    /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
-    /// Журнал расхода — для служебных запросов тоже (передаётся в цепочку снаружи).
+    /// Usage log — for service requests too (passed into the chain from outside).
     public var usage: UsageRecorder?
 
     public init(store: JournalStore, policy: ContextPolicy = ContextPolicy(), chain: @escaping @Sendable () async -> ProviderChain) {
@@ -40,7 +40,7 @@ public actor DialogEngine {
 
     public func setPolicy(_ p: ContextPolicy) { policy = p }
 
-    // MARK: Сессии (R-01, R-05)
+    // MARK: Sessions (R-01, R-05)
 
     @discardableResult
     public func createSession(_ settings: SessionSettings, title: String? = nil) async throws -> String {
@@ -60,7 +60,7 @@ public actor DialogEngine {
         try await store.append(EventType.sessionUpdated, session: session, Payload.SessionUpdated(settings: settings))
     }
 
-    /// Удаление — событие-надгробие (R-05), синхронизируется.
+    /// Deletion is a tombstone event (R-05) and is synced.
     public func delete(_ session: String) async throws {
         try await store.append(EventType.sessionDeleted, session: session, payload: .object([:]))
     }
@@ -70,25 +70,25 @@ public actor DialogEngine {
         try await store.append(EventType.sessionResumed, session: session, payload: .object([:]))
     }
 
-    /// Правка расшифровки (R-09) — событие `message.edited`.
+    /// Transcript edit (R-09) — a `message.edited` event.
     public func edit(_ messageID: String, session: String, text: String) async throws {
         try await store.append(EventType.messageEdited, session: session, Payload.MessageEdited(message: messageID, text: text))
     }
 
-    /// Озвучка прервана (R-12): позиция в символах текста `@say`.
+    /// Speech was interrupted (R-12): position in characters of the `@say` text.
     public func markInterrupted(_ messageID: String, session: String, at: Int) async throws {
         try await store.append(EventType.messageInterrupted, session: session, Payload.MessageInterrupted(message: messageID, at: at))
     }
 
-    /// Реплика-команда без ответа модели («повтори», «медленнее»): сохраняется в истории (R-14, R-15).
+    /// A command utterance without a model reply ("repeat", "slower"): kept in the history (R-14, R-15).
     @discardableResult
     public func recordUser(session: String, text: String, lang: Lang) async throws -> String {
         try await store.append(EventType.messageCreated, session: session, Payload.MessageCreated(role: .user, text: text, lang: lang)).id
     }
 
-    // MARK: Ход
+    // MARK: Turn
 
-    /// Реплика пользователя → ответ помощника. `command` — локальный детектор (R-14…R-22).
+    /// User utterance → assistant reply. `command` — from the local detector (R-14…R-22).
     public nonisolated func send(session: String, text: String, lang: Lang, command: CommandKind? = nil) -> AsyncStream<TurnEvent> {
         AsyncStream { cont in
             let task = Task {
@@ -106,7 +106,7 @@ public actor DialogEngine {
         }
     }
 
-    /// Первая реплика помощника, если начинает он (S-01), или «Ответить заново» (R-09) без новой реплики пользователя.
+    /// The assistant's first message if it starts (S-01), or "Reply again" (R-09) without a new user utterance.
     public nonisolated func respond(session: String, replyTo: String? = nil, command: CommandKind? = nil) -> AsyncStream<TurnEvent> {
         AsyncStream { cont in
             let task = Task {
@@ -121,16 +121,16 @@ public actor DialogEngine {
         dialogInFlight += 1
         defer { dialogInFlight -= 1 }
         await replyInner(session: session, replyTo: replyTo, command: command, cont: cont)
-        // Фоновые запросы — после хода и только при запасе квоты (R-27, R-04, R-52).
+        // Background requests run after the turn and only when there is quota to spare (R-27, R-04, R-52).
         let engine = self
         Task.detached { await engine.runBackground(session) }
     }
 
     private func replyInner(session: String, replyTo: String?, command: CommandKind?, cont: AsyncStream<TurnEvent>.Continuation) async {
         let st = await store.state
-        guard let s = st.sessions[session] else { cont.yield(.failed(reason: "нет сессии", retryAfter: nil)); return }
+        guard let s = st.sessions[session] else { cont.yield(.failed(reason: String(localized: "no session"), retryAfter: nil)); return }
         var history = st.messages[session] ?? []
-        // «Ответить заново»: контекст — до реплики пользователя включительно (старый ответ не учитывается).
+        // "Reply again": the context goes up to and including the user's utterance (the old reply is ignored).
         if let r = replyTo, let i = history.firstIndex(where: { $0.id == r }) { history = Array(history[...i]) }
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy)
         let chain = await makeChain()
@@ -159,9 +159,10 @@ public actor DialogEngine {
                 step = info
                 actualModel = model
             case .exhausted(let reason, let wait):
-                // Срок — только если его сообщил провайдер (R-52).
-                let text = "Модели недоступны: \(reason)." + (wait.map { " Ближайшая попытка — через \(LLMError.human($0))." }
-                    ?? " Срок восстановления провайдер не сообщил.")
+                // A time only if the provider reported one (R-52).
+                let text = String(localized: "Models are unavailable: \(reason).") + " "
+                    + (wait.map { String(localized: "Next attempt in \(LLMError.human($0)).") }
+                        ?? String(localized: "The provider did not say when it will recover."))
                 _ = try? await store.append(EventType.messageCreated, session: session,
                                             Payload.MessageCreated(role: .assistant, text: text, lang: .ru, kind: .error, replyTo: replyTo))
                 cont.yield(.failed(reason: reason, retryAfter: wait))
@@ -173,7 +174,7 @@ public actor DialogEngine {
         if Task.isCancelled { cont.yield(.cancelled); return }
         for item in parser.finish() { if case .speak(let l, let x) = item { cont.yield(.speak(l, x)) } }
         let full = ReplyProtocol.parse(parser.text, studyLang: s.settings.lang)
-        guard let step else { cont.yield(.failed(reason: "пустой ответ", retryAfter: nil)); return }
+        guard let step else { cont.yield(.failed(reason: String(localized: "empty reply"), retryAfter: nil)); return }
         let label = StepInfo(provider: step.provider, model: actualModel ?? step.model, keyID: step.keyID).label
         if full.violations > 0 {
             Log.metrics.notice("metric protocol_violation n=\(full.violations, privacy: .public) model=\(step.model, privacy: .public)")
@@ -187,13 +188,13 @@ public actor DialogEngine {
             ]
             let events = try await store.appendBatch(items)
             let mid = events[0].id
-            // @fix — в журнал для итога R-23 (во всех режимах); @hint — в подсказки (R-27).
+            // @fix goes to the journal for the R-23 recap (in every mode); @hint goes to the hints (R-27).
             items = []
             for seg in full.segments {
                 switch seg {
                 case .fix(let f): items.append((EventType.fixRecorded, session, try JSONValue.from(Payload.FixRecorded(message: replyTo ?? mid, fix: f))))
                 case .hint(var p):
-                    // Раздел подсказок (R-27): ответ на «как сказать» — «Как сказать», прочие @hint — к фразам темы.
+                    // Hints section (R-27): the reply to "how to say" goes to "How to say", other @hint lines go to topic phrases.
                     p.source = command == .howToSay ? .howToSay : .topic
                     items.append((EventType.hintAdded, session, try JSONValue.from(Payload.HintAdded(phrase: p))))
                 default: break
@@ -207,7 +208,7 @@ public actor DialogEngine {
         }
     }
 
-    /// Фоновые запросы после хода: фразы темы (один раз), краткое содержание (каждые 10 ходов) — если ход не идёт и квота есть.
+    /// Background requests after a turn: topic phrases (once) and the summary (every 10 turns) — if no turn is running and quota allows.
     func runBackground(_ session: String) async {
         guard dialogInFlight == 0, await quotaAllowsBackground() else { return }
         if pendingTopicPhrases.contains(session) {
@@ -218,7 +219,7 @@ public actor DialogEngine {
         await maybeSummarize(session)
     }
 
-    /// Хватает ли квоты для служебного запроса: первый доступный шаг не на паузе и по заголовкам у него ≥ 3000 токенов на минуту.
+    /// Whether quota allows a service request: the first available step is not paused and its headers show ≥ 3000 tokens per minute.
     func quotaAllowsBackground() async -> Bool {
         let chain = await makeChain()
         let (run, _) = chain.plan(needed: 3000)
@@ -226,14 +227,14 @@ public actor DialogEngine {
         return chain.health.pause(for: first.info) == nil && chain.health.hasRoom(first.info, needed: 3000)
     }
 
-    /// Фразы темы (R-27) запрашиваются после первого ответа помощника, а не сразу: первый ход важнее (R-52).
+    /// Topic phrases (R-27) are requested after the assistant's first reply, not immediately: the first turn matters more (R-52).
     public func requestTopicPhrases(_ session: String) {
         pendingTopicPhrases.insert(session)
     }
 
-    // MARK: Фразы темы (R-27)
+    // MARK: Topic phrases (R-27)
 
-    /// 6–8 фраз темы с переводом — отдельным фоновым запросом при старте сессии; первый ход не ждёт.
+    /// 6–8 topic phrases with translations — a separate background request at session start; the first turn does not wait for it.
     public func generateTopicPhrases(_ session: String) async {
         let st = await store.state
         guard let s = st.sessions[session], (st.hints[session] ?? []).filter({ $0.source == .topic }).count < 6 else { return }
@@ -256,16 +257,16 @@ public actor DialogEngine {
         _ = try? await store.appendBatch(Array(items))
     }
 
-    // MARK: Словарь ★ (R-28)
+    // MARK: Vocabulary ★ (R-28)
 
     public func star(_ p: Phrase, on: Bool) async throws {
         try await store.append(on ? EventType.phraseStarred : EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
     }
 
-    // MARK: Завершение (R-22, R-23)
+    // MARK: Finishing (R-22, R-23)
 
-    /// «Завершить» или «на этом всё»: прощание на изучаемом языке (уже в ответе на команду finish), итог по-русски,
-    /// если включён режим «после разговора» (R-23), состояние «завершена», краткое содержание.
+    /// "Finish" or "that's all": a goodbye in the target language (already in the reply to the finish command), a recap in Russian
+    /// if the "after the conversation" mode is on (R-23), the "finished" state, and a summary.
     public func end(_ session: String) async {
         let st = await store.state
         guard let s = st.sessions[session], s.state != .ended else { return }
@@ -276,8 +277,8 @@ public actor DialogEngine {
         await maybeSummarize(session, force: true)
     }
 
-    /// Итог сессии (R-23): 3–5 главных ошибок «было → правильно → почему», 3 фразы для повторения, предложение продолжить сложнее.
-    /// Сохраняется сообщением-карточкой (kind = summary).
+    /// Session recap (R-23): 3–5 main mistakes "wrong → right → why", 3 phrases to review, a suggestion to continue at a harder level.
+    /// Saved as a card message (kind = summary).
     public func recap(_ session: String) async {
         let st = await store.state
         guard let s = st.sessions[session] else { return }
@@ -296,9 +297,9 @@ public actor DialogEngine {
                                     Payload.MessageCreated(role: .assistant, text: clean, lang: .ru, kind: .summary))
     }
 
-    // MARK: Краткое содержание (R-04)
+    // MARK: Summary (R-04)
 
-    /// Каждые `summaryEvery` ходов — отдельный запрос, результат — событие `summary.updated`.
+    /// Every `summaryEvery` turns — a separate request; the result is a `summary.updated` event.
     public func maybeSummarize(_ session: String, force: Bool = false) async {
         guard !summarizing.contains(session) else { return }
         let st = await store.state
@@ -306,7 +307,7 @@ public actor DialogEngine {
         guard force || policy.needsSummary(msgs, through: s.summaryThrough) else { return }
         summarizing.insert(session)
         defer { summarizing.remove(session) }
-        // Только новые ходы с прошлого краткого содержания (+2 для связности), а не всё окно (R-52).
+        // Only new turns since the previous summary (+2 for continuity), not the whole window (R-52).
         let req = PromptBuilder.summaryRequest(settings: s.settings, previous: s.summary, messages: Array(msgs.suffix(policy.summaryEvery * 2 + 2)))
         var text = ""
         for await e in await makeChain().run(req) {

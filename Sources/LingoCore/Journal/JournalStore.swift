@@ -1,14 +1,14 @@
 import Foundation
 
-/// Локальное хранилище истории (R-34): свой журнал — источник истины на устройстве, плюс кэш журналов других устройств.
-/// Индекс (HistoryState) строится из журналов при старте и после каждого изменения. Работа не зависит от папки синхронизации.
+/// Local history store (R-34): this device's journal is the source of truth on the device, plus a cache of other devices' journals.
+/// The index (HistoryState) is built from the journals at start-up and after every change. It works without a sync folder.
 ///
-/// Раскладка `base`:
+/// Layout of `base`:
 /// ```
-/// device.json                         id и имя этого устройства
-/// devices/<deviceId>/journal-*.jsonl  свой журнал (только дописывание, fsync)
-/// cache/<otherId>/journal-*.jsonl     копии чужих журналов из папки синхронизации
-/// sync-state.json                     до какого seq свой журнал записан в папку (✓✓)
+/// device.json                         id and name of this device
+/// devices/<deviceId>/journal-*.jsonl  this device's journal (append-only, fsync)
+/// cache/<otherId>/journal-*.jsonl     copies of other devices' journals from the sync folder
+/// sync-state.json                     up to which seq this journal has been written to the folder (✓✓)
 /// ```
 public actor JournalStore {
     public nonisolated let base: URL
@@ -26,7 +26,7 @@ public actor JournalStore {
     private let clock: @Sendable () -> Date
 
     public enum StoreError: Error, Equatable {
-        /// В журналах есть события старшей версии схемы (R-39): запись запрещена до обновления приложения.
+        /// The journals contain events with a newer schema version (R-39): writing is blocked until the app is updated.
         case readOnly
     }
 
@@ -36,7 +36,7 @@ public actor JournalStore {
     public nonisolated var ownDir: URL { base.appendingPathComponent("devices/\(deviceID)", isDirectory: true) }
     public nonisolated var cacheDir: URL { base.appendingPathComponent("cache", isDirectory: true) }
 
-    /// `deviceID` задаётся явно только в тестах и `lingo-eval`; иначе берётся из `device.json` или создаётся.
+    /// `deviceID` is set explicitly only in tests and `lingo-eval`; otherwise it is read from `device.json` or created.
     public init(base: URL, deviceName: String, deviceID: String? = nil, clock: @escaping @Sendable () -> Date = { Date() }) throws {
         self.base = base
         self.deviceName = deviceName
@@ -62,7 +62,7 @@ public actor JournalStore {
         lamport = state.maxLamport
     }
 
-    /// «mac-» + 10 символов Crockford Base32.
+    /// "mac-" + 10 Crockford Base32 characters.
     public static func newDeviceID() -> String {
         let prefix: String
         #if os(macOS)
@@ -87,7 +87,7 @@ public actor JournalStore {
 
     struct SyncState: Codable { var pushedSeq: Int }
 
-    // MARK: Чтение
+    // MARK: Reading
 
     private struct Loaded { var own: [Event]; var others: [Event]; var read: JournalReadResult; var seq: Int; var state: HistoryState }
 
@@ -109,7 +109,7 @@ public actor JournalStore {
         rebuild()
     }
 
-    /// Перечитать журналы с диска (после синхронизации).
+    /// Re-read the journals from disk (after a sync).
     public func reload() {
         reloadSync()
     }
@@ -131,9 +131,9 @@ public actor JournalStore {
 
     public func removeObserver(_ id: UUID) { observers[id] = nil }
 
-    // MARK: Запись
+    // MARK: Writing
 
-    /// Создаёт событие своего устройства, пишет его в журнал с fsync и обновляет индекс.
+    /// Creates an event of this device, writes it to the journal with fsync and updates the index.
     @discardableResult
     public func append(_ type: String, session: String, payload: JSONValue = .object([:]), at date: Date? = nil) throws -> Event {
         try appendBatch([(type, session, payload)], at: date).first!
@@ -144,12 +144,12 @@ public actor JournalStore {
         try append(type, session: session, payload: try JSONValue.from(payload), at: date)
     }
 
-    /// Несколько событий одной записью (например, ответ помощника и его `@fix`).
+    /// Several events in one write (for example, an assistant reply and its `@fix`).
     @discardableResult
     public func appendBatch(_ items: [(type: String, session: String, payload: JSONValue)], at date: Date? = nil) throws -> [Event] {
         guard !readResult.newerSchema else { throw StoreError.readOnly }
         let now = date ?? clock()
-        // Время округляется до миллисекунд: в журнале оно хранится именно так (R-37).
+        // Time is rounded to milliseconds: that is exactly how the journal stores it (R-37).
         let ts = Date(timeIntervalSince1970: (now.timeIntervalSince1970 * 1000).rounded() / 1000)
         var out: [Event] = []
         for item in items {
@@ -170,9 +170,9 @@ public actor JournalStore {
         return out
     }
 
-    // MARK: Синхронизация (R-36, R-38)
+    // MARK: Sync (R-36, R-38)
 
-    /// Запись своего журнала в папку и чтение чужих. Ошибки папки не трогают локальную историю (S-20).
+    /// Writes this journal to the folder and reads the others. Folder errors never touch the local history (S-20).
     public func sync(with folder: SyncFolder) -> SyncStatus {
         let info = DeviceInfo(id: deviceID, name: deviceName, platform: Self.platform, appVersion: Self.appVersion)
         let seqBefore = seq
@@ -191,20 +191,20 @@ public actor JournalStore {
         }
     }
 
-    /// Папка синхронизации сменилась: ✓✓ считаются заново после следующей записи.
+    /// The sync folder changed: ✓✓ are recalculated after the next write.
     public func resetSyncWatermark() {
         pushedSeq = 0
         try? FileManager.default.removeItem(at: base.appendingPathComponent("sync-state.json"))
         rebuild()
     }
 
-    // MARK: Отладка и экспорт
+    // MARK: Debugging and export
 
     public func allEvents() -> [Event] { own + others }
 }
 
 extension JournalReadResult {
-    /// Только счётчики (без событий) — чтобы не дублировать события при объединении.
+    /// Counters only (no events) — so events are not duplicated when merging.
     static func counts(of r: JournalReadResult) -> JournalReadResult {
         var x = JournalReadResult()
         x.tornTail = r.tornTail

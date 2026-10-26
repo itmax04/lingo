@@ -1,8 +1,8 @@
 import LingoCore
 import SwiftUI
 
-/// Правая колонка «Подсказки» (R-27, DESIGN.md §5): фразы темы, исправления, «как сказать», словарь ★.
-/// У каждой фразы — ▶ (голос языка фразы, работает без сети), перевод, ★.
+/// Right column "Hints" (R-27, DESIGN.md §5): topic phrases, corrections, "how to say", vocabulary ★.
+/// Each phrase has ▶ (voice of the phrase's language, works offline), a translation and ★.
 struct HintsPanel: View {
     let phrases: [Phrase]
     let starred: Set<String>
@@ -16,7 +16,7 @@ struct HintsPanel: View {
     var sections: [(String, String, [Phrase])] {
         let topic = phrases.filter { $0.source == .topic || $0.source == .hint }
         let how = phrases.filter { $0.source == .howToSay }
-        return [("topic", "Фразы темы", topic), ("fix", "Исправления", uniq(corrections)), ("how", "Как сказать", how), ("dict", "Словарь ★", dictionary)]
+        return [("topic", String(localized: "Topic phrases"), topic), ("fix", String(localized: "Corrections"), uniq(corrections)), ("how", String(localized: "How to say"), how), ("dict", String(localized: "Vocabulary ★"), dictionary)]
     }
 
     func uniq(_ p: [Phrase]) -> [Phrase] {
@@ -33,14 +33,14 @@ struct HintsPanel: View {
                         .foregroundStyle(Theme.C.textPrimary)
                 }
                 .buttonStyle(LingoButtonStyle())
-                .accessibilityLabel("Свернуть подсказки")
-                Text("Подсказки")
+                .accessibilityLabel("Collapse hints")
+                Text("Hints")
                     .font(Theme.F.panelTitle)
                     .foregroundStyle(Theme.C.textPrimary)
             }
             .padding(.top, Theme.S.s20)
             .padding(.bottom, Theme.S.s8)
-            Text("Полезные фразы для этой темы")
+            Text("Useful phrases for this topic")
                 .font(Theme.F.section)
                 .foregroundStyle(Theme.C.textSecondary)
                 .padding(.bottom, Theme.S.s16)
@@ -69,7 +69,7 @@ struct HintsPanel: View {
                         }
                     }
                     if sections.allSatisfy({ $0.2.isEmpty }) {
-                        Text("Фразы появятся после первых ходов разговора.")
+                        Text("Phrases appear after the first turns of the conversation.")
                             .font(Theme.F.hintTranslation).foregroundStyle(Theme.C.textTertiary)
                     }
                 }
@@ -83,7 +83,7 @@ struct HintsPanel: View {
     }
 }
 
-/// Карточка подсказки: фраза, перевод, ▶, ★ (R-27).
+/// Hint card: phrase, translation, ▶, ★ (R-27).
 struct HintCard: View {
     let phrase: Phrase
     let starred: Bool
@@ -111,14 +111,14 @@ struct HintCard: View {
                         .foregroundStyle(Theme.C.textPrimary)
                 }
                 .buttonStyle(LingoButtonStyle())
-                .accessibilityLabel("Прослушать")
+                .accessibilityLabel("Play")
                 Button(action: onStar) {
                     Image(systemName: starred ? "star.fill" : "star")
                         .font(.system(size: 14))
                         .foregroundStyle(starred ? Theme.C.accentPrimary : Theme.C.textPrimary)
                 }
                 .buttonStyle(LingoButtonStyle())
-                .accessibilityLabel(starred ? "Убрать из словаря" : "Сохранить в словарь")
+                .accessibilityLabel(starred ? "Remove from vocabulary" : "Save to vocabulary")
             }
         }
         .padding(.horizontal, Theme.S.s16)

@@ -32,7 +32,7 @@ import Testing
         #expect(st.fixes[sid]?.first?.fix.corrected == "seit zwei Jahren")
         #expect(st.fixes[sid]?.first?.message == msgs[0].id)
         #expect(st.hints[sid]?.first?.text == "Ich wohne seit zwei Jahren hier.")
-        #expect(st.sessions[sid]?.title == "Вопросы: Wohnort")
+        #expect(st.sessions[sid]?.title == "Questions: Wohnort")
     }
 
     @Test func exhaustedSavesUserAndErrorMessage() async throws {
@@ -44,8 +44,8 @@ import Testing
         #expect((wait ?? 0) > 100)
         let msgs = await store.state.messages[sid]!
         #expect(msgs.count == 2 && msgs[0].text == "Hello")
-        #expect(msgs[1].kind == .error && msgs[1].text.hasPrefix("Модели недоступны:") && msgs[1].text.contains("Ближайшая попытка — через 2 мин"))
-        // Сообщение об ошибке в контекст модели не идёт (ContextPolicy).
+        #expect(msgs[1].kind == .error && msgs[1].text.hasPrefix("Models are unavailable:") && msgs[1].text.contains("Next attempt in 2 min"))
+        // The error message does not go into the model context (ContextPolicy).
         #expect(ContextPolicy().window(msgs).count == 1)
     }
 
@@ -56,7 +56,7 @@ import Testing
         let st = await store.state
         #expect(st.sessions[sid]?.summary == "@say en: Nice! And then?" || !(st.sessions[sid]?.summary.isEmpty ?? true))
         #expect(st.sessions[sid]?.summaryThrough != nil)
-        // «Ответить заново» на первую реплику — новый ответ с replyTo.
+        // "Reply again" to the first utterance — a new reply with replyTo.
         let firstUser = st.messages[sid]!.first { $0.role == .user }!.id
         var fin = false
         for await ev in e.respond(session: sid, replyTo: firstUser) { if case .finished = ev { fin = true } }
@@ -66,9 +66,9 @@ import Testing
 
     @Test func renameDeleteEndResume() async throws {
         let (e, store) = try engine { _, _ in .text(["@say de: Hallo!"]) }
-        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]), title: "В кафе")
-        try await e.rename(sid, to: "Кафе в Вене")
-        #expect(await store.state.sessions[sid]?.title == "Кафе в Вене")
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]), title: "At the café")
+        try await e.rename(sid, to: "A café in Vienna")
+        #expect(await store.state.sessions[sid]?.title == "A café in Vienna")
         try await store.append(EventType.sessionEnded, session: sid, payload: .object([:]))
         #expect(await store.state.sessions[sid]?.state == .ended)
         try await e.resume(sid)
@@ -84,7 +84,7 @@ import Testing
         let calls = CallLog()
         let p = MockProvider(id: .groq, behavior: { _, _ in
             calls.add("x")
-            if calls.all.count == 1 {  // счётчик только для поведения (MockProvider пишет свой журнал)
+            if calls.all.count == 1 {  // the counter is only for behaviour (MockProvider keeps its own log)
                 return .text(["@hint de: Ich wohne in Hamburg. | Я живу в Гамбурге.\n@hint de: Seit wann wohnen Sie hier? | С каких пор вы здесь живёте?\n",
                               "@hint de: Mir gefällt das Meer. | Мне нравится море.\n@hint de: Es ist ruhig hier. | Здесь тихо.\n",
                               "@hint de: Die Miete ist hoch. | Аренда высокая.\n@hint de: Ich mag den Hafen. | Мне нравится порт."])
@@ -106,7 +106,7 @@ import Testing
         #expect(await store.state.starred[phrase.id]?.text == "Ich wohne in Hamburg.")
         try await e.star(phrase, on: false)
         #expect(await store.state.starred.isEmpty)
-        // Повторный запрос фраз темы не дублирует их.
+        // Requesting topic phrases again does not duplicate them.
         await e.generateTopicPhrases(sid)
         #expect((await store.state.hints[sid] ?? []).filter { $0.source == .topic }.count == 6)
     }

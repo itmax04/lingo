@@ -1,13 +1,13 @@
 import Foundation
 
-/// Языки Lingo: изучаемые `en`, `de` и язык объяснений `ru` (spec, раздел 1).
+/// Lingo languages: target languages `en`, `de` and the explanation language `ru` (spec, section 1).
 public enum Lang: String, Codable, Sendable, CaseIterable, Hashable {
     case en, de, ru
 
-    /// Изучаемые языки (сегмент English/Deutsch, R-05).
+    /// Target languages (the English/Deutsch segment, R-05).
     public static let studied: [Lang] = [.en, .de]
 
-    /// Название в сегменте сайдбара (макет: «English», «Deutsch»).
+    /// Name in the sidebar segment (mockup: "English", "Deutsch"); each language is named in itself.
     public var nativeName: String {
         switch self {
         case .en: "English"
@@ -16,19 +16,19 @@ public enum Lang: String, Codable, Sendable, CaseIterable, Hashable {
         }
     }
 
-    /// «на английском» — для подзаголовка шапки (R-40).
-    public var russianPrepositional: String {
+    /// "in English" — for the header subtitle (R-40).
+    public var inLanguagePhrase: String {
         switch self {
-        case .en: "на английском"
-        case .de: "на немецком"
-        case .ru: "на русском"
+        case .en: String(localized: "in English")
+        case .de: String(localized: "in German")
+        case .ru: String(localized: "in Russian")
         }
     }
 
-    /// Короткая метка у пузыря (R-08).
+    /// Short label next to a bubble (R-08).
     public var tag: String { rawValue.uppercased() }
 
-    /// Локаль для распознавания и озвучивания.
+    /// Locale for recognition and speech.
     public var localeIdentifier: String {
         switch self {
         case .en: "en-US"

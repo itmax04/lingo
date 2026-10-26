@@ -1,19 +1,19 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/LLM/KeyVerifier.swift`, коммит cf0e764) с адаптацией:
-// провайдеры R-30, список моделей `GET /models` (R-30) — только чат-модели.
+// Ported from Interview Copilot (`Sources/CopilotCore/LLM/KeyVerifier.swift`, commit cf0e764) and adapted:
+// R-30 providers, the model list from `GET /models` (R-30) — chat models only.
 import Foundation
 
-/// Результат «Проверить» (R-30, R-44). Значение ключа в результат не попадает.
+/// Result of "Check" (R-30, R-44). The key value never gets into the result.
 public enum KeyCheckResult: Equatable, Sendable {
     case ok(models: [String])
-    /// 400/401/403 — «недействителен» (R-29).
+    /// 400/401/403 — "invalid" (R-29).
     case invalidKey(status: Int, message: String)
     case failed(message: String)
 
     public var summary: String {
         switch self {
-        case .ok(let models): "Ключ работает · моделей: \(models.count)"
-        case .invalidKey(let status, let message): "Ключ недействителен (HTTP \(status))" + (message.isEmpty ? "" : ": \(message)")
-        case .failed(let message): "Ошибка: \(message)"
+        case .ok(let models): String(localized: "Key works · models: \(models.count)")
+        case .invalidKey(let status, let message): String(localized: "Invalid key (HTTP \(status))") + (message.isEmpty ? "" : ": \(message)")
+        case .failed(let message): String(localized: "Error: \(message)")
         }
     }
 }
@@ -27,9 +27,9 @@ public struct KeyVerifier: Sendable {
 
     public func verify(_ provider: ProviderID, key: String, customBase: URL? = nil) async -> KeyCheckResult {
         let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else { return .failed(message: "нет ключа") }
+        guard !key.isEmpty else { return .failed(message: String(localized: "no key")) }
         guard let request = ProviderEndpoints.listModels(provider, key: key, customBase: customBase) else {
-            return .failed(message: "не задан адрес API (https://…/v1)")
+            return .failed(message: String(localized: "API address is not set (https://…/v1)"))
         }
         do {
             let (data, response) = try await transport.data(for: request)
@@ -39,19 +39,19 @@ public struct KeyVerifier: Sendable {
             case 400, 401, 403:
                 return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
             case 429:
-                return .failed(message: "лимит запросов (HTTP 429), повторите позже")
+                return .failed(message: String(localized: "rate limit (HTTP 429), try again later"))
             default:
                 let detail = Self.errorMessage(data, redacting: key)
                 return .failed(message: "HTTP \(response.statusCode)" + (detail.isEmpty ? "" : ": \(detail)"))
             }
         } catch let error as URLError {
-            return .failed(message: "сеть: \(error.code == .timedOut ? "таймаут" : error.localizedDescription)")
+            return .failed(message: String(localized: "network: \(error.code == .timedOut ? String(localized: "timeout") : error.localizedDescription)"))
         } catch {
             return .failed(message: error.localizedDescription)
         }
     }
 
-    /// `data[].id`; у Groq неактивные модели (`active: false`) пропускаются.
+    /// `data[].id`; inactive Groq models (`active: false`) are skipped.
     static func parseModelIDs(_ data: Data, json: Bool) -> [(id: String, meta: [String: Any])] {
         guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [] }
         let models = obj["data"] as? [[String: Any]] ?? []
@@ -62,7 +62,7 @@ public struct KeyVerifier: Sendable {
         }
     }
 
-    /// Только модели для диалога: без распознавания речи, синтеза, модерации и эмбеддингов.
+    /// Dialogue models only: no speech recognition, synthesis, moderation or embeddings.
     static func chatModels(_ p: ProviderID, _ list: [(id: String, meta: [String: Any])]) -> [String] {
         let excluded = ["whisper", "tts", "orpheus", "guard", "safeguard", "embed", "moderation", "distil", "playai", "ocr", "transcribe"]
         return list.filter { m in
@@ -74,7 +74,7 @@ public struct KeyVerifier: Sendable {
         }.map(\.id).sorted()
     }
 
-    /// Текст ошибки провайдера без значения ключа, не длиннее 160 символов.
+    /// Provider error text without the key value, at most 160 characters.
     static func errorMessage(_ data: Data, redacting key: String) -> String {
         var message = ""
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {

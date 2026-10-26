@@ -1,8 +1,8 @@
 import CryptoKit
 import Foundation
 
-/// Модели whisper (ADR-0001 п. 6): только официальный репозиторий Hugging Face по HTTPS и проверка SHA256 (CLAUDE.md).
-/// Суммы — LFS oid из `https://huggingface.co/api/models/ggerganov/whisper.cpp/tree/main`, проверено 2026-10-25 (handoff P-04).
+/// whisper models (ADR-0001 §6): only the official Hugging Face repository over HTTPS with a SHA256 check (CLAUDE.md).
+/// Checksums are the LFS oids from `https://huggingface.co/api/models/ggerganov/whisper.cpp/tree/main`, verified 2026-10-25 (handoff P-04).
 public struct WhisperModel: Sendable, Hashable, Identifiable {
     public var id: String { file }
     public var file: String
@@ -25,7 +25,7 @@ public struct WhisperModel: Sendable, Hashable, Identifiable {
 
 public struct ModelStore: Sendable {
     public let dir: URL
-    /// Папки, откуда модель можно взять APFS-клоном без расхода места (модели Interview Copilot на этом Mac, D-02).
+    /// Folders from which a model can be taken as an APFS clone without using space (Interview Copilot models on this Mac, D-02).
     public let cloneSources: [URL]
 
     public enum ModelError: Error, CustomStringConvertible {
@@ -33,8 +33,8 @@ public struct ModelStore: Sendable {
         case download(String)
         public var description: String {
             switch self {
-            case .checksum(let f): "Контрольная сумма не совпала: \(f)"
-            case .download(let m): "Загрузка модели: \(m)"
+            case .checksum(let f): String(localized: "Checksum mismatch: \(f)")
+            case .download(let m): String(localized: "Model download: \(m)")
             }
         }
     }
@@ -60,7 +60,7 @@ public struct ModelStore: Sendable {
         return hasher.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
-    /// Готовит модель: уже есть → проверка размера (сумма проверялась при установке); иначе клон или загрузка + SHA256.
+    /// Prepares the model: already present → size check (the checksum was verified on install); otherwise clone or download + SHA256.
     @discardableResult
     public func ensure(_ m: WhisperModel, progress: (@Sendable (Double) -> Void)? = nil) async throws -> URL {
         let dest = path(m)
@@ -72,7 +72,7 @@ public struct ModelStore: Sendable {
         for src in cloneSources {
             let s = src.appendingPathComponent(m.file)
             guard FileManager.default.fileExists(atPath: s.path) else { continue }
-            // На APFS copyItem делает клон (clonefile): данные не копируются, место не расходуется.
+            // On APFS copyItem makes a clone (clonefile): no data is copied and no space is used.
             if (try? FileManager.default.copyItem(at: s, to: tmp)) != nil { got = true; break }
         }
         if !got {
@@ -94,7 +94,7 @@ public struct ModelStore: Sendable {
         if FileManager.default.fileExists(atPath: path(m).path) { try FileManager.default.removeItem(at: path(m)) }
     }
 
-    /// Стандартные пути на Mac.
+    /// Standard paths on the Mac.
     public static var macDefault: ModelStore {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return ModelStore(dir: support.appendingPathComponent("Lingo/models", isDirectory: true),

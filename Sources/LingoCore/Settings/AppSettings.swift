@@ -1,14 +1,14 @@
 import Foundation
 
-/// Настройки приложения (R-44). Секретов здесь нет: ключи — только в Keychain (R-48).
-/// Декодирование терпимо к отсутствующим полям: старые настройки читаются новой версией приложения.
+/// App settings (R-44). No secrets here: keys live only in the Keychain (R-48).
+/// Decoding tolerates missing fields: old settings are read by a newer app version.
 public struct AppSettings: Codable, Sendable, Hashable {
     public var llm = LLMSettings()
     public var context = ContextPolicy()
-    /// Прошлый выбор режимов исправления — подставляется в новую сессию (A-3).
+    /// The previous choice of correction modes — prefilled in a new session (A-3).
     public var lastCorrections: Set<CorrectionMode> = []
     public var lastLang: Lang = .en
-    /// Папка синхронизации — security-scoped bookmark (R-36).
+    /// Sync folder — a security-scoped bookmark (R-36).
     public var syncBookmark: Data?
     public var onboardingDone = false
     public var voice = VoiceSettings()
@@ -29,7 +29,7 @@ public struct AppSettings: Codable, Sendable, Hashable {
     }
 }
 
-/// Хранение настроек в UserDefaults (есть и на iOS).
+/// Settings stored in UserDefaults (available on iOS too).
 public struct SettingsStore: @unchecked Sendable {
     public let defaults: UserDefaults
     public static let key = "lingo.settings.v1"

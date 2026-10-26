@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import LingoCore
 
-/// Синхронизация и сеть в приложении (R-36…R-38, S-17, S-20).
+/// Sync and network in the app (R-36…R-38, S-17, S-20).
 @MainActor
 extension AppServices {
     func startSyncAndNetwork() {
@@ -28,15 +28,15 @@ extension AppServices {
         }
     }
 
-    /// Выбор папки синхронизации (R-36): системный выбор файлов, доступ — security-scoped bookmark.
+    /// Choosing the sync folder (R-36): the system file picker, access through a security-scoped bookmark.
     func chooseSyncFolder() {
         let p = NSOpenPanel()
         p.canChooseDirectories = true
         p.canChooseFiles = false
         p.canCreateDirectories = true
         p.allowsMultipleSelection = false
-        p.prompt = "Выбрать"
-        p.message = "Выберите папку «Lingo» в iCloud Drive. В ней каждое устройство пишет свой журнал."
+        p.prompt = String(localized: "Choose")
+        p.message = String(localized: "Choose the “Lingo” folder in iCloud Drive. Each device writes its own journal there.")
         let icloud = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
         let lingo = icloud.appendingPathComponent("Lingo", isDirectory: true)
         p.directoryURL = FileManager.default.fileExists(atPath: lingo.path) ? lingo : icloud
@@ -48,7 +48,7 @@ extension AppServices {
             Task { await scheduler?.setFolder(f); await scheduler?.trigger(.folderChanged) }
             model.syncFolderPath = url.path
         } catch {
-            model.banner = "Папка синхронизации: \(error.localizedDescription)"
+            model.banner = String(localized: "Sync folder: \(error.localizedDescription)")
         }
     }
 
@@ -60,7 +60,7 @@ extension AppServices {
         Task { await scheduler?.setFolder(nil) }
     }
 
-    /// Экспорт истории (R-44 «Данные»): ZIP журналов этого устройства и кэша других устройств — `ditto -c -k`.
+    /// History export (R-44 "Data"): a ZIP of this device's journals and the cache of other devices — `ditto -c -k`.
     func exportHistory() {
         let p = NSSavePanel()
         p.nameFieldStringValue = "Lingo-history-\(MetricsDay.today()).zip"
@@ -68,17 +68,17 @@ extension AppServices {
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
         task.arguments = ["-c", "-k", "--sequesterRsrc", "--keepParent", store.base.appendingPathComponent("devices").path, dest.path]
-        do { try task.run(); task.waitUntilExit() } catch { model.banner = "Экспорт: \(error.localizedDescription)" }
+        do { try task.run(); task.waitUntilExit() } catch { model.banner = String(localized: "Export: \(error.localizedDescription)") }
         if task.terminationStatus == 0 { NSWorkspace.shared.activateFileViewerSelecting([dest]) }
     }
 
-    /// Удаление локальной истории (R-44): только журналы на этом Mac; копии на других устройствах и в папке синхронизации остаются.
+    /// Deleting the local history (R-44): only the journals on this Mac; copies on other devices and in the sync folder remain.
     func deleteLocalHistory() {
         let a = NSAlert()
-        a.messageText = "Удалить локальную историю?"
-        a.informativeText = "Будут удалены журналы на этом Mac. Копии на других устройствах и в папке синхронизации останутся; при следующей синхронизации история вернётся из папки. Ключи и настройки не удаляются."
-        a.addButton(withTitle: "Удалить")
-        a.addButton(withTitle: "Отмена")
+        a.messageText = String(localized: "Delete the local history?")
+        a.informativeText = String(localized: "The journals on this Mac will be deleted. Copies on other devices and in the sync folder remain; the history comes back from the folder at the next sync. Keys and settings are not deleted.")
+        a.addButton(withTitle: String(localized: "Delete"))
+        a.addButton(withTitle: String(localized: "Cancel"))
         a.alertStyle = .warning
         guard a.runModal() == .alertFirstButtonReturn else { return }
         for sub in ["devices", "cache", "sync-state.json"] { try? FileManager.default.removeItem(at: store.base.appendingPathComponent(sub)) }

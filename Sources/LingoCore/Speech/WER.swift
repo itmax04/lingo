@@ -1,6 +1,6 @@
 import Foundation
 
-/// Word error rate для evals распознавания (AC-16): нормализация регистра и пунктуации, Левенштейн по словам.
+/// Word error rate for recognition evals (AC-16): case and punctuation normalization, word-level Levenshtein.
 public enum WER {
     public static func words(_ s: String) -> [String] {
         var t = s.lowercased().replacingOccurrences(of: "ё", with: "е")

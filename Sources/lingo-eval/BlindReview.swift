@@ -2,8 +2,8 @@ import Foundation
 import LingoCore
 import LingoEvalKit
 
-/// Лист слепой оценки (evals/README.md, `blind`): N случайных ответов цепочки без меток модели и провайдера.
-/// Ключ (какой кейс, модель) — evals/out/blind-key.json (в .gitignore).
+/// Blind review sheet (evals/README.md, `blind`): N random chain replies without model and provider labels.
+/// The key (which case, which model) — evals/out/blind-key.json (in .gitignore).
 enum BlindReview {
     struct KeyItem: Codable { var n: Int; var caseID: String; var model: String }
 
@@ -16,12 +16,12 @@ enum BlindReview {
         var rng = SeededRandom(seed: seed)
         let picked = Array(rows.shuffled(using: &rng).prefix(n))
         var md = """
-        # Слепая оценка ответов (H-4)
+        # Blind review of replies (H-4)
 
-        \(picked.count) случайных ответов цепочки на синтетические кейсы eval `dialog`, без меток модели и провайдера.
-        Для каждого ответа отметьте в чате номер и «приемлемо» / «неприемлемо» (и при желании — почему).
-        «Приемлемо» — так мог бы ответить хороший собеседник-преподаватель при этих настройках сессии.
-        Порог: «приемлемо» ≥ 80% (evals/README.md). Строки @fix, @hint, @heard не озвучиваются — показаны для полноты.
+        \(picked.count) random chain replies to synthetic cases of the `dialog` eval, without model and provider labels.
+        For each reply, write its number and "acceptable" / "not acceptable" in the chat (and, if you like, why).
+        "Acceptable" — a good conversation partner and tutor could have answered like this with these session settings.
+        Threshold: "acceptable" ≥ 80% (evals/README.md). @fix, @hint and @heard lines are not spoken — they are shown for completeness.
 
         """
         var key: [KeyItem] = []
@@ -31,11 +31,11 @@ enum BlindReview {
             let last = c.history?.last(where: { $0.role == .assistant })?.text.replacingOccurrences(of: "\n", with: " ") ?? "—"
             md += """
 
-            ## \(i + 1). \(s.lang.nativeName) · \(s.mode.title) · уровень \(s.level ?? "не указан") · исправления: \(s.corrections.map(\.title).joined(separator: ", "))
-            \(s.custom_prompt.map { "Свой промпт: «\($0)»\n" } ?? "")Помощник перед этим: «\(last)»
-            Пользователь: «\(c.user)»
+            ## \(i + 1). \(s.lang.nativeName) · \(s.mode.title) · level \(s.level ?? "not set") · corrections: \(s.corrections.map(\.title).joined(separator: ", "))
+            \(s.custom_prompt.map { "Custom prompt: “\($0)”\n" } ?? "")Assistant before this: “\(last)”
+            User: “\(c.user)”
 
-            Ответ:
+            Reply:
             ```
             \(r.response.trimmingCharacters(in: .whitespacesAndNewlines))
             ```
@@ -45,7 +45,7 @@ enum BlindReview {
         }
         try md.write(toFile: "evals/blind-review.md", atomically: true, encoding: .utf8)
         _ = try EvalIO.writeOut("blind-key.json", key)
-        print("blind: evals/blind-review.md (\(key.count) ответов), ключ evals/out/blind-key.json")
+        print("blind: evals/blind-review.md (\(key.count) replies), key evals/out/blind-key.json")
         return 0
     }
 }

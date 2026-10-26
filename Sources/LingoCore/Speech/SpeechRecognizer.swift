@@ -1,10 +1,10 @@
 import Foundation
 
-/// Результат распознавания одной реплики (R-08).
+/// Recognition result of one utterance (R-08).
 public struct Transcription: Sendable, Equatable {
     public var text: String
     public var lang: Lang
-    /// Вероятности (whisper) или уверенность (Apple) по языкам-кандидатам.
+    /// Probabilities (whisper) or confidence (Apple) per candidate language.
     public var scores: [Lang: Float]
     public var audioSeconds: Double
     public var elapsedMs: Double
@@ -20,11 +20,11 @@ public struct Transcription: Sendable, Equatable {
     }
 }
 
-/// Движок распознавания (ADR-0001 п. 6). Язык реплики выбирается среди кандидатов {изучаемый, ru} (R-08);
-/// `forced` — кнопка «Говорю по-русски» (R-09). Аудио — 16 кГц моно в памяти, на диск не пишется.
+/// Recognition engine (ADR-0001 §6). The utterance language is chosen among the candidates {target, ru} (R-08);
+/// `forced` — the "I'm speaking Russian" button (R-09). Audio is 16 kHz mono in memory and is never written to disk.
 public protocol SpeechRecognizer: Sendable {
     var id: String { get }
-    /// `context` — подсказка из разговора (R-51): последняя реплика помощника, тема, фразы подсказок.
+    /// `context` — a hint from the conversation (R-51): the assistant's last line, the topic, hint phrases.
     func transcribe(_ samples: [Float], candidates: [Lang], forced: Lang?, context: String?) async throws -> Transcription
 }
 
@@ -34,8 +34,8 @@ public extension SpeechRecognizer {
     }
 }
 
-/// Подсказка распознаванию из контекста разговора (R-51). whisper учитывает до ~224 токенов затравки,
-/// поэтому берутся последние предложения реплики помощника, тема и несколько фраз подсказок.
+/// Recognition hint from the conversation context (R-51). whisper uses up to ~224 prompt tokens,
+/// so it takes the last sentences of the assistant's line, the topic and a few hint phrases.
 public enum RecognitionContext {
     public static func make(lastAssistant: String?, topic: String, phrases: [String], maxChars: Int = 360) -> String? {
         var parts: [String] = []
@@ -51,7 +51,7 @@ public enum RecognitionContext {
     }
 }
 
-/// Буфер реплики в памяти: не больше 60 с (R-08). Старые сэмплы отбрасываются.
+/// In-memory utterance buffer: at most 60 s (R-08). Old samples are dropped.
 public struct UtteranceBuffer: Sendable {
     public static let maxSeconds = 60.0
     public private(set) var samples: [Float] = []

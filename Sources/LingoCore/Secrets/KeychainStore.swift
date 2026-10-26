@@ -1,9 +1,9 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/Secrets/KeychainStore.swift`, коммит cf0e764) с адаптацией:
-// service `com.itmax04.lingo`, account — id ключа (неограниченное число ключей у провайдера, R-29, Q13).
+// Ported from Interview Copilot (`Sources/CopilotCore/Secrets/KeychainStore.swift`, commit cf0e764) and adapted:
+// service `com.itmax04.lingo`, account — the key id (any number of keys per provider, R-29, Q13).
 import Foundation
 import Security
 
-/// Хранилище ключей API (R-48). Значение ключа никогда не логируется и не возвращается в интерфейс после сохранения.
+/// API key store (R-48). A key value is never logged and never returned to the UI after it is saved.
 public protocol SecretStore: Sendable {
     func set(_ value: String, for id: String, label: String) throws
     func get(_ id: String) throws -> String?
@@ -18,7 +18,7 @@ public enum SecretStoreError: Error, Equatable, CustomStringConvertible {
     public var description: String {
         switch self {
         case .emptyValue:
-            return "Пустой ключ"
+            return String(localized: "Empty key")
         case .keychain(let status):
             let message = SecCopyErrorMessageString(status, nil) as String? ?? "OSStatus \(status)"
             return "Keychain: \(message)"
@@ -26,8 +26,8 @@ public enum SecretStoreError: Error, Equatable, CustomStringConvertible {
     }
 }
 
-/// Связка ключей: `kSecClassGenericPassword`, service `com.itmax04.lingo`, account = id ключа.
-/// Работает и на iOS (общее ядро).
+/// Keychain: `kSecClassGenericPassword`, service `com.itmax04.lingo`, account = key id.
+/// Works on iOS too (shared core).
 public struct KeychainStore: SecretStore {
     public static let defaultService = "com.itmax04.lingo"
     public let service: String
@@ -75,7 +75,7 @@ public struct KeychainStore: SecretStore {
         guard status == errSecSuccess || status == errSecItemNotFound else { throw SecretStoreError.keychain(status) }
     }
 
-    /// Есть ли ключ — без чтения значения (не вызывает запрос доступа).
+    /// Whether a key exists — without reading the value (does not trigger an access prompt).
     public func contains(_ id: String) -> Bool {
         var query = baseQuery(id)
         query[kSecReturnAttributes as String] = true
@@ -84,7 +84,7 @@ public struct KeychainStore: SecretStore {
     }
 }
 
-/// Хранилище в памяти для тестов, снимков интерфейса и evals с синтетическими ключами.
+/// In-memory store for tests, UI snapshots and evals with synthetic keys.
 public final class InMemorySecretStore: SecretStore, @unchecked Sendable {
     private var values: [String: String] = [:]
     private let lock = NSLock()

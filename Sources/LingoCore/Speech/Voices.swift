@@ -1,7 +1,7 @@
 @preconcurrency import AVFoundation
 import Foundation
 
-/// Голоса озвучивания (R-13): по умолчанию лучший установленный голос языка — premium, затем enhanced, затем default.
+/// Speech voices (R-13): by default the best installed voice of the language — premium, then enhanced, then default.
 public enum Voices {
     public struct Info: Sendable, Hashable, Identifiable {
         public var id: String
@@ -19,7 +19,7 @@ public enum Voices {
         }
     }
 
-    /// Предпочтительные локали языка (первая — лучшая).
+    /// Preferred locales of the language (the first is the best).
     static func locales(_ l: Lang) -> [String] {
         switch l {
         case .en: ["en-US", "en-GB", "en-AU", "en-IE", "en-CA"]
@@ -39,18 +39,18 @@ public enum Voices {
             .map { Info(id: $0.identifier, name: $0.name, language: $0.language, quality: qualityRank($0)) }
     }
 
-    /// Голос по идентификатору из настроек или лучший доступный.
+    /// The voice by its identifier from settings, or the best available.
     public static func voice(for l: Lang, preferred id: String?) -> AVSpeechSynthesisVoice? {
         if let id, let v = AVSpeechSynthesisVoice(identifier: id) { return v }
         if let best = available(l).first { return AVSpeechSynthesisVoice(identifier: best.id) }
         return AVSpeechSynthesisVoice(language: locales(l)[0])
     }
 
-    /// Только голос плохого качества — предложить скачать улучшенный (R-13).
+    /// Only a low-quality voice is installed — offer to download an enhanced one (R-13).
     public static func needsBetterVoice(_ l: Lang) -> Bool { (available(l).first?.quality ?? 0) < 2 }
 }
 
-/// Деление фразы на части для «Медленнее» (R-15): по знакам препинания и смысловым группам, без слишком длинных частей.
+/// Splits a phrase into parts for "Slower" (R-15): by punctuation and sense groups, without parts that are too long.
 public enum SlowChunks {
     public static func split(_ text: String, maxWords: Int = 5) -> [String] {
         var parts: [String] = []
@@ -65,7 +65,7 @@ public enum SlowChunks {
         }
         let tail = cur.trimmingCharacters(in: .whitespaces)
         if !tail.isEmpty { parts.append(tail) }
-        // Длинные части делятся по смысловым связкам (союзы, предлоги), иначе — по maxWords слов.
+        // Long parts are split at connecting words (conjunctions, prepositions), otherwise every maxWords words.
         let joiners: Set<String> = ["und", "aber", "oder", "weil", "dass", "wenn", "als", "mit", "in", "am", "im", "zu", "nach",
                                     "and", "but", "or", "because", "that", "when", "with", "in", "at", "to", "for",
                                     "и", "но", "или", "потому", "что", "когда", "в", "на", "с"]
@@ -88,15 +88,15 @@ public enum SlowChunks {
     }
 }
 
-/// Темп озвучивания (R-15): базовый из настроек; «Медленнее» ×0,75, повторно ×0,6 (минимум).
+/// Speech rate (R-15): the base rate from settings; "Slower" ×0.75, again ×0.6 (minimum).
 public struct SpeechPace: Sendable, Hashable, Codable {
-    /// Базовый темп, доля от стандартного (`AVSpeechUtteranceDefaultSpeechRate`).
+    /// Base rate, fraction of the standard (`AVSpeechUtteranceDefaultSpeechRate`).
     public var base: Double = 1.0
     public static let slowSteps: [Double] = [1.0, 0.75, 0.6]
 
     public init(base: Double = 1.0) { self.base = base }
 
-    /// Значение `AVSpeechUtterance.rate` для множителя.
+    /// `AVSpeechUtterance.rate` value for a multiplier.
     public func rate(multiplier: Double) -> Float {
         let r = Double(AVSpeechUtteranceDefaultSpeechRate) * base * multiplier
         return Float(min(Double(AVSpeechUtteranceMaximumSpeechRate), max(Double(AVSpeechUtteranceMinimumSpeechRate), r)))

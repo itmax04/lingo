@@ -1,6 +1,6 @@
 import Foundation
 
-/// Выход озвучки для голосового цикла (реализация — `VoiceIO`; в тестах — фейк).
+/// Speech output for the voice loop (implemented by `VoiceIO`; a fake in tests).
 @MainActor
 public protocol SpeechSink: AnyObject {
     func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double, tag: Int)
@@ -11,8 +11,8 @@ public protocol SpeechSink: AnyObject {
 
 extension VoiceIO: SpeechSink {}
 
-/// Голосовой цикл (R-06…R-15, S-02…S-07): кнопка/пробел и непрерывный режим, конец реплики по паузе T, склейка по G,
-/// перебивание, локальные «повтори» и «медленнее», ход через `DialogEngine`, озвучка по предложениям, метрики хода.
+/// Voice loop (R-06…R-15, S-02…S-07): push-to-talk/space and continuous mode, end of utterance by pause T, merging within G,
+/// barge-in, local "repeat" and "slower", turns through `DialogEngine`, sentence-by-sentence speech, turn metrics.
 @MainActor
 public final class TurnController {
     public enum Mode: Sendable { case pushToTalk, continuous }
@@ -30,7 +30,7 @@ public final class TurnController {
         }
     }
 
-    // Зависимости
+    // Dependencies
     public let engine: DialogEngine
     public let recognizer: SpeechRecognizer
     public let sink: SpeechSink
@@ -38,28 +38,28 @@ public final class TurnController {
     public var voice: VoiceSettings
     public var context: () -> Context?
 
-    // Наружу
+    // Outputs
     public private(set) var state: VoiceState = .idle { didSet { if state != oldValue { onState?(state) } } }
     public var onState: ((VoiceState) -> Void)?
     public var onLevel: ((Float) -> Void)?
     public var onTurn: ((TurnEvent) -> Void)?
     public var onNotice: ((String) -> Void)?
     public private(set) var mode: Mode = .pushToTalk
-    /// «Говорю по-русски» (R-09): одна следующая реплика распознаётся как русская.
+    /// "I'm speaking Russian" (R-09): the next single utterance is recognized as Russian.
     public var forceRussianOnce = false
-    /// «Медленный темп» в шапке (R-15): все ответы ×0,75.
+    /// "Slow pace" in the header (R-15): all replies at ×0.75.
     public var slowPace = false
 
-    // Звук
+    // Audio
     private var vad: EnergyVAD
     private var segmenter: TurnSegmenter
     private var buffer: [Float] = []
-    private var bufferStart = 0          // абсолютный номер первого сэмпла в буфере
-    private var clock = 0                // абсолютный номер следующего сэмпла
-    private var recording = false        // кнопка/пробел
+    private var bufferStart = 0          // absolute index of the first sample in the buffer
+    private var clock = 0                // absolute index of the next sample
+    private var recording = false        // button/space
     private var paused = false
 
-    // Ход
+    // Turn
     private var turnTask: Task<Void, Never>?
     private var turnSeq = 0
     private var currentTurnID = ""
@@ -72,7 +72,7 @@ public final class TurnController {
     private var lastUserID: String?
     private var lastUserText = ""
     private var answerStarted = false
-    /// Сообщение помощника, которое сейчас озвучивается (после записи в журнал).
+    /// The assistant message currently being spoken (after it was written to the journal).
     private var speakingMessageID: String?
     private var speakingSessionID: String?
     private var recordStartedAt: Double = 0
@@ -93,7 +93,7 @@ public final class TurnController {
 
     var seconds: Double { Double(clock) / 16_000 }
 
-    // MARK: Управление (R-06, R-07, R-12)
+    // MARK: Control (R-06, R-07, R-12)
 
     public func startContinuous() {
         mode = .continuous
@@ -110,7 +110,7 @@ public final class TurnController {
         state = .idle
     }
 
-    /// «Пауза»: прослушивание и озвучка приостанавливаются (R-07).
+    /// "Pause": listening and speech are suspended (R-07).
     public func togglePause() {
         if paused {
             paused = false
@@ -122,7 +122,7 @@ public final class TurnController {
         }
     }
 
-    /// Пробел/кнопка нажаты (R-06): начать запись; во время озвучки — остановить её (R-12).
+    /// Space/button pressed (R-06): start recording; while speaking — stop the speech (R-12).
     public func pushDown() {
         if sink.isSpeaking { interrupt(reason: "key") }
         recording = true
@@ -130,12 +130,12 @@ public final class TurnController {
         recordStartedAt = seconds
         recordPeakDB = -120
         silentWarned = false
-        // Если речь уже идёт (начали говорить чуть раньше нажатия) — реплика начинается сейчас.
+        // If speech is already under way (the user started a little before pressing), the utterance starts now.
         if vad.isSpeech { _ = segmenter.speechStarted(at: max(0, seconds - 0.3)) }
         state = .recording
     }
 
-    /// Пробел/кнопка отпущены: реплика закончена.
+    /// Space/button released: the utterance is finished.
     public func pushUp() {
         guard recording else { return }
         recording = false
@@ -146,7 +146,7 @@ public final class TurnController {
         }
     }
 
-    /// Esc (R-06, R-12): отменить реплику и остановить озвучку.
+    /// Esc (R-06, R-12): cancel the utterance and stop speech.
     public func cancel() {
         recording = false
         segmenter = TurnSegmenter(config: voice.turn)
@@ -154,7 +154,7 @@ public final class TurnController {
         state = mode == .continuous ? .listening : .idle
     }
 
-    // MARK: Звук
+    // MARK: Audio
 
     public func feed(_ s: [Float]) {
         let level = min(1, max(0, (EnergyVAD.rmsDB(s[...]) + 60) / 50))
@@ -163,9 +163,9 @@ public final class TurnController {
         clock += s.count
         let cap = Int(UtteranceBuffer.maxSeconds * 16_000)
         if buffer.count > cap { let drop = buffer.count - cap; buffer.removeFirst(drop); bufferStart += drop }
-        // VAD слушает всегда (уровень шума и состояние «речь» не застревают между записями по кнопке);
-        // события идут в сегментатор, только когда запись активна.
-        // Во время озвучки порог выше: своё эхо не считается перебиванием (R-12).
+        // The VAD always listens (the noise floor and the "speech" state do not get stuck between push-to-talk recordings);
+        // events go to the segmenter only while recording is active.
+        // While speaking the threshold is higher: our own echo does not count as barge-in (R-12).
         vad.extraMarginDB = sink.isSpeaking ? voice.bargeInMarginDB : 0
         let base = clock - s.count
         let events = vad.processEvents(s)
@@ -174,23 +174,23 @@ public final class TurnController {
             let t = Double(base + e.sampleOffset) / 16_000
             if e.isSpeech {
                 let ev = segmenter.speechStarted(at: max(0, t - Double(VoiceDefaults.vad.attackFrames * VoiceDefaults.vad.frameMs) / 1000))
-                // Перебивание (R-12): речь пользователя во время озвучки — остановить не позже 0,5 с.
+                // Barge-in (R-12): user speech during playback — stop within 0.5 s.
                 if sink.isSpeaking { interrupt(reason: "barge-in") }
                 handle(ev)
             } else {
                 handle(segmenter.speechEnded(at: t - Double(VoiceDefaults.vad.hangoverMs) / 1000))
             }
         }
-        // По кнопке реплика тоже заканчивается сама после паузы T (как в непрерывном режиме); второе нажатие — сразу.
+        // With the button the utterance also ends by itself after pause T (as in continuous mode); a second press ends it at once.
         let ev = segmenter.advance(to: seconds)
         if recording, ev.contains(where: { if case .utterance = $0 { return true }; return false }) { recording = false }
         handle(ev)
-        // Микрофон молчит во время записи — подсказка (не тот вход, звук выключен, нет доступа).
+        // The microphone is silent while recording — show a hint (wrong input, muted, no access).
         if recording {
             recordPeakDB = max(recordPeakDB, EnergyVAD.rmsDB(s[...]))
             if seconds - recordStartedAt > 4, recordPeakDB < -65, !silentWarned {
                 silentWarned = true
-                onNotice?("Микрофон не даёт звука: проверьте вход в «Системные настройки → Звук → Вход»")
+                onNotice?(String(localized: "The microphone gives no sound: check the input in System Settings → Sound → Input"))
             }
         }
     }
@@ -199,7 +199,7 @@ public final class TurnController {
         for e in events {
             switch e {
             case .speechBegan:
-                if state == .listening || state == .thinking { /* склейка решается в конце реплики */ }
+                if state == .listening || state == .thinking { /* merging is decided at the end of the utterance */ }
             case .utterance(let span):
                 process(span: span, merge: false)
             case .merged(_, let span):
@@ -216,14 +216,14 @@ public final class TurnController {
         return Array(buffer[(a - bufferStart)..<(b - bufferStart)])
     }
 
-    // MARK: Реплика → ход
+    // MARK: Utterance → turn
 
     private func process(span: TurnSegmenter.Span, merge: Bool) {
-        guard let ctx = context() else { onNotice?("Нет выбранной сессии"); return }
+        guard let ctx = context() else { onNotice?(String(localized: "No session selected")); return }
         let study = ctx.session.settings.lang
-        // Склейка (R-11): помощник ещё не начал говорить → отменить незавершённый запрос и отправить объединённый текст.
+        // Merging (R-11): the assistant has not started speaking yet → cancel the pending request and send the combined text.
         let doMerge = merge && !answerStarted && lastUserID != nil
-        if doMerge { turnTask?.cancel() } else if turnTask != nil { /* прошлый ход дописывается сам */ }
+        if doMerge { turnTask?.cancel() } else if turnTask != nil { /* the previous turn finishes on its own */ }
         let audio = samples(span)
         let forced: Lang? = forceRussianOnce ? .ru : nil
         forceRussianOnce = false
@@ -243,7 +243,7 @@ public final class TurnController {
             do {
                 tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
             } catch {
-                self.onNotice?("Распознавание: \(error)")
+                self.onNotice?(String(localized: "Speech recognition: \(String(describing: error))"))
                 self.state = self.mode == .continuous ? .listening : .idle
                 return
             }
@@ -315,7 +315,7 @@ public final class TurnController {
                 metrics?.note(turnID, "message", mid)
             case .failed(let reason, _):
                 metrics?.note(turnID, "failed", String(reason.prefix(60)))
-                onNotice?("Модели недоступны")
+                onNotice?(String(localized: "Models are unavailable"))
             default:
                 break
             }
@@ -332,13 +332,13 @@ public final class TurnController {
         while sink.isSpeaking { try? await Task.sleep(for: .milliseconds(50)) }
     }
 
-    /// Первый звук части ответа (из `VoiceIO.onPlaybackStarted`) — метрика `first_audio`.
+    /// First audio of a reply part (from `VoiceIO.onPlaybackStarted`) — the `first_audio` metric.
     public func playbackStarted(tag: Int, uptimeNs: UInt64) {
         guard spokenParts.first?.tag == tag, let t = speakingTurn else { return }
         metrics?.mark(t, "first_audio", at: Double(uptimeNs) / 1e9)
     }
 
-    /// Остановить озвучку; запомнить, где прервано (R-12).
+    /// Stop speech; remember where it was interrupted (R-12).
     private func interrupt(reason: String) {
         guard let stop = sink.stopSpeaking() else { return }
         var offset = 0
@@ -348,7 +348,7 @@ public final class TurnController {
         }
         interruptedAt = offset
         if let t = speakingTurn { metrics?.note(t, "interrupt", reason) }
-        // Ответ уже в журнале — отметка «прервано» сразу (R-12); иначе — при записи ответа.
+        // The reply is already in the journal — mark it "interrupted" now (R-12); otherwise — when the reply is written.
         if let mid = speakingMessageID, let sid = speakingSessionID {
             let e = engine
             Task { try? await e.markInterrupted(mid, session: sid, at: offset) }
@@ -357,7 +357,7 @@ public final class TurnController {
         Log.turns.notice("interrupt reason=\(reason, privacy: .public) at=\(offset, privacy: .public)")
     }
 
-    // MARK: «Повтори», «Медленнее» (R-14, R-15)
+    // MARK: "Repeat", "Slower" (R-14, R-15)
 
     private func replayLast(ctx: Context, slower: Bool, turnID: String) {
         guard let last = ctx.lastAssistant else { state = mode == .continuous ? .listening : .idle; return }
@@ -390,7 +390,7 @@ public final class TurnController {
         }
     }
 
-    /// Повтор озвучки по клику на пузырь помощника (R-41).
+    /// Replay speech when the assistant's bubble is clicked (R-41).
     public func replay(_ m: ChatMessage) {
         interrupt(reason: "replay")
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)

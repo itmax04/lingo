@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-/// Память процесса (R-47, AC-15): `phys_footprint` — то же, что показывает `footprint` и монитор памяти.
+/// Process memory (R-47, AC-15): `phys_footprint` — the same value `footprint` and the memory monitor show.
 public enum Memory {
     public static func physFootprint() -> UInt64 {
         var info = task_vm_info_data_t()

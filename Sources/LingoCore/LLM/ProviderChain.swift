@@ -1,14 +1,14 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/LLM/ProviderChain.swift`, коммит cf0e764) с адаптацией по R-29:
-// шаг — тройка «провайдер + модель + ключ», неограниченное число ключей; неверный ключ выключает этот ключ, а не провайдера;
-// пауза отказавшего шага — по `retry-after` или 300 с, по паре «ключ + модель»; параллельный запуск (hedge) не переносился (D-10).
+// Ported from Interview Copilot (`Sources/CopilotCore/LLM/ProviderChain.swift`, commit cf0e764) and adapted per R-29:
+// a step is a "provider + model + key" triple with any number of keys; an invalid key disables that key, not the provider;
+// a failed step pauses for `retry-after` or 300 s, per "key + model" pair; parallel hedging was not ported (D-10).
 import Foundation
 
-/// Шаг цепочки без значения ключа — для меток, событий и логов.
+/// A chain step without the key value — for labels, events and logs.
 public struct StepInfo: Sendable, Hashable {
     public var provider: ProviderID
     public var model: String
     public var keyID: String
-    /// Номер ключа у провайдера (1, 2, …) — для меток и логов вместо значения.
+    /// Index of the key within its provider (1, 2, …) — used in labels and logs instead of the value.
     public var keyIndex: Int
 
     public init(provider: ProviderID, model: String, keyID: String, keyIndex: Int = 1) {
@@ -18,7 +18,7 @@ public struct StepInfo: Sendable, Hashable {
         self.keyIndex = keyIndex
     }
 
-    /// Метка «провайдер · модель» (R-29) — без префикса семейства («openai/»).
+    /// "provider · model" label (R-29) — without the family prefix ("openai/").
     public var label: String { "\(provider.displayName) · \(Self.shortModel(model))" }
 
     public static func shortModel(_ m: String) -> String {
@@ -27,26 +27,26 @@ public struct StepInfo: Sendable, Hashable {
     }
 }
 
-/// События цепочки.
+/// Chain events.
 public enum ChainEvent: Sendable, Equatable {
     case attempt(StepInfo)
     case firstToken(StepInfo, afterMs: Double)
     case text(String)
-    /// Предыдущий частичный текст отброшен: ответ начинается заново на другом шаге.
+    /// The previous partial text is discarded: the reply starts again on another step.
     case restart(StepInfo)
     case stepFailed(StepInfo, LLMError)
-    /// Ключ недействителен (400/401/403) — выключить его в настройках (R-29).
+    /// The key is invalid (400/401/403) — disable it in settings (R-29).
     case keyInvalid(keyID: String, LLMError)
     case usage(StepInfo, TokenUsage)
-    /// Остатки квоты шага по заголовкам ответа (R-52).
+    /// Remaining quota of a step from the response headers (R-52).
     case rateLimits(StepInfo, RateLimitSnapshot)
-    /// `model` — фактическая модель из ответа.
+    /// `model` — the actual model from the response.
     case finished(StepInfo, model: String)
-    /// Ни один шаг не ответил (S-18). `retryAfter` — через сколько секунд освободится ближайший шаг.
+    /// No step replied (S-18). `retryAfter` — seconds until the nearest step becomes free.
     case exhausted(reason: String, retryAfter: TimeInterval?)
 }
 
-/// Паузы отказавших шагов по паре «ключ + модель» (R-29).
+/// Pauses of failed steps per "key + model" pair (R-29).
 public final class ProviderHealth: @unchecked Sendable {
     public static let shared = ProviderHealth()
     private let lock = NSLock()
@@ -83,7 +83,7 @@ public final class ProviderHealth: @unchecked Sendable {
 
     public func snapshot(for s: StepInfo) -> RateLimitSnapshot? { lock.withLock { snapshots[Self.key(s)] } }
 
-    /// Хватит ли остатка токенов на минуту для запроса (неизвестно — считаем, что хватит).
+    /// Whether the remaining tokens for this minute are enough for the request (unknown — assume yes).
     public func hasRoom(_ s: StepInfo, needed: Int, now: Date = Date()) -> Bool {
         guard let a = snapshot(for: s)?.tokensAvailable(now: now) else { return true }
         return a >= needed
@@ -92,7 +92,7 @@ public final class ProviderHealth: @unchecked Sendable {
     public func reset() { lock.withLock { until.removeAll(); snapshots.removeAll() } }
 }
 
-/// Цепочка шагов с автопереходом (R-29). Переход: 429, 5xx, сетевая ошибка, отказ модели, нет первого токена за таймаут.
+/// Chain of steps with automatic fallback (R-29). Fallback on: 429, 5xx, network error, model refusal, no first token within the timeout.
 public struct ProviderChain: Sendable {
     public struct Step: Sendable {
         public var info: StepInfo
@@ -109,10 +109,10 @@ public struct ProviderChain: Sendable {
     public var steps: [Step]
     public var firstTokenTimeout: Double
     public var health: ProviderHealth
-    /// Если все шаги упёрлись в лимит, а ближайший освободится не позже чем через столько секунд, —
-    /// подождать и пройти цепочку ещё раз (бесплатные лимиты Groq в минуту, P-05; укладывается в Q3 «до 8–10 с»).
+    /// If every step hit a rate limit and the nearest one frees up within this many seconds —
+    /// wait and run the chain once more (free Groq per-minute limits, P-05; fits Q3's "up to 8–10 s").
     public var autoRetryWithin: TimeInterval
-    /// Журнал расхода (R-52): одна запись на попытку.
+    /// Usage log (R-52): one record per attempt.
     public var usage: UsageRecorder?
 
     public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth(), autoRetryWithin: TimeInterval = 12,
@@ -124,10 +124,10 @@ public struct ProviderChain: Sendable {
         self.usage = usage
     }
 
-    /// Шаги без паузы; если все на паузе по таймауту или сети (не 429), они пробуются последними — вдруг сеть вернулась.
-    /// `needed` — оценка токенов запроса: шаг, у которого по заголовкам осталось меньше на эту минуту, идёт в конец (R-52).
-    /// `soonest` — ближайший конец паузы, срок которой сообщил провайдер (`retry-after` или «try again in»);
-    /// паузы по умолчанию (300 с) в обещание пользователю не попадают (R-52).
+    /// Steps without a pause; if all are paused after a timeout or network error (not 429), they are tried last — the network may be back.
+    /// `needed` — estimated request tokens: a step whose headers show less left for this minute goes to the end (R-52).
+    /// `soonest` — the nearest end of a pause whose length the provider reported (`retry-after` or "try again in");
+    /// default pauses (300 s) are never promised to the user (R-52).
     func plan(now: Date = Date(), needed: Int = 0) -> (run: [Step], soonest: Date?) {
         var fresh: [Step] = [], tight: [Step] = [], retryable: [Step] = []
         var soonest: Date?
@@ -145,27 +145,27 @@ public struct ProviderChain: Sendable {
         return (run.isEmpty ? retryable : run, soonest)
     }
 
-    /// Запуск. Отмена задачи-потребителя (склейка реплик R-11, перебивание R-12) прерывает текущий запрос.
+    /// Start. Cancelling the consumer task (utterance merging R-11, barge-in R-12) aborts the current request.
     public func run(_ request: LLMRequest) -> AsyncStream<ChainEvent> {
         AsyncStream { continuation in
             let task = Task {
                 let start = DispatchTime.now().uptimeNanoseconds
                 var reasons: [String] = []
                 if steps.isEmpty {
-                    continuation.yield(.exhausted(reason: "нет ключей", retryAfter: nil))
+                    continuation.yield(.exhausted(reason: String(localized: "no keys"), retryAfter: nil))
                     continuation.finish()
                     return
                 }
                 let needed = TokenEstimate.input(request) + request.maxTokens / 2
                 var (usable, soonest) = plan(needed: needed)
-                // Все шаги на короткой паузе (429) — подождать ближайший, а не сдаваться сразу.
+                // All steps are on a short pause (429) — wait for the nearest one instead of giving up at once.
                 if usable.isEmpty, let s = soonest, s.timeIntervalSinceNow <= autoRetryWithin {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
                     (usable, soonest) = plan(needed: needed)
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
-                // Все отказы — по лимиту (429): тогда возможен второй проход после короткого ожидания.
+                // All failures are rate limits (429): then a second pass after a short wait is possible.
                 var allRateLimited = true
                 for step in usable {
                     if Task.isCancelled { break }
@@ -196,10 +196,10 @@ public struct ProviderChain: Sendable {
                         } else {
                             health.reportFailure(step.info, e)
                         }
-                        reasons.append("\(step.info.label) (ключ \(step.info.keyIndex)): \(e.description)")
+                        reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")
                     }
                 }
-                // Все шаги отказали по лимиту, ближайший скоро освободится — второй проход (один раз).
+                // Every step failed on a rate limit and the nearest frees up soon — a second pass (once).
                 if !Task.isCancelled, let s = plan(needed: needed).soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
                    allRateLimited {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
@@ -222,7 +222,7 @@ public struct ProviderChain: Sendable {
                             if e == .cancelled { break }
                             continuation.yield(.stepFailed(step.info, e))
                             health.reportFailure(step.info, e)
-                            reasons.append("\(step.info.label) (ключ \(step.info.keyIndex)): \(e.description)")
+                            reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")
                         }
                     }
                 }
@@ -230,7 +230,7 @@ public struct ProviderChain: Sendable {
                     let now = Date()
                     let next = plan(now: now, needed: needed).soonest ?? soonest
                     let wait = next.map { max(0, $0.timeIntervalSince(now)) }
-                    let reason = reasons.isEmpty ? "все шаги на паузе после ошибок" : reasons.joined(separator: "; ")
+                    let reason = reasons.isEmpty ? String(localized: "all steps are paused after errors") : reasons.joined(separator: "; ")
                     continuation.yield(.exhausted(reason: reason, retryAfter: wait))
                 }
                 continuation.finish()
@@ -249,7 +249,7 @@ public struct ProviderChain: Sendable {
                                  remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000)))
     }
 
-    /// Один шаг; бросает ошибку, если нужен переход. Таймаут первого токена — гонка с часами.
+    /// One step; throws if a fallback is needed. The first-token timeout is a race against the clock.
     static func runStep(_ step: Step, request: LLMRequest, timeout: Double, start: UInt64,
                         continuation: AsyncStream<ChainEvent>.Continuation, health: ProviderHealth? = nil, stats: StepStats = StepStats()) async throws {
         let stream = step.provider.stream(request, model: step.info.model, key: step.key)
@@ -279,7 +279,7 @@ public struct ProviderChain: Sendable {
                     }
                 }
                 if let usage { continuation.yield(.usage(step.info, usage)) }
-                if !gotFirst.isSet { throw LLMError.badResponse("пустой ответ") }
+                if !gotFirst.isSet { throw LLMError.badResponse(String(localized: "empty reply")) }
                 continuation.yield(.finished(step.info, model: model))
             }
             group.addTask {
@@ -301,7 +301,7 @@ public struct ProviderChain: Sendable {
     }
 }
 
-/// Расход и остатки одной попытки — для журнала (R-52).
+/// Usage and remaining quota of one attempt — for the log (R-52).
 final class StepStats: @unchecked Sendable {
     private let lock = NSLock()
     private var _usage: TokenUsage?
@@ -323,13 +323,13 @@ final class FirstTokenFlag: @unchecked Sendable {
     }
 }
 
-/// Сборка цепочки из настроек: порядок «провайдер + модель», для каждого — все действующие ключи провайдера (R-29).
+/// Building the chain from settings: the "provider + model" order, and for each item all working keys of the provider (R-29).
 public enum ChainFactory {
     public static func provider(_ p: ProviderID, settings: LLMSettings, transport: StreamingTransport) -> LLMProvider {
         OpenAICompatibleProvider(p, transport: transport, customBase: settings.customBase)
     }
 
-    /// Ключи читаются из хранилища — вызывать не на главном потоке (Keychain может ждать системного запроса).
+    /// Keys are read from the store — do not call on the main thread (the Keychain may wait for a system prompt).
     public static func chain(settings: LLMSettings, secrets: SecretStore, health: ProviderHealth = .shared,
                              transport: StreamingTransport = URLSessionTransport(),
                              providers: [ProviderID: LLMProvider]? = nil, usage: UsageRecorder? = nil) -> ProviderChain {

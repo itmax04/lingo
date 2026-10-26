@@ -1,6 +1,6 @@
 import Foundation
 
-/// Версия значения для «последняя запись побеждает» (R-37): больший `lamport`, при равенстве — больший `device`.
+/// Value version for last-writer-wins (R-37): the larger `lamport`, on a tie — the larger `device`.
 public struct Version: Comparable, Sendable, Hashable {
     public var lamport: Int
     public var device: String
@@ -13,7 +13,7 @@ public struct Version: Comparable, Sendable, Hashable {
     }
 }
 
-/// Регистр LWW: значение с версией. Применение не зависит от порядка поступления событий.
+/// LWW register: a value with a version. Applying it does not depend on the order in which events arrive.
 public struct LWW<T: Sendable & Hashable>: Sendable, Hashable {
     public private(set) var value: T
     public private(set) var version: Version?
@@ -27,34 +27,34 @@ public struct LWW<T: Sendable & Hashable>: Sendable, Hashable {
     }
 }
 
-/// Запись `@fix` с привязкой к сообщению (R-20, R-23).
+/// A `@fix` record linked to a message (R-20, R-23).
 public struct FixEntry: Sendable, Hashable {
     public var message: String
     public var fix: Fix
     public var ts: Date
 }
 
-/// Состояние истории, построенное из множества событий (R-37). Чистая функция множества:
-/// результат не зависит от порядка и повторов событий (коммутативность и идемпотентность объединения).
+/// History state built from a set of events (R-37). A pure function of the set:
+/// the result does not depend on event order or duplicates (merging is commutative and idempotent).
 public struct HistoryState: Sendable {
     public var sessions: [String: Session] = [:]
-    /// Сообщения сессии в порядке (`ts`, `device`, `seq`).
+    /// Session messages in (`ts`, `device`, `seq`) order.
     public var messages: [String: [ChatMessage]] = [:]
     public var fixes: [String: [FixEntry]] = [:]
-    /// Подсказки сессии (`hint.added`), без повторов по ключу фразы.
+    /// Session hints (`hint.added`), deduplicated by phrase key.
     public var hints: [String: [Phrase]] = [:]
-    /// Словарь ★ (R-28): ключ фразы → фраза.
+    /// Vocabulary ★ (R-28): phrase key → phrase.
     public var starred: [String: Phrase] = [:]
     public var eventCount = 0
     public var maxLamport = 0
-    /// Последний `seq` каждого устройства — для своего устройства это продолжение нумерации.
+    /// The last `seq` of each device — for this device it is where numbering continues.
     public var lastSeq: [String: Int] = [:]
-    /// События неизвестных типов (сохраняются в журнале, при построении игнорируются).
+    /// Events of unknown types (kept in the journal, ignored when building state).
     public var unknownEvents = 0
 
     public init() {}
 
-    /// Видимые сессии по последней активности (R-05).
+    /// Visible sessions by last activity (R-05).
     public func visibleSessions(lang: Lang? = nil) -> [Session] {
         sessions.values.filter { !$0.deleted && (lang == nil || $0.settings.lang == lang) }
             .sorted { ($0.lastActivity, $0.id) > ($1.lastActivity, $1.id) }
@@ -62,9 +62,9 @@ public struct HistoryState: Sendable {
 }
 
 public enum Merger {
-    /// `isSynced(event)` — записано ли событие в папку синхронизации (✓✓, R-38).
+    /// `isSynced(event)` — whether the event has been written to the sync folder (✓✓, R-38).
     public static func build(_ input: [Event], isSynced: (Event) -> Bool = { _ in false }) -> HistoryState {
-        // 1. Объединение по id. Если id совпал, а содержимое разное (не должно случаться), выбор детерминирован.
+        // 1. Union by id. If the id matches but the content differs (should not happen), the choice is deterministic.
         var byID: [String: Event] = [:]
         for e in input {
             if let cur = byID[e.id] {
@@ -73,7 +73,7 @@ public enum Merger {
                 byID[e.id] = e
             }
         }
-        // 2. Детерминированный порядок обхода: (ts, device, seq, id).
+        // 2. Deterministic traversal order: (ts, device, seq, id).
         let events = byID.values.sorted { a, b in
             (a.tsMillis, a.device, a.seq, a.id) < (b.tsMillis, b.device, b.seq, b.id)
         }
@@ -187,7 +187,7 @@ public enum Merger {
                             segments: p.segments ?? [], createdAt: m.event.ts, source: p.source,
                             interruptedAt: m.interrupted.value, synced: isSynced(m.event), kind: p.kind ?? .normal))
         }
-        // «Понято как» (R-51): `@heard` ответа показывается под репликой пользователя, на которую он ответ.
+        // "Understood as" (R-51): the reply's `@heard` is shown under the user utterance it answers.
         for (sid, list) in st.messages {
             var out = list
             for (i, m) in list.enumerated() where m.role == .assistant {

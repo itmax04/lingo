@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import LingoCore
 
-/// Mock-провайдер: поведение по паре «модель + ключ».
+/// Mock provider: behaviour per "model + key" pair.
 struct MockProvider: LLMProvider {
     enum Behavior: Sendable { case text([String]), fail(LLMError), hang, failAfterText(String, LLMError), delayed(Double, [String]), stats([String], TokenUsage, RateLimitSnapshot) }
     let id: ProviderID
@@ -113,7 +113,7 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
         let c = chain({ m, k in k == "v-k1" ? .fail(.http(status: 401, message: "Invalid API Key")) : (m == "A" ? .fail(.http(status: 503, message: "")) : .text(["ok"])) }, log: log)
         let ev = await collect(c.run(req))
         #expect(text(ev) == "ok")
-        // k1 после 401 больше не пробуется (в том числе с моделью B); k2 работает.
+        // After a 401, k1 is never tried again (including with model B); k2 works.
         #expect(log.all == ["groq/A/v-k1", "groq/A/v-k2", "groq/B/v-k2"])
         #expect(ev.contains(.keyInvalid(keyID: "k1", .http(status: 401, message: "Invalid API Key"))))
     }
@@ -139,14 +139,14 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
         let log = CallLog()
         let c = chain({ _, _ in .fail(.http(status: 429, message: "", retryAfter: 120)) }, health: health, log: log)
         let ev = await collect(c.run(req))
-        guard case .exhausted(let reason, let wait)? = ev.last else { Issue.record("нет exhausted"); return }
+        guard case .exhausted(let reason, let wait)? = ev.last else { Issue.record("no exhausted"); return }
         #expect(reason.contains("429"))
         #expect((wait ?? 0) > 100 && (wait ?? 0) <= 120)
         #expect(log.all.count == 4)
-        // Все шаги на паузе по 429: повторный запуск ничего не отправляет и сразу сообщает, когда повторить (S-18).
+        // All steps are paused after 429: a second run sends nothing and reports right away when to retry (S-18).
         let ev2 = await collect(c.run(req))
         #expect(log.all.count == 4)
-        if case .exhausted(_, let w)? = ev2.last { #expect((w ?? 0) > 100) } else { Issue.record("нет exhausted") }
+        if case .exhausted(_, let w)? = ev2.last { #expect((w ?? 0) > 100) } else { Issue.record("no exhausted") }
     }
 
     @Test func shortRateLimitWaitsAndRetries() async {
@@ -167,7 +167,7 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
         let now = Date()
         h.reportFailure(s, .http(status: 500, message: ""), now: now)
         #expect(abs(h.pause(for: s, now: now)!.until.timeIntervalSince(now) - 300) < 0.01)
-        #expect(h.pause(for: StepInfo(provider: .groq, model: "B", keyID: "k"), now: now) == nil) // пара «ключ + модель»
+        #expect(h.pause(for: StepInfo(provider: .groq, model: "B", keyID: "k"), now: now) == nil) // per "key + model" pair
         h.reportFailure(s, .http(status: 401, message: ""), now: now.addingTimeInterval(400))
         #expect(h.pause(for: s, now: now.addingTimeInterval(400)) == nil)
     }
@@ -176,7 +176,7 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
         let s = LLMSettings(keys: [], chain: LLMSettings.defaultChain)
         let c = ChainFactory.chain(settings: s, secrets: InMemorySecretStore(), health: ProviderHealth())
         let ev = await collect(c.run(req))
-        #expect(ev == [.exhausted(reason: "нет ключей", retryAfter: nil)])
+        #expect(ev == [.exhausted(reason: "no keys", retryAfter: nil)])
         #expect(!s.hasUsableKey)
     }
 
@@ -194,7 +194,7 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
     }
 }
 
-/// Транспорт с заданным ответом — для провайдера и проверки ключа.
+/// A transport with a canned response — for the provider and the key check.
 struct FixedTransport: StreamingTransport, HTTPTransport {
     let status: Int
     let headers: [String: String]
@@ -218,7 +218,7 @@ struct FixedTransport: StreamingTransport, HTTPTransport {
         let p = OpenAICompatibleProvider(.groq, transport: t)
         do {
             for try await _ in p.stream(req, model: "m", key: key) {}
-            Issue.record("ожидалась ошибка")
+            Issue.record("an error was expected")
         } catch let e as LLMError {
             guard case .http(429, let msg, let ra) = e else { Issue.record("\(e)"); return }
             #expect(ra == 17)

@@ -2,10 +2,10 @@ import AppKit
 import Foundation
 import LingoCore
 
-/// Голосовой режим в приложении (R-06…R-15, R-42): звук, распознавание, `TurnController`, метрики.
+/// Voice mode in the app (R-06…R-15, R-42): audio, recognition, `TurnController`, metrics.
 @MainActor
 extension AppServices {
-    /// Загрузка модели распознавания в фоне при старте (≈ 0,7 с; ≈ 760 МБ, AC-15).
+    /// Loads the recognition model in the background at start-up (≈ 0.7 s; ≈ 760 MB, AC-15).
     func prepareVoice() {
         guard voiceReady == nil else { return }
         let t = Task { () -> Bool in
@@ -21,29 +21,29 @@ extension AppServices {
                 self.whisper = w
                 return true
             } catch {
-                self.model.banner = "Распознавание недоступно: \(error)"
+                self.model.banner = String(localized: "Speech recognition unavailable: \(String(describing: error))")
                 return false
             }
         }
         voiceReady = t
     }
 
-    /// Звук и цикл создаются при первом голосовом действии (тогда же macOS спрашивает разрешение на микрофон).
+    /// Audio and the loop are created on the first voice action (that is when macOS asks for microphone permission).
     func ensureVoice() async -> TurnController? {
         if let t = turn { return t }
         if Permissions.microphone == .notDetermined { _ = await Permissions.requestMicrophone() }
         guard Permissions.microphone == .granted else {
-            model.banner = "Нет доступа к микрофону: Системные настройки → Конфиденциальность и безопасность → Микрофон → Lingo"
+            model.banner = String(localized: "No microphone access: System Settings → Privacy & Security → Microphone → Lingo")
             return nil
         }
         prepareVoice()
         guard await voiceReady?.value == true, let w = whisper else { return nil }
         let io = VoiceIO()
         do { try io.start(voiceProcessing: settings.voice.voiceProcessing, output: true) } catch {
-            model.banner = "Звук: \(error.localizedDescription)"
+            model.banner = String(localized: "Audio: \(error.localizedDescription)")
             return nil
         }
-        if !io.voiceProcessing { model.banner = "Эхоподавление недоступно — для перебивания лучше наушники" }
+        if !io.voiceProcessing { model.banner = String(localized: "Echo cancellation unavailable — headphones work better for barge-in") }
         let metrics = MetricsRecorder(dir: store.base.appendingPathComponent("metrics", isDirectory: true))
         let m = model
         let tc = TurnController(engine: engine, recognizer: w, sink: io, metrics: metrics, voice: settings.voice) {
@@ -54,7 +54,7 @@ extension AppServices {
         }
         tc.onState = { [weak tc] s in
             m.voiceState = s
-            // «Говорю по-русски» действует на одну реплику (R-09): после неё кнопка гаснет.
+            // "I'm speaking Russian" applies to one utterance (R-09): after it the button turns off.
             if let tc { m.russianOnce = tc.forceRussianOnce }
         }
         tc.onLevel = { l in
@@ -66,20 +66,28 @@ extension AppServices {
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
         io.onIdle = { Task { @MainActor in io.micMuted = false } }
-        io.onRestart = { reason in
+        io.onRestart = { reason, ok in
             Log.app.notice("voice restarted: \(reason, privacy: .public)")
-            if reason.hasPrefix("не удалось") { Task { @MainActor in m.banner = "Звук: \(reason)" } }
+            if !ok { Task { @MainActor in m.banner = reason } }
+        }
+        io.onCaptureFailure = { [weak tc] reason in
+            Task { @MainActor in
+                tc?.stopVoice()
+                m.continuous = false
+                m.levels = []
+                m.banner = reason
+            }
         }
         voiceIO = io
         turn = tc
-        // Сторож звука: раз в секунду проверяем, что микрофон даёт сэмплы (движок мог остановиться).
+        // Audio watchdog: once a second check that the microphone delivers samples (the engine may have stopped).
         healthTimer = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
                 io.checkHealth()
             }
         }
-        // Память раз в минуту (AC-15).
+        // Memory once a minute (AC-15).
         memoryTimer = Task {
             while !Task.isCancelled {
                 metrics.memorySample()
@@ -103,9 +111,9 @@ extension AppServices {
         }
     }
 
-    // MARK: Действия панели (R-42) и клавиатура (DESIGN.md §8)
+    // MARK: Panel actions (R-42) and keyboard (DESIGN.md §8)
 
-    /// Кнопка микрофона: по кнопке — начать/закончить реплику (S-02); в непрерывном режиме — остановить озвучку (R-12).
+    /// Microphone button: push-to-talk — start/finish the utterance (S-02); in continuous mode — stop the speech (R-12).
     func micTapped() {
         Task {
             guard let t = await ensureVoice() else { return }
@@ -128,7 +136,7 @@ extension AppServices {
 
     func pauseTapped() { turn?.togglePause() }
 
-    /// «Завершить» (R-07, R-22): прощание, итог при режиме «после», голос выключается.
+    /// "Finish" (R-07, R-22): goodbye, a recap in the "after" mode, voice turns off.
     func endTapped() {
         guard let sid = model.selectedSessionID else { return }
         turn?.stopVoice()
@@ -156,7 +164,7 @@ extension AppServices {
         turn?.slowPace = model.slowPace
     }
 
-    /// ▶ фразы подсказки (R-27): голос языка фразы, без сети; микрофон не слушает; если помощник говорит — в очередь.
+    /// ▶ on a hint phrase (R-27): the voice of the phrase's language, offline; the microphone does not listen; if the assistant is speaking — queued.
     func playPhrase(_ p: Phrase) {
         Task {
             if voiceIO == nil { _ = await ensureVoice() }
@@ -171,7 +179,7 @@ extension AppServices {
         Task { try? await engine.star(p, on: on) }
     }
 
-    /// Клик по пузырю помощника — повтор озвучки (R-41).
+    /// Click on an assistant bubble — replay speech (R-41).
     func replay(_ m: ChatMessage) {
         Task { guard let t = await ensureVoice() else { return }; t.replay(m) }
     }

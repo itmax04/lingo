@@ -1,7 +1,7 @@
 import LingoCore
 import SwiftUI
 
-/// Экран настройки новой сессии (S-01, R-02, A-3, A-8). Значений «Thomas/A2» по умолчанию нет; пример промпта — только плейсхолдер.
+/// New session setup screen (S-01, R-02, A-3, A-8). No "Thomas/A2" defaults; the prompt example is only a placeholder.
 struct NewSessionView: View {
     @State var settings: SessionSettings
     @State private var title = ""
@@ -16,25 +16,25 @@ struct NewSessionView: View {
         self.onCancel = onCancel
     }
 
-    static let promptExample = "Например: «Ты мой новый сосед по дому. Мы встретились у почтовых ящиков. Говори просто, задавай по одному вопросу и начни первым.»"
+    static let promptExample = String(localized: "For example: “You are my new neighbour. We met at the mailboxes. Speak simply, ask one question at a time and start first.”")
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.S.s16) {
-            Text("Новая сессия").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
+            Text("New session").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.S.s16) {
-                    field("Язык") { LanguageSegment(selection: $settings.lang).frame(width: Theme.S.sidebarWidth) }
-                    field("Режим") {
+                    field("Language") { LanguageSegment(selection: $settings.lang).frame(width: Theme.S.sidebarWidth) }
+                    field("Mode") {
                         Picker("", selection: $settings.mode) {
                             ForEach(SessionMode.allCases, id: \.self) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented).labelsHidden()
                     }
                     if settings.mode != .customPrompt {
-                        field("Тема") { TextField("необязательно: знакомство, кафе, работа…", text: $settings.topic).textFieldStyle(.roundedBorder) }
-                        field("Роль собеседника") { TextField("необязательно: сосед, официант, коллега…", text: $settings.role).textFieldStyle(.roundedBorder) }
+                        field("Topic") { TextField("optional: introductions, café, work…", text: $settings.topic).textFieldStyle(.roundedBorder) }
+                        field("Partner's role") { TextField("optional: neighbour, waiter, colleague…", text: $settings.role).textFieldStyle(.roundedBorder) }
                     } else {
-                        field("Свой промпт") {
+                        field("Custom prompt") {
                             VStack(alignment: .leading, spacing: Theme.S.s4) {
                                 ZStack(alignment: .topLeading) {
                                     TextEditor(text: $settings.customPrompt)
@@ -49,25 +49,25 @@ struct NewSessionView: View {
                                             .padding(Theme.S.s8).allowsHitTesting(false)
                                     }
                                 }
-                                Text("Правила Lingo сильнее своего промпта: язык ответа, формат ответа и запрет оценки произношения не меняются (R-03).")
+                                Text("Lingo's rules take precedence over a custom prompt: the reply language, the reply format and the ban on rating pronunciation do not change (R-03).")
                                     .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                             }
                         }
                     }
-                    field("Уровень") {
+                    field("Level") {
                         HStack(spacing: Theme.S.s8) {
                             Picker("", selection: $levelChoice) {
-                                Text("не указан").tag("")
+                                Text("not set").tag("")
                                 ForEach(Levels.cefr, id: \.self) { Text($0).tag($0) }
-                                Text("свой текст").tag("custom")
+                                Text("custom text").tag("custom")
                             }
                             .labelsHidden().frame(width: 140)
                             if levelChoice == "custom" {
-                                TextField("например: средний, хочу больше разговорной речи", text: $customLevel).textFieldStyle(.roundedBorder)
+                                TextField("for example: intermediate, I want more conversational speech", text: $customLevel).textFieldStyle(.roundedBorder)
                             }
                         }
                     }
-                    field("Исправление ошибок") {
+                    field("Error correction") {
                         VStack(alignment: .leading, spacing: Theme.S.s4) {
                             ForEach(CorrectionMode.allCases, id: \.self) { c in
                                 Toggle(isOn: Binding(get: { settings.corrections.contains(c) },
@@ -80,30 +80,30 @@ struct NewSessionView: View {
                                 .toggleStyle(.checkbox)
                             }
                             if settings.corrections.isEmpty {
-                                Text("Выберите хотя бы один режим").font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
+                                Text("Choose at least one mode").font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
                             }
                         }
                     }
-                    field("Кто начинает") {
+                    field("Who starts") {
                         Picker("", selection: $settings.starter) {
                             ForEach(Starter.allCases, id: \.self) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented).labelsHidden().frame(width: Theme.S.sidebarWidth)
                     }
-                    field("Название") { TextField(settings.defaultTitle, text: $title).textFieldStyle(.roundedBorder) }
+                    field("Title") { TextField(settings.defaultTitle, text: $title).textFieldStyle(.roundedBorder) }
                 }
             }
             HStack {
                 Spacer()
-                Button("Отмена", action: onCancel).keyboardShortcut(.cancelAction)
-                Button("Начать") {
+                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
+                Button("Start") {
                     var s = settings
                     s.level = levelChoice == "custom" ? customLevel : levelChoice
                     onStart(s, title.isEmpty ? nil : title)
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!startEnabled)
-                .help(startEnabled ? "" : (settings.corrections.isEmpty ? "Выберите хотя бы один режим исправления" : "Напишите свой промпт"))
+                .help(startEnabled ? "" : (settings.corrections.isEmpty ? "Choose at least one correction mode" : "Write your custom prompt"))
             }
         }
         .padding(Theme.S.s24)
@@ -120,13 +120,13 @@ struct NewSessionView: View {
 
     func note(_ c: CorrectionMode) -> String {
         switch c {
-        case .inline: "Помощник сразу предлагает естественный вариант и просит повторить"
-        case .after: "Ошибки копятся молча, итог по-русски — после «Завершить»"
-        case .onDemand: "Разбор последних реплик, когда спросите «были ошибки?»"
+        case .inline: String(localized: "The assistant immediately offers a natural version and asks you to repeat it")
+        case .after: String(localized: "Mistakes are collected silently; a recap in Russian comes after “Finish”")
+        case .onDemand: String(localized: "A review of your last utterances when you ask “were there mistakes?”")
         }
     }
 
-    @ViewBuilder func field<C: View>(_ title: String, @ViewBuilder _ content: () -> C) -> some View {
+    @ViewBuilder func field<C: View>(_ title: LocalizedStringKey, @ViewBuilder _ content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: Theme.S.s8) {
             Text(title).font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
             content()

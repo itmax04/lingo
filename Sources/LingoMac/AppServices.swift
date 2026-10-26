@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import LingoCore
 
-/// Службы приложения: журнал (R-34), диалог (R-01…R-25), синхронизация (R-38), настройки (R-44). Обновляют `AppModel` на главном потоке.
+/// App services: journal (R-34), dialogue (R-01…R-25), sync (R-38), settings (R-44). They update `AppModel` on the main thread.
 @MainActor
 final class AppServices {
     let model: AppModel
@@ -40,11 +40,11 @@ final class AppServices {
         let usage = UsageRecorder(dir: dir.appendingPathComponent("usage", isDirectory: true))
         self.usage = usage
         engine = DialogEngine(store: store, policy: migrated.context) {
-            // Ключи читаются не на главном потоке (D-11). Каждая попытка — запись расхода (R-52).
+            // Keys are read off the main thread (D-11). Every attempt writes a usage record (R-52).
             ChainFactory.chain(settings: settingsRef.value.llm, secrets: secretsRef, usage: usage)
         }
         model.langFilter = s.lastLang
-        model.sourceLabel = s.llm.primaryLabel ?? "Нет ключа"
+        model.sourceLabel = s.llm.primaryLabel ?? String(localized: "No key")
         model.hasKey = s.llm.hasUsableKey
         model.recomputeOnline()
         model.memoryNote = s.context.memoryNote()
@@ -60,7 +60,7 @@ final class AppServices {
         if keys?.settings != settings.llm { keys?.replace(settings.llm) }
         settingsStore.save(settings)
         settingsRef.value = settings
-        model.sourceLabel = settings.llm.primaryLabel ?? "Нет ключа"
+        model.sourceLabel = settings.llm.primaryLabel ?? String(localized: "No key")
         model.hasKey = settings.llm.hasUsableKey
         model.recomputeOnline()
         turn?.voice = settings.voice
@@ -77,7 +77,7 @@ final class AppServices {
         if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }
     }
 
-    // MARK: Сессии
+    // MARK: Sessions
 
     func createSession(_ s: SessionSettings, title: String?) {
         updateSettings { $0.lastCorrections = s.corrections; $0.lastLang = s.lang }
@@ -86,10 +86,10 @@ final class AppServices {
                 let id = try await engine.createSession(s, title: title)
                 model.langFilter = s.lang
                 model.selectedSessionID = id
-                // Фразы темы — после первого ответа и только при запасе квоты (диспетчер R-52).
+                // Topic phrases — after the first reply and only with quota to spare (R-52 dispatcher).
                 await engine.requestTopicPhrases(id)
                 if s.starter == .assistant { run(engine.respond(session: id)) }
-            } catch { model.banner = "Не удалось создать сессию: \(error)" }
+            } catch { model.banner = String(localized: "Could not create the session: \(String(describing: error))") }
         }
     }
 
@@ -107,10 +107,10 @@ final class AppServices {
         model.refreshSelection()
     }
 
-    /// Плашка источника (R-32).
+    /// Source badge (R-32).
     func pin(_ entryID: String?) { updateSettings { $0.llm.pinnedEntryID = entryID } }
 
-    /// Режимы исправления меняются в шапке сессии (R-20); пустой набор не допускается (A-3).
+    /// Correction modes are changed in the session header (R-20); an empty set is not allowed (A-3).
     func toggleCorrection(_ c: CorrectionMode) {
         guard let s = model.selectedSession else { return }
         var st = s.settings
@@ -122,12 +122,12 @@ final class AppServices {
         NSWorkspace.shared.activateFileViewerSelecting([store.ownDir])
     }
 
-    /// Клик по пузырю (R-41): пользователь — правка (R-09), помощник — повтор озвучки (P-07).
+    /// Click on a bubble (R-41): user — edit (R-09), assistant — replay speech (P-07).
     func tapped(_ m: ChatMessage) {
         if m.role == .user { model.editing = m } else if m.kind == .normal { replay(m) }
     }
 
-    // MARK: Ход текстом (R-43)
+    // MARK: Text turn (R-43)
 
     func sendText() {
         let text = model.draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -141,7 +141,7 @@ final class AppServices {
         }
     }
 
-    /// «Ответить заново» (R-09): новый ответ на реплику пользователя.
+    /// "Reply again" (R-09): a new reply to the user's utterance.
     func regenerate(userMessageID: String) {
         guard let sid = model.selectedSessionID else { return }
         run(engine.respond(session: sid, replyTo: userMessageID))
@@ -175,7 +175,7 @@ final class AppServices {
     }
 }
 
-/// Текущие настройки для замыканий вне главного потока.
+/// Current settings for closures off the main thread.
 final class SettingsRef: @unchecked Sendable {
     private let lock = NSLock()
     private var _value: AppSettings

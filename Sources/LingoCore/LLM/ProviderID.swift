@@ -1,13 +1,13 @@
-// Адреса — по первоисточникам на 2026-10-25 (handoff.md, P-00): console.groq.com/docs, docs.mistral.ai, openrouter.ai/docs.
-// По образцу Interview Copilot (`ProviderEndpoints.swift`, коммит cf0e764).
+// Endpoints from the primary sources as of 2026-10-25 (handoff.md, P-00): console.groq.com/docs, docs.mistral.ai, openrouter.ai/docs.
+// Modelled on Interview Copilot (`ProviderEndpoints.swift`, commit cf0e764).
 import Foundation
 
-/// Провайдеры R-30: только бесплатные, OpenAI-совместимый Chat Completions. Gemini не используется (ЕС).
+/// R-30 providers: free only, OpenAI-compatible Chat Completions. Gemini is not used (EU).
 public enum ProviderID: String, Codable, CaseIterable, Sendable, Hashable {
     case groq
     case mistral
     case openrouter
-    /// Свой OpenAI-совместимый адрес.
+    /// A custom OpenAI-compatible endpoint.
     case custom
 
     public var displayName: String {
@@ -15,11 +15,11 @@ public enum ProviderID: String, Codable, CaseIterable, Sendable, Hashable {
         case .groq: "Groq"
         case .mistral: "Mistral"
         case .openrouter: "OpenRouter"
-        case .custom: "Свой адрес"
+        case .custom: String(localized: "Custom endpoint")
         }
     }
 
-    /// Где получить бесплатный ключ (для мастера первого запуска и H-1).
+    /// Where to get a free key (for the onboarding wizard and H-1).
     public var keysPage: String? {
         switch self {
         case .groq: "https://console.groq.com/keys"
@@ -35,7 +35,7 @@ public enum ProviderEndpoints {
     public static let mistralBase = URL(string: "https://api.mistral.ai/v1")!
     public static let openrouterBase = URL(string: "https://openrouter.ai/api/v1")!
 
-    /// `customBase` — из настроек; без него запросы к «своему адресу» не отправляются.
+    /// `customBase` — from settings; without it no requests are sent to the custom endpoint.
     public static func base(_ p: ProviderID, customBase: URL?) -> URL? {
         switch p {
         case .groq: groqBase
@@ -45,8 +45,8 @@ public enum ProviderEndpoints {
         }
     }
 
-    /// Свой адрес: HTTPS; HTTP — только для этого компьютера (Ollama, LM Studio), иначе ключ ушёл бы открытым текстом (R-48).
-    /// Завершающий «/» и `/chat/completions` отрезаются.
+    /// Custom endpoint: HTTPS; HTTP only for this computer (Ollama, LM Studio), otherwise the key would travel in plain text (R-48).
+    /// A trailing "/" and `/chat/completions` are stripped.
     public static func customBaseURL(_ text: String) -> URL? {
         var t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         for suffix in ["/chat/completions", "/"] where t.hasSuffix(suffix) { t = String(t.dropLast(suffix.count)) }
@@ -57,7 +57,7 @@ public enum ProviderEndpoints {
         return nil
     }
 
-    /// Ключ — только в заголовке по HTTPS (R-48).
+    /// The key goes only in a header over HTTPS (R-48).
     public static func authorize(_ r: inout URLRequest, key: String) {
         r.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
     }

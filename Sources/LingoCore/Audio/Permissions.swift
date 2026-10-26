@@ -2,7 +2,7 @@
 import Foundation
 import Speech
 
-/// Разрешения на микрофон и распознавание речи (R-45, шаг 1 мастера). Меняет их только пользователь (TCC).
+/// Microphone and speech-recognition permissions (R-45, onboarding step 1). Only the user changes them (TCC).
 public enum Permissions {
     public enum State: String, Sendable { case granted, denied, notDetermined }
 

@@ -2,7 +2,7 @@ import AppKit
 import LingoCore
 import SwiftUI
 
-/// Настройки → «Квота» (R-52): расход за сегодня по моделям из журнала расхода, без текста реплик и ключей.
+/// Settings → "Quota" (R-52): today's usage per model from the usage log, without utterance texts or keys.
 struct QuotaView: View {
     let services: AppServices
     @State private var rows: [UsageRecorder.DaySummary] = []
@@ -10,18 +10,18 @@ struct QuotaView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
-                SettingsCard(title: "Расход сегодня",
-                             subtitle: "По данным провайдера: входные / выходные / кэшированные токены (кэшированные у Groq не идут в лимиты). Пусто — провайдер не сообщил. Бесплатный Groq: 8 000 токенов в минуту и 200 000 в сутки на модель на весь аккаунт.") {
+                SettingsCard(title: "Usage today",
+                             subtitle: "As reported by the provider: input / output / cached tokens (on Groq cached tokens do not count toward limits). Empty — the provider did not report it. Free Groq: 8,000 tokens per minute and 200,000 per day per model for the whole account.") {
                     if rows.isEmpty {
-                        Text("Сегодня запросов не было.").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textSecondary)
+                        Text("No requests today.").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textSecondary)
                     }
                     ForEach(rows, id: \.model) { r in QuotaRow(r: r) }
                     HStack(spacing: Theme.S.s12) {
-                        Button("Обновить") { rows = services.usage.today() }
-                        Button("Показать журнал расхода") { NSWorkspace.shared.activateFileViewerSelecting([services.usage.dir]) }
+                        Button("Refresh") { rows = services.usage.today() }
+                        Button("Show usage log") { NSWorkspace.shared.activateFileViewerSelecting([services.usage.dir]) }
                     }
                 }
-                SettingsCard(title: "Версия") {
+                SettingsCard(title: "Version") {
                     Text(AppVersion.string).font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
                 }
             }
@@ -36,11 +36,11 @@ struct QuotaView: View {
 struct QuotaRow: View {
     let r: UsageRecorder.DaySummary
 
-    var counts: String { "запросов \(r.requests) (успешно \(r.ok), отказов по лимиту \(r.limited)) · вход \(r.input) · выход \(r.output) · кэш \(r.cached)" }
+    var counts: String { String(localized: "requests \(r.requests) (succeeded \(r.ok), rate-limited \(r.limited)) · input \(r.input) · output \(r.output) · cached \(r.cached)") }
     var details: String {
-        var t = "по назначению: " + r.byPurpose.sorted { $0.key < $1.key }.map { "\(Self.label($0.key)) \($0.value)" }.joined(separator: ", ")
-        if let rem = r.lastRemainingTokens { t += " · остаток на минуту: \(rem) токенов" }
-        if let l = r.lastLimit { t += " · последний отказ: \(l.title)" }
+        var t = String(localized: "by purpose: ") + r.byPurpose.sorted { $0.key < $1.key }.map { "\(Self.label($0.key)) \($0.value)" }.joined(separator: ", ")
+        if let rem = r.lastRemainingTokens { t += " · " + String(localized: "left this minute: \(rem) tokens") }
+        if let l = r.lastLimit { t += " · " + String(localized: "last refusal: \(l.title)") }
         return t
     }
 
@@ -54,11 +54,11 @@ struct QuotaRow: View {
 
     static func label(_ p: String) -> String {
         switch p {
-        case "dialog": "диалог"
-        case "summary": "краткое содержание"
-        case "topicPhrases": "фразы темы"
-        case "recap": "итог"
-        case "eval": "оценки"
+        case "dialog": String(localized: "dialogue")
+        case "summary": String(localized: "summary")
+        case "topicPhrases": String(localized: "topic phrases")
+        case "recap": String(localized: "recap")
+        case "eval": String(localized: "evals")
         default: p
         }
     }
@@ -69,8 +69,8 @@ enum AppVersion {
         let i = Bundle.main.infoDictionary ?? [:]
         let v = i["CFBundleShortVersionString"] as? String ?? "dev"
         let b = i["CFBundleVersion"] as? String ?? "0"
-        let rev = i["LingoGitRevision"] as? String ?? "локальная сборка"
+        let rev = i["LingoGitRevision"] as? String ?? String(localized: "local build")
         let date = i["LingoBuildDate"] as? String ?? ""
-        return "Lingo \(v) (сборка \(b), \(rev))" + (date.isEmpty ? "" : " · \(date)")
+        return String(localized: "Lingo \(v) (build \(b), \(rev))") + (date.isEmpty ? "" : " · \(date)")
     }
 }

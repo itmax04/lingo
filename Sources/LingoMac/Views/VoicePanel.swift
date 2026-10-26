@@ -1,7 +1,7 @@
 import LingoCore
 import SwiftUI
 
-/// Голосовая панель (R-42, DESIGN.md §5): микрофон и состояние, волна по уровню звука, «Пауза», «Завершить».
+/// Voice panel (R-42, DESIGN.md §5): microphone and state, waveform from the sound level, "Pause", "Finish".
 struct VoicePanel: View {
     let state: VoiceState
     let levels: [Float]
@@ -22,7 +22,7 @@ struct VoicePanel: View {
                 .frame(width: Theme.R.micCircle, height: Theme.R.micCircle)
             }
             .buttonStyle(LingoButtonStyle())
-            .accessibilityLabel(state == .idle ? "Говорить" : "Микрофон: \(state.title)")
+            .accessibilityLabel(state == .idle ? "Speak" : "Microphone: \(state.title)")
 
             Text(state.title)
                 .font(Theme.F.voiceState)
@@ -38,9 +38,9 @@ struct VoicePanel: View {
             extraControls
 
             RoundCaptionButton(symbol: state == .paused ? "play.fill" : "pause.fill",
-                               caption: state == .paused ? "Продолжить" : "Пауза",
+                               caption: state == .paused ? "Resume" : "Pause",
                                fill: Theme.C.surfaceControl, iconColor: Theme.C.textPrimary, action: onPause)
-            RoundCaptionButton(symbol: "xmark", caption: "Завершить",
+            RoundCaptionButton(symbol: "xmark", caption: "Finish",
                                fill: Theme.C.statusDanger, iconColor: Theme.C.textPrimary, action: onEnd)
         }
         .padding(.horizontal, Theme.S.s24)
@@ -50,8 +50,8 @@ struct VoicePanel: View {
     }
 }
 
-/// Волна: столбики `voice.accent`, затухающие к краям (100% → 30%). Только по уровню звука, без декоративной анимации.
-/// При «Уменьшить движение» — статичная полоса уровня (DESIGN.md §7).
+/// Waveform: `voice.accent` bars fading toward the edges (100% → 30%). Driven only by the sound level, no decorative animation.
+/// With "Reduce motion" — a static level bar (DESIGN.md §7).
 struct Waveform: View {
     let levels: [Float]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -83,14 +83,14 @@ struct Waveform: View {
         }
     }
 
-    /// Последние `count` значений; если их меньше — слева тишина.
+    /// The last `count` values; if there are fewer — silence on the left.
     static func resample(_ levels: [Float], count: Int) -> [Float] {
         let tail = Array(levels.suffix(count))
         return Array(repeating: 0, count: count - tail.count) + tail
     }
 }
 
-/// Поле ввода (R-43, DESIGN.md §5).
+/// Input field (R-43, DESIGN.md §5).
 struct InputBar: View {
     @Binding var text: String
     var enabled = true
@@ -106,7 +106,7 @@ struct InputBar: View {
                     .foregroundStyle(Theme.C.textTertiary)
                     .accessibilityHidden(true)
                 ColumnDivider().frame(height: Theme.S.s24)
-                TextField("", text: $text, prompt: Text(enabled ? "Напишите сообщение…" : (disabledReason ?? ""))
+                TextField("", text: $text, prompt: Text(enabled ? String(localized: "Write a message…") : (disabledReason ?? ""))
                     .foregroundStyle(Theme.C.textTertiary), axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(Theme.F.rowTitle)
@@ -115,7 +115,7 @@ struct InputBar: View {
                     .focused($focused)
                     .disabled(!enabled)
                     .onKeyPress(.return, phases: .down) { press in
-                        // Enter — отправить, ⇧Enter — перенос строки (R-43).
+                        // Enter — send, ⇧Enter — new line (R-43).
                         if press.modifiers.contains(.shift) { return .ignored }
                         onSend()
                         return .handled
@@ -137,7 +137,7 @@ struct InputBar: View {
             }
             .buttonStyle(LingoButtonStyle())
             .disabled(!enabled || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .accessibilityLabel("Отправить")
+            .accessibilityLabel("Send")
         }
     }
 }

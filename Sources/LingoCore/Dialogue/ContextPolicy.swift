@@ -1,16 +1,16 @@
 import Foundation
 
-/// Политика контекста модели (R-04): системная обёртка + краткое содержание + последние N ходов.
-/// Ход — реплика пользователя вместе с ответом помощника.
+/// Model context policy (R-04): system wrapper + summary + the last N turns.
+/// A turn is a user utterance together with the assistant's reply.
 public struct ContextPolicy: Sendable, Hashable, Codable {
-    /// N: по умолчанию 8 (Q29, было 20), от 6 до 40.
+    /// N: 8 by default (Q29, was 20), from 6 to 40.
     public var maxTurns: Int
-    /// Краткое содержание обновляется каждые 10 ходов и при завершении сессии.
+    /// The summary is updated every 10 turns and when the session ends.
     public var summaryEvery: Int
 
     public static let turnsRange: ClosedRange<Int> = 6...40
 
-    /// Бюджет символов расшифровки в запросе (≈ 1800 токенов, R-04 в версии 2.2): старые ходы отбрасываются раньше N.
+    /// Character budget for the transcript in a request (≈ 1800 tokens, R-04 in spec v2.2): old turns are dropped before N is reached.
     public static let transcriptCharBudget = 6300
 
     public init(maxTurns: Int = 8, summaryEvery: Int = 10) {
@@ -18,13 +18,13 @@ public struct ContextPolicy: Sendable, Hashable, Codable {
         self.summaryEvery = summaryEvery
     }
 
-    /// Сообщения для `<transcript>`: начиная с N-й с конца реплики пользователя (и первая реплика помощника, если он начинал).
-    /// Служебные сообщения (итог, ошибки цепочки) в контекст не идут.
+    /// Messages for `<transcript>`: starting from the N-th user utterance from the end (plus the assistant's first message if it started).
+    /// Service messages (recap, chain errors) are not included in the context.
     public func window(_ messages: [ChatMessage]) -> [ChatMessage] {
         let real = messages.filter { $0.kind == .normal }
         let userIdx = real.indices.filter { real[$0].role == .user }
         var w = userIdx.count > maxTurns ? Array(real[userIdx[userIdx.count - maxTurns]...]) : real
-        // Бюджет по символам: убираем самые старые ходы, но последний ход остаётся всегда.
+        // Character budget: drop the oldest turns, but always keep the last turn.
         func size(_ m: [ChatMessage]) -> Int { m.reduce(0) { $0 + ($1.role == .assistant ? $1.spokenText.count + 40 : $1.text.count) + 24 } }
         while size(w) > Self.transcriptCharBudget, let next = w.dropFirst().firstIndex(where: { $0.role == .user }) {
             w = Array(w[next...])
@@ -32,7 +32,7 @@ public struct ContextPolicy: Sendable, Hashable, Codable {
         return w
     }
 
-    /// Сколько ходов (реплик пользователя) после последнего краткого содержания.
+    /// Number of turns (user utterances) since the last summary.
     public func turnsSinceSummary(_ messages: [ChatMessage], through: String?) -> Int {
         let real = messages.filter { $0.kind == .normal }
         var after = real[...]
@@ -44,8 +44,8 @@ public struct ContextPolicy: Sendable, Hashable, Codable {
         turnsSinceSummary(messages, through: through) >= summaryEvery
     }
 
-    /// Подсказка в шапке (S-16): интерфейс не обещает, что модель помнит всё.
+    /// Header hint (S-16): the UI does not promise that the model remembers everything.
     public func memoryNote() -> String {
-        "Помощник помнит краткое содержание и последние \(maxTurns) реплик"
+        String(localized: "The assistant remembers a summary and the last \(maxTurns) turns")
     }
 }

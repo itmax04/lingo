@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Круглый аватар 40 pt (DESIGN.md §5).
+/// Round 40 pt avatar (DESIGN.md §5).
 struct Avatar: View {
     let role: AvatarRole
     enum AvatarRole { case user, bot }
@@ -24,18 +24,18 @@ struct Avatar: View {
     }
 }
 
-/// Иконка робота как на макете (в SF Symbols её нет): голова с антенной, глаза.
+/// Robot icon as in the mockup (SF Symbols has none): a head with an antenna and eyes.
 struct RobotIcon: Shape {
     func path(in r: CGRect) -> Path {
         var p = Path()
         let w = r.width, h = r.height
-        // Антенна.
+        // Antenna.
         p.addEllipse(in: CGRect(x: r.minX + w * 0.43, y: r.minY, width: w * 0.14, height: w * 0.14))
         p.addRect(CGRect(x: r.minX + w * 0.47, y: r.minY + w * 0.1, width: w * 0.06, height: h * 0.14))
-        // Уши.
+        // Ears.
         p.addRoundedRect(in: CGRect(x: r.minX, y: r.minY + h * 0.45, width: w * 0.1, height: h * 0.22), cornerSize: CGSize(width: w * 0.04, height: w * 0.04))
         p.addRoundedRect(in: CGRect(x: r.maxX - w * 0.1, y: r.minY + h * 0.45, width: w * 0.1, height: h * 0.22), cornerSize: CGSize(width: w * 0.04, height: w * 0.04))
-        // Голова с вырезанными глазами (even-odd).
+        // Head with cut-out eyes (even-odd).
         let head = CGRect(x: r.minX + w * 0.12, y: r.minY + h * 0.24, width: w * 0.76, height: h * 0.66)
         p.addRoundedRect(in: head, cornerSize: CGSize(width: w * 0.2, height: w * 0.2))
         let face = head.insetBy(dx: w * 0.1, dy: h * 0.1)
@@ -50,7 +50,7 @@ struct RobotIcon: Shape {
     }
 }
 
-/// ✓ — сохранено локально, ✓✓ — записано в папку синхронизации (R-38).
+/// ✓ — saved locally, ✓✓ — written to the sync folder (R-38).
 struct DeliveryTicks: View {
     let synced: Bool
     var body: some View {
@@ -59,11 +59,11 @@ struct DeliveryTicks: View {
             if synced { Image(systemName: "checkmark") }
         }
         .font(.system(size: 9, weight: .semibold))
-        .accessibilityLabel(synced ? "Записано в папку синхронизации" : "Сохранено локально")
+        .accessibilityLabel(synced ? "Written to the sync folder" : "Saved locally")
     }
 }
 
-/// Наведение — `opacity(0.85)` поверх исходного, неактивно — `opacity(0.4)` (DESIGN.md §6).
+/// Hover — `opacity(0.85)` over the original, disabled — `opacity(0.4)` (DESIGN.md §6).
 struct LingoButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         HoverWrapper(pressed: configuration.isPressed) { configuration.label }
@@ -84,10 +84,10 @@ struct LingoButtonStyle: ButtonStyle {
     }
 }
 
-/// Круглая кнопка с подписью (Пауза, Завершить — DESIGN.md §5, size.roundButton).
+/// Round button with a caption (Pause, Finish — DESIGN.md §5, size.roundButton).
 struct RoundCaptionButton: View {
     let symbol: String
-    let caption: String
+    let caption: LocalizedStringKey
     let fill: Color
     let iconColor: Color
     let action: () -> Void
@@ -112,7 +112,7 @@ struct RoundCaptionButton: View {
     }
 }
 
-/// Вертикальный или горизонтальный разделитель колонок `border.divider`.
+/// Vertical or horizontal column divider `border.divider`.
 struct ColumnDivider: View {
     var vertical = true
     var body: some View {

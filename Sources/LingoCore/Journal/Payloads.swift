@@ -1,6 +1,6 @@
 import Foundation
 
-/// Полезная нагрузка событий (R-35). Все поля — синтетические или пользовательские тексты; ключи API сюда не попадают (R-48).
+/// Event payloads (R-35). All fields are synthetic or user texts; API keys never get here (R-48).
 public enum Payload {
     public struct SessionCreated: Codable, Sendable, Hashable {
         public var title: String
@@ -8,7 +8,7 @@ public enum Payload {
         public init(title: String, settings: SessionSettings) { self.title = title; self.settings = settings }
     }
 
-    /// Изменение названия и/или настроек. `nil` — поле не меняется.
+    /// Change of the title and/or settings. `nil` — the field is unchanged.
     public struct SessionUpdated: Codable, Sendable, Hashable {
         public var title: String?
         public var settings: SessionSettings?
@@ -22,7 +22,7 @@ public enum Payload {
         public var segments: [ReplySegment]?
         public var source: String?
         public var kind: ChatMessage.Kind?
-        /// Сообщение пользователя, на которое это ответ, — для «Ответить заново» (R-09).
+        /// The user message this is a reply to — for "Reply again" (R-09).
         public var replyTo: String?
 
         public init(role: Role, text: String, lang: Lang, segments: [ReplySegment]? = nil, source: String? = nil,
@@ -51,7 +51,7 @@ public enum Payload {
 
     public struct SummaryUpdated: Codable, Sendable, Hashable {
         public var text: String
-        /// Последнее сообщение, которое учтено в кратком содержании (R-04).
+        /// The last message included in the summary (R-04).
         public var through: String?
         public init(text: String, through: String? = nil) { self.text = text; self.through = through }
     }

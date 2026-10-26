@@ -2,8 +2,8 @@ import AppKit
 import LingoCore
 import SwiftUI
 
-/// Мастер первого запуска (R-45): 1) разрешения на микрофон и распознавание; 2) ключ Groq (можно пропустить — голос неактивен);
-/// 3) папка синхронизации (можно пропустить).
+/// First-launch wizard (R-45): 1) microphone and speech-recognition permissions; 2) a Groq key (can be skipped — voice stays inactive);
+/// 3) sync folder (can be skipped).
 struct OnboardingView: View {
     let services: AppServices
     let keys: KeysController
@@ -14,15 +14,15 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.S.s16) {
-            Text("Добро пожаловать в Lingo").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
-            Text("Шаг \(step + 1) из 3").font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
+            Text("Welcome to Lingo").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
+            Text("Step \(step + 1) of 3").font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
             switch step {
             case 0:
-                SettingsCard(title: "Микрофон и распознавание речи",
-                             subtitle: "Lingo слушает вашу речь и распознаёт её на этом Mac. Звук не сохраняется и не уходит в сеть — в модель отправляется только текст.") {
-                    status("Микрофон", mic)
-                    status("Распознавание речи", speech)
-                    Button("Разрешить") {
+                SettingsCard(title: "Microphone and speech recognition",
+                             subtitle: "Lingo listens to your speech and recognizes it on this Mac. Audio is not saved and never goes to the network — only text is sent to the model.") {
+                    status(String(localized: "Microphone"), mic)
+                    status(String(localized: "Speech recognition"), speech)
+                    Button("Allow") {
                         Task {
                             _ = await Permissions.requestMicrophone()
                             _ = await Permissions.requestSpeech()
@@ -32,27 +32,27 @@ struct OnboardingView: View {
                         }
                     }
                     if mic == .denied {
-                        Text("Доступ запрещён. Включите Lingo: Системные настройки → Конфиденциальность и безопасность → Микрофон.")
+                        Text("Access denied. Turn on Lingo: System Settings → Privacy & Security → Microphone.")
                             .font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger)
                     }
                 }
             case 1:
                 ProviderKeysCard(keys: keys, provider: .groq)
-                Text("Без ключа голос и ответы модели неактивны; ключ можно добавить позже в Настройках.")
+                Text("Without a key, voice and model replies are inactive; you can add a key later in Settings.")
                     .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
             default:
-                SettingsCard(title: "Папка синхронизации",
-                             subtitle: "Чтобы история была общей с iPhone (LINGO-02), выберите папку «Lingo» в iCloud Drive. История всегда хранится и на этом Mac.") {
-                    Text(services.model.syncFolderPath ?? "Не выбрана").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
-                    Button("Выбрать папку…") { services.chooseSyncFolder() }
+                SettingsCard(title: "Sync folder",
+                             subtitle: "To share the history with an iPhone (LINGO-02), choose the “Lingo” folder in iCloud Drive. The history is always kept on this Mac as well.") {
+                    Text(services.model.syncFolderPath ?? String(localized: "Not selected")).font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
+                    Button("Choose a folder…") { services.chooseSyncFolder() }
                 }
             }
             Spacer(minLength: 0)
             HStack {
-                if step > 0 { Button("Назад") { step -= 1 } }
+                if step > 0 { Button("Back") { step -= 1 } }
                 Spacer()
-                if step > 0 { Button("Пропустить") { next() } }
-                Button(step == 2 ? "Готово" : "Дальше") { next() }.keyboardShortcut(.defaultAction)
+                if step > 0 { Button("Skip") { next() } }
+                Button(step == 2 ? "Done" : "Next") { next() }.keyboardShortcut(.defaultAction)
             }
         }
         .padding(Theme.S.s24)
@@ -71,7 +71,7 @@ struct OnboardingView: View {
     func status(_ title: String, _ s: Permissions.State) -> some View {
         HStack(spacing: Theme.S.s8) {
             Circle().fill(s == .granted ? Theme.C.statusSuccess : Theme.C.statusDanger).frame(width: Theme.S.s8, height: Theme.S.s8)
-            Text("\(title): \(s == .granted ? "разрешено" : (s == .denied ? "запрещено" : "не запрошено"))")
+            Text(verbatim: "\(title): \(s == .granted ? String(localized: "allowed") : (s == .denied ? String(localized: "denied") : String(localized: "not requested")))")
                 .font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
         }
     }

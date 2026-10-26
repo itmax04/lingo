@@ -1,7 +1,7 @@
 import LingoCore
 import SwiftUI
 
-/// Правка расшифровки (R-09): клик по своему пузырю → исправить текст → «Сохранить» или «Ответить заново».
+/// Transcript edit (R-09): click your own bubble → fix the text → "Save" or "Reply again".
 struct EditMessageView: View {
     let message: ChatMessage
     @State private var text: String
@@ -19,8 +19,8 @@ struct EditMessageView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.S.s16) {
-            Text("Исправить расшифровку").font(Theme.F.panelTitle).foregroundStyle(Theme.C.textPrimary)
-            Text("Исправленный текст сохранится в истории (событие «правка»). «Ответить заново» пересчитает ответ помощника.")
+            Text("Fix the transcript").font(Theme.F.panelTitle).foregroundStyle(Theme.C.textPrimary)
+            Text("The corrected text is saved in the history (an “edit” event). “Reply again” regenerates the assistant's reply.")
                 .font(Theme.F.hintTranslation).foregroundStyle(Theme.C.textSecondary)
             TextEditor(text: $text)
                 .font(Theme.F.bubble)
@@ -31,9 +31,9 @@ struct EditMessageView: View {
                 .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.button))
             HStack {
                 Spacer()
-                Button("Отмена", action: onCancel).keyboardShortcut(.cancelAction)
-                Button("Сохранить") { onSave(text) }.disabled(text == message.text || text.trimmingCharacters(in: .whitespaces).isEmpty)
-                Button("Ответить заново") { onRegenerate(text) }.keyboardShortcut(.defaultAction)
+                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
+                Button("Save") { onSave(text) }.disabled(text == message.text || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button("Reply again") { onRegenerate(text) }.keyboardShortcut(.defaultAction)
             }
         }
         .padding(Theme.S.s24)

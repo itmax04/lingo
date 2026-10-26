@@ -1,7 +1,7 @@
 import Foundation
 
-/// ULID: 48 бит времени (мс) + 80 бит случайности, Crockford Base32, 26 символов (R-35).
-/// Сортировка строк совпадает с порядком по времени создания.
+/// ULID: 48 bits of time (ms) + 80 bits of randomness, Crockford Base32, 26 characters (R-35).
+/// Sorting the strings matches the order of creation time.
 public enum ULID {
     private static let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 

@@ -1,21 +1,21 @@
 import Foundation
 
-/// Вид лимита провайдера (R-52): по запросам или токенам, в минуту или в сутки.
+/// Kind of provider limit (R-52): requests or tokens, per minute or per day.
 public enum RateLimitKind: String, Codable, Sendable, Hashable {
     case rpm, rpd, tpm, tpd
 
     public var title: String {
         switch self {
-        case .rpm: "минутный лимит запросов"
-        case .rpd: "дневной лимит запросов"
-        case .tpm: "минутный лимит токенов"
-        case .tpd: "дневной лимит токенов"
+        case .rpm: String(localized: "per-minute request limit")
+        case .rpd: String(localized: "daily request limit")
+        case .tpm: String(localized: "per-minute token limit")
+        case .tpd: String(localized: "daily token limit")
         }
     }
 
     public var isDaily: Bool { self == .rpd || self == .tpd }
 
-    /// Из текста ошибки провайдера: «… on tokens per minute (TPM): Limit 8000, Used 6500 …» (Groq).
+    /// From the provider's error text: "… on tokens per minute (TPM): Limit 8000, Used 6500 …" (Groq).
     public static func parse(_ message: String) -> RateLimitKind? {
         let m = message.lowercased()
         if m.contains("(tpd)") || m.contains("tokens per day") { return .tpd }
@@ -25,13 +25,13 @@ public enum RateLimitKind: String, Codable, Sendable, Hashable {
         return nil
     }
 
-    /// «Please try again in 1h2m3.5s» / «in 6.6s» / «in 450ms» → секунды.
+    /// "Please try again in 1h2m3.5s" / "in 6.6s" / "in 450ms" → seconds.
     public static func tryAgainSeconds(_ message: String) -> Double? {
         guard let r = message.range(of: #"try again in ([0-9hms\.]+)"#, options: [.regularExpression, .caseInsensitive]) else { return nil }
         return duration(String(message[r]).lowercased().replacingOccurrences(of: "try again in ", with: ""))
     }
 
-    /// «2m59.56s», «7.66s», «450ms», «1h2m» → секунды.
+    /// "2m59.56s", "7.66s", "450ms", "1h2m" → seconds.
     public static func duration(_ raw: String) -> Double? {
         let s = raw.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: " ."))
         var total = 0.0
@@ -59,7 +59,7 @@ public enum RateLimitKind: String, Codable, Sendable, Hashable {
     }
 }
 
-/// Остатки квоты из заголовков ответа (Groq: `x-ratelimit-*`). Пустые поля — провайдер их не дал.
+/// Remaining quota from the response headers (Groq: `x-ratelimit-*`). Empty fields — the provider did not send them.
 public struct RateLimitSnapshot: Codable, Sendable, Hashable {
     public var remainingTokens: Int?
     public var limitTokens: Int?
@@ -95,7 +95,7 @@ public struct RateLimitSnapshot: Codable, Sendable, Hashable {
 
     public var isEmpty: Bool { remainingTokens == nil && remainingRequests == nil }
 
-    /// Остаток токенов на минуту сейчас: после срока сброса — снова полный лимит (или неизвестно).
+    /// Tokens left for the current minute: after the reset time — the full limit again (or unknown).
     public func tokensAvailable(now: Date = Date()) -> Int? {
         guard let r = remainingTokens else { return nil }
         if let reset = resetTokensSeconds, now.timeIntervalSince(at) >= reset { return limitTokens }
@@ -103,14 +103,14 @@ public struct RateLimitSnapshot: Codable, Sendable, Hashable {
     }
 }
 
-/// Безопасная запись расхода одного запроса (R-52). Текст реплик и ключи не пишутся.
+/// A safe usage record of one request (R-52). Utterance texts and keys are never written.
 public struct UsageRecord: Codable, Sendable, Hashable {
     public var ts: Date
     public var purpose: String
     public var provider: String
     public var model: String
     public var keyIndex: Int
-    /// ok | http_<код> | timeout | network | cancelled | refusal | other
+    /// ok | http_<code> | timeout | network | cancelled | refusal | other
     public var status: String
     public var limitKind: RateLimitKind?
     public var retryAfter: Double?
@@ -132,7 +132,7 @@ public struct UsageRecord: Codable, Sendable, Hashable {
     }
 }
 
-/// Журнал расхода: `<dir>/usage-<yyyy-mm-dd>.jsonl` + итоги за день по моделям.
+/// Usage log: `<dir>/usage-<yyyy-mm-dd>.jsonl` + daily totals per model.
 public final class UsageRecorder: @unchecked Sendable {
     public let dir: URL
     private let lock = NSLock()
@@ -179,7 +179,7 @@ public final class UsageRecorder: @unchecked Sendable {
         return text.split(separator: "\n").compactMap { try? dec.decode(UsageRecord.self, from: Data($0.utf8)) }
     }
 
-    /// Итоги сегодняшнего дня по моделям (вкладка «Квота»).
+    /// Today's totals per model (the "Quota" tab).
     public func today() -> [DaySummary] {
         var by: [String: DaySummary] = [:]
         for r in records() {
@@ -198,7 +198,7 @@ public final class UsageRecorder: @unchecked Sendable {
     }
 }
 
-/// Грубая оценка токенов запроса (≈ 3,5 символа на токен для en/de/ru) — для выбора шага по остатку квоты.
+/// Rough token estimate of a request (≈ 3.5 characters per token for en/de/ru) — for choosing a step by remaining quota.
 public enum TokenEstimate {
     public static func input(_ r: LLMRequest) -> Int {
         Int(Double(r.system.count + r.messages.reduce(0) { $0 + $1.text.count }) / 3.5)

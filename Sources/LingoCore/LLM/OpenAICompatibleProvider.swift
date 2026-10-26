@@ -1,5 +1,5 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/LLM/Providers.swift`, `OpenAICompatibleProvider`, коммит cf0e764)
-// с адаптацией: провайдеры R-30 (Groq, Mistral, OpenRouter, свой адрес), без изображений.
+// Ported from Interview Copilot (`Sources/CopilotCore/LLM/Providers.swift`, `OpenAICompatibleProvider`, commit cf0e764)
+// and adapted: R-30 providers (Groq, Mistral, OpenRouter, custom endpoint), no images.
 import Foundation
 
 public struct OpenAICompatibleProvider: LLMProvider {
@@ -13,19 +13,19 @@ public struct OpenAICompatibleProvider: LLMProvider {
         self.customBase = customBase
     }
 
-    /// Рассуждающие модели семейства GPT-OSS: рассуждение коротко и не в ответе.
+    /// Reasoning models of the GPT-OSS family: reasoning is short and not part of the reply.
     static func isReasoning(_ model: String) -> Bool { model.contains("gpt-oss") }
 
     public func makeRequest(_ request: LLMRequest, model: String, key: String) throws -> URLRequest {
         guard let base = ProviderEndpoints.base(id, customBase: customBase) else {
-            throw LLMError.badResponse("Свой адрес: не задан (Настройки → Ключи и модели)")
+            throw LLMError.badResponse(String(localized: "Custom endpoint: not set (Settings → Keys and models)"))
         }
         var r = URLRequest(url: base.appendingPathComponent("chat/completions"))
         r.httpMethod = "POST"
         r.setValue("application/json", forHTTPHeaderField: "Content-Type")
         ProviderEndpoints.authorize(&r, key: key)
         if id == .openrouter {
-            // Необязательные заголовки атрибуции OpenRouter; без личных данных.
+            // Optional OpenRouter attribution headers; no personal data.
             r.setValue("Lingo", forHTTPHeaderField: "X-Title")
         }
         var messages: [[String: Any]] = [["role": "system", "content": request.system]]
@@ -37,14 +37,14 @@ public struct OpenAICompatibleProvider: LLMProvider {
             if reasoning {
                 body["reasoning_effort"] = "low"
                 body["include_reasoning"] = false
-                // Запас на короткое рассуждение: Groq учитывает max_completion_tokens в лимите токенов в минуту (P-05).
+                // Headroom for short reasoning: Groq counts max_completion_tokens against the tokens-per-minute limit (P-05).
                 body["max_completion_tokens"] = request.maxTokens + 512
             } else {
                 if model.lowercased().contains("qwen") { body["reasoning_effort"] = "none" }
                 body["max_completion_tokens"] = request.maxTokens
             }
         case .mistral, .openrouter, .custom:
-            // Общие параметры Chat Completions.
+            // Common Chat Completions parameters.
             body["max_tokens"] = request.maxTokens + (reasoning ? 512 : 0)
             if reasoning { body["reasoning_effort"] = "low" }
         }
@@ -88,7 +88,7 @@ public struct OpenAICompatibleProvider: LLMProvider {
                             usage = x
                         }
                     }
-                    // Нет usage — нет записи расхода (неизвестное не превращается в ноль, R-52).
+                    // No usage — no usage record (an unknown value never becomes zero, R-52).
                     if let usage { continuation.yield(.usage(usage)) }
                     continuation.yield(.done(stopReason: stop))
                     continuation.finish()

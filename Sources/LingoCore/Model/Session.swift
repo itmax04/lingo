@@ -1,6 +1,6 @@
 import Foundation
 
-/// Сессия (R-01). Строится из событий журнала (R-35, R-37).
+/// A session (R-01). Built from journal events (R-35, R-37).
 public struct Session: Sendable, Hashable, Identifiable {
     public enum State: String, Codable, Sendable, Hashable { case active, ended }
 
@@ -11,9 +11,9 @@ public struct Session: Sendable, Hashable, Identifiable {
     public var lastActivity: Date
     public var state: State
     public var deleted: Bool
-    /// Краткое содержание для контекста модели (R-04).
+    /// Summary for the model context (R-04).
     public var summary: String
-    /// Последнее сообщение, учтённое в кратком содержании.
+    /// The last message included in the summary.
     public var summaryThrough: String?
 
     public init(id: String, title: String, settings: SessionSettings, createdAt: Date, lastActivity: Date,
@@ -30,22 +30,25 @@ public struct Session: Sendable, Hashable, Identifiable {
     }
 }
 
-/// Даты строки сессии в стиле макета: «Сегодня, 14:28», «12 мая, 17:03», «28 апр., 14:06» (R-05).
+/// Session row dates in the mockup style: "Today, 14:28", "12 May, 17:03", "28 Apr, 14:06" (R-05).
 public enum SessionDateFormat {
+    /// Locale of the interface language (the app's chosen localization), so dates match the UI text.
+    public static var locale: Locale { Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en") }
+
     public static func rowDate(_ date: Date, now: Date = Date(), calendar: Calendar = .current) -> String {
         let time = date.formatted(Date.FormatStyle(date: .omitted, time: .shortened)
-            .locale(Locale(identifier: "ru_RU")))
-        if calendar.isDate(date, inSameDayAs: now) { return "Сегодня, \(time)" }
+            .locale(locale))
+        if calendar.isDate(date, inSameDayAs: now) { return String(localized: "Today, \(time)") }
         if let y = calendar.date(byAdding: .day, value: -1, to: now), calendar.isDate(date, inSameDayAs: y) {
-            return "Вчера, \(time)"
+            return String(localized: "Yesterday, \(time)")
         }
-        var style = Date.FormatStyle(date: .omitted, time: .omitted).locale(Locale(identifier: "ru_RU")).day().month(.abbreviated)
+        var style = Date.FormatStyle(date: .omitted, time: .omitted).locale(locale).day().month(.abbreviated)
         if !calendar.isDate(date, equalTo: now, toGranularity: .year) { style = style.year() }
         return "\(date.formatted(style)), \(time)"
     }
 
-    /// Время в пузыре: «14:28».
+    /// Time in a bubble: "14:28".
     public static func time(_ date: Date) -> String {
-        date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(Locale(identifier: "ru_RU")))
+        date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(locale))
     }
 }

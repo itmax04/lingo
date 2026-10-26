@@ -1,12 +1,12 @@
 import Foundation
 
-/// Параметры конца реплики и склейки (R-10, R-11).
+/// End-of-utterance and merging parameters (R-10, R-11).
 public struct TurnConfig: Codable, Sendable, Hashable {
-    /// T — тишина, после которой реплика закончена: 1,5 с, от 0,6 до 3,0 с, шаг 0,1.
+    /// T — silence after which the utterance is over: 1.5 s, from 0.6 to 3.0 s, step 0.1.
     public var silence: Double
-    /// Минимум речи в реплике: 0,3 с (короче — шум, не реплика).
+    /// Minimum speech in an utterance: 0.3 s (shorter is noise, not an utterance).
     public var minSpeech: Double
-    /// G — новая реплика, начатая не позже G после конца предыдущей, склеивается с ней, если помощник ещё не начал говорить.
+    /// G — a new utterance started no later than G after the previous one ended is merged with it if the assistant has not started speaking.
     public var mergeGap: Double
 
     public static let silenceRange: ClosedRange<Double> = 0.6...3.0
@@ -19,7 +19,7 @@ public struct TurnConfig: Codable, Sendable, Hashable {
     }
 }
 
-/// Границы реплик по событиям VAD (речь началась/закончилась) и ходу времени. Чистая логика: время передаётся снаружи.
+/// Utterance boundaries from VAD events (speech started/ended) and the passage of time. Pure logic: time is passed in.
 public struct TurnSegmenter: Sendable {
     public struct Span: Sendable, Equatable, Codable {
         public var start: Double
@@ -29,14 +29,14 @@ public struct TurnSegmenter: Sendable {
     }
 
     public enum Event: Sendable, Equatable {
-        /// Началась речь новой реплики (для перебивания и UI).
+        /// Speech of a new utterance started (for barge-in and the UI).
         case speechBegan(at: Double, mergesWithPrevious: Bool)
-        /// Реплика закончена (тишина ≥ T).
+        /// The utterance is over (silence ≥ T).
         case utterance(Span)
-        /// Реплика закончена и склеена с предыдущей (R-11): отменить незавершённый запрос и отправить объединённый текст.
-        /// `span` — от начала предыдущей реплики до конца новой.
+        /// The utterance is over and merged with the previous one (R-11): cancel the pending request and send the combined text.
+        /// `span` — from the start of the previous utterance to the end of the new one.
         case merged(previous: Span, span: Span)
-        /// Слишком короткая речь (< minSpeech) — не реплика.
+        /// Speech too short (< minSpeech) — not an utterance.
         case discarded(Span)
     }
 
@@ -52,7 +52,7 @@ public struct TurnSegmenter: Sendable {
 
     public init(config: TurnConfig = TurnConfig()) { self.config = config }
 
-    /// Идёт ли реплика (речь или пауза короче T).
+    /// Whether an utterance is in progress (speech or a pause shorter than T).
     public var isInUtterance: Bool { curStart != nil }
     public var isSpeaking: Bool { inSpeech }
 
@@ -81,7 +81,7 @@ public struct TurnSegmenter: Sendable {
         return []
     }
 
-    /// Ход времени: закрывает реплику после тишины ≥ T.
+    /// Passage of time: closes the utterance after silence ≥ T.
     public mutating func advance(to t: Double) -> [Event] {
         guard !inSpeech, let start = curStart, t - lastSpeechEnd >= config.silence - 1e-6 else { return [] }
         let span = Span(start: start, end: lastSpeechEnd)
@@ -98,13 +98,13 @@ public struct TurnSegmenter: Sendable {
         return [.utterance(span)]
     }
 
-    /// Помощник начал говорить: следующая реплика — новый ход, а не склейка (R-11 → R-12).
+    /// The assistant started speaking: the next utterance is a new turn, not a merge (R-11 → R-12).
     public mutating func assistantStartedSpeaking() {
         assistantStarted = true
         mergeCandidate = false
     }
 
-    /// Принудительно закончить реплику (отпущен пробел, кнопка «Говорить» — R-06).
+    /// Force the utterance to end (space released, the "Speak" button — R-06).
     public mutating func flush(at t: Double) -> [Event] {
         var out = speechEnded(at: t)
         let saved = config.silence
@@ -119,11 +119,11 @@ public struct TurnSegmenter: Sendable {
     }
 }
 
-/// Прогон таймлайна «речь/тишина» (мс) через сегментатор — eval `turn` и тесты.
+/// Runs a speech/silence timeline (ms) through the segmenter — the `turn` eval and tests.
 public enum TurnTimeline {
     public enum Piece: Sendable, Equatable { case speech(Int), silence(Int) }
 
-    /// Итоговые реплики после склеек. `assistantAt` — моменты (мс), когда помощник начинал говорить.
+    /// Final utterances after merges. `assistantAt` — moments (ms) when the assistant started speaking.
     public static func run(_ pieces: [Piece], config: TurnConfig = TurnConfig(), assistantAt: [Int] = [], stepMs: Int = 20) -> [TurnSegmenter.Span] {
         var seg = TurnSegmenter(config: config)
         var spans: [TurnSegmenter.Span] = []

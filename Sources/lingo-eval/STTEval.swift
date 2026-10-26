@@ -1,8 +1,8 @@
 import Foundation
 import LingoCore
 
-/// Eval `audio` (P-04): WER, определение языка, задержка, память для движка распознавания. Порогов нет —
-/// сравнение движков (пороги AC-16 — на живых фразах). Аудио: scripts/make-audio-fixtures.sh.
+/// The `audio` eval (P-04): WER, language detection, latency, memory for a recognition engine. No thresholds —
+/// it compares engines (the AC-16 thresholds apply to live phrases). Audio: scripts/make-audio-fixtures.sh.
 enum STTEval {
     struct Item: Decodable { var set: String; var id: String; var file: String; var ref: String; var study: String; var lang: String }
     struct Row: Encodable {
@@ -15,14 +15,14 @@ enum STTEval {
     static func run(engine id: String, set: String, forcedMixed: Bool) async throws -> Int32 {
         let manifestURL = URL(fileURLWithPath: set).appendingPathComponent("manifest.json")
         guard let data = try? Data(contentsOf: manifestURL) else {
-            print("stt: нет \(manifestURL.path) — запустите scripts/make-audio-fixtures.sh")
+            print("stt: missing \(manifestURL.path) — run scripts/make-audio-fixtures.sh")
             return 2
         }
         let items = try JSONDecoder().decode([Item].self, from: data)
         let t0 = Date()
         let engine: SpeechRecognizer
         if id.hasPrefix("whisper:") {
-            // whisper:<модель>[@стратегия[@ctx]] — стратегия: detect | dual | smallDetect; ctx — минимум кадров урезанного контекста.
+            // whisper:<model>[@strategy[@ctx]] — strategy: detect | dual | smallDetect; ctx — minimum frames of the reduced context.
             let parts = id.dropFirst("whisper:".count).split(separator: "@").map(String.init)
             let w = try WhisperEngine(modelPath: parts[0])
             if parts.count > 1, let st = WhisperEngine.LanguageStrategy(rawValue: parts[1]) { w.strategy = st }
@@ -34,12 +34,12 @@ enum STTEval {
             engine = w
         } else if id == "apple" {
             guard AppleSpeechEngine.authorized else {
-                print("stt: NOT RUN — у этого процесса нет разрешения на распознавание речи (запускать из Lingo.app после H-2)")
+                print("stt: NOT RUN — this process has no speech-recognition permission (run from Lingo.app after H-2)")
                 return 3
             }
             engine = AppleSpeechEngine()
         } else {
-            print("stt: неизвестный движок \(id)")
+            print("stt: unknown engine \(id)")
             return 2
         }
         let loadMs = Date().timeIntervalSince(t0) * 1000
@@ -79,9 +79,9 @@ enum STTEval {
         let safe = id.split(separator: "/").last.map(String.init)?.replacingOccurrences(of: ":", with: "-") ?? engine.id
         let path = try EvalIO.writeOut("stt-\(safe).json", rep)
         let variant = id.split(separator: "@").dropFirst().joined(separator: "@")
-        print(String(format: "stt %@ [%@]: загрузка %.0f мс, память после загрузки %.0f МБ, пик %.0f МБ", engine.id, variant.isEmpty ? "detect" : variant, loadMs, rep.footprintAfterLoadMB, rep.peakFootprintMB))
+        print(String(format: "stt %@ [%@]: load %.0f ms, memory after load %.0f MB, peak %.0f MB", engine.id, variant.isEmpty ? "detect" : variant, loadMs, rep.footprintAfterLoadMB, rep.peakFootprintMB))
         for s in sums {
-            print(String(format: "  %-5@ %-9@ n=%2d WER=%.1f%% понятно(WER≤25%%)=%d/%d язык=%@ задержка медиана %.0f мс p90 %.0f мс",
+            print(String(format: "  %-5@ %-9@ n=%2d WER=%.1f%% intelligible(WER≤25%%)=%d/%d lang=%@ latency median %.0f ms p90 %.0f ms",
                          s.set, s.mode, s.n, s.meanWER * 100, s.understood, s.n,
                          s.langAccuracy.map { String(format: "%.0f%%", $0 * 100) } ?? "—", s.medianMs, s.p90Ms))
         }

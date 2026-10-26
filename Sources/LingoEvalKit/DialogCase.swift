@@ -2,7 +2,7 @@ import Foundation
 import LingoCore
 import Yams
 
-/// Кейс eval `dialog` (evals/README.md). Только синтетика.
+/// A case of the `dialog` eval (evals/README.md). Synthetic data only.
 public struct DialogCase: Decodable, Sendable {
     public struct SessionSpec: Decodable, Sendable {
         public var lang: Lang
@@ -27,27 +27,27 @@ public struct DialogCase: Decodable, Sendable {
     }
 
     public struct Expect: Decodable, Sendable {
-        /// Нужен ли `@say ru` (явная просьба R-17). nil → русского быть не должно.
+        /// Whether `@say ru` is required (an explicit request, R-17). nil → there must be no Russian.
         public var russian: Bool?
         public var contains_correction: [String]?
-        /// В обычном ответе нет исправлений (режим без «по ходу»).
+        /// A normal reply contains no corrections (mode without "as we go").
         public var no_inline_correction: Bool?
         public var asks_repeat: Bool?
         public var one_question: Bool?
         public var max_words: Int?
         public var returns_to_practice: Bool?
-        /// Повтор последнего ответа помощника (R-14): общая доля слов ≥ 60%.
+        /// Repeat of the assistant's last reply (R-14): shared word share ≥ 60%.
         public var repeats_previous: Bool?
-        /// Должна быть хотя бы одна строка @fix (режим «после» и «по запросу»).
+        /// There must be at least one @fix line ("after" and "on request" modes).
         public var fix_recorded: Bool?
         public var min_fixes: Int?
-        /// R-51: @heard совпадает с одним из выражений.
+        /// R-51: @heard matches one of the expressions.
         public var heard: [String]?
-        /// Слова, которые нельзя «исправлять» (ошибка распознавания, R-51): их нет в @fix.
+        /// Words that must not be "corrected" (a recognition error, R-51): they are absent from @fix.
         public var not_corrected: [String]?
-        /// Ответ содержит одно из выражений (свободная проверка).
+        /// The reply contains one of the expressions (free check).
         public var says: [String]?
-        /// Есть @hint (R-16).
+        /// There is a @hint (R-16).
         public var hint: Bool?
     }
 
@@ -63,7 +63,7 @@ public struct DialogCase: Decodable, Sendable {
 
     public var studyLang: Lang { session.lang }
 
-    /// Сообщения для PromptBuilder.
+    /// Messages for PromptBuilder.
     public func messages() -> [ChatMessage] {
         var out: [ChatMessage] = []
         var t = Date(timeIntervalSince1970: 1_792_900_000)

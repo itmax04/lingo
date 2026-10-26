@@ -2,7 +2,7 @@ import Foundation
 import LingoCore
 import Observation
 
-/// Состояние окна. В P-01 заполняется фикстурами (`Fixtures`); с P-06 — из журнала.
+/// Window state. In P-01 it was filled from fixtures (`Fixtures`); since P-06 — from the journal.
 @MainActor
 @Observable
 final class AppModel {
@@ -13,14 +13,14 @@ final class AppModel {
     var phrases: [Phrase] = []
     var starred: Set<String> = []
     var voiceState: VoiceState = .idle
-    /// Уровни звука для волны, 0…1 (R-42).
+    /// Sound levels for the waveform, 0…1 (R-42).
     var levels: [Float] = []
-    var sourceLabel = "Нет сети"
+    var sourceLabel = String(localized: "Offline")
     var online = false
-    var syncStatus = "Не настроена"
+    var syncStatus = String(localized: "Not set up")
     var draft = ""
     var hintsVisible = true
-    /// Ответ помощника по мере генерации (R-13) и метка шага.
+    /// The assistant's reply as it is generated (R-13) and the step label.
     var streaming: String?
     var streamingSource: String?
     var thinking = false
@@ -35,17 +35,17 @@ final class AppModel {
     var syncFolderPath: String?
     var russianOnce = false
     var slowPace = false
-    /// Правка расшифровки (R-09).
+    /// Transcript edit (R-09).
     var editing: ChatMessage?
-    /// Полное состояние журнала (для выбора сессии без повторного запроса).
+    /// Full journal state (to select a session without another request).
     private(set) var history = HistoryState()
-    /// Словарь ★ (R-28).
+    /// Vocabulary ★ (R-28).
     var dictionary: [Phrase] = []
-    /// Раздел «Исправления» (R-27) — из `@fix` сессии.
+    /// The "Corrections" section (R-27) — from the session's `@fix` records.
     var corrections: [Phrase] = []
     weak var services: AppServices?
 
-    /// Новое состояние журнала (R-34, R-37).
+    /// New journal state (R-34, R-37).
     func apply(_ st: HistoryState) {
         history = st
         sessions = Array(st.sessions.values)
@@ -57,7 +57,7 @@ final class AppModel {
         refreshSelection()
     }
 
-    /// Лента с незаконченным ответом помощника (R-13: текст появляется по мере генерации).
+    /// The feed with the assistant's unfinished reply (R-13: text appears as it is generated).
     var displayMessages: [ChatMessage] {
         guard let t = streaming, !t.isEmpty, let sid = selectedSessionID, let s = selectedSession else { return messages }
         let parsed = ReplyProtocol.parse(t, studyLang: s.settings.lang)
@@ -75,23 +75,23 @@ final class AppModel {
 
     var selectedSession: Session? { sessions.first { $0.id == selectedSessionID } }
 
-    /// Голос и ввод доступны, только если есть сеть и действующий ключ (S-17, R-45).
+    /// Voice and input are available only with a network and a working key (S-17, R-45).
     func recomputeOnline() {
         online = networkUp && hasKey
-        if !networkUp { sourceLabel = "Нет сети" }
+        if !networkUp { sourceLabel = String(localized: "Offline") }
         else if let l = services?.settings.llm.primaryLabel { sourceLabel = l }
     }
 
-    /// Причина, почему голос и ввод неактивны (R-33, S-01).
+    /// Why voice and input are inactive (R-33, S-01).
     var disabledReason: String {
-        if readOnly { return "Журнал новой версии — только чтение" }
-        if !networkUp { return "Нет сети: ответы модели недоступны" }
-        if !hasKey { return "Нет ключа: Настройки → Ключи и модели" }
-        if selectedSession == nil { return "Создайте сессию" }
+        if readOnly { return String(localized: "Journal from a newer version — read-only") }
+        if !networkUp { return String(localized: "Offline: model replies are unavailable") }
+        if !hasKey { return String(localized: "No key: Settings → Keys and models") }
+        if selectedSession == nil { return String(localized: "Create a session") }
         return ""
     }
 
-    /// Сессии выбранного языка, по последней активности (R-05).
+    /// Sessions of the selected language, by last activity (R-05).
     var visibleSessions: [Session] {
         sessions.filter { !$0.deleted && $0.settings.lang == langFilter }
             .sorted { $0.lastActivity > $1.lastActivity }

@@ -2,10 +2,19 @@ import AppKit
 import LingoCore
 import SwiftUI
 
-/// Вкладки настроек (R-44). «Голос», «Синхронизация», «Данные» добавляются в P-04 и P-10.
+/// Settings tabs (R-44). "Voice", "Sync" and "Data" were added in P-04 and P-10.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case keys = "Ключи и модели", quota = "Квота", voice = "Голос", sync = "Синхронизация", data = "Данные"
-    var id: String { rawValue }
+    case keys, quota, voice, sync, data
+    var title: LocalizedStringKey {
+        switch self {
+        case .keys: "Keys and models"
+        case .quota: "Quota"
+        case .voice: "Voice"
+        case .sync: "Sync"
+        case .data: "Data"
+        }
+    }
+    var id: Self { self }
 }
 
 struct SettingsView: View {
@@ -16,13 +25,13 @@ struct SettingsView: View {
     var body: some View {
         TabView(selection: $tab) {
             KeysSettingsView(keys: keys)
-                .tabItem { Text(SettingsTab.keys.rawValue) }
+                .tabItem { Text(SettingsTab.keys.title) }
                 .tag(SettingsTab.keys)
             if let svc = services {
-                QuotaView(services: svc).tabItem { Text(SettingsTab.quota.rawValue) }.tag(SettingsTab.quota)
-                VoiceSettingsView(services: svc).tabItem { Text(SettingsTab.voice.rawValue) }.tag(SettingsTab.voice)
-                SyncSettingsView(services: svc, model: svc.model).tabItem { Text(SettingsTab.sync.rawValue) }.tag(SettingsTab.sync)
-                DataSettingsView(services: svc).tabItem { Text(SettingsTab.data.rawValue) }.tag(SettingsTab.data)
+                QuotaView(services: svc).tabItem { Text(SettingsTab.quota.title) }.tag(SettingsTab.quota)
+                VoiceSettingsView(services: svc).tabItem { Text(SettingsTab.voice.title) }.tag(SettingsTab.voice)
+                SyncSettingsView(services: svc, model: svc.model).tabItem { Text(SettingsTab.sync.title) }.tag(SettingsTab.sync)
+                DataSettingsView(services: svc).tabItem { Text(SettingsTab.data.title) }.tag(SettingsTab.data)
             }
         }
         .frame(minWidth: 820, minHeight: 600)
@@ -39,7 +48,7 @@ final class SettingsWindowController {
         if let w = window { w.makeKeyAndOrderFront(nil); NSApp.activate(); return }
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 720),
                          styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
-        w.title = "Настройки Lingo"
+        w.title = String(localized: "Lingo Settings")
         w.appearance = NSAppearance(named: .darkAqua)
         w.contentView = NSHostingView(rootView: SettingsView(keys: keys, services: services, tab: tab))
         w.isReleasedWhenClosed = false

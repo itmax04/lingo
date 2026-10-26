@@ -1,8 +1,8 @@
 import Foundation
 
-/// Событие журнала (R-35). Неизвестные типы и поля сохраняются (`extra`, `payload`) и игнорируются при построении состояния.
+/// A journal event (R-35). Unknown types and fields are preserved (`extra`, `payload`) and ignored when building state.
 public struct Event: Sendable, Hashable, Identifiable {
-    /// Текущая версия схемы. Журнал со старшей версией читается в режиме «только чтение» (R-39).
+    /// Current schema version. A journal with a newer version is opened read-only (R-39).
     public static let schemaVersion = 1
 
     public var v: Int
@@ -14,7 +14,7 @@ public struct Event: Sendable, Hashable, Identifiable {
     public var type: String
     public var session: String
     public var payload: JSONValue
-    /// Поля верхнего уровня, которых нет в этой версии схемы.
+    /// Top-level fields that this schema version does not know.
     public var extra: [String: JSONValue]
 
     public init(v: Int = Event.schemaVersion, id: String, device: String, seq: Int, lamport: Int, ts: Date,
@@ -32,7 +32,7 @@ public struct Event: Sendable, Hashable, Identifiable {
     }
 }
 
-/// Типы событий (R-35).
+/// Event types (R-35).
 public enum EventType {
     public static let sessionCreated = "session.created"
     public static let sessionUpdated = "session.updated"
@@ -53,12 +53,12 @@ public enum EventType {
                                          hintAdded, phraseStarred, phraseUnstarred]
 }
 
-// MARK: - Строка JSON Lines
+// MARK: - JSON Lines row
 
 extension Event {
     private static let known: Set<String> = ["v", "id", "device", "seq", "lamport", "ts", "type", "session", "payload"]
 
-    /// Время — ISO 8601 UTC с миллисекундами: «2026-10-25T13:01:02.123Z».
+    /// Time — ISO 8601 UTC with milliseconds: "2026-10-25T13:01:02.123Z".
     public static func formatTS(_ d: Date) -> String {
         d.formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .gmt))
     }
@@ -68,7 +68,7 @@ extension Event {
             ?? (try? Date.ISO8601FormatStyle(timeZone: .gmt).parse(s))
     }
 
-    /// Миллисекунды — единица порядка (R-37); время округляется при записи, чтобы порядок не зависел от точности Double.
+    /// Milliseconds are the ordering unit (R-37); time is rounded on write so ordering does not depend on Double precision.
     public var tsMillis: Int64 { Int64((ts.timeIntervalSince1970 * 1000).rounded()) }
 
     public func jsonObject() -> [String: JSONValue] {
@@ -85,7 +85,7 @@ extension Event {
         return o
     }
 
-    /// Одна строка без перевода строки, ключи отсортированы (стабильный вывод).
+    /// One line without a newline, keys sorted (stable output).
     public func line() throws -> String {
         let enc = JSONEncoder()
         enc.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

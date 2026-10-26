@@ -1,25 +1,25 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/Audio/EnergyVAD.swift`, коммит cf0e764) без изменений логики;
-// добавлен порог перебивания (R-12): во время озвучки речь пользователя должна быть заметно громче остаточного эха.
+// Ported from Interview Copilot (`Sources/CopilotCore/Audio/EnergyVAD.swift`, commit cf0e764) without logic changes;
+// adds a barge-in threshold (R-12): while the assistant speaks, the user's speech must be clearly louder than residual echo.
 import Foundation
 
-/// Энергетический детектор речи (VAD, ADR-0001 п. 8) с адаптивным порогом.
-/// Работает кадрами по 20 мс. Уровень шума — минимум энергии кадров за скользящее окно: в речи всегда есть
-/// провалы между словами, а постоянный фон (вентилятор) поднимает минимум и речью не считается.
+/// Energy-based voice activity detector (VAD, ADR-0001 §8) with an adaptive threshold.
+/// Works in 20 ms frames. The noise floor is the minimum frame energy over a sliding window: speech always has
+/// dips between words, while constant background noise (a fan) raises the minimum and is not treated as speech.
 public struct EnergyVAD: Sendable {
     public struct Config: Sendable {
         public var sampleRate = 16_000
         public var frameMs = 20
-        /// Абсолютный минимум уровня речи, dBFS.
+        /// Absolute minimum speech level, dBFS.
         public var minSpeechDB: Float = -50
-        /// Насколько речь должна быть громче шума, dB.
+        /// How much louder than the noise speech must be, dB.
         public var marginDB: Float = 10
-        /// Сколько кадров подряд выше порога, чтобы включить «говорит».
+        /// Consecutive frames above the threshold needed to switch to "speaking".
         public var attackFrames = 3
-        /// Сколько миллисекунд тишины, чтобы выключить «говорит».
+        /// Milliseconds of silence needed to switch "speaking" off.
         public var hangoverMs = 300
-        /// Окно оценки шума, мс.
+        /// Noise estimation window, ms.
         public var noiseWindowMs = 3000
-        /// Дополнительный запас над шумом во время озвучки помощника (R-12), dB.
+        /// Extra margin above noise while the assistant is speaking (R-12), dB.
         public var bargeInExtraDB: Float = 0
 
         public init() {}
@@ -34,7 +34,7 @@ public struct EnergyVAD: Sendable {
     private var pending: [Float] = []
     private var history: [Float] = []
     private var historyIndex = 0
-    /// Включается на время озвучки помощника (R-12).
+    /// Enabled while the assistant is speaking (R-12).
     public var extraMarginDB: Float = 0
 
     public init(config: Config = Config()) {
@@ -51,13 +51,13 @@ public struct EnergyVAD: Sendable {
         return rms > 0 ? max(-120, 20 * log10(rms)) : -120
     }
 
-    /// Подать сэмплы; возвращает изменения состояния (true — началась речь, false — закончилась) по порядку.
+    /// Feed samples; returns state changes in order (true — speech started, false — speech ended).
     @discardableResult
     public mutating func process(_ samples: [Float]) -> [Bool] {
         processEvents(samples).map(\.isSpeech)
     }
 
-    /// Позиция перехода — конец обработанного кадра относительно начала этого блока.
+    /// Transition position — end of the processed frame relative to the start of this block.
     public struct Event: Sendable, Equatable {
         public let isSpeech: Bool
         public let sampleOffset: Int

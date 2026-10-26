@@ -1,10 +1,10 @@
 import Foundation
 
-/// Системная обёртка (R-25). Инструкции модели — по-английски (модели надёжнее следуют им), тексты для пользователя — на языках сессии.
-/// Свой промпт пользователя, краткое содержание и реплики передаются в разметке данных:
-/// `<session_prompt>`, `<summary>`, `<transcript>`. Обёртка сильнее своего промпта (R-03).
+/// System wrapper (R-25). Instructions to the model are in English (models follow them more reliably); texts for the user are in the session languages.
+/// The user's custom prompt, the summary and the utterances are passed as marked-up data:
+/// `<session_prompt>`, `<summary>`, `<transcript>`. The wrapper takes precedence over the custom prompt (R-03).
 public enum PromptBuilder {
-    /// Лимит слов в `@say` на изучаемом языке по уровню (evals/README.md, `length_by_level`).
+    /// Word limit for `@say` in the target language, by level (evals/README.md, `length_by_level`).
     public static func wordLimit(level: String) -> Int {
         switch level.trimmingCharacters(in: .whitespaces).uppercased() {
         case "A1": 25
@@ -23,7 +23,7 @@ public enum PromptBuilder {
         }
     }
 
-    /// Пример естественной формулировки исправления (P3).
+    /// Example of a natural rephrasing in a correction (P3). Language data: each case is in its own language.
     static func naturalPhrase(_ l: Lang) -> String {
         switch l {
         case .de: "Natürlicher: „…“"
@@ -48,7 +48,7 @@ public enum PromptBuilder {
         }
     }
 
-    // MARK: Системная часть
+    // MARK: System part
 
     public static func system(_ s: SessionSettings, policy: ContextPolicy = ContextPolicy()) -> String {
         let L = s.lang.rawValue
@@ -62,7 +62,7 @@ public enum PromptBuilder {
         This is a VOICE conversation: every @say line is read aloud by a text-to-speech voice, and the learner's turns are speech-recognition transcripts.
         """)
 
-        // Сессия
+        // Session
         var session: [String] = ["# Session", "- Target language: \(name) (\(L))."]
         session.append(level.isEmpty
             ? "- Learner level: not specified — keep it simple and adapt to how the learner speaks."
@@ -78,7 +78,7 @@ public enum PromptBuilder {
         session.append("- Correction modes chosen by the learner: \(s.corrections.sorted().map(\.rawValue).joined(separator: ", ")).")
         p.append(session.joined(separator: "\n"))
 
-        // Правила
+        // Rules
         var rules: [String] = ["# Rules"]
         rules.append("1. Speak only \(name). Use Russian ONLY when the learner explicitly asks for it (see the \"explain\" command). Never switch to Russian on your own.")
         rules.append("2. Keep each turn short and natural: at most \(limit) words in total in \(name) @say lines. Ask at most ONE question per turn.")
@@ -177,9 +177,9 @@ public enum PromptBuilder {
         """
     }
 
-    // MARK: Сообщения
+    // MARK: Messages
 
-    /// Запрос хода диалога (R-04, R-25). `command` — команда, которую распознал локальный детектор (R-14…R-22).
+    /// Dialogue turn request (R-04, R-25). `command` — the command recognized by the local detector (R-14…R-22).
     public static func dialogRequest(settings: SessionSettings, summary: String, messages: [ChatMessage],
                                      command: CommandKind? = nil, policy: ContextPolicy = ContextPolicy()) -> LLMRequest {
         let window = policy.window(messages)
@@ -202,7 +202,7 @@ public enum PromptBuilder {
                           maxTokens: 450, purpose: .dialog, temperature: 0.6)
     }
 
-    /// Строка расшифровки: роль, язык, текст; у прерванного ответа — отметка `interrupted_at` (R-12).
+    /// Transcript line: role, language, text; an interrupted reply carries an `interrupted_at` mark (R-12).
     static func transcriptLine(_ m: ChatMessage) -> String {
         switch m.role {
         case .user:
@@ -232,9 +232,9 @@ public enum PromptBuilder {
         s.replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "</transcript>", with: "")
     }
 
-    // MARK: Служебные запросы
+    // MARK: Service requests
 
-    /// Фразы темы (R-27): 6–8 строк `@hint`.
+    /// Topic phrases (R-27): 6–8 `@hint` lines.
     public static func topicPhrasesRequest(settings: SessionSettings) -> LLMRequest {
         let topic = settings.topic.trimmingCharacters(in: .whitespacesAndNewlines)
         let level = settings.level.isEmpty ? "B1" : settings.level
@@ -247,7 +247,7 @@ public enum PromptBuilder {
         return LLMRequest(system: sys, messages: [LLMMessage(role: .user, text: "Write the phrases.")], maxTokens: 400, purpose: .topicPhrases, temperature: 0.4)
     }
 
-    /// Итог сессии по-русски (R-23). Ошибки — из записей `@fix`; артефакты расшифровки и произношение не упоминаются (R-21).
+    /// Session recap in Russian (R-23); its headings below are output-language data. Mistakes come from `@fix` records; transcription artifacts and pronunciation are never mentioned (R-21).
     public static func recapRequest(settings: SessionSettings, fixes: [Fix], messages: [ChatMessage]) -> LLMRequest {
         let sys = """
         You write an end-of-session review for a Russian-speaking learner of \(langName(settings.lang)). Write in Russian. Plain text, no markdown headers.
@@ -267,7 +267,7 @@ public enum PromptBuilder {
         return LLMRequest(system: sys, messages: [LLMMessage(role: .user, text: user)], maxTokens: 700, purpose: .recap, temperature: 0.3)
     }
 
-    /// Краткое содержание (R-04): обновляет прошлое по новым репликам.
+    /// Summary (R-04): updates the previous one with the new utterances.
     public static func summaryRequest(settings: SessionSettings, previous: String, messages: [ChatMessage]) -> LLMRequest {
         let sys = """
         You maintain a compact memory of a language-practice session in \(langName(settings.lang)).

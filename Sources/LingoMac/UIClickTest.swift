@@ -2,8 +2,8 @@ import AppKit
 import LingoCore
 import SwiftUI
 
-/// `Lingo --ui-click-test`: голосовая панель в окне вне экрана получает события мыши в центр каждой кнопки;
-/// печатает, какие действия сработали (разбор «кнопка микрофона не нажимается», H-2).
+/// `Lingo --ui-click-test`: the voice panel in an off-screen window receives mouse events at the center of each button;
+/// prints which actions fired (analysis of "the microphone button does not respond", H-2).
 @MainActor
 enum UIClickTest {
     final class Hits { var mic = 0, pause = 0, end = 0 }
@@ -29,7 +29,7 @@ enum UIClickTest {
                 RunLoop.main.run(until: Date().addingTimeInterval(0.05))
             }
         }
-        // Координаты окна: начало — левый нижний угол. Микрофон: поле 24 + радиус 25; кнопки — справа.
+        // Window coordinates: the origin is the bottom-left corner. Microphone: padding 24 + radius 25; the buttons are on the right.
         let midY = size.height / 2
         click(NSPoint(x: Theme.S.s24 + Theme.R.micCircle / 2, y: midY))
         click(NSPoint(x: size.width - Theme.S.s24 - Theme.R.roundButton / 2, y: midY + 8))

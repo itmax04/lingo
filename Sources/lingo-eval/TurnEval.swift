@@ -1,9 +1,9 @@
 import Foundation
 import LingoCore
 
-/// Eval `turn` (R-10, R-11): обрыв реплики ≤ 10%, ложная склейка ≤ 5% при T = 1,5 с, G = 2,0 с.
-/// Таймлайн — строки «speech 1200» / «silence 800» (мс). `expect` — ожидаемые реплики [начало, конец] в мс после склеек.
-/// `vad: true` — таймлайн дополнительно синтезируется в звук (тон на шуме) и проходит через EnergyVAD.
+/// The `turn` eval (R-10, R-11): utterance cuts ≤ 10%, false merges ≤ 5% at T = 1.5 s, G = 2.0 s.
+/// A timeline is lines like "speech 1200" / "silence 800" (ms). `expect` — the expected utterances [start, end] in ms after merges.
+/// `vad: true` — the timeline is also synthesized into audio (a tone over noise) and run through EnergyVAD.
 enum TurnEval {
     struct Case: Decodable {
         var id: String
@@ -24,7 +24,7 @@ enum TurnEval {
         }
     }
 
-    /// Обрыв — ожидаемая реплика разбита на несколько; ложная склейка — несколько ожидаемых в одной.
+    /// A cut — an expected utterance split into several; a false merge — several expected ones in one.
     static func score(expected: [[Int]], got: [TurnSegmenter.Span]) -> (cuts: Int, merges: Int) {
         let g = got.map { (Int(($0.start * 1000).rounded()), Int(($0.end * 1000).rounded())) }
         var cuts = 0, merges = 0
@@ -64,7 +64,7 @@ enum TurnEval {
             let pass = Double(cuts) / Double(max(1, n)) <= 0.10 && Double(merges) / Double(max(1, n)) <= 0.05
             allOK = allOK && pass
             for x in r where !x.ok { print("MISS [\(mode)] \(x.id): expected \(x.expected), got \(x.got)") }
-            print("turn [\(mode)]: реплик \(n), обрывов \(cuts) = \(EvalIO.pct(cuts, n)) (≤ 10%), ложных склеек \(merges) = \(EvalIO.pct(merges, n)) (≤ 5%) → \(pass ? "PASS" : "FAIL")")
+            print("turn [\(mode)]: utterances \(n), cuts \(cuts) = \(EvalIO.pct(cuts, n)) (≤ 10%), false merges \(merges) = \(EvalIO.pct(merges, n)) (≤ 5%) → \(pass ? "PASS" : "FAIL")")
         }
         let n = rows.reduce(0) { $0 + $1.expected }
         let path = try EvalIO.writeOut("turn.json", Report(utterances: n, cuts: rows.reduce(0) { $0 + $1.cuts },
@@ -74,13 +74,13 @@ enum TurnEval {
         return allOK ? 0 : 1
     }
 
-    /// Синтез: речь — тон 220 Гц с огибающей слогов (-20 dBFS), тишина — шум -55 dBFS; кадры по 20 мс через EnergyVAD.
+    /// Synthesis: speech — a 220 Hz tone with a syllable envelope (-20 dBFS), silence — noise at -55 dBFS; 20 ms frames through EnergyVAD.
     static func runThroughVAD(_ pieces: [TurnTimeline.Piece], config: TurnConfig, assistantAt: [Int]) -> [TurnSegmenter.Span] {
         var vad = EnergyVAD(config: VoiceDefaults.vad)
         var seg = TurnSegmenter(config: config)
         var spans: [TurnSegmenter.Span] = []
         var rng = SystemRandomNumberGenerator()
-        var t = 0 // сэмплы
+        var t = 0 // samples
         var pending = assistantAt.sorted()
         func apply(_ ev: [TurnSegmenter.Event]) {
             for e in ev {
@@ -91,7 +91,7 @@ enum TurnEval {
                 }
             }
         }
-        // Тишина в начале — VAD узнаёт уровень шума.
+        // Silence at the start — the VAD learns the noise level.
         let lead = 1000
         let all: [TurnTimeline.Piece] = [.silence(lead)] + pieces + [.silence(4000)]
         for p in all {
@@ -112,7 +112,7 @@ enum TurnEval {
                 }
                 for e in vad.processEvents(block) {
                     let sec = Double(t + e.sampleOffset) / 16_000 - Double(lead) / 1000
-                    // VAD отмечает конец речи после hangover; реальный конец — раньше на hangover.
+                    // The VAD marks the end of speech after the hangover; the real end is earlier by the hangover.
                     apply(e.isSpeech ? seg.speechStarted(at: sec - Double(VoiceDefaults.vad.attackFrames * VoiceDefaults.vad.frameMs) / 1000)
                                      : seg.speechEnded(at: sec - Double(VoiceDefaults.vad.hangoverMs) / 1000))
                 }

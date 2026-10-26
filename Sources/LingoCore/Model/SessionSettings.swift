@@ -1,27 +1,27 @@
 import Foundation
 
-/// Режим сессии (R-03).
+/// Session mode (R-03).
 public enum SessionMode: String, Codable, Sendable, CaseIterable, Hashable {
     case questions, free, customPrompt = "custom"
 
     public var title: String {
         switch self {
-        case .questions: "Вопросы"
-        case .free: "Свободный разговор"
-        case .customPrompt: "Свой промпт"
+        case .questions: String(localized: "Questions")
+        case .free: String(localized: "Free conversation")
+        case .customPrompt: String(localized: "Custom prompt")
         }
     }
 }
 
-/// Режимы исправления (R-20). Возможно любое непустое сочетание.
+/// Correction modes (R-20). Any non-empty combination is allowed.
 public enum CorrectionMode: String, Codable, Sendable, CaseIterable, Hashable, Comparable {
     case inline, after, onDemand = "on_demand"
 
     public var title: String {
         switch self {
-        case .inline: "По ходу"
-        case .after: "После разговора"
-        case .onDemand: "По запросу"
+        case .inline: String(localized: "As we go")
+        case .after: String(localized: "After the conversation")
+        case .onDemand: String(localized: "On request")
         }
     }
 
@@ -30,24 +30,24 @@ public enum CorrectionMode: String, Codable, Sendable, CaseIterable, Hashable, C
     }
 }
 
-/// Кто начинает разговор (S-01).
+/// Who starts the conversation (S-01).
 public enum Starter: String, Codable, Sendable, CaseIterable, Hashable {
     case assistant, user
 
     public var title: String {
         switch self {
-        case .assistant: "Помощник"
-        case .user: "Я"
+        case .assistant: String(localized: "Assistant")
+        case .user: String(localized: "Me")
         }
     }
 }
 
-/// Уровни CEFR для выбора; «свой текст» — любая другая строка (R-01, A-8).
+/// CEFR levels to choose from; "custom text" is any other string (R-01, A-8).
 public enum Levels {
     public static let cefr = ["A1", "A2", "B1", "B2", "C1", "C2"]
 }
 
-/// Настройки сессии (R-01, S-01). Значений по умолчанию для роли, темы и уровня нет (A-8).
+/// Session settings (R-01, S-01). There are no defaults for role, topic or level (A-8).
 public struct SessionSettings: Codable, Sendable, Hashable {
     public var lang: Lang
     public var mode: SessionMode
@@ -70,14 +70,14 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         self.starter = starter
     }
 
-    /// Название по умолчанию: «<Режим>: <тема>» (R-01).
+    /// Default title: "<Mode>: <topic>" (R-01).
     public var defaultTitle: String {
         let t = topic.trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? mode.title : "\(mode.title): \(t)"
     }
 
-    /// «Начать» активна, только если выбран хотя бы один режим исправления (S-01, A-3),
-    /// а для «Своего промпта» текст промпта не пустой (R-03).
+    /// "Start" is enabled only if at least one correction mode is selected (S-01, A-3),
+    /// and for "Custom prompt" the prompt text is not empty (R-03).
     public var canStart: Bool {
         guard !corrections.isEmpty else { return false }
         if mode == .customPrompt {
@@ -86,6 +86,6 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         return true
     }
 
-    /// Подзаголовок шапки: «<режим> на <языке>» (R-40).
-    public var subtitle: String { "\(mode.title) \(lang.russianPrepositional)" }
+    /// Header subtitle: "<mode> in <language>" (R-40).
+    public var subtitle: String { "\(mode.title) \(lang.inLanguagePhrase)" }
 }

@@ -1,8 +1,8 @@
 import os
 
-/// Логи — R-49: `os_log`, subsystem `com.itmax04.lingo`.
-/// Текст реплик и ответов в логи не пишется — только события, метрики, идентификаторы и ошибки.
-/// По образцу Interview Copilot (`Sources/CopilotCore/Logging/Log.swift`, коммит cf0e764).
+/// Logs — R-49: `os_log`, subsystem `com.itmax04.lingo`.
+/// Utterance and reply texts are never logged — only events, metrics, identifiers and errors.
+/// Modelled on Interview Copilot (`Sources/CopilotCore/Logging/Log.swift`, commit cf0e764).
 public enum Log {
     public static let subsystem = "com.itmax04.lingo"
     public static let app = Logger(subsystem: subsystem, category: "app")

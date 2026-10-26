@@ -1,5 +1,5 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/STT/WhisperEngine.swift`, коммит cf0e764) с адаптацией:
-// языки-кандидаты задаются на реплику ({изучаемый, ru}, R-08), спорный язык — двойной прогон и выбор по уверенности токенов.
+// Ported from Interview Copilot (`Sources/CopilotCore/STT/WhisperEngine.swift`, commit cf0e764) and adapted:
+// candidate languages are set per utterance ({target, ru}, R-08); an uncertain language gets a double pass chosen by token confidence.
 import Foundation
 import whisper
 
@@ -11,40 +11,40 @@ public enum WhisperError: Error, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .modelNotFound(let path): "Модель не найдена: \(path)"
-        case .loadFailed(let path): "Не удалось загрузить модель: \(path)"
-        case .inferenceFailed(let code): "whisper_full вернул \(code)"
-        case .cancelled: "Распознавание отменено"
+        case .modelNotFound(let path): String(localized: "Model not found: \(path)")
+        case .loadFailed(let path): String(localized: "Could not load the model: \(path)")
+        case .inferenceFailed(let code): "whisper_full returned \(code)"
+        case .cancelled: String(localized: "Speech recognition cancelled")
         }
     }
 }
 
-/// Обёртка C API whisper.cpp. Один экземпляр — один контекст; вызовы сериализуются.
+/// A wrapper over the whisper.cpp C API. One instance — one context; calls are serialized.
 public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
     public let id: String
-    /// Ниже этого уровня (dBFS по всему фрагменту) речи нет: на тишине whisper выдумывает текст (опыт IC).
+    /// Below this level (dBFS over the whole fragment) there is no speech: on silence whisper invents text (IC experience).
     public static let silenceDB: Float = -60
-    /// Если вероятность лучшего языка ниже, распознаём на обоих кандидатах и берём более уверенный вариант.
+    /// If the probability of the best language is lower, recognize with both candidates and take the more confident result.
     public var ambiguousBelow: Float = 0.85
-    /// Урезанный контекст энкодера: быстрее; меньше 512 кадров портит large-v3-turbo (D-13).
+    /// Reduced encoder context: faster; fewer than 512 frames breaks large-v3-turbo (D-13).
     public var reducedContext = false
 
-    /// Как выбирается язык реплики среди кандидатов (R-08).
+    /// How the utterance language is chosen among the candidates (R-08).
     public enum LanguageStrategy: String, Sendable, CaseIterable {
-        /// Автоопределение whisper на полном контексте (≈ 2 с на M1).
+        /// whisper auto-detection on the full context (≈ 2 s on M1).
         case detect
-        /// Распознать на каждом кандидате и взять вариант с большей средней вероятностью токенов.
+        /// Recognize with each candidate and take the result with the higher mean token probability.
         case dual
-        /// Автоопределение отдельной лёгкой моделью (`detector`), распознавание — основной.
+        /// Auto-detection with a separate light model (`detector`), recognition with the main one.
         case smallDetect
     }
     public var strategy: LanguageStrategy = .detect
-    /// Лёгкая модель для `.smallDetect`.
+    /// Light model for `.smallDetect`.
     public var detector: WhisperEngine?
-    /// Распознавание смешанной речи по кускам (D-14).
+    /// Chunked recognition of mixed speech (D-14).
     public var chunkedMixed = false
-    /// Двуязычная затравка (`initial_prompt`) для смешанной речи (D-14): изучаемый язык + русский.
-    /// Текст не пересекается с фразами evals/audio (иначе замер был бы завышен).
+    /// Bilingual prompt (`initial_prompt`) for mixed speech (D-14): the target language + Russian.
+    /// The text does not overlap the evals/audio phrases (otherwise the measurement would be inflated).
     public var mixedPrompt = true
 
     static func prompt(for candidates: [Lang]) -> String? {
@@ -54,7 +54,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return nil
     }
 
-    /// Минимум кадров урезанного контекста (1500 = 30 с). Малые значения портят large-v3-turbo (D-13).
+    /// Minimum frames of the reduced context (1500 = 30 s). Small values break large-v3-turbo (D-13).
     public var minAudioContext = 64
 
     func audioContext(_ n: Int) -> Int32 {
@@ -100,13 +100,13 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         whisper_free(ctx)
     }
 
-    /// Логи whisper.cpp/ggml не пишутся в stderr приложения (и не должны содержать текст речи, R-49).
+    /// whisper.cpp/ggml logs are not written to the app's stderr (and must not contain speech text, R-49).
     private static let silenced: Void = { whisper_log_set({ _, _, _ in }, nil) }()
     static func silenceNativeLogs() { _ = silenced }
 
     public func cancel() { abortFlag.set(true) }
 
-    /// Тихий звук поднимается до пика 0,5, но не больше чем в 40 раз.
+    /// Quiet audio is boosted to a peak of 0.5, but by no more than 40×.
     static func normalized(_ samples: [Float]) -> [Float] {
         var peak: Float = 0
         for s in samples { peak = max(peak, abs(s)) }
@@ -153,7 +153,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
             }
             detectMs = Double(DispatchTime.now().uptimeNanoseconds - d0.uptimeNanoseconds) / 1e6
         }
-        // Затравка: двуязычный образец (D-14) + контекст разговора (R-51): контекст в конце — ближе к распознаваемой фразе.
+        // Prompt: a bilingual sample (D-14) + the conversation context (R-51): context at the end — closer to the phrase being recognized.
         let base = mixedPrompt ? Self.prompt(for: Array(Set(cands + (forced.map { [$0] } ?? [])))) : nil
         currentPrompt = [base, context].compactMap { $0 }.joined(separator: " ").nilIfEmpty
         defer { currentPrompt = nil }
@@ -168,11 +168,11 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
             if bestRun == nil || r.avgTokenP > bestRun!.avgTokenP { bestRun = r }
         }
         if strategy == .dual && forced == nil { scores = runProbs }
-        // Метка языка (R-08) — по алфавиту итогового текста: кириллица → ru, латиница → изучаемый.
-        // Уверенность токенов выбирает лучший текст, но смещена двуязычной затравкой (D-14).
+        // Language label (R-08) — by the alphabet of the final text: Cyrillic → ru, Latin → the target language.
+        // Token confidence picks the best text but is biased by the bilingual prompt (D-14).
         if forced == nil, var b = bestRun, let l = Self.scriptLang(b.text, candidates: cands) { b.lang = l; bestRun = b }
         var r = bestRun!
-        // Смешанная речь (D-14): по кнопке «Говорю по-русски» и при подозрительно коротком тексте — распознавание по кускам.
+        // Mixed speech (D-14): with the "I'm speaking Russian" button and for suspiciously short text — chunked recognition.
         if chunkedMixed, cands.count > 1 || forced != nil {
             let mixedCands = forced.map { f in Array(Set(cands + [f])).sorted { $0 == f && $1 != f } } ?? cands
             let speech = Double(input.count) / 16_000
@@ -194,7 +194,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
 
     struct Run { var text: String; var lang: Lang; var noSpeech: Float; var avgTokenP: Float }
 
-    /// Разбивка времени последнего вызова (evals): определение языка, прогоны распознавания.
+    /// Timing breakdown of the last call (evals): language detection, recognition passes.
     public private(set) var lastTimings: (detectMs: Double, runs: [Double]) = (0, [])
 
     private var currentPrompt: String?
@@ -214,9 +214,9 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         params.suppress_nst = true
         params.temperature = 0
         params.temperature_inc = 0
-        // Полный контекст энкодера: урезанный `audio_ctx` на large-v3-turbo давал мусор и зацикливание (eval `audio`, P-04, D-13).
+        // Full encoder context: a reduced `audio_ctx` on large-v3-turbo produced garbage and loops (eval `audio`, P-04, D-13).
         params.audio_ctx = reducedContext ? audioContext(samples.count) : 0
-        // Ограничение длины ответа против зацикливания: с запасом, чтобы не обрезать быструю речь.
+        // Reply length limit against loops: with headroom so fast speech is not cut off.
         params.max_tokens = Int32(min(440, Int(audioSeconds * 16) + 48))
         let flag = Unmanaged.passUnretained(abortFlag).toOpaque()
         params.abort_callback = { userData in
@@ -253,9 +253,9 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return Run(text: Self.clean(text), lang: lang, noSpeech: noSpeech, avgTokenP: pCount > 0 ? pSum / Float(pCount) : 0)
     }
 
-    // MARK: Смешанная речь по кускам (D-14)
+    // MARK: Chunked mixed speech (D-14)
 
-    /// Куски речи между паузами ≥ `gap` с: границы по EnergyVAD, короткие куски склеиваются с соседями.
+    /// Speech chunks between pauses ≥ `gap` s: boundaries from EnergyVAD, short chunks are merged with neighbours.
     public static func speechChunks(_ s: [Float], gap: Double = 0.25, minChunk: Double = 0.8) -> [Range<Int>] {
         var cfg = VoiceDefaults.vad
         cfg.hangoverMs = Int(gap * 1000)
@@ -274,7 +274,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
             pos = end
         }
         if let st = start { regions.append(st..<s.count) }
-        // Склейка коротких кусков с соседними.
+        // Merge short chunks with their neighbours.
         let minLen = Int(minChunk * 16_000)
         var out: [Range<Int>] = []
         for r in regions {
@@ -287,7 +287,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return out
     }
 
-    /// Распознавание по кускам с выбором языка каждого куска (двойной прогон по кандидатам).
+    /// Chunked recognition choosing the language of each chunk (a double pass over the candidates).
     func chunkedLocked(_ samples: [Float], candidates: [Lang], audioSeconds: Double) throws -> (Run, [Lang: Float])? {
         let chunks = Self.speechChunks(samples)
         guard chunks.count > 1 else { return nil }
@@ -315,7 +315,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return (Run(text: texts.joined(separator: " "), lang: main, noSpeech: 0, avgTokenP: pSum / Float(texts.count)), scores)
     }
 
-    /// Язык по алфавиту: доля кириллицы среди букв > 50% → ru; иначе — первый не-русский кандидат.
+    /// Language by alphabet: Cyrillic share among letters > 50% → ru; otherwise the first non-Russian candidate.
     public static func scriptLang(_ text: String, candidates: [Lang]) -> Lang? {
         var cyr = 0, lat = 0
         for u in text.unicodeScalars where CharacterSet.letters.contains(u) {
@@ -326,13 +326,13 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return candidates.first { $0 != .ru }
     }
 
-    /// Текст подозрительно короток для длины речи — вероятно, часть на другом языке выпала.
+    /// The text is suspiciously short for the speech length — probably a part in the other language was lost.
     static func lowCoverage(_ text: String, speechSeconds: Double) -> Bool {
         let words = text.split(whereSeparator: { $0 == " " }).count
         return speechSeconds >= 2.5 && Double(words) < speechSeconds * 1.2
     }
 
-    /// Только определение языка (для `.smallDetect` у основной модели).
+    /// Language detection only (for `.smallDetect` with the main model).
     public func detectLanguage(_ input: [Float], candidates: [Lang]) throws -> [Lang: Float] {
         lock.lock()
         defer { lock.unlock() }
@@ -341,7 +341,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return try detectLocked(samples, candidates: candidates)
     }
 
-    /// Автоопределение языка среди кандидатов (вероятности нормируются на сумму кандидатов).
+    /// Language auto-detection among the candidates (probabilities normalized to the candidates' sum).
     private func detectLocked(_ samples: [Float], candidates: [Lang]) throws -> [Lang: Float] {
         let rc = samples.withUnsafeBufferPointer {
             whisper_pcm_to_mel_with_state(ctx, detectState, $0.baseAddress, Int32($0.count), threads)
@@ -360,7 +360,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return result
     }
 
-    /// Убирает служебные вставки вроде «[музыка]», «(applause)» и зацикленные повторы фраз.
+    /// Removes service insertions like "[музыка]", "(applause)" and looping phrase repeats.
     static func clean(_ text: String) -> String {
         var t = text.replacingOccurrences(of: #"\[[^\]]*\]|\([^)]*\)"#, with: "", options: .regularExpression)
         t = t.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
@@ -368,7 +368,7 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         return t.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Фраза из 1–8 слов, повторённая 3+ раза подряд, оставляется один раз (галлюцинации; двойной повтор пользователя — P16 — сохраняется).
+    /// A 1–8 word phrase repeated 3+ times in a row is kept once (hallucinations; a user's double repeat — P16 — is kept).
     static func collapseRepeats(_ text: String) -> String {
         var words = text.split(separator: " ").map(String.init)
         guard words.count >= 6 else { return text }

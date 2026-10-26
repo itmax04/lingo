@@ -3,8 +3,8 @@ import Foundation
 import LingoCore
 import Observation
 
-/// Живая проверка распознавания (H-2, H-4; AC-16). Звук — только в памяти (R-08); в файл пишутся тексты и числа.
-/// Каждая фраза распознаётся whisper (выбранная настройка P-04) и Apple Speech (если есть разрешение) — сравнение движков.
+/// Live speech-recognition check (H-2, H-4; AC-16). Audio stays in memory only (R-08); only texts and numbers are written to the file.
+/// Each phrase is recognized by whisper (the P-04 configuration) and Apple Speech (if permitted) — an engine comparison.
 @MainActor
 @Observable
 final class STTCheckController {
@@ -15,7 +15,7 @@ final class STTCheckController {
         var id: String; var lang: String; var mode: String; var ref: String
         var audioSec: Double
         var results: [EngineResult]
-        /// Оценка владельца: понятно ли распознанное (AC-16: «WER ≤ 25% или владелец принял»).
+        /// The owner's verdict: is the recognized text understandable (AC-16: "WER ≤ 25% or accepted by the owner").
         var accepted: Bool?
     }
 
@@ -58,17 +58,17 @@ final class STTCheckController {
     }
     var fileURL: URL { Self.outURL.appendingPathComponent("live-stt-\(part).json") }
 
-    // MARK: Подготовка
+    // MARK: Preparation
 
     func prepare() async {
-        status = "Разрешения…"
+        status = String(localized: "Permissions…")
         if Permissions.microphone == .notDetermined { _ = await Permissions.requestMicrophone() }
         if Permissions.speech == .notDetermined { _ = await Permissions.requestSpeech() }
         if Permissions.microphone != .granted {
-            permissionProblem = "Нет доступа к микрофону. Системные настройки → Конфиденциальность и безопасность → Микрофон → включите Lingo."
+            permissionProblem = String(localized: "No microphone access. System Settings → Privacy & Security → Microphone → turn on Lingo.")
             return
         }
-        status = "Загрузка модели распознавания…"
+        status = String(localized: "Loading the speech recognition model…")
         do {
             let path = try await ModelStore.macDefault.ensure(.largeV3TurboQ5)
             whisper = try await Task.detached { () -> WhisperEngine in
@@ -79,21 +79,21 @@ final class STTCheckController {
                 return w
             }.value
         } catch {
-            permissionProblem = "Модель распознавания: \(error)"
+            permissionProblem = String(localized: "Speech recognition model: \(String(describing: error))")
             return
         }
         let v = VoiceIO()
         v.onSamples = { [weak self] s in Task { @MainActor in self?.feed(s) } }
         do { try v.start(voiceProcessing: true, output: true) } catch {
-            permissionProblem = "Микрофон: \(error.localizedDescription) [\(v.startLog.joined(separator: "; "))]"
+            permissionProblem = String(localized: "Microphone: \(error.localizedDescription)") + " [\(v.startLog.joined(separator: "; "))]"
             return
         }
         voice = v
-        let vp = v.voiceProcessing ? "" : " · без эхоподавления"
-        status = (Permissions.speech == .granted ? "Готово" : "Готово (Apple Speech без разрешения — только whisper)") + vp
+        let vp = v.voiceProcessing ? "" : " · " + String(localized: "no echo cancellation")
+        status = (Permissions.speech == .granted ? String(localized: "Ready") : String(localized: "Ready (Apple Speech not permitted — whisper only)")) + vp
     }
 
-    // MARK: Запись
+    // MARK: Recording
 
     func toggleRecording() {
         if recording { finishRecording() } else { startRecording() }
@@ -107,11 +107,11 @@ final class STTCheckController {
         if vad.isSpeech { _ = segmenter.speechStarted(at: 0) }
         levels = []
         recording = true
-        status = "Говорите… (стоп — пробел или пауза 1,5 с)"
+        status = String(localized: "Speak… (stop — space or a 1.5 s pause)")
     }
 
     private func feed(_ s: [Float]) {
-        // VAD слушает всегда: иначе после первой фразы он «застревал» в состоянии речи и запись не останавливалась сама (H-2).
+        // The VAD always listens: otherwise after the first phrase it got "stuck" in the speech state and recording did not stop by itself (H-2).
         let events = vad.processEvents(s)
         guard recording else { return }
         buffer.append(s)
@@ -131,9 +131,9 @@ final class STTCheckController {
         recording = false
         let samples = buffer.samples
         buffer.clear()
-        guard samples.count > 8_000 else { status = "Слишком коротко — запишите ещё раз"; return }
+        guard samples.count > 8_000 else { status = String(localized: "Too short — record again"); return }
         busy = true
-        status = "Распознаю…"
+        status = String(localized: "Recognizing…")
         let study = Lang(rawValue: step.phrase.study) ?? .en
         let forced: Lang? = step.forced ? .ru : nil
         let w = whisper, apple = self.apple
@@ -151,14 +151,14 @@ final class STTCheckController {
                     out.append(EngineResult(engine: "apple", text: t.text, lang: t.lang.rawValue,
                                             wer: WER.compute(ref: step.phrase.text, hyp: t.text), ms: t.elapsedMs))
                 } catch {
-                    out.append(EngineResult(engine: "apple", text: "ошибка: \(error)", lang: "", wer: 1, ms: 0))
+                    out.append(EngineResult(engine: "apple", text: String(localized: "error: \(String(describing: error))"), lang: "", wer: 1, ms: 0))
                 }
             }
             let r = Result(id: step.phrase.id, lang: step.phrase.lang, mode: step.forced ? "button" : "auto", ref: step.phrase.text,
                            audioSec: Double(samples.count) / 16_000, results: out, accepted: nil)
             results[key(step)] = r
             busy = false
-            status = "Отметьте: понятно или нет"
+            status = String(localized: "Mark it: understandable or not")
             save()
         }
     }
@@ -171,10 +171,10 @@ final class STTCheckController {
         next()
     }
 
-    func next() { if index < steps.count - 1 { index += 1; status = "Готово" } else { status = "Все фразы пройдены — напишите «готово» в чат" } }
+    func next() { if index < steps.count - 1 { index += 1; status = String(localized: "Ready") } else { status = String(localized: "All phrases done — write “done” in the chat") } }
     func previous() { if index > 0 { index -= 1 } }
 
-    // MARK: Итоги и файл
+    // MARK: Totals and file
 
     struct Summary { var lang: String; var mode: String; var n: Int; var understood: Int; var langOK: Int; var langN: Int }
 
@@ -196,15 +196,15 @@ final class STTCheckController {
         return out
     }
 
-    /// Строки итогов для окна: whisper и Apple рядом.
+    /// Total lines for the window: whisper and Apple side by side.
     func summaryLines() -> [String] {
         let w = summary(engine: "whisper"), a = summary(engine: "apple")
         return w.map { s in
-            var line = "\(s.lang.uppercased()) \(s.mode == "button" ? "с кнопкой" : "авто"): понятно \(s.understood)/\(s.n)"
-            if s.langN > 0 { line += ", язык \(s.langOK)/\(s.langN)" }
+            var line = "\(s.lang.uppercased()) \(s.mode == "button" ? String(localized: "with button") : String(localized: "auto")): " + String(localized: "understood \(s.understood)/\(s.n)")
+            if s.langN > 0 { line += ", " + String(localized: "language \(s.langOK)/\(s.langN)") }
             if let ap = a.first(where: { $0.lang == s.lang && $0.mode == s.mode }) {
                 line += "   ·   Apple: \(ap.understood)/\(ap.n)"
-                if ap.langN > 0 { line += ", язык \(ap.langOK)/\(ap.langN)" }
+                if ap.langN > 0 { line += ", " + String(localized: "language \(ap.langOK)/\(ap.langN)") }
             }
             return line
         }
@@ -226,7 +226,7 @@ final class STTCheckController {
     func stop() { voice?.stop() }
 }
 
-/// Декодирование `live-phrases.json`: части `part1`, `part2` и служебное поле `_about`.
+/// Decoding of `live-phrases.json`: parts `part1`, `part2` and the service field `_about`.
 struct AnyDecodable: Decodable {
     var phrases: [STTCheckController.Phrase]?
     init(from decoder: Decoder) throws {

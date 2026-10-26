@@ -1,13 +1,13 @@
 import Foundation
 
-/// Описание ключа (R-44). Значение ключа здесь не хранится — только в Keychain под `id` (R-48).
+/// Key description (R-44). The key value is not stored here — only in the Keychain under `id` (R-48).
 public struct KeyRecord: Codable, Sendable, Hashable, Identifiable {
     public var id: String
     public var provider: ProviderID
-    /// Последние 4 символа — единственное, что показывается после сохранения (R-48).
+    /// The last 4 characters — the only thing shown after saving (R-48).
     public var last4: String
     public var label: String
-    /// Ключ выключен после 400/401/403 (R-29). Пользователь может включить снова кнопкой «Проверить».
+    /// The key is disabled after 400/401/403 (R-29). The user can enable it again with the "Check" button.
     public var invalid: Bool
     public var invalidReason: String?
     public var addedAt: Date
@@ -28,7 +28,7 @@ public struct KeyRecord: Codable, Sendable, Hashable, Identifiable {
     }
 }
 
-/// Элемент порядка цепочки: провайдер + модель. Ключи подставляются при сборке (R-29: провайдер → модель → ключ).
+/// Chain order item: provider + model. Keys are filled in when the chain is built (R-29: provider → model → key).
 public struct ChainEntry: Codable, Sendable, Hashable, Identifiable {
     public var id: String
     public var provider: ProviderID
@@ -43,25 +43,25 @@ public struct ChainEntry: Codable, Sendable, Hashable, Identifiable {
     }
 }
 
-/// Настройки моделей (R-29, R-30, R-44).
+/// Model settings (R-29, R-30, R-44).
 public struct LLMSettings: Codable, Sendable, Hashable {
     public var keys: [KeyRecord]
     public var chain: [ChainEntry]
-    /// Таймаут первого токена, с (R-29: 6, от 2 до 15).
+    /// First-token timeout, s (R-29: 6, from 2 to 15).
     public var firstTokenTimeout: Double
     public var customBaseURL: String
-    /// Модели, полученные `GET /models` (R-30), по провайдерам — для выбора в настройках.
+    /// Models returned by `GET /models` (R-30), per provider — for selection in settings.
     public var knownModels: [ProviderID: [String]]
     public var knownModelsAt: [ProviderID: Date]
-    /// Плашка источника (R-32): nil — «Авто (цепочка)», иначе — только этот шаг (со всеми его ключами).
+    /// Source badge (R-32): nil — "Auto (chain)", otherwise only this step (with all of its keys).
     public var pinnedEntryID: String?
 
     public static let timeoutRange: ClosedRange<Double> = 2...15
 
-    /// Порядок по умолчанию (P-00: бесплатные чат-модели Groq по console.groq.com/docs/rate-limits, 2026-10-25;
-    /// Mistral — `mistral-small-latest` из docs.mistral.ai quickstart; OpenRouter — `:free` из `GET /api/v1/models`).
-    /// Уточняется по `GET /models` и eval `dialog` (P-03, P-05).
-    /// Порядок (Q29): сначала модели с кэшем промпта у Groq (gpt-oss — кэшированная обёртка не идёт в лимиты), qwen — после.
+    /// Default order (P-00: free Groq chat models per console.groq.com/docs/rate-limits, 2026-10-25;
+    /// Mistral — `mistral-small-latest` from the docs.mistral.ai quickstart; OpenRouter — `:free` from `GET /api/v1/models`).
+    /// Refined by `GET /models` and the `dialog` eval (P-03, P-05).
+    /// Order (Q29): Groq models with prompt caching first (gpt-oss — the cached wrapper does not count toward limits), then qwen.
     public static let defaultChain: [ChainEntry] = [
         ChainEntry(provider: .groq, model: "openai/gpt-oss-120b"),
         ChainEntry(provider: .groq, model: "openai/gpt-oss-20b"),
@@ -95,7 +95,7 @@ public struct LLMSettings: Codable, Sendable, Hashable {
 
     public var customBase: URL? { ProviderEndpoints.customBaseURL(customBaseURL) }
 
-    /// Перенос сохранённого старого порядка по умолчанию (120b → qwen → 20b) на новый (120b → 20b → qwen). Свой порядок пользователя не трогается.
+    /// Migrates a saved old default order (120b → qwen → 20b) to the new one (120b → 20b → qwen). A user's own order is left alone.
     @discardableResult
     public static func migrateOrder(_ s: inout LLMSettings) -> Bool {
         let models = s.chain.filter { $0.provider == .groq }.map(\.model)
@@ -106,7 +106,7 @@ public struct LLMSettings: Codable, Sendable, Hashable {
         return true
     }
 
-    /// Метка первого доступного шага для плашки источника (R-32).
+    /// Label of the first available step for the source badge (R-32).
     public var primaryLabel: String? {
         if let pin = pinnedEntryID, let e = chain.first(where: { $0.id == pin }) {
             return StepInfo(provider: e.provider, model: e.model, keyID: "").label
@@ -119,7 +119,7 @@ public struct LLMSettings: Codable, Sendable, Hashable {
 
     public func keys(for p: ProviderID) -> [KeyRecord] { keys.filter { $0.provider == p } }
 
-    /// Есть ли хоть один действующий ключ — иначе голос неактивен (R-45).
+    /// Whether there is at least one working key — otherwise voice is inactive (R-45).
     public var hasUsableKey: Bool {
         chain.contains { e in e.enabled && keys.contains { $0.provider == e.provider && !$0.invalid } }
     }

@@ -2,8 +2,8 @@
 import Foundation
 import Speech
 
-/// Apple `SFSpeechRecognizer` на устройстве (ADR-0001 п. 6: на macOS 15 `SpeechAnalyzer` недоступен).
-/// Язык реплики: параллельное распознавание по кандидатам {изучаемый, ru} и выбор по средней уверенности сегментов.
+/// Apple `SFSpeechRecognizer` on device (ADR-0001 §6: `SpeechAnalyzer` is not available on macOS 15).
+/// Utterance language: parallel recognition for the candidates {target, ru}, chosen by the mean segment confidence.
 public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
     public let id = "apple"
 
@@ -13,9 +13,9 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         case failed(String)
         public var description: String {
             switch self {
-            case .notAuthorized: "Нет разрешения на распознавание речи"
-            case .unavailable(let l): "Распознавание на устройстве недоступно для \(l)"
-            case .failed(let m): "Распознавание: \(m)"
+            case .notAuthorized: String(localized: "No permission for speech recognition")
+            case .unavailable(let l): String(localized: "On-device recognition is not available for \(l)")
+            case .failed(let m): String(localized: "Speech recognition: \(m)")
             }
         }
     }
@@ -30,7 +30,7 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         }
     }
 
-    /// Поддерживает ли язык распознавание на устройстве (без отправки звука в сеть, R-08).
+    /// Whether the language supports on-device recognition (no audio sent to the network, R-08).
     public static func onDeviceSupported(_ l: Lang) -> Bool {
         SFSpeechRecognizer(locale: Locale(identifier: l.localeIdentifier))?.supportsOnDeviceRecognition ?? false
     }
@@ -63,7 +63,7 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
         req.requiresOnDeviceRecognition = true
         req.shouldReportPartialResults = false
         req.addsPunctuation = true
-        // Контекст разговора (R-51): слова-подсказки.
+        // Conversation context (R-51): hint words.
         if let c = context { req.contextualStrings = Array(c.split(separator: " ").map(String.init).prefix(100)) }
         guard let buf = PCMConverter.buffer(samples) else { throw AppleSpeechError.failed("buffer") }
         req.append(buf)
@@ -83,7 +83,7 @@ public final class AppleSpeechEngine: SpeechRecognizer, @unchecked Sendable {
                     c.resume(returning: (lang, result.bestTranscription.formattedString, conf))
                 } else if let error {
                     guard once.take() else { return }
-                    // «No speech detected» — пустой результат, а не ошибка.
+                    // "No speech detected" — an empty result, not an error.
                     let ns = error as NSError
                     if ns.domain == "kAFAssistantErrorDomain" && (ns.code == 1110 || ns.code == 1101) {
                         c.resume(returning: (lang, "", 0))

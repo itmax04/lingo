@@ -1,7 +1,7 @@
 import Foundation
 import LingoCore
 
-/// Разбивка задержки whisper на нескольких файлах (P-04): определение языка и прогоны, GPU/CPU, полный/урезанный контекст.
+/// whisper latency breakdown over several files (P-04): language detection and passes, GPU/CPU, full/reduced context.
 enum STTBench {
     static func run(model: String, files: [String], gpu: Bool, reduced: Bool, threads: Int32, minCtx: Int = 64, strategy: String? = nil, context: String? = nil) throws -> Int32 {
         let e = try WhisperEngine(modelPath: model, useGPU: gpu, threads: threads)
@@ -25,7 +25,7 @@ enum ChunkDebug {
         for f in files {
             let s = try AudioFileReader.read(URL(fileURLWithPath: f))
             let ch = WhisperEngine.speechChunks(s)
-            // Профиль уровня по 100 мс — видно, есть ли паузы между частями.
+            // Level profile in 100 ms steps — shows whether there are pauses between parts.
             var prof: [String] = []
             var i = 0
             while i < s.count { prof.append(String(format: "%.0f", EnergyVAD.rmsDB(s[i..<min(s.count, i + 1600)]))); i += 1600 }

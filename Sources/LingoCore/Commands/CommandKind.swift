@@ -1,6 +1,6 @@
 import Foundation
 
-/// Команды R-14…R-22.
+/// Commands R-14…R-22.
 public enum CommandKind: String, Codable, Sendable, CaseIterable, Hashable {
     case repeatLast = "repeat"
     case slower
@@ -10,6 +10,6 @@ public enum CommandKind: String, Codable, Sendable, CaseIterable, Hashable {
     case mistakes
     case finish
 
-    /// Выполняется локально, без модели (R-14, R-15, R-22).
+    /// Executed locally, without the model (R-14, R-15, R-22).
     public var isLocal: Bool { self == .repeatLast || self == .slower }
 }

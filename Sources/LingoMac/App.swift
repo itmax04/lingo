@@ -18,12 +18,12 @@ enum LingoMain {
                 exit(1)
             }
         }
-        // Служебный режим: снимок окна на фикстурах в PNG (evidence для AC-11), без звука, сети и журнала.
+        // Service mode: a PNG snapshot of the window on fixtures (evidence for AC-11), without audio, network or journal.
         if let i = args.firstIndex(of: "--ui-snapshot"), i + 1 < args.count {
             exit(UISnapshot.run(to: URL(fileURLWithPath: args[i + 1])))
         }
-        // Служебный режим: проверка всех ключей и `GET /models` (H-1, P-03). Значения ключей не выводятся.
-        // Запускается из подписанного .app: только ему Связка ключей отдаёт ключи без запроса.
+        // Service mode: check all keys and `GET /models` (H-1, P-03). Key values are never printed.
+        // Runs from the signed .app: only it gets keys from the Keychain without a prompt.
         if args.contains("--ui-click-test") { exit(UIClickTest.run()) }
         if let i = args.firstIndex(of: "--selftest") {
             setvbuf(stdout, nil, _IOLBF, 0)
@@ -43,7 +43,7 @@ enum LingoMain {
             exit(Headless.checkKeys(showAll: args.contains("--all-models")))
         }
         let app = NSApplication.shared
-        // `NSApplication.delegate` — слабая ссылка: делегат хранится статически, иначе оптимизатор может освободить его раньше `run()`.
+        // `NSApplication.delegate` is a weak reference: the delegate is kept statically, otherwise the optimizer may release it before `run()`.
         delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.regular)
@@ -63,13 +63,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var keyMonitor: Any?
 
-    /// Клавиатура голосового режима (R-06, DESIGN.md §8): пробел — удержание (если фокус не в тексте), Esc — стоп, ⌥R — «говорю по-русски».
+    /// Voice-mode keyboard (R-06, DESIGN.md §8): space — hold (if focus is not in a text field), Esc — stop, ⌥R — "I'm speaking Russian".
     func installKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] e in
             guard let self, let svc = self.services, e.window === self.window, e.window?.attachedSheet == nil else { return e }
             let textFocused = e.window?.firstResponder is NSText
             switch (e.type, e.keyCode) {
-            case (.keyDown, 49) where !textFocused:            // пробел
+            case (.keyDown, 49) where !textFocused:            // space
                 if !e.isARepeat { svc.spaceDown() }
                 return nil
             case (.keyUp, 49) where !textFocused:
@@ -92,7 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func showOnboarding() {
         guard let svc = services else { return }
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 520), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        w.title = "Lingo — первый запуск"
+        w.title = String(localized: "Lingo — first launch")
         w.appearance = NSAppearance(named: .darkAqua)
         w.contentView = NSHostingView(rootView: OnboardingView(services: svc, keys: keys) { [weak self] in
             self?.onboardingWindow?.close()
@@ -112,6 +112,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("launch")
+        if let i = CommandLine.arguments.firstIndex(of: "--audio-stability"), i + 1 < CommandLine.arguments.count {
+            exit(AudioDiag.stability(to: CommandLine.arguments[i + 1]))
+        }
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count { AudioDiag.step(CommandLine.arguments[i + 1], "didFinishLaunching") }
         do {
             let svc = try AppServices(model: model)
@@ -120,7 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             svc.keys = keys
             Task { await svc.start() }
         } catch {
-            model.banner = "Не удалось открыть журнал: \(error)"
+            model.banner = String(localized: "Could not open the journal: \(String(describing: error))")
         }
         if CommandLine.arguments.contains("--settings") { showSettings(nil) }
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count {
@@ -132,7 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         w.makeKeyAndOrderFront(nil)
         window = w
         if let svc = services, !svc.settings.onboardingDone, !CommandLine.arguments.contains("--stt-check") { showOnboarding() }
-        // Служебное окно проверки — поверх главного (иначе главное окно забирало фокус и закрывало его, H-2).
+        // The service check window stays above the main one (otherwise the main window took focus and closed it, H-2).
         if let i = CommandLine.arguments.firstIndex(of: "--stt-check") {
             let part = i + 1 < CommandLine.arguments.count ? CommandLine.arguments[i + 1] : "part1"
             STTCheckWindow.show(part: part)
@@ -152,7 +155,7 @@ enum MainWindow {
         w.title = "Lingo"
         w.titleVisibility = .hidden
         w.titlebarAppearsTransparent = true
-        // Полоса заголовка — `bg.titlebar` (DESIGN.md §1).
+        // Title bar — `bg.titlebar` (DESIGN.md §1).
         w.backgroundColor = NSColor(srgbRed: 0x1B / 255, green: 0x21 / 255, blue: 0x25 / 255, alpha: 1)
         w.appearance = NSAppearance(named: .darkAqua)
         w.contentMinSize = Theme.S.minWindow
@@ -170,32 +173,32 @@ enum MainMenu {
         let main = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "О Lingo", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(withTitle: String(localized: "About Lingo"), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Настройки…", action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
-        appMenu.addItem(withTitle: "Проверка распознавания…", action: #selector(AppDelegate.showSTTCheck(_:)), keyEquivalent: "")
+        appMenu.addItem(withTitle: String(localized: "Settings…"), action: #selector(AppDelegate.showSettings(_:)), keyEquivalent: ",")
+        appMenu.addItem(withTitle: String(localized: "Speech recognition check…"), action: #selector(AppDelegate.showSTTCheck(_:)), keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Скрыть Lingo", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        appMenu.addItem(withTitle: "Завершить Lingo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: String(localized: "Hide Lingo"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(withTitle: String(localized: "Quit Lingo"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
 
         let editItem = NSMenuItem()
-        let edit = NSMenu(title: "Правка")
-        edit.addItem(withTitle: "Отменить", action: Selector(("undo:")), keyEquivalent: "z")
-        edit.addItem(withTitle: "Вернуть", action: Selector(("redo:")), keyEquivalent: "Z")
+        let edit = NSMenu(title: String(localized: "Edit"))
+        edit.addItem(withTitle: String(localized: "Undo"), action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "Z")
         edit.addItem(.separator())
-        edit.addItem(withTitle: "Вырезать", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "Скопировать", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "Вставить", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "Выбрать все", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: String(localized: "Copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: String(localized: "Paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: String(localized: "Select All"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
         main.addItem(editItem)
 
         let windowItem = NSMenuItem()
-        let win = NSMenu(title: "Окно")
-        win.addItem(withTitle: "Свернуть", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
-        win.addItem(withTitle: "Закрыть", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        let win = NSMenu(title: String(localized: "Window"))
+        win.addItem(withTitle: String(localized: "Minimize"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        win.addItem(withTitle: String(localized: "Close"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         windowItem.submenu = win
         main.addItem(windowItem)
         NSApp.windowsMenu = win
@@ -203,7 +206,7 @@ enum MainMenu {
     }
 }
 
-/// `--ui-snapshot <файл.png>`: снимок главного окна 1280×800 на фикстурах (по образцу IC `UISnapshots.render`, коммит cf0e764).
+/// `--ui-snapshot <file.png>`: a 1280×800 snapshot of the main window on fixtures (modelled on IC `UISnapshots.render`, commit cf0e764).
 @MainActor
 enum UISnapshot {
     static func run(to url: URL) -> Int32 {
@@ -212,14 +215,14 @@ enum UISnapshot {
         Fixtures.fill(model)
         let size = NSSize(width: 1280, height: 800)
         var ok = render(MainView(model: model), size: size, to: url)
-        // Настройки на синтетических ключах (значения только в памяти).
+        // Settings with synthetic keys (values only in memory).
         var llm = LLMSettings()
         llm.keys = [KeyRecord(id: "k1", provider: .groq, last4: "a1b2"),
                     KeyRecord(id: "k2", provider: .groq, last4: "c3d4", invalid: true, invalidReason: "HTTP 401")]
         llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
         llm.knownModelsAt[.groq] = Date()
         let keys = KeysController(settings: llm, secrets: InMemorySecretStore(["k1": "synthetic-0000", "k2": "synthetic-1111"])) { _ in }
-        keys.checks["k1"] = "Ключ работает · моделей: 3"
+        keys.checks["k1"] = KeyCheckResult.ok(models: ["a", "b", "c"]).summary
         let settingsURL = url.deletingPathExtension().appendingPathExtension("settings.png")
         ok = render(SettingsView(keys: keys), size: NSSize(width: 900, height: 1100), to: settingsURL) && ok
         let newURL = url.deletingPathExtension().appendingPathExtension("new-session.png")

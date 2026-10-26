@@ -13,7 +13,7 @@ enum EvalIO {
         try YAMLDecoder().decode(T.self, from: String(contentsOf: url, encoding: .utf8))
     }
 
-    /// Результаты прогонов — `evals/out/` (в .gitignore).
+    /// Run results — `evals/out/` (in .gitignore).
     static func writeOut<T: Encodable>(_ name: String, _ value: T) throws -> String {
         let dir = URL(fileURLWithPath: "evals/out", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

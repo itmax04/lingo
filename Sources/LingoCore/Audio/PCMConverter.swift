@@ -1,7 +1,7 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/Audio/PCMConverter.swift`, коммит cf0e764), без ScreenCaptureKit.
+// Ported from Interview Copilot (`Sources/CopilotCore/Audio/PCMConverter.swift`, commit cf0e764), without ScreenCaptureKit.
 @preconcurrency import AVFoundation
 
-/// Приводит звук к 16 кГц, моно, Float32 — формат для whisper и VAD.
+/// Converts audio to 16 kHz mono Float32 — the format for whisper and the VAD.
 public final class PCMConverter: @unchecked Sendable {
     public static let targetSampleRate: Double = 16_000
     public static let targetFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: targetSampleRate,
@@ -13,8 +13,8 @@ public final class PCMConverter: @unchecked Sendable {
     public init() {}
 
     public func convert(_ input: AVAudioPCMBuffer) -> [Float] {
-        // Многоканальный вход (voice processing на macOS: 48 кГц, 5 каналов — диагностика H-2): берём канал 0,
-        // обработанный голос. AVAudioConverter сводит 5 каналов без раскладки в тишину.
+        // Multichannel input (voice processing on macOS: 48 kHz, 5 channels — H-2 diagnostics): take channel 0,
+        // the processed voice. AVAudioConverter downmixes 5 channels without a layout into silence.
         let buffer = input.format.channelCount > 1 ? (Self.firstChannel(input) ?? input) : input
         let format = buffer.format
         if format.sampleRate == Self.targetSampleRate, format.channelCount == 1,
@@ -60,7 +60,7 @@ public final class PCMConverter: @unchecked Sendable {
         return out
     }
 
-    /// 16 кГц моно → буфер AVAudio (для Apple Speech).
+    /// 16 kHz mono → AVAudio buffer (for Apple Speech).
     public static func buffer(_ samples: [Float]) -> AVAudioPCMBuffer? {
         guard let b = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: AVAudioFrameCount(samples.count)) else { return nil }
         b.frameLength = AVAudioFrameCount(samples.count)
@@ -69,7 +69,7 @@ public final class PCMConverter: @unchecked Sendable {
     }
 }
 
-/// Чтение аудиофайла в 16 кГц моно (evals: синтетические записи `say`).
+/// Reads an audio file as 16 kHz mono (evals: synthetic `say` recordings).
 public enum AudioFileReader {
     public static func read(_ url: URL) throws -> [Float] {
         let file = try AVAudioFile(forReading: url)

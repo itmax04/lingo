@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import LingoCore
 
-/// Снапшоты системной обёртки (plan.md P-03): три режима × все 7 сочетаний режимов исправления.
-/// Перезапись: `LINGO_RECORD_SNAPSHOTS=1 swift test --filter PromptBuilder`.
+/// Snapshots of the system wrapper (plan.md P-03): three modes × all 7 combinations of correction modes.
+/// Re-record: `LINGO_RECORD_SNAPSHOTS=1 swift test --filter PromptBuilder`.
 @Suite struct PromptBuilderTests {
     static let combos: [[CorrectionMode]] = [[.inline], [.after], [.onDemand], [.inline, .after], [.inline, .onDemand],
                                              [.after, .onDemand], [.inline, .after, .onDemand]]
@@ -33,7 +33,7 @@ import Testing
                 continue
             }
             let expected = try String(contentsOf: url, encoding: .utf8)
-            #expect(text == expected, "снапшот \(name) изменился")
+            #expect(text == expected, "snapshot \(name) changed")
         }
     }
 
@@ -53,7 +53,7 @@ import Testing
                 #expect(t.contains("</session_prompt>") == (mode == .customPrompt))
             }
         }
-        // Без уровня — не A2 и не «молча»: явно «не указан».
+        // Without a level — not A2 and not silent: explicitly "not specified".
         let free = PromptBuilder.system(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
         #expect(free.contains("Learner level: not specified"))
         #expect(PromptBuilder.wordLimit(level: "A1") == 25 && PromptBuilder.wordLimit(level: "c1") == 100)
@@ -71,7 +71,7 @@ import Testing
         #expect(u.contains("<summary>\nAlex kauft Brötchen.\n</summary>"))
         #expect(u.contains("interrupted_at=12"))
         #expect(u.contains("the learner heard only: \"Guten Morgen\""))
-        #expect(u.components(separatedBy: "</transcript>").count == 2) // закрывающий тег из реплики вырезан
+        #expect(u.components(separatedBy: "</transcript>").count == 2) // the closing tag inside the utterance is cut out
         #expect(r.system.contains("Du bist Verkäufer"))
         let start = PromptBuilder.dialogRequest(settings: s, summary: "", messages: [])
         #expect(start.messages[0].text.contains("start the conversation now"))

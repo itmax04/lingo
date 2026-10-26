@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Синтетические записи для eval `audio` (evals/README.md): macOS `say` → 16 кГц моно WAV; смешанные — склейка ffmpeg.
-# Читает evals/audio/phrases.yaml, пишет evals/audio/{en,de,ru,mixed}/<id>.wav и manifest.json. Аудио в Git не хранится.
+# Synthetic recordings for the `audio` eval (evals/README.md): macOS `say` → 16 kHz mono WAV; mixed ones are joined with ffmpeg.
+# Reads evals/audio/phrases.yaml, writes evals/audio/{en,de,ru,mixed}/<id>.wav and manifest.json. Audio is not stored in Git.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/evals/audio"
 python3 -I - <<'PY'
 import json, os, subprocess, tempfile, re
-# Мини-разбор нашего YAML (только формат phrases.yaml), чтобы не тянуть зависимости в Python.
+# A tiny parser for our YAML (only the phrases.yaml format), so Python needs no dependencies.
 cur = None
 data = {}
 for line in open("phrases.yaml", encoding="utf-8"):
@@ -56,5 +56,5 @@ for set_name, items in data.items():
             study = it.get("study", set_name)
             manifest.append({"set": set_name, "id": it["id"], "file": out, "ref": it["text"], "study": study, "lang": set_name})
 json.dump(manifest, open("manifest.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-print(f"make-audio-fixtures: {len(manifest)} файлов, manifest.json")
+print(f"make-audio-fixtures: {len(manifest)} files, manifest.json")
 PY

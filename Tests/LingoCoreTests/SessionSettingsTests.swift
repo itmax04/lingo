@@ -13,7 +13,7 @@ import Testing
     @Test func customPromptRequiresText() {
         var s = SessionSettings(lang: .en, mode: .customPrompt, corrections: [.inline])
         #expect(!s.canStart)
-        s.customPrompt = "Ты сосед по дому."
+        s.customPrompt = "You are my neighbour."
         #expect(s.canStart)
     }
 
@@ -23,8 +23,8 @@ import Testing
     }
 
     @Test func defaultTitle() {
-        #expect(SessionSettings(lang: .en, mode: .free, topic: "знакомство").defaultTitle == "Свободный разговор: знакомство")
-        #expect(SessionSettings(lang: .en, mode: .questions).defaultTitle == "Вопросы")
+        #expect(SessionSettings(lang: .en, mode: .free, topic: "introductions").defaultTitle == "Free conversation: introductions")
+        #expect(SessionSettings(lang: .en, mode: .questions).defaultTitle == "Questions")
     }
 }
 
@@ -39,7 +39,7 @@ import Testing
         x.lastCorrections = [.inline, .after]
         SettingsStore(defaults: d).save(x)
         #expect(SettingsStore(defaults: d).load() == x)
-        // В настройках нет значений ключей — только последние 4 символа.
+        // Settings contain no key values — only the last 4 characters.
         let raw = String(decoding: d.data(forKey: SettingsStore.key)!, as: UTF8.self)
         #expect(raw.contains("abcd") && !raw.contains("secret"))
         #expect(x.llm.primaryLabel == "Groq · gpt-oss-120b")

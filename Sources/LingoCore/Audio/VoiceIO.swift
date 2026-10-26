@@ -1,39 +1,39 @@
 @preconcurrency import AVFoundation
 import Foundation
 
-/// Звук голосового режима (ADR-0001 п. 7–8): один `AVAudioEngine` для микрофона и озвучки.
-/// - Вход: voice processing (эхоподавление) → 16 кГц моно → `onSamples`. Аудио на диск не пишется (R-08).
-/// - Выход: озвучка `AVSpeechSynthesizer.write` → `AVAudioPlayerNode` того же движка: эхоподавление «видит» голос помощника,
-///   а позиция воспроизведения даёт точное место перебивания (R-12).
+/// Voice-mode audio (ADR-0001 §7–8): one `AVAudioEngine` for both microphone and speech output.
+/// - Input: voice processing (echo cancellation) → 16 kHz mono → `onSamples`. Audio is never written to disk (R-08).
+/// - Output: `AVSpeechSynthesizer.write` → an `AVAudioPlayerNode` on the same engine, so echo cancellation "sees" the assistant's voice
+///   and the playback position gives the exact barge-in point (R-12).
 public final class VoiceIO: @unchecked Sendable {
     public typealias SamplesHandler = @Sendable ([Float]) -> Void
 
     private var engine = AVAudioEngine()
     private var player = AVAudioPlayerNode()
     private let synth = AVSpeechSynthesizer()
-    private let converter = PCMConverter()
+    private var converter = PCMConverter()
     private let lock = NSLock()
     private let synthQueue = DispatchQueue(label: "lingo.tts")
-    /// Формат озвучки. С voice processing плеер подключается в формате выхода устройства (с 24 кГц моно движок
-    /// не запускался: CoreAudio −10875, диагностика H-2); буферы голосов приводятся к нему.
+    /// Speech output format. With voice processing the player is connected in the device output format (with 24 kHz mono the engine
+    /// failed to start: CoreAudio −10875, H-2 diagnostics); voice buffers are converted to it.
     var outFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24_000, channels: 1, interleaved: false)!
     private var hasOutput = false
 
     public var onSamples: SamplesHandler?
-    /// Формат входа после запуска (диагностика).
+    /// Input format after start (diagnostics).
     public private(set) var inputFormatDescription = ""
-    /// Сырые пики по каналам входа (диагностика).
+    /// Raw peaks per input channel (diagnostics).
     public var onRawPeaks: (@Sendable ([Float]) -> Void)?
-    /// Первый звук элемента озвучки (момент uptime в нс) — метрика `first_audio` (R-47).
+    /// First audio of a speech item (uptime in ns) — the `first_audio` metric (R-47).
     public var onPlaybackStarted: (@Sendable (_ tag: Int, _ uptimeNs: UInt64) -> Void)?
-    /// Элемент озвучки доигран до конца.
+    /// A speech item has finished playing.
     public var onItemFinished: (@Sendable (_ tag: Int) -> Void)?
-    /// Вся очередь озвучки доиграна.
+    /// The whole speech queue has finished playing.
     public var onIdle: (@Sendable () -> Void)?
 
     public private(set) var voiceProcessing = false
     public private(set) var running = false
-    /// Микрофон временно не слушает (прослушивание подсказки, R-27).
+    /// The microphone is temporarily muted (playing a hint phrase, R-27).
     public var micMuted: Bool {
         get { lock.withLock { _micMuted } }
         set { lock.withLock { _micMuted = newValue } }
@@ -44,7 +44,7 @@ public final class VoiceIO: @unchecked Sendable {
         var tag: Int
         var startSample: Int64
         var samples: Int64
-        /// (смещение в сэмплах от начала элемента, позиция символа в тексте элемента)
+        /// (offset in samples from the start of the item, character position in the item's text)
         var markers: [(Int64, Int)]
         var textLength: Int
         var started = false
@@ -57,30 +57,46 @@ public final class VoiceIO: @unchecked Sendable {
 
     public init() {}
 
-    // MARK: Старт и стоп
+    // MARK: Start and stop
 
-    /// Последняя ошибка запуска по каждой попытке (диагностика H-2).
+    /// Last start error for each attempt (H-2 diagnostics).
     public private(set) var startLog: [String] = []
-    /// Параметры последнего запуска — для перезапуска.
+    /// Parameters of the last start — used for restarts.
     private var wantVP = true
     private var wantOutput = true
     private var lastSampleAt: Double = 0
     private var configObserver: NSObjectProtocol?
-    private var restarts: [Double] = []
-    /// Звук перезапущен (смена конфигурации или тишина): причина.
-    public var onRestart: (@Sendable (String) -> Void)?
+    private var restartLimiter = AudioRestartLimiter()
+    private var recoveryWork: DispatchWorkItem?
+    private var shouldRun = false
+    private var hasInputTap = false
+    private var captureFailureReported = false
+    private var lastConvertedAt: Double = 0
+    private var startedAt: Double = 0
+    private var lastVoiceProcessingFailureAt: Double?
+    /// Capture has stopped; this also fires when no audio buffers arrive at all.
+    public var onCaptureFailure: (@Sendable (String) -> Void)?
+    /// Audio was restarted (configuration change or silence): the reason, and whether the restart succeeded.
+    public var onRestart: (@Sendable (String, Bool) -> Void)?
 
     static func now() -> Double { Double(DispatchTime.now().uptimeNanoseconds) / 1e9 }
 
-    /// Секунды с последнего блока сэмплов с микрофона (∞, если не было).
+    /// Seconds since the last block of microphone samples (∞ if none yet).
     public var secondsSinceSamples: Double { lock.withLock { lastSampleAt == 0 ? .infinity : Self.now() - lastSampleAt } }
 
-    /// `voiceProcessing` — эхоподавление системы. Если запуск с ним не удался (CoreAudio −10875 и т. п.),
-    /// движок пересоздаётся и запускается без эхоподавления; перебивание тогда опирается на порог VAD (риск в plan.md).
+    public var isCapturing: Bool {
+        running && engine.isRunning && lock.withLock {
+            lastConvertedAt > 0 && Self.now() - lastConvertedAt < 1.5
+        }
+    }
+
+    /// `voiceProcessing` — system echo cancellation. If starting with it fails (CoreAudio −10875 etc.),
+    /// the engine is recreated and started without it; barge-in then relies on the VAD threshold (risk listed in plan.md).
     public func start(voiceProcessing wantVP: Bool = true, output: Bool = true) throws {
         guard !running else { return }
         self.wantVP = wantVP
         self.wantOutput = output
+        shouldRun = true
         startLog = []
         var attempts: [Bool] = wantVP ? [true, false] : [false]
         var lastError: Error?
@@ -101,15 +117,29 @@ public final class VoiceIO: @unchecked Sendable {
     }
 
     private func resetEngine() {
-        hasOutput = false
-        engine.inputNode.removeTap(onBus: 0)
+        if let o = configObserver { NotificationCenter.default.removeObserver(o); configObserver = nil }
+        recoveryWork?.cancel()
+        recoveryWork = nil
         engine.stop()
+        if hasInputTap { engine.inputNode.removeTap(onBus: 0); hasInputTap = false }
+        if hasOutput { player.stop() }
+        // Release the old voice-processing I/O unit before constructing another one.
+        if voiceProcessing { try? engine.inputNode.setVoiceProcessingEnabled(false) }
         engine = AVAudioEngine()
         player = AVAudioPlayerNode()
+        converter = PCMConverter()
+        hasOutput = false
+        running = false
         voiceProcessing = false
+        lock.withLock { lastSampleAt = 0; lastConvertedAt = 0 }
     }
 
     private func startOnce(voiceProcessing vp: Bool, output: Bool) throws {
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
+        try session.setActive(true)
+        #endif
         let input = engine.inputNode
         if vp {
             try input.setVoiceProcessingEnabled(true)
@@ -118,18 +148,14 @@ public final class VoiceIO: @unchecked Sendable {
                 input.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: false, duckingLevel: .min)
             }
         }
-        #if os(iOS)
-        let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth, .defaultToSpeaker])
-        try session.setActive(true)
-        #endif
         if output || vp {
-            // Схема Apple для voice processing: выход движка должен работать (иначе вход не отдаёт сэмплы),
-            // микшер → выход соединяется в формате голосового входа.
-            let ioFormat = input.outputFormat(forBus: 0)
+            // VP may expose 5 microphone channels. Use the speaker-side format for output,
+            // queried after enabling VP, rather than applying the microphone layout to it.
+            let ioFormat = engine.outputNode.inputFormat(forBus: 0)
             let mixer = engine.mainMixerNode
-            if vp, ioFormat.sampleRate > 0 { engine.connect(mixer, to: engine.outputNode, format: ioFormat) }
-            let rate = vp && ioFormat.sampleRate > 0 ? ioFormat.sampleRate : engine.outputNode.outputFormat(forBus: 0).sampleRate
+            guard ioFormat.sampleRate > 0, ioFormat.channelCount > 0 else { throw VoiceIOError.noInput }
+            engine.connect(mixer, to: engine.outputNode, format: ioFormat)
+            let rate = ioFormat.sampleRate
             if rate > 0 { outFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: rate, channels: 1, interleaved: false)! }
             engine.attach(player)
             engine.connect(player, to: mixer, format: outFormat)
@@ -152,78 +178,97 @@ public final class VoiceIO: @unchecked Sendable {
                 cb(peaks)
             }
             let s = self.converter.convert(buffer)
-            if !s.isEmpty { self.onSamples?(s) }
+            if !s.isEmpty {
+                self.lock.withLock { self.lastConvertedAt = Self.now() }
+                self.onSamples?(s)
+            }
         }
+        hasInputTap = true
         engine.prepare()
         try engine.start()
         if output { player.play() }
         running = true
+        startedAt = Self.now()
         lock.withLock { lastSampleAt = Self.now() }
-        // macOS останавливает движок при смене конфигурации звука (устройство, частота, voice processing) —
-        // без перезапуска микрофон замолкает навсегда (живая проверка 2026-10-26).
+        // macOS stops the engine when the audio configuration changes (device, sample rate, voice processing) —
+        // without a restart the microphone goes silent for good (live check 2026-10-26).
         if let o = configObserver { NotificationCenter.default.removeObserver(o) }
         configObserver = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main) { [weak self] _ in
-            self?.restart(reason: "смена конфигурации звука")
+            guard let self, self.shouldRun else { return }
+            // Startup can post several notifications even while capture is healthy.
+            self.recoveryWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in self?.checkHealth() }
+            self.recoveryWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
         }
         Log.speech.notice("voice io started vp=\(self.voiceProcessing, privacy: .public) in=\(fmt.sampleRate, privacy: .public)Hz/\(fmt.channelCount, privacy: .public)ch")
     }
 
-    /// Перезапуск звука с прежними параметрами (не чаще 5 раз в минуту). Очередь озвучки сбрасывается.
-    public func restart(reason: String) {
+    /// Restarts audio with the same parameters (at most 5 times a minute). The speech queue is cleared.
+    public func restart(reason: String, recoveringCapture: Bool = false) {
         let t = Self.now()
-        let allowed = lock.withLock { () -> Bool in
-            restarts = restarts.filter { t - $0 < 60 } + [t]
-            return restarts.count <= 5
-        }
-        guard allowed else {
-            Log.speech.error("voice io restart skipped (too many): \(reason, privacy: .public)")
-            return
-        }
+        guard shouldRun else { return }
+        let allowed = lock.withLock { restartLimiter.allow(at: t) }
+        guard allowed else { return }
         Log.speech.notice("voice io restart: \(reason, privacy: .public)")
-        let vp = wantVP, out = wantOutput
-        if let o = configObserver { NotificationCenter.default.removeObserver(o); configObserver = nil }
-        lock.withLock { generation += 1; pendingBuffers = 0; pendingSynth = 0; items.removeAll(); scheduledTotal = 0 }
-        if running {
-            engine.inputNode.removeTap(onBus: 0)
-            if hasOutput { player.stop() }
-            engine.stop()
-            running = false
+        // VP can start successfully and then stop asynchronously; the start-error fallback
+        // cannot catch that. Use unprocessed input after a repeated recovery failure.
+        let repeatedVPFailure = recoveringCapture && voiceProcessing
+            && lastVoiceProcessingFailureAt.map { t - $0 < 10 } == true
+        if recoveringCapture && voiceProcessing { lastVoiceProcessingFailureAt = t }
+        let vp = wantVP && !repeatedVPFailure
+        let out = wantOutput
+        if wantVP && !vp {
+            Log.speech.notice("voice processing unstable; recovering without echo cancellation")
         }
+        _ = stopSpeaking()
+        micMuted = false
         resetEngine()
         do {
             try start(voiceProcessing: vp, output: out)
-            onRestart?(reason)
+            onRestart?(reason, true)
         } catch {
             Log.speech.error("voice io restart failed: \(String(describing: error), privacy: .public)")
-            onRestart?("не удалось перезапустить звук: \(error.localizedDescription)")
+            onCaptureFailure?(String(localized: "Could not restart audio: \(error.localizedDescription)"))
+            onRestart?(String(localized: "Could not restart audio: \(error.localizedDescription)"), false)
         }
     }
 
-    /// Сторож: микрофон молчит дольше `seconds` при запущенном движке — перезапуск.
+    /// Watchdog: if the microphone has been silent longer than `seconds` while the engine runs — restart.
     public func checkHealth(stallSeconds: Double = 1.5) {
-        guard running || startLog.isEmpty == false else { return }
-        if !running || !engine.isRunning || secondsSinceSamples > stallSeconds {
-            restart(reason: !engine.isRunning ? "движок остановлен" : "нет сэмплов \(Int(secondsSinceSamples * 1000)) мс")
+        guard shouldRun else { return }
+        let age = secondsSinceSamples
+        let conversionStalled = !micMuted && lock.withLock {
+            Self.now() - (lastConvertedAt > 0 ? lastConvertedAt : startedAt) > stallSeconds
+        }
+        if !running || !engine.isRunning || age > stallSeconds || conversionStalled {
+            if !captureFailureReported {
+                captureFailureReported = true
+                onCaptureFailure?(String(localized: "Microphone capture stopped. Recovering audio; please repeat your phrase."))
+            }
+            let reason = !engine.isRunning ? "engine stopped" : (conversionStalled ? "audio conversion stalled" : "no microphone samples")
+            restart(reason: reason, recoveringCapture: true)
+        } else if isCapturing {
+            captureFailureReported = false
         }
     }
 
     public func stop() {
-        if let o = configObserver { NotificationCenter.default.removeObserver(o); configObserver = nil }
-        guard running else { return }
-        if hasOutput { _ = stopSpeaking() }
-        engine.inputNode.removeTap(onBus: 0)
-        if hasOutput { player.stop() }
-        engine.stop()
-        running = false
+        shouldRun = false
+        _ = stopSpeaking()
+        resetEngine()
+        restartLimiter = AudioRestartLimiter()
+        captureFailureReported = false
+        lastVoiceProcessingFailureAt = nil
     }
 
     public enum VoiceIOError: Error { case noInput }
 
-    // MARK: Озвучка
+    // MARK: Speech output
 
     public var isSpeaking: Bool { lock.withLock { pendingBuffers > 0 || pendingSynth > 0 } }
 
-    /// Поставить фразу в очередь озвучки. `tag` — номер части ответа (для «прервано» и метрик). `pauseAfter` — тишина после (R-15).
+    /// Queue a phrase for speech. `tag` — index of the reply part (for "interrupted" and metrics). `pauseAfter` — silence after it (R-15).
     public func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double = 0, tag: Int) {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { return }
@@ -254,8 +299,9 @@ public final class VoiceIO: @unchecked Sendable {
     private func enqueue(_ buffers: [AVAudioPCMBuffer], srcRate: Double, markers: [(Int64, Int)], textLength: Int,
                          pauseAfter: Double, tag: Int, generation gen: Int) {
         lock.lock()
-        pendingSynth -= 1
-        guard gen == generation, running else {
+        guard gen == generation else { lock.unlock(); return }
+        pendingSynth = max(0, pendingSynth - 1)
+        guard running else {
             let idle = pendingBuffers == 0 && pendingSynth == 0
             lock.unlock()
             if idle { onIdle?() }
@@ -272,7 +318,7 @@ public final class VoiceIO: @unchecked Sendable {
         let ratio = srcRate > 0 ? outFormat.sampleRate / srcRate : 1
         lock.lock()
         let wasIdle = pendingBuffers == 0
-        // После паузы очереди воспроизведение продолжается с текущей позиции плеера.
+        // After the queue is paused, playback resumes from the player's current position.
         if wasIdle, let now = playerSample() { scheduledTotal = max(scheduledTotal, now) }
         let item = Item(tag: tag, startSample: scheduledTotal, samples: total,
                         markers: markers.map { (Int64(Double($0.0) * ratio), $0.1) }, textLength: textLength)
@@ -296,7 +342,7 @@ public final class VoiceIO: @unchecked Sendable {
     }
 
     private func markStartedLater(_ tag: Int) {
-        // Элемент встал в очередь за другими: его первый звук — когда плеер дойдёт до начала элемента.
+        // The item is queued behind others: its first audio is when the player reaches the item's start.
         let start = lock.withLock { items.first { $0.tag == tag }?.startSample } ?? 0
         let now = playerSample() ?? 0
         let delay = max(0, Double(start - now) / outFormat.sampleRate)
@@ -320,7 +366,7 @@ public final class VoiceIO: @unchecked Sendable {
         return pt.sampleTime
     }
 
-    /// Немедленно остановить озвучку (R-12). Возвращает часть ответа, на которой остановились, и позицию символа в её тексте.
+    /// Stop speech immediately (R-12). Returns the reply part where playback stopped and the character position in its text.
     @discardableResult
     public func stopSpeaking() -> (tag: Int, charOffset: Int)? {
         let pos = playerSample()
@@ -330,8 +376,8 @@ public final class VoiceIO: @unchecked Sendable {
         var result: (Int, Int)?
         if let it = current {
             let rel = (pos ?? it.startSample) - it.startSample
-            // Маркеры слов есть не у всех голосов (у стандартных голосов macOS 15 их нет — P-04);
-            // тогда позиция — пропорционально проигранной доле части.
+            // Not all voices provide word markers (standard macOS 15 voices do not — P-04);
+            // then the position is proportional to the played share of the part.
             let char = it.markers.isEmpty
                 ? Int(Double(it.textLength) * Double(max(0, rel)) / Double(max(1, it.samples)))
                 : (it.markers.last { $0.0 <= rel }?.1 ?? 0)
@@ -345,7 +391,7 @@ public final class VoiceIO: @unchecked Sendable {
         synth.stopSpeaking(at: .immediate)
         if hasOutput {
             player.stop()
-            if running { player.play() }
+            if running && engine.isRunning { player.play() }
         }
         return result
     }
@@ -367,8 +413,8 @@ public final class VoiceIO: @unchecked Sendable {
         return err == nil ? out : nil
     }
 
-    /// Прогрев голоса: первый синтез голосом занимает ≈ 1 с (загрузка), следующие — десятки мс (P-04, tts-bench).
-    /// Вызывается при старте сессии, чтобы «повтори» звучало не позже 0,3 с (R-14).
+    /// Voice warm-up: the first synthesis with a voice takes ≈ 1 s (loading), later ones take tens of ms (P-04, tts-bench).
+    /// Called when a session starts so that "repeat" sounds within 0.3 s (R-14).
     public func warmUp(lang: Lang, voiceID: String?) {
         synthQueue.async { [weak self] in
             guard let self else { return }
@@ -380,7 +426,7 @@ public final class VoiceIO: @unchecked Sendable {
         }
     }
 
-    /// Прослушать фразу подсказки (R-27): микрофон на это время не слушает.
+    /// Play a hint phrase (R-27): the microphone does not listen meanwhile.
     public func playPhrase(_ text: String, lang: Lang, voiceID: String?, rate: Float, tag: Int) {
         micMuted = true
         speak(text, lang: lang, voiceID: voiceID, rate: rate, tag: tag)

@@ -2,13 +2,13 @@ import AppKit
 import LingoCore
 import Observation
 
-/// Ключи и цепочка (R-29, R-30, R-44, R-48). Значения ключей живут только в Keychain;
-/// чтение — не на главном потоке (Keychain может ждать системного запроса доступа).
+/// Keys and the chain (R-29, R-30, R-44, R-48). Key values live only in the Keychain;
+/// they are read off the main thread (the Keychain may wait for a system access prompt).
 @MainActor
 @Observable
 final class KeysController {
     private(set) var settings: LLMSettings
-    /// Результат последней проверки по id ключа (без значения ключа).
+    /// Result of the last check per key id (without the key value).
     var checks: [String: String] = [:]
     var busy: Set<String> = []
     var addError: [ProviderID: String] = [:]
@@ -23,7 +23,7 @@ final class KeysController {
         self.onChange = onChange
     }
 
-    /// Настройки изменились вне окна (плашка источника, недействительный ключ из цепочки) — без обратного вызова.
+    /// Settings changed outside the window (source badge, an invalid key reported by the chain) — no callback.
     func replace(_ s: LLMSettings) { settings = s }
 
     func update(_ f: (inout LLMSettings) -> Void) {
@@ -31,16 +31,16 @@ final class KeysController {
         onChange(settings)
     }
 
-    // MARK: Ключи
+    // MARK: Keys
 
-    /// Сохраняет ключ в Keychain и сразу проверяет его. Поле ввода очищается вызывающим.
+    /// Saves the key to the Keychain and checks it right away. The caller clears the input field.
     func addKey(_ provider: ProviderID, value: String) {
         let v = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard v.count >= 8 else { addError[provider] = "Ключ слишком короткий"; return }
+        guard v.count >= 8 else { addError[provider] = String(localized: "The key is too short"); return }
         let rec = KeyRecord(provider: provider, last4: KeyRecord.last4(of: v))
         let n = settings.keys(for: provider).count + 1
         do {
-            try secrets.set(v, for: rec.id, label: "\(provider.displayName) ключ \(n)")
+            try secrets.set(v, for: rec.id, label: "\(provider.displayName) key \(n)")
         } catch {
             addError[provider] = "\(error)"
             return
@@ -57,15 +57,15 @@ final class KeysController {
         checks[id] = nil
     }
 
-    /// «Проверить» (R-30): `GET /models`; ключ включается или выключается по результату, список моделей сохраняется.
+    /// "Check" (R-30): `GET /models`; the key is enabled or disabled by the result, the model list is saved.
     func verify(_ id: String) {
         guard let rec = settings.keys.first(where: { $0.id == id }) else { return }
         busy.insert(id)
-        checks[id] = "Проверяю…"
+        checks[id] = String(localized: "Checking…")
         let secrets = self.secrets, verifier = self.verifier, base = settings.customBase
         Task {
             let result = await Task.detached { () -> KeyCheckResult in
-                guard let value = try? secrets.get(id), !value.isEmpty else { return .failed(message: "ключ не найден в Связке ключей") }
+                guard let value = try? secrets.get(id), !value.isEmpty else { return .failed(message: String(localized: "key not found in the Keychain")) }
                 return await verifier.verify(rec.provider, key: value, customBase: base)
             }.value
             busy.remove(id)
@@ -88,12 +88,12 @@ final class KeysController {
         }
     }
 
-    /// Цепочка сообщила, что ключ недействителен (R-29).
+    /// The chain reported that the key is invalid (R-29).
     func markInvalid(_ id: String, reason: String) {
         update { $0.markInvalid(keyID: id, reason: reason) }
     }
 
-    // MARK: Цепочка
+    // MARK: Chain
 
     func move(_ id: String, by delta: Int) {
         update { s in

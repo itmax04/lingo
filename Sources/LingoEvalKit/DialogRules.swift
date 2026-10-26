@@ -1,20 +1,20 @@
 import Foundation
 import LingoCore
 
-/// Правила eval `dialog` (evals/README.md, таблица «Правила»). Каждое возвращает true/false или nil (не применяется к кейсу).
+/// Rules of the `dialog` eval (evals/README.md, "Rules" table). Each returns true/false, or nil (does not apply to the case).
 public enum DialogRules {
     public static let all = ["protocol_ok", "lang_discipline", "no_pronunciation", "one_question", "contains_correction",
                              "returns_to_practice", "length_by_level", "asks_repeat", "repeats_previous", "fix_recorded",
                              "heard_ok", "no_false_correction", "says", "hint"]
 
-    /// Пороги по правилам (evals/README.md). `no_pronunciation` — 100%.
+    /// Per-rule thresholds (evals/README.md). `no_pronunciation` — 100%.
     public static let thresholds: [String: Double] = [
         "protocol_ok": 0.95, "lang_discipline": 0.90, "no_pronunciation": 1.0, "one_question": 0.90,
         "contains_correction": 0.85, "returns_to_practice": 0.90, "length_by_level": 0.85,
     ]
 
-    /// Слова о произношении, звуках, акценте и «мягче/твёрже/чётче» (ru, de, en) — регулярные выражения по целым словам.
-    /// Бытовые идиомы «sounds like», «klingt wie», «звучит как» и «акцентировать (внимание)» — не о произношении (ложные срабатывания run1, D-20).
+    /// Words about pronunciation, sounds, accent and "softer/harder/clearer" (ru, de, en) — whole-word regular expressions (language data).
+    /// Everyday idioms "sounds like", "klingt wie", "звучит как" and "акцентировать (внимание)" are not about pronunciation (false positives in run1, D-20).
     static let pronunciation: [String] = [
         "произнош", "произнес", "произнёс", "произноси", "выговор", "\\bакцент(а|у|ом|е|ы|ов)?\\b", "интонац", "ударени",
         "мягче", "твёрже", "тверже", "чётче", "четче", "\\bзвук(а|и|ов|ом)?\\b",
@@ -22,7 +22,7 @@ public enum DialogRules {
         "pronunciation", "pronounc", "\\baccents?\\b", "intonation", "softer", "harder sound", "your sound",
     ]
 
-    /// Признаки исправления в озвучиваемом тексте (для режимов без «по ходу»).
+    /// Signs of a correction in the spoken text (for modes without "as we go").
     static let correctionMarkers: [String] = [
         "natürlicher", "besser wäre", "besser:", "richtig wäre", "richtig ist", "korrekt wäre", "man sagt", "statt",
         "more natural", "better:", "it's better to say", "you should say", "the correct", "instead of", "correct form",

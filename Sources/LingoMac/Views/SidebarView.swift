@@ -1,8 +1,8 @@
 import LingoCore
 import SwiftUI
 
-/// Левая колонка (R-40): логотип, «Новая сессия», сегмент языка, «Мои сессии», статус синхронизации.
-/// На макете строки сессий шире остальных элементов колонки: поле 8 pt вместо 16.
+/// Left column (R-40): logo, "New session", language segment, "My sessions", sync status.
+/// In the mockup the session rows are wider than the other column elements: 8 pt padding instead of 16.
 private let sidebarListInset: CGFloat = -Theme.S.s8
 
 struct SidebarView: View {
@@ -23,7 +23,7 @@ struct SidebarView: View {
             Button(action: onNewSession) {
                 HStack(spacing: Theme.S.s16) {
                     Image(systemName: "plus").font(.system(size: 18, weight: .medium))
-                    Text("Новая сессия").font(Theme.F.button)
+                    Text("New session").font(Theme.F.button)
                     Spacer(minLength: 0)
                 }
                 .foregroundStyle(Theme.C.textPrimary)
@@ -33,13 +33,13 @@ struct SidebarView: View {
             }
             .buttonStyle(LingoButtonStyle())
             .keyboardShortcut("n", modifiers: .command)
-            .accessibilityLabel("Новая сессия")
+            .accessibilityLabel("New session")
             .padding(.bottom, Theme.S.s16)
 
             LanguageSegment(selection: $model.langFilter)
                 .padding(.bottom, Theme.S.s24)
 
-            Text("Мои сессии")
+            Text("My sessions")
                 .font(Theme.F.section)
                 .foregroundStyle(Theme.C.textSecondary)
                 .padding(.bottom, Theme.S.s8)
@@ -51,15 +51,15 @@ struct SidebarView: View {
                             model.selectedSessionID = s.id
                             model.refreshSelection()
                         }, menu: AnyView(Menu {
-                            Button("Переименовать…") { renameText = s.title; renaming = s }
-                            Button("Показать в журнале") { model.services?.revealJournal() }
+                            Button("Rename…") { renameText = s.title; renaming = s }
+                            Button("Show in journal") { model.services?.revealJournal() }
                             Divider()
-                            Button("Удалить…", role: .destructive) { deleting = s }
+                            Button("Delete…", role: .destructive) { deleting = s }
                         } label: {
                             Image(systemName: "ellipsis").font(.system(size: 14)).foregroundStyle(Theme.C.textTertiary)
                         }
                         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                        .accessibilityLabel("Действия с сессией")))
+                        .accessibilityLabel("Session actions")))
                     }
                 }
             }
@@ -73,29 +73,29 @@ struct SidebarView: View {
                 else { model.services?.syncNow() }
             } label: { SyncStatusLine(text: model.syncStatus) }
                 .buttonStyle(LingoButtonStyle())
-                .help("Задержку между устройствами определяет iCloud — синхронизация не мгновенная (R-38)")
+                .help("iCloud decides the delay between devices — sync is not instant (R-38)")
                 .padding(.vertical, Theme.S.s12)
         }
         .padding(.horizontal, Theme.S.columnPadding)
         .frame(width: Theme.S.sidebarWidth)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(Theme.C.bgSidebar)
-        .alert("Переименовать сессию", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-            TextField("Название", text: $renameText)
-            Button("Отмена", role: .cancel) { renaming = nil }
-            Button("Сохранить") { if let s = renaming { model.services?.rename(s.id, renameText) }; renaming = nil }
+        .alert("Rename session", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel) { renaming = nil }
+            Button("Save") { if let s = renaming { model.services?.rename(s.id, renameText) }; renaming = nil }
         }
-        .confirmationDialog("Удалить сессию «\(deleting?.title ?? "")»?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+        .confirmationDialog("Delete session “\(deleting?.title ?? "")”?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
                             titleVisibility: .visible) {
-            Button("Удалить", role: .destructive) { if let s = deleting { model.services?.delete(s.id) }; deleting = nil }
-            Button("Отмена", role: .cancel) { deleting = nil }
+            Button("Delete", role: .destructive) { if let s = deleting { model.services?.delete(s.id) }; deleting = nil }
+            Button("Cancel", role: .cancel) { deleting = nil }
         } message: {
-            Text("Сессия исчезнет на всех устройствах после синхронизации. Сообщения остаются в журнале (событие-надгробие).")
+            Text("The session disappears on all devices after a sync. The messages stay in the journal (a tombstone event).")
         }
     }
 }
 
-/// Сегмент English/Deutsch (DESIGN.md §5).
+/// English/Deutsch segment (DESIGN.md §5).
 struct LanguageSegment: View {
     @Binding var selection: Lang
 
@@ -124,13 +124,13 @@ struct LanguageSegment: View {
     }
 }
 
-/// Строка сессии (DESIGN.md §5): иконка, название, дата, «…».
+/// Session row (DESIGN.md §5): icon, title, date, "…".
 struct SessionRow: View {
     let session: Session
     let selected: Bool
     let onSelect: () -> Void
     var menu: AnyView = AnyView(Image(systemName: "ellipsis").font(.system(size: 14)).foregroundStyle(Theme.C.textTertiary)
-        .accessibilityLabel("Действия с сессией"))
+        .accessibilityLabel("Session actions"))
     @State private var hover = false
 
     var body: some View {
@@ -164,7 +164,7 @@ struct SessionRow: View {
     }
 }
 
-/// Статус синхронизации внизу сайдбара (R-38).
+/// Sync status at the bottom of the sidebar (R-38).
 struct SyncStatusLine: View {
     let text: String
     var body: some View {

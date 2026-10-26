@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Сверка папки синхронизации (AC-08, S-19, plan.md P-02/P-10).
+"""Sync folder check (AC-08, S-19, plan.md P-02/P-10).
 
-    scripts/sync-check.py <папка> [--local <база JournalStore> ...] [--session <id> --expect N]
+    scripts/sync-check.py <folder> [--local <JournalStore base> ...] [--session <id> --expect N]
 
-<папка> — выбранная папка синхронизации (или её подпапка «Lingo»). Читаются все журналы
-Lingo/v1/devices/*/journal-*.jsonl. Проверки:
-  * дубли: одинаковый id события в разных строках или файлах;
-  * каждое устройство пишет только в свою папку (поле device совпадает с именем папки);
-  * --session/--expect: число сообщений в сессии;
-  * --local: локальная база устройства (devices/* + cache/*) содержит все сообщения папки (потери)
-    и даёт тот же порядок (ts, device, seq) — R-37.
-Код возврата 0 — 0 потерь и 0 дублей. Текст сообщений не печатается.
+<folder> — the chosen sync folder (or its "Lingo" subfolder). All journals
+Lingo/v1/devices/*/journal-*.jsonl are read. Checks:
+  * duplicates: the same event id on different lines or in different files;
+  * each device writes only to its own folder (the device field matches the folder name);
+  * --session/--expect: number of messages in the session;
+  * --local: the device's local base (devices/* + cache/*) contains every message of the folder (losses)
+    and gives the same order (ts, device, seq) — R-37.
+Exit code 0 — 0 losses and 0 duplicates. Message texts are not printed.
 """
 import argparse, glob, json, os, sys
 
@@ -22,7 +22,7 @@ def read_dir(pattern):
             data = f.read()
         lines = data.split("\n")
         if lines and lines[-1] != "":
-            lines = lines[:-1]  # оборванная последняя строка (R-39)
+            lines = lines[:-1]  # a cut-off last line (R-39)
         for ln in lines:
             if not ln.strip():
                 continue
@@ -63,7 +63,7 @@ def main():
         root = os.path.join(root, "Lingo")
     devices_dir = os.path.join(root, "v1", "devices")
     if not os.path.isdir(devices_dir):
-        print(f"FAIL: нет папки {devices_dir}")
+        print(f"FAIL: no folder {devices_dir}")
         return 1
 
     events, bad = read_dir(os.path.join(devices_dir, "*", "journal-*.jsonl"))
@@ -106,7 +106,7 @@ def main():
         print(f"local {base}: lost={lost} not_in_folder={extra} order_mismatch_sessions={order} dup={ldups}")
         problems += lost + order + ldups
 
-    print("RESULT: " + ("PASS (0 потерь, 0 дублей)" if problems == 0 else f"FAIL ({problems} проблем)"))
+    print("RESULT: " + ("PASS (0 losses, 0 duplicates)" if problems == 0 else f"FAIL ({problems} problems)"))
     return 0 if problems == 0 else 1
 
 

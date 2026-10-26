@@ -1,7 +1,7 @@
 import LingoCore
 import SwiftUI
 
-/// Окно из трёх колонок (R-40): сайдбар | лента + голосовая панель + ввод | подсказки.
+/// Three-column window (R-40): sidebar | feed + voice panel + input | hints.
 struct MainView: View {
     @Bindable var model: AppModel
 
@@ -18,7 +18,7 @@ struct MainView: View {
                 }
             }
             .overlay(alignment: .trailing) {
-                // R-40: при ширине < 1280 подсказки выдвигаются поверх ленты.
+                // R-40: below a width of 1280 the hints slide out over the feed.
                 if !wide && model.hintsVisible {
                     HStack(spacing: 0) { ColumnDivider(); hints }
                         .transition(.move(edge: .trailing))
@@ -53,7 +53,7 @@ struct MainView: View {
     private var center: some View {
         VStack(spacing: 0) {
             ChatHeader(title: model.selectedSession?.title ?? "Lingo",
-                       subtitle: model.selectedSession?.settings.subtitle ?? "Создайте сессию: «Новая сессия»",
+                       subtitle: model.selectedSession?.settings.subtitle ?? String(localized: "Create a session: “New session”"),
                        sourceLabel: model.sourceLabel, online: model.online, memoryNote: model.memoryNote,
                        sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
             if let b = model.banner {
@@ -86,26 +86,26 @@ struct MainView: View {
                     Image(systemName: "book").font(.system(size: 18)).foregroundStyle(Theme.C.textPrimary)
                 }
                 .buttonStyle(LingoButtonStyle())
-                .accessibilityLabel("Показать подсказки")
+                .accessibilityLabel("Show hints")
                 .padding(Theme.S.s8)
             }
         }
     }
 }
 
-/// Переключатели голосовой панели (R-42): непрерывный режим, «Говорю по-русски» (R-09, ⌥R), «Медленный темп» (R-15).
+/// Voice panel toggles (R-42): continuous mode, "I'm speaking Russian" (R-09, ⌥R), "Slow pace" (R-15).
 struct VoiceToggles: View {
     @Bindable var model: AppModel
 
     var body: some View {
         HStack(spacing: Theme.S.s8) {
-            toggle("Непрерывно", symbol: "infinity", on: model.continuous) { model.services?.toggleContinuous() }
-            toggle("По-русски", symbol: "character.bubble", on: model.russianOnce) { model.services?.toggleRussian() }
-            toggle("Медленно", symbol: "tortoise", on: model.slowPace) { model.services?.toggleSlowPace() }
+            toggle("Continuous", symbol: "infinity", on: model.continuous) { model.services?.toggleContinuous() }
+            toggle("In Russian", symbol: "character.bubble", on: model.russianOnce) { model.services?.toggleRussian() }
+            toggle("Slowly", symbol: "tortoise", on: model.slowPace) { model.services?.toggleSlowPace() }
         }
     }
 
-    func toggle(_ title: String, symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
+    func toggle(_ title: LocalizedStringKey, symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: Theme.S.s4) {
                 Image(systemName: symbol).font(.system(size: 14, weight: .semibold))
@@ -121,14 +121,14 @@ struct VoiceToggles: View {
     }
 }
 
-/// Плашка источника (R-32): «Авто (цепочка)» или конкретный шаг цепочки.
+/// Source badge (R-32): "Auto (chain)" or a specific chain step.
 struct SourceMenu: View {
     @Bindable var model: AppModel
 
     var body: some View {
         Menu {
             let llm = model.services?.settings.llm
-            Button((llm?.pinnedEntryID == nil ? "✓ " : "") + "Авто (цепочка)") { model.services?.pin(nil) }
+            Button((llm?.pinnedEntryID == nil ? "✓ " : "") + String(localized: "Auto (chain)")) { model.services?.pin(nil) }
             Divider()
             ForEach(llm?.chain.filter(\.enabled) ?? []) { e in
                 Button((llm?.pinnedEntryID == e.id ? "✓ " : "") + StepInfo(provider: e.provider, model: e.model, keyID: "").label) { model.services?.pin(e.id) }
@@ -139,32 +139,32 @@ struct SourceMenu: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .accessibilityLabel("Источник ответа: \(model.sourceLabel)")
+        .accessibilityLabel("Reply source: \(model.sourceLabel)")
     }
 }
 
-/// Шестерёнка шапки: режимы исправления сессии (R-20), «Медленный темп» (R-15), память помощника (R-04).
+/// Header gear: the session's correction modes (R-20), "Slow pace" (R-15), the assistant's memory (R-04).
 struct SessionMenu: View {
     @Bindable var model: AppModel
 
     var body: some View {
         Menu {
             if let s = model.selectedSession {
-                Section("Исправление ошибок") {
+                Section("Error correction") {
                     ForEach(CorrectionMode.allCases, id: \.self) { c in
                         Button((s.settings.corrections.contains(c) ? "✓ " : "") + c.title) { model.services?.toggleCorrection(c) }
                     }
                 }
-                Button((model.slowPace ? "✓ " : "") + "Медленный темп") { model.services?.toggleSlowPace() }
+                Button((model.slowPace ? "✓ " : "") + String(localized: "Slow pace")) { model.services?.toggleSlowPace() }
                 Section(model.memoryNote ?? "") {}
             }
-            Button("Настройки Lingo…") { NSApp.sendAction(#selector(AppDelegate.showSettings(_:)), to: nil, from: nil) }
+            Button("Lingo Settings…") { NSApp.sendAction(#selector(AppDelegate.showSettings(_:)), to: nil, from: nil) }
         } label: {
             Image(systemName: "gearshape").font(.system(size: 18)).foregroundStyle(Theme.C.textSecondary)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .accessibilityLabel("Настройки сессии")
+        .accessibilityLabel("Session settings")
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import LingoCore
 
-/// Eval `commands` (AC-04): точность ≥ 95%, ложные срабатывания на отрицательных ≤ 3%.
+/// The `commands` eval (AC-04): accuracy ≥ 95%, false positives on negatives ≤ 3%.
 enum CommandsEval {
     struct Case: Decodable { var text: String; var expect: String; var argument: String? }
     struct Row: Encodable { var file: String; var text: String; var expect: String; var got: String; var argument: String?; var ok: Bool }
@@ -28,7 +28,7 @@ enum CommandsEval {
         for r in rows where !r.ok { print("MISS [\(r.file)] \"\(r.text)\": expect=\(r.expect) got=\(r.got)\(r.argument.map { " arg=\($0)" } ?? "")") }
         let path = try EvalIO.writeOut("commands.json", rep)
         let pass = rep.accuracy >= 0.95 && rep.fpRate <= 0.03
-        print("commands: \(correct)/\(rows.count) = \(EvalIO.pct(correct, rows.count)) (порог ≥ 95%); отрицательных \(neg.count) (\(EvalIO.pct(neg.count, rows.count))), ложных срабатываний \(fp) = \(EvalIO.pct(fp, neg.count)) (порог ≤ 3%) → \(pass ? "PASS" : "FAIL")")
+        print("commands: \(correct)/\(rows.count) = \(EvalIO.pct(correct, rows.count)) (threshold ≥ 95%); negatives \(neg.count) (\(EvalIO.pct(neg.count, rows.count))), false positives \(fp) = \(EvalIO.pct(fp, neg.count)) (threshold ≤ 3%) → \(pass ? "PASS" : "FAIL")")
         print("out: \(path)")
         return pass ? 0 : 1
     }

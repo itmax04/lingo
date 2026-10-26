@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Токены DESIGN.md один в один (§1–§4). Значений, которых нет в DESIGN.md, здесь нет.
-/// Тема только тёмная (DESIGN.md: «Тема: только тёмная в v1»).
+/// DESIGN.md tokens one to one (§1–§4). Nothing here that is not in DESIGN.md.
+/// Dark theme only (DESIGN.md: "Theme: dark only in v1").
 enum Theme {
-    // MARK: §1 Цвета
+    // MARK: §1 Colors
     enum C {
         static let bgWindow = Color(hex: 0x121619)
         static let bgSidebar = Color(hex: 0x14181B)
@@ -36,7 +36,7 @@ enum Theme {
         static let iconSend = Color(hex: 0xE7EFF8)
     }
 
-    // MARK: §2 Типографика (SF Pro, размеры в pt)
+    // MARK: §2 Typography (SF Pro, sizes in pt)
     enum F {
         static let logo = Font.system(size: 30, weight: .bold)
         static let title = Font.system(size: 22, weight: .semibold)
@@ -56,7 +56,7 @@ enum Theme {
         static let chip = Font.system(size: 13, weight: .regular)
     }
 
-    // MARK: §3 Отступы и сетка (шаг 4 pt: 4, 8, 12, 16, 20, 24, 32)
+    // MARK: §3 Spacing and grid (4 pt step: 4, 8, 12, 16, 20, 24, 32)
     enum S {
         static let s4: CGFloat = 4
         static let s8: CGFloat = 8
@@ -76,15 +76,15 @@ enum Theme {
         static let avatarGap: CGFloat = 12
         static let rowPadding: CGFloat = 12
         static let cardGap: CGFloat = 12
-        /// Ширина пузыря — не больше 70% центральной колонки.
+        /// Bubble width — at most 70% of the center column.
         static let bubbleMaxFraction: CGFloat = 0.7
-        /// R-40: при ширине окна меньше 1280 правая колонка сворачивается.
+        /// R-40: below a window width of 1280 the right column collapses.
         static let hintsCollapseWidth: CGFloat = 1280
-        /// R-40: минимальный размер окна.
+        /// R-40: minimum window size.
         static let minWindow = CGSize(width: 1100, height: 700)
     }
 
-    // MARK: §4 Радиусы и размеры
+    // MARK: §4 Radii and sizes
     enum R {
         static let button: CGFloat = 8
         static let bubble: CGFloat = 16
@@ -102,17 +102,17 @@ enum Theme {
         static let hintCardMinHeight: CGFloat = 78
         static let chipHeight: CGFloat = 32
         static let stroke: CGFloat = 1
-        /// Добавлено в DESIGN.md §4 (P-01): столбик волны и промежуток.
+        /// Added to DESIGN.md §4 (P-01): waveform bar and gap.
         static let waveBar: CGFloat = 3
         static let waveGap: CGFloat = 4
-        /// Добавлено в DESIGN.md §4 (P-01): точка статуса в плашке источника.
+        /// Added to DESIGN.md §4 (P-01): status dot in the source badge.
         static let statusDot: CGFloat = 12
     }
 
-    // MARK: §6 Состояния
+    // MARK: §6 States
     static let hoverOpacity: Double = 0.85
     static let disabledOpacity: Double = 0.4
-    /// §5: наведение на строку сессии — фон выбранной с прозрачностью 50%.
+    /// §5: hover over a session row — the selected background at 50% opacity.
     static let rowHoverOpacity: Double = 0.5
 }
 
@@ -126,7 +126,7 @@ extension Color {
     }
 }
 
-/// Обводка `stroke.subtle` (1 pt, `border.subtle`).
+/// `stroke.subtle` outline (1 pt, `border.subtle`).
 extension View {
     func subtleStroke<S: InsettableShape>(_ shape: S) -> some View {
         overlay(shape.strokeBorder(Theme.C.borderSubtle, lineWidth: Theme.R.stroke))

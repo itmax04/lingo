@@ -2,7 +2,7 @@ import Foundation
 import LingoCore
 import LingoEvalKit
 
-/// Служебные режимы без окна. Печатают только метаданные (провайдер, номер ключа, последние 4 символа, модели).
+/// Service modes without a window. They print only metadata (provider, key index, last 4 characters, models).
 @MainActor
 enum Headless {
     static func checkKeys(showAll: Bool) -> Int32 {
@@ -11,7 +11,7 @@ enum Headless {
         let secrets = KeychainStore()
         let verifier = KeyVerifier()
         if settings.llm.keys.isEmpty {
-            print("check-keys: ключей нет (Настройки → Ключи и модели)")
+            print("check-keys: no keys (Settings → Keys and models)")
             return 1
         }
         let done = DispatchSemaphore(value: 0)
@@ -21,11 +21,11 @@ enum Headless {
             for p in ProviderID.allCases {
                 for (i, k) in llm.keys(for: p).enumerated() {
                     guard let v = try? secrets.get(k.id), !v.isEmpty else {
-                        print("\(p.displayName) ключ \(i + 1) ••••\(k.last4): нет значения в Связке ключей")
+                        print("\(p.displayName) key \(i + 1) ••••\(k.last4): no value in the Keychain")
                         continue
                     }
                     let r = await verifier.verify(p, key: v, customBase: llm.customBase)
-                    print("\(p.displayName) ключ \(i + 1) ••••\(k.last4): \(r.summary)")
+                    print("\(p.displayName) key \(i + 1) ••••\(k.last4): \(r.summary)")
                     guard let idx = llm.keys.firstIndex(where: { $0.id == k.id }) else { continue }
                     switch r {
                     case .ok(let models):
@@ -43,7 +43,7 @@ enum Headless {
             }
             for e in llm.chain {
                 let known = llm.knownModels[e.provider] ?? []
-                let mark = known.isEmpty ? "?" : (known.contains(e.model) ? "ok" : "НЕТ В СПИСКЕ")
+                let mark = known.isEmpty ? "?" : (known.contains(e.model) ? "ok" : "NOT IN LIST")
                 print("chain: \(e.enabled ? "on " : "off") \(e.provider.displayName) \(e.model) [\(mark)]")
             }
             box.value = llm
@@ -57,8 +57,8 @@ enum Headless {
 }
 
 extension Headless {
-    /// `Lingo --eval-dialog <кейсы> <выход> [--models m1,m2] [--only id1,id2]` (P-05): ключ — первый действующий ключ провайдера
-    /// из Связки ключей. Модели — параллельно (лимиты Groq считаются на модель), кейсы — по одному.
+    /// `Lingo --eval-dialog <cases> <out> [--models m1,m2] [--only id1,id2]` (P-05): the key is the provider's first working key
+    /// from the Keychain. Models run in parallel (Groq limits are per model), cases one at a time.
     static func evalDialog(args: [String]) -> Int32 {
         guard let i = args.firstIndex(of: "--eval-dialog"), i + 2 < args.count else { print("usage: --eval-dialog <cases> <out>"); return 2 }
         let casesDir = URL(fileURLWithPath: args[i + 1]), outDir = URL(fileURLWithPath: args[i + 2])
@@ -67,10 +67,10 @@ extension Headless {
             return args[j + 1].split(separator: ",").map(String.init)
         }
         let settings = SettingsStore().load().llm
-        // Защита квоты (Q29, ревью F-01): по умолчанию — одна модель, 10 кейсов, ночью; днём — только с --allow-daytime.
+        // Quota protection (Q29, review F-01): by default one model, 10 cases, at night; in the daytime only with --allow-daytime.
         let hour = Calendar.current.component(.hour, from: Date())
         if (8..<23).contains(hour), !args.contains("--allow-daytime") {
-            print("eval dialog: днём не запускается — квота Groq общая с занятиями владельца (Q29). Ночью (23:00–08:00) или с --allow-daytime.")
+            print("eval dialog: not run in the daytime — the Groq quota is shared with the owner's practice (Q29). At night (23:00–08:00) or with --allow-daytime.")
             return 3
         }
         let models = opt("--models") ?? Array(settings.chain.filter { $0.enabled && $0.provider == .groq }.map(\.model).prefix(1))
@@ -81,7 +81,7 @@ extension Headless {
         do { cases = try DialogCase.load(dir: casesDir) } catch { print("cases: \(error)"); return 2 }
         if let only = opt("--only") { cases = cases.filter { only.contains($0.id) } }
         if opt("--only") == nil, cases.count > maxCases {
-            // Порция по кругу категорий: каждая категория представлена, пока хватает лимита.
+            // A batch round-robin over categories: each category is represented while the limit allows.
             var byCat: [String: [DialogCase]] = [:]
             for c in cases { byCat[c.category, default: []].append(c) }
             let offset = opt("--offset").flatMap { Int($0[0]) } ?? 0
@@ -98,14 +98,14 @@ extension Headless {
             }
             cases = picked
         }
-        guard let rec = settings.keys(for: provider).first(where: { !$0.invalid }) else { print("нет действующего ключа \(provider.displayName)"); return 1 }
+        guard let rec = settings.keys(for: provider).first(where: { !$0.invalid }) else { print("no working key for \(provider.displayName)"); return 1 }
         let selected = cases, base = settings.customBase
         let done = DispatchSemaphore(value: 0)
         let box = Box(Int32(0))
         Task.detached {
-            guard let key = try? KeychainStore().get(rec.id), !key.isEmpty else { print("ключ не прочитан из Связки ключей"); box.value = 1; done.signal(); return }
+            guard let key = try? KeychainStore().get(rec.id), !key.isEmpty else { print("could not read the key from the Keychain"); box.value = 1; done.signal(); return }
             try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
-            print("eval dialog: \(selected.count) кейсов × \(models.count) моделей (\(provider.displayName), ключ ••••\(rec.last4)), бюджет \(budget) запросов на модель")
+            print("eval dialog: \(selected.count) cases × \(models.count) models (\(provider.displayName), key ••••\(rec.last4)), budget \(budget) requests per model")
             let usage = UsageRecorder(dir: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("Lingo/usage", isDirectory: true))
             let reports = await withTaskGroup(of: DialogRunner.Report.self) { g in
@@ -139,8 +139,8 @@ extension Headless {
                 summary.append("  AC-05: explain \(explain), ru_utterance \(ruu), lang_discipline \(String(format: "%.0f%%", (r.ruleRates["lang_discipline"] ?? 0) * 100))")
                 let corr = ["correction_inline", "correction_after", "correction_on_demand"].map { k in "\(k) " + (r.categoryRates[k].map { String(format: "%.0f%%", $0 * 100) } ?? "—") }
                 summary.append("  AC-06: " + corr.joined(separator: ", "))
-                summary.append("  категории: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(String(format: "%.0f%%", $0.value * 100))" }.joined(separator: ", "))
-                summary.append("  итог: \(v.pass ? "PASS" : "FAIL")")
+                summary.append("  categories: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(String(format: "%.0f%%", $0.value * 100))" }.joined(separator: ", "))
+                summary.append("  verdict: \(v.pass ? "PASS" : "FAIL")")
             }
             let text = summary.joined(separator: "\n")
             try? text.write(to: outDir.appendingPathComponent("dialog-summary.txt"), atomically: true, encoding: .utf8)

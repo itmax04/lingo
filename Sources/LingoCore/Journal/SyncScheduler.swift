@@ -1,8 +1,8 @@
 import Foundation
 
-/// Когда синхронизировать (R-38): при запуске, при возврате в активное состояние, раз в 60 с, пока приложение активно,
-/// после завершения сессии и по кнопке. Синхронизация идёт в фоне и никогда не блокирует разговор; запросы во время
-/// идущей синхронизации склеиваются в один следующий проход.
+/// When to sync (R-38): at launch, when the app becomes active again, every 60 s while the app is active,
+/// after a session ends and on the button. Sync runs in the background and never blocks the conversation; requests made during
+/// a running sync are coalesced into one next pass.
 public actor SyncScheduler {
     public enum Reason: String, Sendable { case launch, becameActive, timer, sessionEnded, manual, folderChanged }
 
@@ -32,7 +32,7 @@ public actor SyncScheduler {
         publish(f == nil ? .notConfigured : status)
     }
 
-    /// Таймер работает, пока приложение активно (R-38).
+    /// The timer runs while the app is active (R-38).
     public func setActive(_ active: Bool) {
         timer?.cancel()
         timer = nil
@@ -55,7 +55,7 @@ public actor SyncScheduler {
         Task { await self.runLoop(reason) }
     }
 
-    /// Синхронизация сейчас с ожиданием результата (кнопка «Синхронизировать», тесты).
+    /// Sync now and wait for the result ("Sync now" button, tests).
     public func syncNow() async -> SyncStatus {
         guard let f = folder else { publish(.notConfigured); return .notConfigured }
         let s = await store.sync(with: f)
@@ -76,7 +76,7 @@ public actor SyncScheduler {
     }
 
     private func publish(_ s: SyncStatus) {
-        // «Синхронизация…» не перекрывает последний известный результат в сайдбаре дольше одного прохода.
+        // "Syncing…" does not hide the last known result in the sidebar for longer than one pass.
         status = s
         onStatus?(s)
     }

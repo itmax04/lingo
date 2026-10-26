@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import LingoCore
 
-/// Фейковая озвучка: «говорит», пока тест не скажет `finish()`.
+/// Fake speech output: "speaks" until the test calls `finish()`.
 @MainActor
 final class FakeSink: SpeechSink {
     var spoken: [(String, Float, Double)] = []
@@ -27,7 +27,7 @@ final class FakeSink: SpeechSink {
     func finish() { playing = false }
 }
 
-/// Распознавание по очереди заданных текстов.
+/// Recognition returns the given texts in turn.
 final class FakeRecognizer: SpeechRecognizer, @unchecked Sendable {
     let id = "fake"
     private let lock = NSLock()
@@ -41,7 +41,7 @@ final class FakeRecognizer: SpeechRecognizer, @unchecked Sendable {
     }
 }
 
-/// Звук: речь — тон на огибающей слогов, тишина — слабый шум. Подаётся блоками по 20 мс.
+/// Audio: speech — a tone with a syllable envelope, silence — faint noise. Fed in 20 ms blocks.
 func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
     var rng = SystemRandomNumberGenerator()
     return (0..<(ms * 16)).map { i in
@@ -103,7 +103,7 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
                                                 lastUser: nil, phrases: [])
         }
         e.holder = holder
-        await e.feed(1000, speech: false) // VAD узнаёт шум
+        await e.feed(1000, speech: false) // the VAD learns the noise
         return e
     }
 
@@ -129,11 +129,11 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         await e.feed(1600, speech: false)
         await e.settle()
         #expect(e.sink.isSpeaking)
-        // Пользователь перебивает: время от начала речи до остановки озвучки — по звуку (сэмплам), а не по часам теста.
+        // The user barges in: the time from speech start to speech stop is measured in audio (samples), not by the test clock.
         var fedMs = 0
         while e.sink.isSpeaking && fedMs < 1000 { await e.feed(20, speech: true); fedMs += 20 }
         #expect(e.sink.stops == 1)
-        #expect(fedMs <= 500, "остановка через \(fedMs) мс речи")
+        #expect(fedMs <= 500, "stopped after \(fedMs) ms of speech")
         await e.feed(800, speech: true)
         await e.feed(1600, speech: false)
         await e.settle(0.5)
@@ -144,8 +144,8 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
     }
 
     @Test func s05MergeCancelsAndCombines() async throws {
-        // Первый ответ задерживается (распознавание медленнее), добавка приходит в пределах G → склейка.
-        // Первый запрос к модели «думает» 1,5 с — добавка приходит раньше, чем помощник начал говорить.
+        // The first reply is delayed (slower recognition), the addition arrives within G → merge.
+        // The first model request "thinks" for 1.5 s — the addition arrives before the assistant starts speaking.
         let calls = CallLog()
         let e = try await env(texts: ["Am Wochenende gehe", "spazieren"], recDelay: 0.05, reply: { _ in
             calls.add("x")
@@ -154,9 +154,9 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         await e.holder?.refresh?()
         e.tc.startContinuous()
         await e.feed(1300, speech: true)
-        await e.feed(1550, speech: false)   // > T: первая реплика закончена, ход начат
-        await e.settle(0.2)                 // запрос ушёл и ждёт ответа
-        await e.feed(600, speech: true)     // добавка через ~1,55 с ≤ G (по звуку)
+        await e.feed(1550, speech: false)   // > T: the first utterance is over, the turn has started
+        await e.settle(0.2)                 // the request is sent and waiting for a reply
+        await e.feed(600, speech: true)     // the addition after ~1.55 s ≤ G (by audio)
         await e.feed(1600, speech: false)
         await e.settle(0.6)
         let msgs = await e.store.state.messages[e.sid]!
@@ -164,7 +164,7 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         #expect(users.count == 1)
         #expect(users.first?.text == "Am Wochenende gehe spazieren")
         let assistants = msgs.filter { $0.role == .assistant }
-        #expect(assistants.map(\.spokenText) == ["Schön! Wohin gehen Sie spazieren?"], "первый запрос отменён, ответ один")
+        #expect(assistants.map(\.spokenText) == ["Schön! Wohin gehen Sie spazieren?"], "the first request is cancelled, one reply")
     }
 
     @Test func repeatIsLocalAndFast() async throws {
@@ -181,7 +181,7 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         let t0 = MetricsRecorder.now()
         e.tc.pushUp()
         await e.settle(0.35)
-        #expect(e.log.all.count == callsBefore, "модель не вызывается")
+        #expect(e.log.all.count == callsBefore, "the model is not called")
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
         #expect((e.sink.firstSpeakAt ?? 99) - t0 <= 0.3)
     }
@@ -198,7 +198,7 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         e.sink.finish(); await e.settle(0.2)
         e.sink.spoken = []
         e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.settle(0.3)
-        #expect(e.sink.spoken.first!.1 < first.first!.1, "второй раз медленнее (×0,6)")
+        #expect(e.sink.spoken.first!.1 < first.first!.1, "the second time is slower (×0.6)")
     }
 
     @Test func escapeStopsSpeech() async throws {
@@ -211,7 +211,7 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
     }
 }
 
-/// Контекст для TurnController в тестах.
+/// Context for TurnController in tests.
 @MainActor
 final class Holder {
     var ctx: TurnController.Context?
@@ -224,7 +224,7 @@ extension TurnControllerTests {
         let e = try await env(texts: ["Ich wohne in Hamburg."])
         e.tc.pushDown()
         await e.feed(1200, speech: true)
-        await e.feed(1700, speech: false)   // без второго нажатия
+        await e.feed(1700, speech: false)   // without a second press
         await e.settle()
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
     }

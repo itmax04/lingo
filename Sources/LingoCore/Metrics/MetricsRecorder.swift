@@ -1,7 +1,7 @@
 import Foundation
 
-/// Отметки хода (R-47): `speech_end`, `stt_final`, `llm_first_token`, `first_audio`, `reply_end` + память.
-/// JSON Lines в `<base>/metrics/metrics-<yyyy-mm-dd>.jsonl`. Текст реплик не пишется — только длины, языки и идентификаторы.
+/// Turn marks (R-47): `speech_end`, `stt_final`, `llm_first_token`, `first_audio`, `reply_end` + memory.
+/// JSON Lines in `<base>/metrics/metrics-<yyyy-mm-dd>.jsonl`. Utterance texts are not written — only lengths, languages and identifiers.
 public final class MetricsRecorder: @unchecked Sendable {
     public let dir: URL
     private let lock = NSLock()
@@ -13,7 +13,7 @@ public final class MetricsRecorder: @unchecked Sendable {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     }
 
-    /// Время в секундах по монотонным часам.
+    /// Time in seconds on the monotonic clock.
     public static func now() -> Double { Double(DispatchTime.now().uptimeNanoseconds) / 1e9 }
 
     public func mark(_ turn: String, _ name: String, at t: Double = MetricsRecorder.now()) {
@@ -24,7 +24,7 @@ public final class MetricsRecorder: @unchecked Sendable {
         lock.withLock { meta[turn, default: [:]][key] = value }
     }
 
-    /// Ход закончен — строка в файл.
+    /// The turn is over — one line to the file.
     public func flush(_ turn: String) {
         let (marks, m) = lock.withLock { (turns.removeValue(forKey: turn) ?? [:], meta.removeValue(forKey: turn) ?? [:]) }
         guard !marks.isEmpty else { return }

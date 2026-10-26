@@ -1,30 +1,30 @@
 import Foundation
 
-/// Статус синхронизации для сайдбара (R-38).
+/// Sync status for the sidebar (R-38).
 public enum SyncStatus: Sendable, Hashable {
     case notConfigured
     case syncing
     case synced(Date)
-    /// Часть чужих журналов ещё не загружена из iCloud.
+    /// Some journals of other devices have not been downloaded from iCloud yet.
     case waitingICloud(Date)
     case unavailable(String)
 
     public var title: String {
         switch self {
-        case .notConfigured: return "Синхронизация не настроена"
-        case .syncing: return "Синхронизация…"
-        case .synced(let d): return "Синхронизировано в \(SessionDateFormat.time(d))"
-        case .waitingICloud: return "Ожидает iCloud"
-        case .unavailable: return "Папка синхронизации недоступна — выбрать снова"
+        case .notConfigured: return String(localized: "Sync is not set up")
+        case .syncing: return String(localized: "Syncing…")
+        case .synced(let d): return String(localized: "Synced at \(SessionDateFormat.time(d))")
+        case .waitingICloud: return String(localized: "Waiting for iCloud")
+        case .unavailable: return String(localized: "Sync folder unavailable — choose it again")
         }
     }
 }
 
-/// Папка синхронизации (R-36): `Lingo/v1/devices/<deviceId>/journal-<yyyy-mm>.jsonl` и `device.json`.
-/// Каждое устройство пишет только в свою папку; чужие журналы читаются через `NSFileCoordinator`,
-/// недогруженные файлы iCloud запрашиваются на загрузку. Платные возможности (iCloud entitlements, CloudKit) не используются.
+/// Sync folder (R-36): `Lingo/v1/devices/<deviceId>/journal-<yyyy-mm>.jsonl` and `device.json`.
+/// Each device writes only to its own folder; other journals are read through `NSFileCoordinator`,
+/// and iCloud files that are not downloaded yet are requested. No paid features (iCloud entitlements, CloudKit) are used.
 public struct SyncFolder: Sendable {
-    /// Выбранная пользователем папка. Если она сама называется «Lingo», структура создаётся в ней, иначе — в подпапке «Lingo».
+    /// The folder chosen by the user. If it is itself named "Lingo", the structure is created inside it, otherwise in a "Lingo" subfolder.
     public let picked: URL
 
     public init(picked: URL) { self.picked = picked }
@@ -53,7 +53,7 @@ public struct SyncFolder: Sendable {
         return try picked.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
     }
 
-    /// Восстановление папки из закладки. `stale` — закладку нужно пересоздать.
+    /// Restore the folder from a bookmark. `stale` — the bookmark must be recreated.
     public static func resolve(bookmark: Data) throws -> (folder: SyncFolder, stale: Bool) {
         var stale = false
         #if os(macOS)
@@ -71,22 +71,22 @@ public struct SyncFolder: Sendable {
         return try body()
     }
 
-    /// Папка существует и доступна (S-20).
+    /// The folder exists and is accessible (S-20).
     public func checkAvailable() throws {
         try withAccess {
             var isDir: ObjCBool = false
             guard FileManager.default.fileExists(atPath: picked.path, isDirectory: &isDir), isDir.boolValue else {
-                throw SyncError.unavailable("папка не найдена")
+                throw SyncError.unavailable(String(localized: "folder not found"))
             }
             guard FileManager.default.isReadableFile(atPath: picked.path), FileManager.default.isWritableFile(atPath: picked.path) else {
-                throw SyncError.unavailable("нет доступа к папке")
+                throw SyncError.unavailable(String(localized: "no access to the folder"))
             }
         }
     }
 
-    // MARK: Запись своего журнала
+    // MARK: Writing this device's journal
 
-    /// Копирует свои файлы журнала в папку, если они отличаются по размеру. Возвращает число обновлённых файлов.
+    /// Copies this device's journal files to the folder if their sizes differ. Returns the number of updated files.
     @discardableResult
     public func push(deviceID: String, localDir: URL, deviceInfo: DeviceInfo) throws -> Int {
         try checkAvailable()
@@ -109,16 +109,16 @@ public struct SyncFolder: Sendable {
         }
     }
 
-    // MARK: Чтение чужих журналов
+    // MARK: Reading other journals
 
     public struct PullResult: Sendable, Equatable {
         public var devices = 0
         public var filesUpdated = 0
-        /// Файлы, которые ещё загружаются из iCloud.
+        /// Files that are still downloading from iCloud.
         public var pending = 0
     }
 
-    /// Копирует журналы других устройств в локальный кэш `cacheDir/<deviceId>/`.
+    /// Copies other devices' journals to the local cache `cacheDir/<deviceId>/`.
     public func pull(ownDeviceID: String, cacheDir: URL) throws -> PullResult {
         try checkAvailable()
         return try withAccess {
@@ -130,7 +130,7 @@ public struct SyncFolder: Sendable {
                 r.devices += 1
                 let names = (try? fm.contentsOfDirectory(atPath: dev.path)) ?? []
                 for name in names {
-                    // Заглушка iCloud: «.journal-2026-10.jsonl.icloud».
+                    // iCloud placeholder: ".journal-2026-10.jsonl.icloud".
                     var real = name
                     if name.hasPrefix("."), name.hasSuffix(".icloud") {
                         real = String(name.dropFirst().dropLast(".icloud".count))
@@ -192,7 +192,7 @@ public struct SyncFolder: Sendable {
     }
 }
 
-/// `device.json` (R-36): имя устройства и версия приложения.
+/// `device.json` (R-36): device name and app version.
 public struct DeviceInfo: Codable, Sendable, Hashable {
     public var id: String
     public var name: String

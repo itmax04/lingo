@@ -1,6 +1,6 @@
 import Foundation
 
-/// Параметры VAD для голосового цикла (ADR-0001 п. 8). Hangover короткий: длину паузы T меряет `TurnSegmenter`.
+/// VAD parameters for the voice loop (ADR-0001 §8). Short hangover: the pause length T is measured by `TurnSegmenter`.
 public enum VoiceDefaults {
     public static var vad: EnergyVAD.Config {
         var c = EnergyVAD.Config()

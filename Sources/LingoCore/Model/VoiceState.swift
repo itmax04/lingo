@@ -1,28 +1,28 @@
 import Foundation
 
-/// Состояние голосовой панели (R-07, R-42).
+/// Voice panel state (R-07, R-42).
 public enum VoiceState: String, Sendable, Hashable {
-    /// Голосовой режим выключен: панель показывает кнопку микрофона.
+    /// Voice mode is off: the panel shows the microphone button.
     case idle
-    /// Запись по кнопке или пробелу (R-06).
+    /// Recording with the button or space (R-06).
     case recording
-    /// Непрерывный режим: ждём речь.
+    /// Continuous mode: waiting for speech.
     case listening
-    /// Распознавание и запрос к модели.
+    /// Recognition and the model request.
     case thinking
-    /// Озвучка ответа.
+    /// Speaking the reply.
     case speaking
-    /// «Пауза» в непрерывном режиме.
+    /// "Pause" in continuous mode.
     case paused
 
     public var title: String {
         switch self {
-        case .idle: "Нажмите и говорите"
-        case .recording: "Запись"
-        case .listening: "Слушаю"
-        case .thinking: "Думаю…"
-        case .speaking: "Говорю"
-        case .paused: "Пауза"
+        case .idle: String(localized: "Press and speak")
+        case .recording: String(localized: "Recording")
+        case .listening: String(localized: "Listening")
+        case .thinking: String(localized: "Thinking…")
+        case .speaking: String(localized: "Speaking")
+        case .paused: String(localized: "Paused")
         }
     }
 }

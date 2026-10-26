@@ -2,15 +2,15 @@ import Foundation
 import LingoCore
 import LingoEvalKit
 
-// CLI для evals (plan.md P-02+). Подкоманды добавляются по шагам.
-//   sync-write --device <id> --session <id> --count N [--folder <папка>] [--offline] [--base <папка>]
-//       второе «устройство» для S-19 без iPhone: пишет N синтетических сообщений в свой журнал;
-//       без --offline сначала читает папку (сессия, lamport), после записи — пишет свой журнал в папку.
-//   sync-now --device <id> --folder <папка> [--base <папка>]   записать и прочитать папку (появление сети)
-//   sync-view --base <папка>                                    сообщения по сессиям в порядке R-37 (JSON)
-//   commands [--set evals/commands]                             детектор команд (AC-04)
-//   turn [--set evals/turn]                                     конец реплики и склейка (R-10, R-11)
-//   stt --engine whisper:<модель>|apple --set evals/audio       распознавание: WER, язык, задержка, память
+// CLI for evals (plan.md P-02+). Subcommands are added step by step.
+//   sync-write --device <id> --session <id> --count N [--folder <dir>] [--offline] [--base <dir>]
+//       a second "device" for S-19 without an iPhone: writes N synthetic messages to its own journal;
+//       without --offline it first reads the folder (session, lamport), and after writing copies its journal to the folder.
+//   sync-now --device <id> --folder <dir> [--base <dir>]       write and read the folder (network comes back)
+//   sync-view --base <dir>                                      messages per session in R-37 order (JSON)
+//   commands [--set evals/commands]                             command detector (AC-04)
+//   turn [--set evals/turn]                                     end of utterance and merging (R-10, R-11)
+//   stt --engine whisper:<model>|apple --set evals/audio        recognition: WER, language, latency, memory
 
 func usage() -> Never {
     print("""
@@ -69,7 +69,7 @@ case "sync-write":
         print("pull: \(statusLine(await store.sync(with: f)))")
     }
     for i in 1...count {
-        // Синтетический текст, без личных данных (evals/README.md).
+        // Synthetic text, no personal data (evals/README.md).
         try await store.append(EventType.messageCreated, session: session,
                                Payload.MessageCreated(role: .user, text: "Testnachricht \(device) #\(i)", lang: .de))
     }
@@ -92,12 +92,12 @@ case "sync-view":
     enc.outputFormatting = [.sortedKeys, .prettyPrinted]
     print(String(decoding: try enc.encode(out), as: UTF8.self))
 case "model-install":
-    // Клон из папки моделей IC или загрузка с Hugging Face + SHA256 (D-02).
+    // Clone from the IC models folder or download from Hugging Face + SHA256 (D-02).
     let store = ModelStore.macDefault
     for m in WhisperModel.catalog where a.values["--model"] == nil || a.values["--model"] == m.file {
         let t = Date()
         let p = try await store.ensure(m)
-        print(String(format: "%@ → %@ (%.1f с)", m.file, p.path, Date().timeIntervalSince(t)))
+        print(String(format: "%@ → %@ (%.1f s)", m.file, p.path, Date().timeIntervalSince(t)))
     }
 case "stt-bench":
     let files = (a.values["--files"] ?? "").split(separator: ",").map(String.init)
@@ -113,7 +113,7 @@ case "blind":
     exit(try BlindReview.run(from: from, cases: a.values["--cases"] ?? "evals/dialog", n: Int(a.values["--n"] ?? "20") ?? 20,
                              seed: UInt64(a.values["--seed"] ?? "2026") ?? 2026))
 case "dialog-recheck":
-    // Пересчёт правил по сохранённым ответам (без сети): lingo-eval dialog-recheck --from run1/dialog-x.json[,…]
+    // Recompute rules from saved replies (offline): lingo-eval dialog-recheck --from run1/dialog-x.json[,…]
     let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
     let cases = Dictionary(uniqueKeysWithValues: try DialogCase.load(dir: URL(fileURLWithPath: a.values["--cases"] ?? "evals/dialog")).map { ($0.id, $0) })
     for p in (a.values["--from"] ?? "").split(separator: ",") {
@@ -123,17 +123,17 @@ case "dialog-recheck":
             if x.error == nil, let c = cases[x.id] { x.result = DialogRules.check(c, response: x.response) }
             return x
         }
-        let re = DialogRunner.summarize(r.rows, model: r.model + " (пересчёт)", provider: r.provider)
+        let re = DialogRunner.summarize(r.rows, model: r.model + " (recheck)", provider: r.provider)
         DialogRunner.verdict(re).lines.forEach { print($0) }
-        print("  категории: " + re.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
+        print("  categories: " + re.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
     }
 case "dialog-report":
-    // Сводка по сохранённым прогонам (без сети): lingo-eval dialog-report --from a.json,b.json
+    // Summary of saved runs (offline): lingo-eval dialog-report --from a.json,b.json
     let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
     for p in (a.values["--from"] ?? "").split(separator: ",") {
         let r = try dec.decode(DialogRunner.Report.self, from: Data(contentsOf: URL(fileURLWithPath: String(p))))
         DialogRunner.verdict(r).lines.forEach { print($0) }
-        print("  категории: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
+        print("  categories: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
     }
 case "commands":
     exit(try CommandsEval.run(set: a.values["--set"] ?? "evals/commands"))

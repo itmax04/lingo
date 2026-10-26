@@ -1,8 +1,8 @@
-// Перенесено из Interview Copilot (`Sources/CopilotCore/LLM/LLMProvider.swift`, коммит cf0e764) с адаптацией по R-29:
-// без изображений и Anthropic/Gemini; в ошибке HTTP сохраняется `retry-after`.
+// Ported from Interview Copilot (`Sources/CopilotCore/LLM/LLMProvider.swift`, commit cf0e764) and adapted per R-29:
+// no images and no Anthropic/Gemini; the HTTP error keeps `retry-after`.
 import Foundation
 
-/// Сообщение для модели.
+/// A message for the model.
 public struct LLMMessage: Sendable, Equatable {
     public enum Role: String, Sendable { case user, assistant }
     public var role: Role
@@ -14,17 +14,17 @@ public struct LLMMessage: Sendable, Equatable {
     }
 }
 
-/// Назначение запроса — влияет на параметры.
+/// Request purpose — affects the parameters.
 public enum LLMPurpose: String, Sendable {
-    /// Ход диалога (R-24): ответ по протоколу.
+    /// A dialogue turn (R-24): a reply in the protocol format.
     case dialog
-    /// Краткое содержание сессии (R-04).
+    /// Session summary (R-04).
     case summary
-    /// Фразы темы для подсказок (R-27).
+    /// Topic phrases for hints (R-27).
     case topicPhrases
-    /// Итог сессии (R-23).
+    /// Session recap (R-23).
     case recap
-    /// Судья evals (evals/README.md).
+    /// Eval judge (evals/README.md).
     case judge
 }
 
@@ -47,7 +47,7 @@ public struct LLMRequest: Sendable, Equatable {
 public struct TokenUsage: Sendable, Equatable {
     public var input: Int
     public var output: Int
-    /// Кэшированные входные токены, если провайдер их сообщил (у Groq не идут в лимиты).
+    /// Cached input tokens, if the provider reports them (on Groq they do not count toward limits).
     public var cached: Int?
 
     public init(input: Int = 0, output: Int = 0, cached: Int? = nil) {
@@ -57,23 +57,23 @@ public struct TokenUsage: Sendable, Equatable {
     }
 }
 
-/// События потока от провайдера.
+/// Stream events from a provider.
 public enum LLMEvent: Sendable, Equatable {
     case model(String)
     case text(String)
     case usage(TokenUsage)
-    /// Остатки квоты из заголовков ответа (R-52).
+    /// Remaining quota from the response headers (R-52).
     case rateLimits(RateLimitSnapshot)
     case done(stopReason: String?)
 }
 
 public enum LLMError: Error, Equatable, CustomStringConvertible {
-    /// `retryAfter` — секунды из заголовка `retry-after` (R-29).
+    /// `retryAfter` — seconds from the `retry-after` header (R-29).
     case http(status: Int, message: String, retryAfter: Double? = nil)
     case network(String)
-    /// Первый токен не пришёл за отведённое время (R-29: 6 с, настраивается 2–15).
+    /// The first token did not arrive in time (R-29: 6 s, configurable 2–15).
     case firstTokenTimeout
-    /// Модель отказалась (`finish_reason = content_filter`).
+    /// The model refused (`finish_reason = content_filter`).
     case refusal(String?)
     case noKey
     case cancelled
@@ -84,19 +84,19 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
         return nil
     }
 
-    /// Вид лимита из текста 429 (R-52); nil — провайдер не указал.
+    /// Kind of limit from the 429 text (R-52); nil — the provider did not say.
     public var rateLimitKind: RateLimitKind? {
         guard case .http(429, let m, _) = self else { return nil }
         return RateLimitKind.parse(m)
     }
 
-    /// Время до повтора: заголовок `retry-after`, иначе «try again in …» из текста.
+    /// Time until retry: the `retry-after` header, otherwise "try again in …" from the text.
     public var retryAfterSeconds: Double? {
         guard case .http(_, let m, let ra) = self else { return nil }
         return ra ?? RateLimitKind.tryAgainSeconds(m)
     }
 
-    /// Короткий код статуса для журнала расхода.
+    /// Short status code for the usage log.
     public var usageStatus: String {
         switch self {
         case .http(let s, _, _): "http_\(s)"
@@ -108,7 +108,7 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
         }
     }
 
-    /// Неверный ключ (R-29): 401/403 — всегда; 400 — если текст ошибки говорит о ключе (D-09).
+    /// Invalid key (R-29): 401/403 — always; 400 — if the error text mentions the key (D-09).
     public var isInvalidKey: Bool {
         guard case .http(let s, let m, _) = self else { return false }
         if s == 401 || s == 403 { return true }
@@ -120,36 +120,36 @@ public enum LLMError: Error, Equatable, CustomStringConvertible {
         return false
     }
 
-    /// Переход к следующему шагу цепочки (R-29). Отмена — не ошибка цепочки.
+    /// Move on to the next chain step (R-29). Cancellation is not a chain error.
     public var triggersFallback: Bool { self != .cancelled }
 
     public var description: String {
         switch self {
         case .http(429, _, _):
-            (rateLimitKind?.title ?? "лимит провайдера (429, вид не указан)")
-                + (retryAfterSeconds.map { " — повтор через \(Self.human($0))" } ?? "")
-        case .http(let s, let m, _) where s == 401 || s == 403: "ключ недействителен (HTTP \(s))" + (m.isEmpty ? "" : ": \(m)")
-        case .http(400, let m, _): "неверный запрос или ключ (HTTP 400)" + (m.isEmpty ? "" : ": \(m)")
-        case .http(402, _, _): "нужна оплата (402)"
+            (rateLimitKind?.title ?? String(localized: "provider limit (429, kind not specified)"))
+                + (retryAfterSeconds.map { " — " + String(localized: "retry in \(Self.human($0))") } ?? "")
+        case .http(let s, let m, _) where s == 401 || s == 403: String(localized: "invalid key (HTTP \(s))") + (m.isEmpty ? "" : ": \(m)")
+        case .http(400, let m, _): String(localized: "bad request or key (HTTP 400)") + (m.isEmpty ? "" : ": \(m)")
+        case .http(402, _, _): String(localized: "payment required (402)")
         case .http(let s, let m, _): "HTTP \(s)" + (m.isEmpty ? "" : ": \(m)")
-        case .network(let m): "сеть: \(m)"
-        case .firstTokenTimeout: "нет ответа за отведённое время"
-        case .refusal(let c): "модель отказалась отвечать" + (c.map { " (\($0))" } ?? "")
-        case .noKey: "нет ключа"
-        case .cancelled: "отменено"
-        case .badResponse(let m): "неожиданный ответ: \(m)"
+        case .network(let m): String(localized: "network: \(m)")
+        case .firstTokenTimeout: String(localized: "no reply within the time limit")
+        case .refusal(let c): String(localized: "the model refused to answer") + (c.map { " (\($0))" } ?? "")
+        case .noKey: String(localized: "no key")
+        case .cancelled: String(localized: "cancelled")
+        case .badResponse(let m): String(localized: "unexpected response: \(m)")
         }
     }
 }
 
-/// Провайдер языковой модели: свой HTTP-клиент с SSE, без SDK.
+/// A language model provider: its own HTTP client with SSE, no SDK.
 extension LLMError {
-    /// 7 с, 2 мин, 1 ч 5 мин.
+    /// 7 s, 2 min, 1 h 5 min.
     public static func human(_ s: Double) -> String {
-        if s < 90 { return "\(max(1, Int(s.rounded()))) с" }
-        if s < 3600 { return "\(Int((s / 60).rounded())) мин" }
+        if s < 90 { return String(localized: "\(max(1, Int(s.rounded()))) s") }
+        if s < 3600 { return String(localized: "\(Int((s / 60).rounded())) min") }
         let h = Int(s / 3600), m = Int((s - Double(h) * 3600) / 60)
-        return m > 0 ? "\(h) ч \(m) мин" : "\(h) ч"
+        return m > 0 ? String(localized: "\(h) h \(m) min") : String(localized: "\(h) h")
     }
 }
 

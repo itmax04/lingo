@@ -2,10 +2,62 @@ import AVFoundation
 import Foundation
 import LingoCore
 
-/// `Lingo --audio-diag <файл>`: перебор конфигураций звука (эхоподавление вкл/выкл, с выводом и без), по 1,5 с записи;
-/// в файл — устройство, форматы, итог запуска и уровень сигнала (без звука). Для разбора ошибок H-2.
+/// `Lingo --audio-diag <file>`: tries audio configurations (echo cancellation on/off, with and without output), 1.5 s of recording each;
+/// writes the device, formats, start result and signal level (no audio) to the file. For analysing H-2 errors.
 @MainActor
 enum AudioDiag {
+    /// Real-device capture and restart check. Records counters only, never microphone audio or API calls.
+    static func stability(to path: String) -> Int32 {
+        final class Counter: @unchecked Sendable {
+            let lock = NSLock()
+            var samples = 0
+            var restarts = 0
+            var failures = 0
+        }
+        let counter = Counter()
+        let voice = VoiceIO()
+        var lines = ["audio-stability \(Date())", "mic permission: \(Permissions.microphone.rawValue)"]
+        voice.onSamples = { samples in counter.lock.withLock { counter.samples += samples.count } }
+        voice.onRestart = { _, _ in counter.lock.withLock { counter.restarts += 1 } }
+        voice.onCaptureFailure = { _ in counter.lock.withLock { counter.failures += 1 } }
+        var passed = true
+        do {
+            try voice.start(voiceProcessing: true, output: true)
+            // Let the I/O unit settle, processing configuration notifications and the same watchdog as the app.
+            for _ in 0..<6 {
+                RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+                voice.checkHealth()
+            }
+            for second in 1...20 {
+                let before = counter.lock.withLock { counter.samples }
+                if second == 11 { voice.restart(reason: "stability test") }
+                RunLoop.main.run(until: Date().addingTimeInterval(1))
+                voice.checkHealth()
+                let delta = counter.lock.withLock { counter.samples - before }
+                let good = delta > 8_000 && voice.isCapturing
+                passed = passed && good
+                lines.append("second=\(second) samples=\(delta) capturing=\(voice.isCapturing) vp=\(voice.voiceProcessing) result=\(good ? "PASS" : "FAIL")")
+            }
+            lines.append("input: \(voice.inputFormatDescription)")
+            lines.append(counter.lock.withLock { "restarts=\(counter.restarts) capture_failures=\(counter.failures) samples=\(counter.samples)" })
+        } catch {
+            passed = false
+            lines.append("start: FAIL \(error)")
+        }
+        voice.stop()
+        // An intentional stop must stay stopped despite future watchdog checks or delayed notifications.
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        voice.checkHealth()
+        passed = passed && !voice.running
+        lines.append("stop stays stopped: \(!voice.running)")
+        lines.append("audio-stability: \(passed ? "PASS" : "FAIL")")
+        let text = lines.joined(separator: "\n") + "\n"
+        do { try text.write(toFile: path, atomically: true, encoding: .utf8) }
+        catch { print("cannot write diagnostics: \(error)"); return 1 }
+        print(text)
+        return passed ? 0 : 1
+    }
+
     static func step(_ path: String, _ s: String) {
         let line = "\(Date()) \(s)\n"
         if let h = FileHandle(forWritingAtPath: path + ".log") { h.seekToEndOfFile(); h.write(Data(line.utf8)); try? h.close() }
@@ -48,7 +100,7 @@ enum AudioDiag {
                 lines.append("want vp=\(vp) out=\(out): FAIL \(v.startLog.joined(separator: " | "))")
             }
         }
-        // Перезапуск: после restart() сэмплы снова идут (смена конфигурации звука, 2026-10-26).
+        // Restart: after restart() samples flow again (audio configuration change, 2026-10-26).
         do {
             let v = VoiceIO()
             final class N: @unchecked Sendable { var n = 0; let l = NSLock() }
@@ -61,7 +113,7 @@ enum AudioDiag {
             cnt.l.withLock { cnt.n = 0 }
             RunLoop.main.run(until: Date().addingTimeInterval(1.5))
             let after = cnt.l.withLock { cnt.n }
-            lines.append("restart: samples before=\(before) after=\(after) vp=\(v.voiceProcessing) since=\(String(format: "%.2f", v.secondsSinceSamples)) с")
+            lines.append("restart: samples before=\(before) after=\(after) vp=\(v.voiceProcessing) since=\(String(format: "%.2f", v.secondsSinceSamples)) s")
             v.stop()
         } catch { lines.append("restart: FAIL \(error)") }
         let text = lines.joined(separator: "\n") + "\n"

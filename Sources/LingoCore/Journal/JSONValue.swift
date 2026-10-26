@@ -1,6 +1,6 @@
 import Foundation
 
-/// Произвольное значение JSON. Нужно, чтобы неизвестные поля и типы событий сохранялись без потерь (R-35).
+/// An arbitrary JSON value. Lets unknown fields and event types survive without loss (R-35).
 public enum JSONValue: Codable, Sendable, Hashable {
     case null
     case bool(Bool)
@@ -40,7 +40,7 @@ public enum JSONValue: Codable, Sendable, Hashable {
     public var int: Int? { if case .number(let n) = self { return Int(n) }; return nil }
     public var bool: Bool? { if case .bool(let b) = self { return b }; return nil }
 
-    /// Типизированное значение → JSONValue и обратно (через JSONEncoder).
+    /// Typed value → JSONValue and back (via JSONEncoder).
     public static func from<T: Encodable>(_ value: T) throws -> JSONValue {
         try JSONDecoder().decode(JSONValue.self, from: JSONEncoder().encode(value))
     }

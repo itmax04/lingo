@@ -1,8 +1,8 @@
 import Foundation
 import LingoCore
 
-/// Синтетические данные для P-01 и снимков интерфейса: сессии и сообщения как на макете `lingo-mac.webp`.
-/// Имя «Alex» — обезличенное (evals/README.md).
+/// Synthetic data for P-01 and UI snapshots: sessions and messages as in the `lingo-mac.webp` mockup.
+/// The name "Alex" is anonymized (evals/README.md). Russian texts are language data (the learner's Russian utterances and translations).
 @MainActor
 enum Fixtures {
     static func fill(_ m: AppModel, now: Date = Date()) {
@@ -19,15 +19,15 @@ enum Fixtures {
                     createdAt: date, lastActivity: date)
         }
         m.sessions = [
-            Session(id: "s1", title: "Практика: знакомство",
-                    settings: SessionSettings(lang: .en, mode: .free, topic: "знакомство", level: "B1", corrections: [.inline]),
+            Session(id: "s1", title: "Practice: introductions",
+                    settings: SessionSettings(lang: .en, mode: .free, topic: "introductions", level: "B1", corrections: [.inline]),
                     createdAt: today, lastActivity: today),
-            s("s2", "В кафе", day(5, 12, 17, 3)),
-            s("s3", "Путешествия", day(5, 10, 11, 20)),
-            s("s4", "Работа и карьера", day(5, 8, 16, 45)),
-            s("s5", "Повседневные ситуации", day(5, 5, 9, 12)),
-            s("s6", "Аэропорт", day(5, 2, 20, 18)),
-            s("s7", "Планы на выходные", day(4, 28, 14, 6)),
+            s("s2", "At the café", day(5, 12, 17, 3)),
+            s("s3", "Travel", day(5, 10, 11, 20)),
+            s("s4", "Work and career", day(5, 8, 16, 45)),
+            s("s5", "Everyday situations", day(5, 5, 9, 12)),
+            s("s6", "At the airport", day(5, 2, 20, 18)),
+            s("s7", "Weekend plans", day(4, 28, 14, 6)),
         ]
         m.selectedSessionID = "s1"
         let t1 = today, t2 = today.addingTimeInterval(60)
@@ -50,8 +50,8 @@ enum Fixtures {
             let env = max(0, 1 - abs(x - 0.45) * 2.6)
             return 0.12 + env * (0.55 + 0.4 * abs(sin(Float(i) * 1.7)))
         }
-        m.sourceLabel = "На устройстве"
+        m.sourceLabel = String(localized: "On device")
         m.online = true
-        m.syncStatus = "Синхронизировано в 14:28"
+        m.syncStatus = SyncStatus.synced(t1).title
     }
 }

@@ -1,17 +1,17 @@
 import Foundation
 
-/// Распознанная команда. `argument` — «что сказать» для «как сказать …» или «что объяснить» для «что значит …».
+/// A recognized command. `argument` — "what to say" for "how to say …" or "what to explain" for "what does … mean".
 public struct CommandMatch: Sendable, Equatable {
     public var kind: CommandKind
     public var argument: String?
     public init(_ kind: CommandKind, argument: String? = nil) { self.kind = kind; self.argument = argument }
 }
 
-/// Локальный детектор команд (R-14…R-22): правила и словари для ru, de, en с допуском на ошибки расшифровки.
-/// Команда — вся реплика (после слов-паразитов и вежливых добавок), а не слово внутри фразы: «я повторил урок» — не команда.
-/// Если детектор не уверен, он возвращает nil, и реплика идёт модели как обычная (модель тоже знает команды, R-25).
+/// Local command detector (R-14…R-22): rules and vocabularies for ru, de, en, tolerant of transcription errors.
+/// A command is the whole utterance (after fillers and polite additions), not a word inside a sentence: "я повторил урок" ("I revised the lesson") is not a command.
+/// If the detector is unsure it returns nil and the utterance goes to the model as usual (the model knows the commands too, R-25).
 public enum CommandDetector {
-    /// Целые реплики-команды (после нормализации). Допуск на опечатки — по длине (см. `tolerance`).
+    /// Whole-utterance commands (after normalization). Typo tolerance depends on length (see `tolerance`).
     static let exact: [CommandKind: [String]] = [
         .repeatLast: [
             "повтори", "повторите", "повтори еще раз", "еще раз", "повтори что ты сказал", "повтори вопрос",
@@ -53,7 +53,7 @@ public enum CommandDetector {
         ],
     ]
 
-    /// Команды с аргументом: начало реплики (точные слова, без допуска — иначе «как сказал» стал бы «как сказать»).
+    /// Commands with an argument: the start of the utterance (exact words, no tolerance — otherwise "как сказал" would become "как сказать").
     static let prefixes: [(CommandKind, String)] = [
         (.howToSay, "как сказать"), (.howToSay, "как будет"), (.howToSay, "как еще можно сказать"), (.howToSay, "как еще сказать"),
         (.howToSay, "как правильно сказать"), (.howToSay, "как по немецки"), (.howToSay, "как по английски"),
@@ -65,13 +65,13 @@ public enum CommandDetector {
         (.explain, "what does"), (.explain, "what is the meaning of"), (.explain, "explain"),
     ]
 
-    /// Слова-паразиты и вежливые добавки, которые не меняют смысла команды.
+    /// Fillers and polite additions that do not change the meaning of a command.
     static let fillers: Set<String> = [
         "ну", "а", "ой", "э", "эм", "так", "ладно", "хорошо", "окей", "ок", "пожалуйста", "плиз", "можешь", "можете", "мне",
         "äh", "ah", "ahm", "ähm", "hm", "hmm", "bitte", "mal", "doch", "also", "okay", "ok", "ja", "gut", "kannst", "du", "konnen",
         "um", "uh", "please", "could", "can", "you", "well", "so", "oh", "alright", "right",
         "нет", "nein", "no",
-        // Вводные слова: «Я думаю, на этом всё» (P14).
+        // Parenthetical words: "Я думаю, на этом всё" ("I think that's all", P14).
         "я", "думаю", "кажется", "наверное", "ich", "glaube", "denke", "i", "think", "guess",
     ]
 
@@ -80,18 +80,18 @@ public enum CommandDetector {
         guard !norm.isEmpty else { return nil }
         let words = norm.split(separator: " ").map(String.init)
         guard words.count <= 12 else { return nil }
-        // 1. Команда с аргументом: «как сказать …», «wie sagt man …» (точное начало, аргумент — остаток исходного текста).
+        // 1. Command with an argument: "как сказать …", "wie sagt man …" (exact start; the argument is the rest of the original text).
         for (kind, p) in prefixes {
             let pw = p.split(separator: " ").map(String.init)
             if let rest = stripPrefix(words, pw), !rest.isEmpty {
                 let arg = rest.joined(separator: " ")
-                // «почему так» и «объясни по русски» — точные команды ниже; «почему ты …» — обычный вопрос модели.
+                // "почему так" and "объясни по русски" are exact commands below; "почему ты …" ("why do you …") is a normal question for the model.
                 if kind == .explain, p == "почему", rest.count > 2 { continue }
                 if kind == .explain, ["объясни", "explain"].contains(p), rest.count > 4 { continue }
                 return CommandMatch(kind, argument: argumentText(original: text, prefixWords: pw.count) ?? arg)
             }
         }
-        // 2. Вся реплика — команда (без паразитов), с допуском на ошибки расшифровки.
+        // 2. The whole utterance is a command (without fillers), tolerant of transcription errors.
         let core = words.filter { !fillers.contains($0) }.joined(separator: " ")
         let candidates = Set([norm, core]).filter { !$0.isEmpty }
         var best: (CommandKind, Int)?
@@ -107,7 +107,7 @@ public enum CommandDetector {
         return best.map { CommandMatch($0.0) }
     }
 
-    /// Допуск опечаток расшифровки: короткие команды — только точно.
+    /// Transcription typo tolerance: short commands match only exactly.
     static func tolerance(_ s: String) -> Int {
         switch s.count {
         case ..<5: 0
@@ -120,21 +120,21 @@ public enum CommandDetector {
         var t = s.lowercased()
         let map: [Character: String] = ["ё": "е", "ä": "a", "ö": "o", "ü": "u", "ß": "ss", "’": "'", "`": "'"]
         t = String(t.flatMap { map[$0].map(Array.init) ?? [$0] })
-        // Пунктуация → пробел; апостроф внутри слова сохраняется (let's, das war's).
+        // Punctuation → space; an apostrophe inside a word is kept (let's, das war's).
         t = t.unicodeScalars.map { CharacterSet.letters.contains($0) || CharacterSet.decimalDigits.contains($0) || $0 == "'" ? String($0) : " " }.joined()
         t = t.replacingOccurrences(of: " '", with: " ").replacingOccurrences(of: "' ", with: " ")
         return t.split(separator: " ").joined(separator: " ").trimmingCharacters(in: CharacterSet(charactersIn: "' "))
     }
 
     static func stripPrefix(_ words: [String], _ prefix: [String]) -> [String]? {
-        // Паразиты в начале («ну, как сказать …») пропускаются.
+        // Leading fillers ("ну, как сказать …") are skipped.
         var w = words[...]
         while let f = w.first, fillers.contains(f), !prefix.contains(f) { w = w.dropFirst() }
         guard w.count >= prefix.count, Array(w.prefix(prefix.count)) == prefix else { return nil }
         return Array(w.dropFirst(prefix.count))
     }
 
-    /// Аргумент из исходного текста (с регистром и пунктуацией), без слов команды.
+    /// The argument from the original text (with case and punctuation), without the command words.
     static func argumentText(original: String, prefixWords n: Int) -> String? {
         var words = original.split(whereSeparator: { $0 == " " }).map(String.init)
         while let f = words.first, fillers.contains(normalize(f)) { words.removeFirst() }

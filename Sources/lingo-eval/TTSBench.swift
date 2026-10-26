@@ -2,7 +2,7 @@
 import Foundation
 import LingoCore
 
-/// Время синтеза до первого буфера и общее (без вывода звука) — для R-13 и R-14 (≤ 0,3 с до звука «повтори»).
+/// Synthesis time to the first buffer and in total (no audio output) — for R-13 and R-14 (≤ 0.3 s until "repeat" is heard).
 enum TTSBench {
     static func run() -> Int32 {
         let synth = AVSpeechSynthesizer()
@@ -11,7 +11,7 @@ enum TTSBench {
                                          (.ru, "Конечно. Повторим по частям.")]
         for l in Lang.allCases {
             let v = Voices.available(l)
-            print("\(l.rawValue): голосов \(v.count); лучший: \(v.first.map { "\($0.name) (\($0.language), \($0.qualityTitle))" } ?? "нет"); нужен лучше: \(Voices.needsBetterVoice(l))")
+            print("\(l.rawValue): voices \(v.count); best: \(v.first.map { "\($0.name) (\($0.language), \($0.qualityTitle))" } ?? "none"); needs a better one: \(Voices.needsBetterVoice(l))")
         }
         for (l, text) in samples {
             for run in 0..<2 {
@@ -32,7 +32,7 @@ enum TTSBench {
                 }, toMarkerCallback: { m in markers += m.count })
                 while done.wait(timeout: .now() + 0.01) == .timedOut { RunLoop.current.run(until: Date().addingTimeInterval(0.01)) }
                 let total = Double(DispatchTime.now().uptimeNanoseconds - t0) / 1e6
-                print(String(format: "%@ run%d: первый буфер %.0f мс, синтез %.0f мс, звук %.1f с @%.0f Гц, маркеров %d", l.rawValue, run,
+                print(String(format: "%@ run%d: first buffer %.0f ms, synthesis %.0f ms, audio %.1f s @%.0f Hz, markers %d", l.rawValue, run,
                              Double(first - t0) / 1e6, total, Double(frames) / max(1, rate), rate, markers))
             }
         }

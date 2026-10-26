@@ -1,8 +1,8 @@
 // swift-tools-version:6.2
 import PackageDescription
 
-// Стек и разрешённые зависимости — docs/decisions/ADR-0001-stack.md (п. 2, 11).
-// LingoCore собирается для macOS и iOS (scripts/check-core-ios.sh); платформенный код Mac — только в LingoMac.
+// Stack and allowed dependencies — docs/decisions/ADR-0001-stack.md (§2, §11).
+// LingoCore builds for macOS and iOS (scripts/check-core-ios.sh); Mac-only platform code lives only in LingoMac.
 let package = Package(
     name: "Lingo",
     platforms: [.macOS(.v15), .iOS(.v17)],
@@ -12,18 +12,18 @@ let package = Package(
         .executable(name: "lingo-eval", targets: ["lingo-eval"]),
     ],
     dependencies: [
-        // YAML для наборов evals (ADR-0001 п. 11) — только в lingo-eval.
+        // YAML for the eval sets (ADR-0001 §11) — only in lingo-eval.
         .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.2"),
     ],
     targets: [
-        // whisper.cpp — готовый XCFramework из релизов (ADR-0001 п. 6, 11); SHA256 = сумма архива из GitHub Releases (P-00).
+        // whisper.cpp — the prebuilt XCFramework from the releases (ADR-0001 §6, §11); SHA256 = checksum of the GitHub Releases archive (P-00).
         .binaryTarget(
             name: "whisper",
             url: "https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-b5454-xcframework.zip",
             checksum: "e57f8c48933000acabc13bb913fbe82805d483a2deff692cc6738836bd92393b"
         ),
         .target(name: "LingoCore", dependencies: ["whisper"]),
-        // Evals диалога: наборы YAML, правила, прогон (lingo-eval и Lingo.app --eval-dialog). В iOS-ядро не входит.
+        // Dialogue evals: YAML sets, rules, runner (lingo-eval and Lingo.app --eval-dialog). Not part of the iOS core.
         .target(name: "LingoEvalKit", dependencies: ["LingoCore", .product(name: "Yams", package: "Yams")]),
         .executableTarget(
             name: "LingoMac",

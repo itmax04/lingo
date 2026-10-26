@@ -1,7 +1,7 @@
 import LingoCore
 import SwiftUI
 
-/// Шапка центральной колонки (R-40): название, подзаголовок, плашка источника (R-32), шестерёнка.
+/// Center column header (R-40): title, subtitle, source badge (R-32), gear.
 struct ChatHeader: View {
     let title: String
     let subtitle: String
@@ -34,7 +34,7 @@ struct ChatHeader: View {
                         .foregroundStyle(Theme.C.textSecondary)
                 }
                 .buttonStyle(LingoButtonStyle())
-                .accessibilityLabel("Настройки сессии")
+                .accessibilityLabel("Session settings")
             }
         }
         .padding(.horizontal, Theme.S.s24)
@@ -43,7 +43,7 @@ struct ChatHeader: View {
     }
 }
 
-/// Плашка источника (DESIGN.md §5): точка статуса, текст, шеврон.
+/// Source badge (DESIGN.md §5): status dot, text, chevron.
 struct SourceChip: View {
     let label: String
     let ok: Bool
@@ -66,11 +66,11 @@ struct SourceChip: View {
         .background(Theme.C.surfaceChip, in: Capsule())
         .subtleStroke(Capsule())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Источник ответа: \(label)")
+        .accessibilityLabel("Reply source: \(label)")
     }
 }
 
-/// Пузырь сообщения (R-41, DESIGN.md §5).
+/// Message bubble (R-41, DESIGN.md §5).
 struct MessageBubble: View {
     let message: ChatMessage
     let maxWidth: CGFloat
@@ -119,8 +119,8 @@ struct MessageBubble: View {
         HStack(spacing: Theme.S.s8) {
             if isUser {
                 if let h = message.heard {
-                    // «Понято как» (R-51): мелко, в цвете метаданных, как время.
-                    Text("понято как: \(h)").lineLimit(2).textSelection(.enabled)
+                    // "Understood as" (R-51): small, in the metadata color, like the time.
+                    Text("understood as: \(h)").lineLimit(2).textSelection(.enabled)
                 }
                 Spacer(minLength: 0)
                 Text(message.lang.tag)
@@ -136,7 +136,7 @@ struct MessageBubble: View {
     }
 }
 
-/// Сегмент ответа: `@say` (русский — на фоне `surface.card`), `@fix` (блок с обводкой).
+/// Reply segment: `@say` (Russian — on a `surface.card` background), `@fix` (an outlined block).
 struct SegmentView: View {
     let segment: ReplySegment
     let studyLang: Lang
@@ -172,14 +172,14 @@ struct SegmentView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Исправление: \(fix.original) — правильно: \(fix.corrected)")
+            .accessibilityLabel("Correction: \(fix.original) — correct: \(fix.corrected)")
         case .hint, .heard:
             EmptyView()
         }
     }
 }
 
-/// Лента сообщений (R-41).
+/// Message feed (R-41).
 struct MessageList: View {
     let messages: [ChatMessage]
     var onTap: (ChatMessage) -> Void = { _ in }
@@ -206,7 +206,7 @@ struct MessageList: View {
     }
 }
 
-/// Пузырь по ширине содержимого, но не шире `max` (70% колонки, DESIGN.md §3).
+/// A bubble as wide as its content, but no wider than `max` (70% of the column, DESIGN.md §3).
 struct MaxWidthLayout: Layout {
     let max: CGFloat
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

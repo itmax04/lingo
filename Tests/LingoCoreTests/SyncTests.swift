@@ -3,8 +3,8 @@ import Testing
 @testable import LingoCore
 
 @Suite struct SyncTests {
-    /// S-19: два устройства без сети пишут по 25 сообщений в одну сессию; после синхронизации у обоих 50 сообщений
-    /// в одном порядке, без дублей и потерь.
+    /// S-19: two offline devices write 25 messages each into one session; after a sync both have 50 messages
+    /// in the same order, without duplicates or losses.
     @Test func twoWritersTwentyFiveEach() async throws {
         let shared = tempDir("icloud")
         let folder = SyncFolder(picked: shared.appendingPathComponent("Lingo"))
@@ -17,7 +17,7 @@ import Testing
         _ = await b.sync(with: folder)
         #expect(await b.state.sessions["s1"] != nil)
 
-        // «Без сети»: пишут независимо, по очереди с одинаковыми и близкими временами.
+        // "Offline": they write independently, alternating, with equal and close times.
         let t0 = Date(timeIntervalSince1970: 1_761_400_000)
         for i in 0..<25 {
             let t = t0.addingTimeInterval(Double(i))
@@ -32,18 +32,18 @@ import Testing
         #expect(ma.count == 50 && mb.count == 50)
         #expect(Set(ma.map(\.id)).count == 50)
         #expect(ma.map(\.id) == mb.map(\.id))
-        // Повторная синхронизация ничего не дублирует.
+        // A repeated sync duplicates nothing.
         _ = await b.sync(with: folder)
         #expect(await b.state.messages["s1"]!.count == 50)
-        // Каждое устройство пишет только в свою папку.
+        // Each device writes only to its own folder.
         let devs = try FileManager.default.contentsOfDirectory(atPath: folder.devicesDir.path).sorted()
         #expect(devs == ["ios-bbbb", "mac-aaaa"])
-        // ✓✓: свои сообщения записаны в папку.
+        // ✓✓: own messages are written to the folder.
         let allSynced = ma.allSatisfy { $0.synced }
         #expect(allSynced)
     }
 
-    /// S-20: папка недоступна — работа продолжается локально, история не теряется, ✓✓ не ставится.
+    /// S-20: the folder is unavailable — work continues locally, history is not lost, ✓✓ is not set.
     @Test func unavailableFolderKeepsLocalHistory() async throws {
         let shared = tempDir("gone")
         let folder = SyncFolder(picked: shared.appendingPathComponent("Lingo"))
@@ -52,16 +52,16 @@ import Testing
         try await a.append(EventType.sessionCreated, session: "s1", Payload.SessionCreated(title: "X", settings: settingsDE))
         try await a.append(EventType.messageCreated, session: "s1", Payload.MessageCreated(role: .user, text: "Hallo", lang: .de))
         let status = await a.sync(with: folder)
-        guard case .unavailable = status else { Issue.record("ожидалось unavailable, получено \(status)"); return }
-        #expect(status.title == "Папка синхронизации недоступна — выбрать снова")
+        guard case .unavailable = status else { Issue.record("expected unavailable, got \(status)"); return }
+        #expect(status.title == "Sync folder unavailable — choose it again")
         #expect(await a.state.messages["s1"]?.first?.synced == false)
-        // Перезапуск: история на месте.
+        // Restart: the history is still there.
         let again = try JournalStore(base: base, deviceName: "Mac")
         #expect(again.deviceID == "mac-aaaa")
         #expect(await again.state.messages["s1"]?.count == 1)
     }
 
-    /// R-39: журнал другого устройства со старшей версией схемы → «только чтение».
+    /// R-39: another device's journal with a newer schema version → read-only.
     @Test func newerSchemaFromOtherDeviceMakesStoreReadOnly() async throws {
         let base = tempDir("a")
         let cache = base.appendingPathComponent("cache/ios-new", isDirectory: true)
@@ -75,7 +75,7 @@ import Testing
         }
     }
 
-    /// Lamport продолжается после перезапуска и после чтения чужих событий.
+    /// Lamport continues after a restart and after reading other devices' events.
     @Test func lamportAndSeqContinue() async throws {
         let base = tempDir("a")
         let a = try JournalStore(base: base, deviceName: "Mac", deviceID: "mac-aaaa")

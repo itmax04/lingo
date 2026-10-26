@@ -1,13 +1,13 @@
 import Foundation
 
-/// Результат чтения журнала (R-39).
+/// Result of reading a journal (R-39).
 public struct JournalReadResult: Sendable {
     public var events: [Event] = []
-    /// Оборванная последняя строка (нет перевода строки в конце файла) — игнорируется.
+    /// A truncated last line (no trailing newline at the end of the file) — ignored.
     public var tornTail = false
-    /// Повреждённые строки — пропускаются, считаются метрикой.
+    /// Corrupted lines — skipped and counted as a metric.
     public var corruptedLines = 0
-    /// В журнале есть события старшей версии схемы — «только чтение» с предупреждением.
+    /// The journal has events with a newer schema version — read-only with a warning.
     public var newerSchema = false
 
     public init() {}
@@ -20,7 +20,7 @@ public struct JournalReadResult: Sendable {
     }
 }
 
-/// Чтение JSON Lines (R-39).
+/// JSON Lines reader (R-39).
 public enum JournalReader {
     public static func parse(_ data: Data) -> JournalReadResult {
         var r = JournalReadResult()
@@ -49,7 +49,7 @@ public enum JournalReader {
         parse(try Data(contentsOf: url))
     }
 
-    /// Все файлы `journal-*.jsonl` в папке устройства, по имени (по месяцам).
+    /// All `journal-*.jsonl` files in a device folder, by name (one per month).
     public static func journalFiles(in dir: URL) -> [URL] {
         let items = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
         return items.filter { $0.lastPathComponent.hasPrefix("journal-") && $0.pathExtension == "jsonl" }
@@ -65,13 +65,13 @@ public enum JournalReader {
     }
 }
 
-/// Дописывание в журнал своего устройства с fsync (R-34). Один писатель на файл (R-36).
+/// Appends to this device's journal with fsync (R-34). One writer per file (R-36).
 public struct JournalWriter: Sendable {
     public let dir: URL
 
     public init(dir: URL) { self.dir = dir }
 
-    /// Имя файла по месяцу события (UTC): `journal-2026-10.jsonl`.
+    /// File name by the event's month (UTC): `journal-2026-10.jsonl`.
     public static func fileName(for date: Date) -> String {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
@@ -82,7 +82,7 @@ public struct JournalWriter: Sendable {
     public func append(_ events: [Event]) throws {
         guard let first = events.first else { return }
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        // Пачка пишется в файл месяца первого события; соседние события одной пачки создаются в один момент.
+        // A batch goes to the file of its first event's month; events of one batch are created at the same moment.
         let url = dir.appendingPathComponent(Self.fileName(for: first.ts))
         if !FileManager.default.fileExists(atPath: url.path) {
             guard FileManager.default.createFile(atPath: url.path, contents: nil) else { throw CocoaError(.fileWriteUnknown) }
@@ -92,8 +92,8 @@ public struct JournalWriter: Sendable {
         let end = try h.seekToEnd()
         var data = Data()
         if end > 0 {
-            // R-39: если прошлая запись оборвалась, оборванная строка закрывается переводом строки
-            // и при чтении пропускается как повреждённая; новые события идут с новой строки.
+            // R-39: if the previous write was cut off, the truncated line is closed with a newline
+            // and skipped as corrupted on read; new events start on a new line.
             try h.seek(toOffset: end - 1)
             let last = try h.read(upToCount: 1)
             if last != Data([0x0A]) { data.append(0x0A) }

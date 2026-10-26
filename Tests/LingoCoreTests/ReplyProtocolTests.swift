@@ -33,7 +33,7 @@ import Testing
         """
         let p = ReplyProtocol.parse(text, studyLang: .de)
         #expect(p.segments == [.say(.de, "Hallo! Wie geht's?"), .say(.de, "komisch"), .say(.de, "etwas"), .say(.de, "Liste"), .say(.de, "Danach")])
-        #expect(p.violations == 5) // без тега, неизвестный язык, @fix без стрелки, неизвестный тег, пустой @say
+        #expect(p.violations == 5) // no tag, unknown language, @fix without an arrow, unknown tag, empty @say
     }
 
     @Test func streamEmitsSentencesBeforeLineEnds() {
@@ -42,7 +42,7 @@ import Testing
         for chunk in ["@say en: Hi, I’m Al", "ex. Nice to meet", " you. How are", " you?\n@hint en: Nice to meet you. | Приятно.\n", "@say ru: Привет"] {
             items += s.feed(chunk)
         }
-        // Первое предложение готово до конца строки.
+        // The first sentence is ready before the line ends.
         #expect(items.first == .speak(.en, "Hi, I’m Alex."))
         items += s.finish()
         let spoken = items.compactMap { if case .speak(let l, let t) = $0 { return "\(l.rawValue):\(t)" }; return nil }
@@ -99,7 +99,7 @@ import Testing
                    payload: try JSONValue.from(Payload.MessageCreated(role: .assistant, text: "", lang: .en, segments: p.segments, replyTo: "U1")))
         let st = Merger.build([ev("C", device: "d", seq: 1, lamport: 1, ms: 1000, type: EventType.sessionCreated, payload: created), u, a])
         #expect(st.messages["s1"]?.first { $0.id == "U1" }?.heard == "My sister lives near the river.")
-        // В расшифровке для модели @heard не повторяется.
+        // @heard is not repeated in the transcript for the model.
         #expect(!PromptBuilder.transcriptLine(st.messages["s1"]![1]).contains("@heard"))
     }
 }
