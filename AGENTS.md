@@ -107,3 +107,15 @@ UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swif
 | How to test / release | `docs/process/TESTING.md`, `docs/process/RELEASE.md` |
 | Terms | `docs/GLOSSARY.md` |
 | Design | `DESIGN.md`, `docs/design/lingo-mac.webp` |
+
+## 10. Working from the cloud (Claude Code on the web, Codex cloud, the GitHub Action)
+- Cloud sessions run on Linux VMs (Ubuntu, Node 22 preinstalled) with **no Swift, Xcode or Apple frameworks**: the Mac app cannot be built,
+  tested or run there. For `area:mac` issues, make the change, push the branch, open the PR and rely on the `mac` CI workflow (macOS runner)
+  for `swift build` / `swift test`. Anything that needs the signed app, the Keychain, audio, `xcstringstool` or a live session is done in a
+  local session on the owner's Mac — say so in the PR and in `handoff.md`.
+- `area:web`, `area:engine`, `area:contracts` and docs work fully in the cloud: `npm ci && npm test`, `npx wrangler dev` with a local D1, mocked providers.
+- **Never push to `main`** — always a branch and a PR. GitHub Free gives no branch protection for this private repo, so the rule is enforced
+  only by you and by `.claude/settings.json` (loaded in cloud sessions together with `CLAUDE.md` → `AGENTS.md`).
+- Secrets are never put into a cloud environment's env vars (anyone using the environment can read them). Tests use mocks; real provider calls,
+  `wrangler secret`, migrations on the remote D1 and deploys happen at owner checkpoints from the owner's Mac.
+- macOS CI minutes count ×10 against the 2,000 free Actions minutes per month: batch Swift changes and do not re-run the `mac` workflow without a reason.

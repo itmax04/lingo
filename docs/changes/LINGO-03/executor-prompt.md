@@ -1,6 +1,7 @@
 # LINGO-03 — executor start prompt
 
-Paste the block below into a new Claude Code or Codex session opened in `~/Developer/lingo` (or a worktree of it).
+Paste the block below into a new session: a local Claude Code or Codex session in `~/Developer/lingo` (or a worktree of it), or a cloud session
+(Claude Code on the web at claude.ai/code, Codex cloud) connected to the GitHub repository `itmax04/lingo`, branch `main`.
 
 ---
 
@@ -17,6 +18,9 @@ You are the executor of change **LINGO-03** of the Lingo project (repository `it
 5. Never: spend money, create accounts or keys, ask for secrets in chat, change the owner's system or console settings, force-push, rewrite history,
    delete branches, run bulk model evals in the daytime, assess pronunciation.
 6. At the end of a stage, report to the owner in Russian in the format of SDLC §10, with PR links.
+
+If you run in a cloud session, read AGENTS.md §10 first: you cannot build the Mac app there; use the `mac` CI workflow for Swift checks and leave
+steps that need the owner's Mac (signed app, Keychain, audio, String Catalog tooling, live sessions) for a local session.
 
 Start now: confirm H-0, then take `[LINGO-03 P-01]`.
 
