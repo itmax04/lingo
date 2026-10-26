@@ -18,6 +18,7 @@ final class AppServices {
     var voiceIO: VoiceIO?
     var turn: TurnController?
     var memoryTimer: Task<Void, Never>?
+    var healthTimer: Task<Void, Never>?
     var scheduler: SyncScheduler?
     let reachability = Reachability()
 

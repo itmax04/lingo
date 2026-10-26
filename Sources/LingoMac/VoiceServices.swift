@@ -66,8 +66,19 @@ extension AppServices {
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
         io.onIdle = { Task { @MainActor in io.micMuted = false } }
+        io.onRestart = { reason in
+            Log.app.notice("voice restarted: \(reason, privacy: .public)")
+            if reason.hasPrefix("не удалось") { Task { @MainActor in m.banner = "Звук: \(reason)" } }
+        }
         voiceIO = io
         turn = tc
+        // Сторож звука: раз в секунду проверяем, что микрофон даёт сэмплы (движок мог остановиться).
+        healthTimer = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                io.checkHealth()
+            }
+        }
         // Память раз в минуту (AC-15).
         memoryTimer = Task {
             while !Task.isCancelled {
@@ -98,6 +109,7 @@ extension AppServices {
     func micTapped() {
         Task {
             guard let t = await ensureVoice() else { return }
+            voiceIO?.checkHealth(stallSeconds: 0.5)
             if t.mode == .continuous {
                 if voiceIO?.isSpeaking == true { t.cancel() }
                 return

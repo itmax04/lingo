@@ -61,11 +61,26 @@ public final class VoiceIO: @unchecked Sendable {
 
     /// Последняя ошибка запуска по каждой попытке (диагностика H-2).
     public private(set) var startLog: [String] = []
+    /// Параметры последнего запуска — для перезапуска.
+    private var wantVP = true
+    private var wantOutput = true
+    private var lastSampleAt: Double = 0
+    private var configObserver: NSObjectProtocol?
+    private var restarts: [Double] = []
+    /// Звук перезапущен (смена конфигурации или тишина): причина.
+    public var onRestart: (@Sendable (String) -> Void)?
+
+    static func now() -> Double { Double(DispatchTime.now().uptimeNanoseconds) / 1e9 }
+
+    /// Секунды с последнего блока сэмплов с микрофона (∞, если не было).
+    public var secondsSinceSamples: Double { lock.withLock { lastSampleAt == 0 ? .infinity : Self.now() - lastSampleAt } }
 
     /// `voiceProcessing` — эхоподавление системы. Если запуск с ним не удался (CoreAudio −10875 и т. п.),
     /// движок пересоздаётся и запускается без эхоподавления; перебивание тогда опирается на порог VAD (риск в plan.md).
     public func start(voiceProcessing wantVP: Bool = true, output: Bool = true) throws {
         guard !running else { return }
+        self.wantVP = wantVP
+        self.wantOutput = output
         startLog = []
         var attempts: [Bool] = wantVP ? [true, false] : [false]
         var lastError: Error?
@@ -124,7 +139,9 @@ public final class VoiceIO: @unchecked Sendable {
         guard fmt.sampleRate > 0, fmt.channelCount > 0 else { throw VoiceIOError.noInput }
         inputFormatDescription = "\(fmt.sampleRate) Hz, \(fmt.channelCount) ch, \(fmt.commonFormat.rawValue), interleaved=\(fmt.isInterleaved)"
         input.installTap(onBus: 0, bufferSize: 1024, format: fmt) { [weak self] buffer, _ in
-            guard let self, !self.micMuted else { return }
+            guard let self else { return }
+            self.lock.withLock { self.lastSampleAt = Self.now() }
+            guard !self.micMuted else { return }
             if let cb = self.onRawPeaks, let d = buffer.floatChannelData {
                 var peaks: [Float] = []
                 for c in 0..<Int(buffer.format.channelCount) {
@@ -141,10 +158,57 @@ public final class VoiceIO: @unchecked Sendable {
         try engine.start()
         if output { player.play() }
         running = true
+        lock.withLock { lastSampleAt = Self.now() }
+        // macOS останавливает движок при смене конфигурации звука (устройство, частота, voice processing) —
+        // без перезапуска микрофон замолкает навсегда (живая проверка 2026-10-26).
+        if let o = configObserver { NotificationCenter.default.removeObserver(o) }
+        configObserver = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main) { [weak self] _ in
+            self?.restart(reason: "смена конфигурации звука")
+        }
         Log.speech.notice("voice io started vp=\(self.voiceProcessing, privacy: .public) in=\(fmt.sampleRate, privacy: .public)Hz/\(fmt.channelCount, privacy: .public)ch")
     }
 
+    /// Перезапуск звука с прежними параметрами (не чаще 5 раз в минуту). Очередь озвучки сбрасывается.
+    public func restart(reason: String) {
+        let t = Self.now()
+        let allowed = lock.withLock { () -> Bool in
+            restarts = restarts.filter { t - $0 < 60 } + [t]
+            return restarts.count <= 5
+        }
+        guard allowed else {
+            Log.speech.error("voice io restart skipped (too many): \(reason, privacy: .public)")
+            return
+        }
+        Log.speech.notice("voice io restart: \(reason, privacy: .public)")
+        let vp = wantVP, out = wantOutput
+        if let o = configObserver { NotificationCenter.default.removeObserver(o); configObserver = nil }
+        lock.withLock { generation += 1; pendingBuffers = 0; pendingSynth = 0; items.removeAll(); scheduledTotal = 0 }
+        if running {
+            engine.inputNode.removeTap(onBus: 0)
+            if hasOutput { player.stop() }
+            engine.stop()
+            running = false
+        }
+        resetEngine()
+        do {
+            try start(voiceProcessing: vp, output: out)
+            onRestart?(reason)
+        } catch {
+            Log.speech.error("voice io restart failed: \(String(describing: error), privacy: .public)")
+            onRestart?("не удалось перезапустить звук: \(error.localizedDescription)")
+        }
+    }
+
+    /// Сторож: микрофон молчит дольше `seconds` при запущенном движке — перезапуск.
+    public func checkHealth(stallSeconds: Double = 1.5) {
+        guard running || startLog.isEmpty == false else { return }
+        if !running || !engine.isRunning || secondsSinceSamples > stallSeconds {
+            restart(reason: !engine.isRunning ? "движок остановлен" : "нет сэмплов \(Int(secondsSinceSamples * 1000)) мс")
+        }
+    }
+
     public func stop() {
+        if let o = configObserver { NotificationCenter.default.removeObserver(o); configObserver = nil }
         guard running else { return }
         if hasOutput { _ = stopSpeaking() }
         engine.inputNode.removeTap(onBus: 0)

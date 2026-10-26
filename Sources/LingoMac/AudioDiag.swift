@@ -48,6 +48,22 @@ enum AudioDiag {
                 lines.append("want vp=\(vp) out=\(out): FAIL \(v.startLog.joined(separator: " | "))")
             }
         }
+        // Перезапуск: после restart() сэмплы снова идут (смена конфигурации звука, 2026-10-26).
+        do {
+            let v = VoiceIO()
+            final class N: @unchecked Sendable { var n = 0; let l = NSLock() }
+            let cnt = N()
+            v.onSamples = { s in cnt.l.withLock { cnt.n += s.count } }
+            try v.start(voiceProcessing: true, output: true)
+            RunLoop.main.run(until: Date().addingTimeInterval(1.0))
+            let before = cnt.l.withLock { cnt.n }
+            v.restart(reason: "diag")
+            cnt.l.withLock { cnt.n = 0 }
+            RunLoop.main.run(until: Date().addingTimeInterval(1.5))
+            let after = cnt.l.withLock { cnt.n }
+            lines.append("restart: samples before=\(before) after=\(after) vp=\(v.voiceProcessing) since=\(String(format: "%.2f", v.secondsSinceSamples)) с")
+            v.stop()
+        } catch { lines.append("restart: FAIL \(error)") }
         let text = lines.joined(separator: "\n") + "\n"
         do { try text.write(toFile: path, atomically: true, encoding: .utf8) } catch {
             FileHandle.standardError.write(Data("audio-diag: cannot write \(path): \(error)\n".utf8))
