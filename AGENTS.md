@@ -24,9 +24,10 @@ Owner: GitHub `itmax04`. The repository is private.
 
 | Item | State |
 |---|---|
-| Current change | **LINGO-01 — Mac MVP**, steps P-00…P-10 implemented, owner checkpoints H-0, H-1, H-2 passed |
+| Current change | **LINGO-03 — Lingo Web with accounts** (`docs/changes/LINGO-03/`): documents drafted, awaiting the owner's acceptance; then H-0 → P-00 → P-01 device spike |
+| LINGO-01 — Mac MVP | **frozen** by owner decision W3 (2026-10-26): P-00…P-10 implemented, H-0…H-2 passed; AC-17, H-3…H-5 postponed |
 | Working branch | **`main-en`** (English repository). `feat/lingo-01` is the older Russian branch, kept as history. `main` holds only the first commit. Never merge into `main` without the owner. |
-| Open in LINGO-01 | AC-17 control 30-minute session · H-3 iCloud sync folder (S-19 on a real folder) · H-4 live scenario part 2 · nightly evals in small batches · blind review · P-11 · P-12 (report.md, code review, README/ADR, H-5 acceptance) |
+| Open in LINGO-01 (frozen) | AC-17 control 30-minute session · H-3 iCloud sync folder (S-19 on a real folder) · H-4 live scenario part 2 · nightly evals in small batches · blind review · P-11 · P-12 (report.md, code review, README/ADR, H-5 acceptance) |
 | Latest fix | microphone capture recovery (`VoiceIO` restart limiter, capture watchdog, `--audio-stability`) — see the last sections of `handoff.md` |
 | Providers | Groq (main, free tier) → Cloudflare Workers AI as a "Custom endpoint" chain step (`@cf/openai/gpt-oss-120b`), configured in the owner's settings, not in the repo |
 | English migration | **in progress** — see §8 |
