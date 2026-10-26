@@ -1,0 +1,296 @@
+openapi: 3.1.0
+info:
+  title: Lingo Engine API
+  version: 0.1.0
+  description: |
+    HTTP API of the Lingo Engine (Cloudflare Worker), used by Lingo Web and, from LINGO-04, by Lingo for Mac.
+    Status: **design contract for LINGO-03** — the implementation must follow it; changes go through a PR that updates this file first.
+
+    Conventions
+    - JSON bodies are UTF-8; times are ISO 8601 UTC; ids are ULIDs unless stated.
+    - Auth: browser clients use the `lingo_session` cookie (HttpOnly, Secure, SameSite=Lax) set by the GitHub sign-in;
+      native clients (LINGO-04) use `Authorization: Bearer <device token>`. State-changing requests must carry an `Origin`
+      equal to the site origin (cookie auth) — otherwise 403.
+    - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English, never contains secrets or utterance text.
+    - Limits: request body ≤ 1 MB except `/api/transcribe` (≤ 4 MB, ≤ 60 s of audio); ≤ 30 API calls per minute per account.
+servers:
+  - url: https://lingo.example.workers.dev
+    description: Production (the real *.workers.dev name is set at deploy time)
+  - url: http://localhost:8787
+    description: wrangler dev
+security:
+  - cookieAuth: []
+  - deviceToken: []
+paths:
+  /auth/login:
+    get:
+      summary: Start GitHub sign-in
+      security: []
+      description: Redirects to GitHub OAuth (scope none — identity only) with a signed `state` cookie.
+      responses:
+        "302": { description: Redirect to github.com }
+  /auth/callback:
+    get:
+      summary: GitHub OAuth callback
+      security: []
+      parameters:
+        - { name: code, in: query, required: true, schema: { type: string } }
+        - { name: state, in: query, required: true, schema: { type: string } }
+      description: |
+        Exchanges the code, reads the GitHub numeric user id, checks it against the allow-list (`ALLOWED_GITHUB_IDS`),
+        creates an auth session and sets the `lingo_session` cookie. Not allow-listed → 403 page, no account is created.
+      responses:
+        "302": { description: Signed in, redirect to / }
+        "403": { description: User not allowed }
+  /auth/logout:
+    post:
+      summary: Sign out this device
+      responses:
+        "204": { description: Session revoked, cookie cleared }
+  /api/me:
+    get:
+      summary: Current account and device
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /api/sync:
+    post:
+      summary: Push own events and pull events of other devices
+      description: |
+        Idempotent. The server stores each event once per (account, id); re-sent events are acknowledged without duplication.
+        It returns events with `server_seq > cursor` written by **other** devices, up to `limit`, plus the new cursor.
+        Clients call it on open, on visibility change, after each turn and every 30 s while visible — never in a tight loop.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SyncRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { description: "Event id reused with different content (should not happen); details in Error" }
+  /api/lease:
+    post:
+      summary: Acquire or renew the active-turn lease of a session
+      description: Only one device may generate a turn in a session at a time. Lease TTL 60 s, renewed while speaking.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [session, device]
+              properties:
+                session: { type: string }
+                device: { type: string }
+                takeOver: { type: boolean, default: false, description: "Explicit hand-over from another device" }
+      responses:
+        "200":
+          description: Lease held by this device
+          content:
+            application/json:
+              schema: { type: object, properties: { expiresAt: { type: string, format: date-time } } }
+        "409": { description: "Held by another device; body contains its device label and expiry" }
+  /api/transcribe:
+    post:
+      summary: Transcribe one utterance
+      description: |
+        Forwards the audio to Groq `whisper-large-v3-turbo` (fallback: Workers AI Whisper) with a bilingual prompt and the
+        conversation hint. The audio is processed in memory and dropped — never stored or logged.
+        Budget: audio seconds are reserved before the call (counted as ≥ 10 s per clip, conservatively) and settled after.
+      parameters:
+        - { name: turn, in: query, required: true, schema: { type: string }, description: "turn_id created by the client" }
+        - { name: session, in: query, required: true, schema: { type: string } }
+        - { name: study, in: query, required: true, schema: { enum: [en, de] } }
+        - { name: forced, in: query, schema: { enum: [ru] }, description: "\"I'm speaking Russian\" button" }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio: { type: string, format: binary, description: "audio/webm or audio/mp4 (whatever MediaRecorder produced); ≤ 4 MB, ≤ 60 s" }
+                hint: { type: string, maxLength: 1000, description: "Conversation context: last assistant line, topic, hint phrases (R-51)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transcript" }
+        "413": { description: Audio too large or too long }
+        "429": { $ref: "#/components/responses/Limited" }
+  /api/turn:
+    post:
+      summary: Generate the assistant's reply (streaming)
+      description: |
+        The client sends a structured turn; the engine builds the prompt (same rules as Swift `PromptBuilder`, same snapshots),
+        reserves budget, routes to a pool/model, streams the reply as server-sent events and records an attempt in the ledger.
+        No free-form system prompt is accepted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TurnRequest" }
+      responses:
+        "200":
+          description: "SSE stream (text/event-stream). Event names: meta, delta, sentence, segment, usage, done, error."
+          content:
+            text/event-stream:
+              schema: { $ref: "#/components/schemas/TurnStreamEvent" }
+        "409": { description: "Lease held by another device" }
+        "429": { $ref: "#/components/responses/Limited" }
+  /api/turn/{turn}/cancel:
+    post:
+      summary: Cancel a running turn (barge-in, merge, user stop)
+      parameters:
+        - { name: turn, in: path, required: true, schema: { type: string } }
+      responses:
+        "204": { description: Cancelled (or already finished); usage already incurred is kept }
+  /api/turn/{turn}:
+    get:
+      summary: Status of a turn (reconcile after a dropped stream)
+      parameters:
+        - { name: turn, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state: { enum: [reserved, in_flight, completed, failed, cancelled, uncertain] }
+                  text: { type: string, description: "Final reply text if completed" }
+  /api/budget:
+    get:
+      summary: Today's plan and usage per pool (for the Resources screen)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Budget" }
+  /api/export:
+    get:
+      summary: Export all events of the account (JSON Lines, schema v1)
+      responses:
+        "200": { description: OK, content: { application/x-ndjson: {} } }
+  /api/account/data:
+    delete:
+      summary: Delete all data of the account (events, attempts, budgets, devices except the current auth session)
+      responses:
+        "204": { description: Deleted }
+components:
+  securitySchemes:
+    cookieAuth: { type: apiKey, in: cookie, name: lingo_session }
+    deviceToken: { type: http, scheme: bearer, description: "LINGO-04: long random token created in Settings, stored hashed, sync + turn scope" }
+  responses:
+    Unauthorized:
+      description: Not signed in or session expired
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    BadRequest:
+      description: Invalid body (schema violation, too many events, size)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Limited:
+      description: All allowed routes are paused or the daily budget is exhausted
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, examples: [unauthorized, forbidden_origin, bad_request, too_large, lease_held, budget_exhausted, all_routes_paused, provider_error] }
+        message: { type: string }
+        retryAfterSec: { type: integer, description: "Only when a provider reported it" }
+        limitKind: { enum: [rpm, rpd, tpm, tpd, ash, asd, neurons], description: "Only when known" }
+    Me:
+      type: object
+      properties:
+        account: { type: string }
+        githubLogin: { type: string }
+        device: { type: string }
+    Event:
+      description: "See packages/contracts/events/event.schema.json"
+      type: object
+    SyncRequest:
+      type: object
+      required: [device, cursor, events]
+      properties:
+        device: { type: string }
+        cursor: { type: integer, minimum: 0, description: "Last server_seq the device has applied (0 = none)" }
+        events: { type: array, maxItems: 500, items: { $ref: "#/components/schemas/Event" } }
+        limit: { type: integer, default: 1000, maximum: 2000 }
+    SyncResponse:
+      type: object
+      required: [accepted, events, cursor, more]
+      properties:
+        accepted: { type: array, items: { type: string }, description: "Ids stored or already present" }
+        events: { type: array, items: { $ref: "#/components/schemas/Event" } }
+        cursor: { type: integer }
+        more: { type: boolean }
+    Transcript:
+      type: object
+      required: [text, lang, audioSec, model]
+      properties:
+        text: { type: string }
+        lang: { enum: [en, de, ru], description: "By the script of the result: Cyrillic → ru" }
+        audioSec: { type: number }
+        model: { type: string }
+        pool: { type: string }
+    TurnRequest:
+      type: object
+      required: [turn, session, device, purpose, settings, window]
+      properties:
+        turn: { type: string, description: "turn_id; idempotency key" }
+        session: { type: string }
+        device: { type: string }
+        purpose: { enum: [dialog, topic_phrases, summary, recap] }
+        settings: { $ref: "../events/event.schema.json#/$defs/SessionSettings" }
+        summary: { type: string, maxLength: 4000 }
+        window:
+          type: array
+          description: "Context window built by the client with the shared ContextPolicy (last N turns within the character budget)"
+          maxItems: 40
+          items:
+            type: object
+            required: [role, lang, text]
+            properties:
+              role: { enum: [user, assistant] }
+              lang: { enum: [en, de, ru] }
+              text: { type: string, maxLength: 4000 }
+              interruptedAt: { type: integer }
+        command: { enum: [repeatLast, slower, howToSay, explain, continue, mistakes, finish] }
+    TurnStreamEvent:
+      description: |
+        `meta` {turn, attempt, pool, model} · `delta` {text} raw text fragment · `sentence` {lang, text} finished @say sentence ready to speak ·
+        `segment` {segment} finished protocol line (ReplySegment encoding of the event schema) · `usage` {input, output, cached} ·
+        `done` {text, source} · `error` (Error schema). A new `meta` with a different attempt means the reply restarted on another route:
+        discard what was shown and spoken for the previous attempt.
+      type: object
+    Budget:
+      type: object
+      properties:
+        day: { type: string, description: "UTC day" }
+        pools:
+          type: array
+          items:
+            type: object
+            properties:
+              pool: { type: string, examples: ["groq:org-main:openai/gpt-oss-120b", "workers-ai:@cf/openai/gpt-oss-20b"] }
+              ownerRisk: { type: boolean, description: "Pool from an additional Groq account (ADR-0005)" }
+              tokensUsed: { type: integer }
+              tokensPlanned: { type: integer }
+              requestsUsed: { type: integer }
+              audioSecUsed: { type: number }
+              pausedUntil: { type: string, format: date-time }

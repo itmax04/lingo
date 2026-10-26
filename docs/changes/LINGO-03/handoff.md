@@ -1,19 +1,23 @@
-# LINGO-03: Handoff — Lingo Web with accounts
+# LINGO-03: Handoff
 
-Status: **documents drafted, awaiting the owner's acceptance** · Branch: `main-en` · Date: 2026-10-26
+Status: **documents v2 ready; waiting for H-0 (owner acceptance)** · Default branch: `main` · Date: 2026-10-26
+
+## State at hand-over (2026-10-26)
+- Repository moved to `~/Developer/lingo` (fresh clone; the old iCloud copy `~/Desktop/1/lingo` is not used any more — the owner may delete it).
+- `main` fast-forwarded to the former `main-en` (`1e254e7`); `feat/lingo-01` and `main-en` kept as history.
+- Clean clone: `swift build` 24 s, `swift test` 96 tests pass (2026-10-26).
+- Documents v2: [ARCHITECTURE](../../architecture/ARCHITECTURE.md), ADR-0002…0005, [SDLC](../../process/SDLC.md), [TESTING](../../process/TESTING.md), [RELEASE](../../process/RELEASE.md), [ROADMAP](../../ROADMAP.md), contracts (event schema + golden fixtures generated from the Swift code, OpenAPI).
+- Mac app: LINGO-01 frozen; build 0.2.1 has the microphone-capture recovery; UI temporarily English (P-03 fixes it); Cloudflare Workers AI configured by the owner as a "Custom endpoint" chain step and verified with two requests.
+- Reviews behind this plan (owner's Downloads folder, not in the repo): "Lingo — аудит и стратегия развития (2026-10-26).pdf", "Lingo — объединённое ревью и стратегия (2026-10-26).pdf", "Lingo_Mac_Web_Research_2026-10-26.pdf".
 
 ## Done
-- 2026-10-26: owner decisions W1–W5 (intent.md); drafts of intent.md, spec.md, plan.md and ADR-0002 (web stack).
-- Facts gathered from third-party pages for P-00 to verify: Groq Whisper free limits, Cloudflare Zero Trust free plan, D1 free limits (spec §5).
-- Environment: node v26.0.0, npm 11.12.1, wrangler 4.151.3 (installed with Homebrew); ≈28 GB free on the Mac disk.
-
-## State of LINGO-01
-Frozen at `3b6184d` by W3: AC-17, H-3…H-5 and the String Catalog are postponed (see LINGO-01 handoff and AGENTS.md §8).
-
-## Next step
-1. Owner: accept or correct intent/spec/plan/ADR-0002 (questions W1–W5 are answered; check assumptions B-1…B-6 and the friend budget B-3).
-2. Owner checkpoint H-0 (plan.md): `wrangler login`, Zero Trust team + one-time PIN + Access application, Groq key as a Worker secret.
-3. P-00 baseline, then the P-01 device spike and the H-1 gate.
+| Step | PR | Checks | Notes |
+|---|---|---|---|
+| — | — | — | nothing implemented yet in LINGO-03 |
 
 ## Executor decisions
-(none yet)
+(none yet — record as D-01, D-02, … with the reason)
+
+## Next step
+1. Owner: H-0 — accept the documents.
+2. Executor: Stage 0 starting with P-01 (issue `[LINGO-03 P-01]`).

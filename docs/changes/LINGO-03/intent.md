@@ -1,82 +1,83 @@
-# LINGO-03: Intent — Lingo Web with accounts
+# LINGO-03: Intent — Mac stabilisation, Lingo Engine and Lingo Web
 
-ID: LINGO-03-intent · Status: **draft** (awaiting the owner's acceptance) · Version: 1 · Date: 2026-10-26
-Result owner: itmax04 · Links: [spec.md](spec.md), [plan.md](plan.md), [ADR-0002](../../decisions/ADR-0002-web-stack.md),
-[LINGO-01 intent](../LINGO-01/intent.md), [DESIGN.md](../../../DESIGN.md)
-Source of decisions: the conversation of 2026-10-26, answers W1–W5 (table below); the owner's quotes are translated from Russian.
+ID: LINGO-03-intent · Status: **accepted at H-0 pending** — written from three owner brainstorms of 2026-10-26 · Version: 2 · Date: 2026-10-26
+Owner: itmax04 · Links: [spec.md](spec.md) · [plan.md](plan.md) · [ARCHITECTURE](../../architecture/ARCHITECTURE.md) ·
+ADRs [0002](../../decisions/ADR-0002-web-stack.md), [0003](../../decisions/ADR-0003-authentication.md), [0004](../../decisions/ADR-0004-repository-layout.md), [0005](../../decisions/ADR-0005-model-routing-and-quota.md) ·
+Prior change: [LINGO-01](../LINGO-01/intent.md) (Mac MVP, frozen)
 
 ## Problem
-Lingo works only on the owner's Mac (LINGO-01). The owner wants to practise on **any device** — iPhone, iPad, another computer —
-and to **log in with an account** so that the history is the same everywhere.
-The native iPhone path (LINGO-02) depends on SideStore and a free Apple ID: the signature expires every 7 days, setup needs a computer,
-and SideStore support for iOS 27 is unverified. A website has none of these problems.
+Lingo works only on one Mac. The owner practises mostly **on a phone, on the go**, and wants the same history on every device,
+**4 sessions × 30 minutes a day** (2 German, 2 English), for free. The Mac app also has open issues: the free model quota is spent
+inefficiently (a 962-token output reserve for a 74-token median reply), the UI is temporarily English after the repository migration,
+and the history exists in a single copy.
 
 ## Desired outcome
-**Lingo Web**: a web app (installable as a PWA) for voice conversation practice in English and German, with the same behaviour as the Mac app:
-1. the owner logs in with their email and sees all their sessions on any device;
-2. speaks, and the assistant answers by voice; push-to-talk and a continuous dialogue with barge-in;
-3. Russian only on an explicit request; commands "repeat", "slower", "how do I say", "explain", "let's continue";
-4. correction modes (as we go, after the conversation, on request), hints and a starred vocabulary;
-5. a few friends invited by the owner get their own accounts with separate histories;
-6. everything stays free.
-
-Voice pipeline on the web: browser microphone (echo cancellation) → utterance detection in the browser → speech recognition by **Groq Whisper in the cloud**
-→ the LLM chain on the server → speech synthesis by the device's own voices (Premium voices on Apple devices).
-
-## Users and systems
-- **Users:** the owner and up to a few invited friends (W1). Each has an account and a separate history. No public sign-up.
-- **Devices:** any modern browser — Safari on iPhone and iPad, Safari and Chrome on the Mac, browsers on other computers.
-- **Systems:**
-  - Cloudflare (the owner's existing account): Workers (API and static site), D1 (database), Access (login, Zero Trust free plan), Workers AI (fallback model);
-  - Groq API (free tier, the owner's keys): chat models and Whisper speech recognition;
-  - GitHub `itmax04/lingo` (private), branch `main-en`.
-- **Reuse:** the Lingo design (DESIGN.md), the reply protocol, prompts, command vocabularies, correction logic, the event journal format
-  and the merge rules of LINGO-01 are ported to TypeScript and checked against the same fixtures (prompt snapshots, eval sets).
+1. **Lingo for Mac is stable and economical:** Russian UI again, ~30 % fewer tokens per turn, history exported, 30-minute session proven.
+2. **The repository is a clean monorepo** ready for several agents: `apps/mac`, `apps/web`, `services/engine`, `packages/core-ts`, `packages/contracts`.
+3. **Lingo Engine** on the Cloudflare free plan: sign-in with GitHub (only the owner), history sync, prompt building, model routing with a day plan for 4 × 30 min, transcription proxy, usage ledger.
+4. **Lingo Web** (installable PWA) on iPhone Air, iPhone 11, iPad, Android, Windows and other computers: voice practice with push-to-talk and continuous mode, barge-in, commands, corrections, hints, vocabulary, history shared between web devices.
+5. **Evidence first:** the browser voice loop is proven on the owner's phones before the full site is built; the day is proven by a full 4 × 30 test.
 
 ## Scope
-In LINGO-03:
-- a server on Cloudflare Workers: login check, accounts, history sync, the LLM chain and the speech-recognition proxy with keys kept on the server, per-account daily quotas, a usage log;
-- a web client (PWA) following DESIGN.md: three columns on wide screens (Mac, iPad landscape), one column on a phone; sessions, voice, commands, corrections, hints, vocabulary, settings;
-- history stored in the browser (works offline for reading) and synced through the account;
-- a sync API that the Mac app can use later (the Mac client itself is optional in this change, see plan P-11).
+In LINGO-03 (stages 0–2):
+- Stage 0 — Mac stabilisation and the monorepo move (executor's first tasks).
+- Stage 1 — evidence: device voice spike, model comparison on a language set, measured tempo and tokens.
+- Stage 2 — engine + web with GitHub sign-in, sync between web devices, Resources screen, privacy, full-day test.
 
-Not in LINGO-03:
-- public sign-up and use by strangers (W1) — a separate change if ever needed;
-- a native iPhone/iPad app (LINGO-02 stays parked);
-- voice with a locked screen (browsers stop audio) — a known limitation of the web;
-- pronunciation assessment in any form (Q7 stays);
-- paid plans of any provider.
+Not in LINGO-03 (next changes, see [ROADMAP](../../ROADMAP.md)):
+- LINGO-04 — the Mac joins the account (shared history with the web, optional engine turns). Owner: **after the site, before the teacher**.
+- LINGO-05 — teacher: memory, spaced repetition, scenarios and exam modes, progress and reports.
+- LINGO-06 — native iPhone client (locked screen) and the streaming real-time pipeline.
+- Public sign-up, other people's accounts, payments, pronunciation assessment, avatars and gamification.
 
 ## Constraints
-- **Budget:** $0 — Cloudflare free plan, Groq free tier, a free `*.workers.dev` address. If a limit would require paying, the feature degrades instead.
-- **Audio:** for the web, recorded utterances are sent to Groq for recognition (W2). This **changes R-08 for the web client only**: audio leaves the device, is not stored by Lingo, and is never written to the server's database. The Mac app keeps on-device recognition.
-- **Keys:** model keys exist only as Cloudflare Worker secrets. They never reach the browser, the repository, logs or chat. The owner enters them in the terminal (`wrangler secret put`), not in chat.
-- **Shared quota:** all accounts share the owner's free Groq quota (per organization: chat models per model; Whisper ≈2000 requests and 28,800 audio seconds per day, every clip counted as at least 10 s). Each account gets a daily budget; the owner's account comes first.
-- **Login:** Cloudflare Access with a one-time PIN sent to an allowed email address; the allow-list is managed by the owner.
-- **Privacy:** friends' dialogues are stored in the owner's Cloudflare account. A short privacy note in the app explains what is stored and how to delete it; an account can delete all its data.
-- **Latency:** as in LINGO-01 — quality first, up to 8–10 s from the end of an utterance to the start of the reply is acceptable (Q3).
-- **Browsers:** iOS Safari limits audio (playback needs a user gesture, the mic and speech synthesis share one audio session). Whether barge-in works on the iPhone is checked first (plan P-01) before the rest is built.
-- **Git:** branch `main-en`, no force-push, no merge into `main` without the owner. The repository and docs are in English (Q30).
-- **Executor:** Claude Code; questions to the owner only at checkpoints H-0…H-3 of plan.md.
+- **$0, no card anywhere.** Cloudflare free plan (Workers, D1, Workers AI), Groq free tier, GitHub free (private repo: limited Actions minutes, macOS minutes count ×10).
+- **Sign-in:** GitHub OAuth with an allow-list of the owner's numeric GitHub id (ADR-0003). Not Cloudflare Access (needs a card), not passkeys (owner declined).
+- **Audio:** Mac — never leaves the device. Web — utterances are sent through the engine to Groq Whisper and dropped (owner decision W2); never stored or logged.
+- **Keys:** Worker secrets / Mac Keychain only; entered by the owner; never in the browser, repo, logs or chat.
+- **Groq accounts:** keys of additional Groq accounts may be used as separate pools **at the owner's own risk** (ADR-0005); agents never create accounts.
+- **Quota protection:** bulk model calls (evals) only at night and budgeted.
+- **Repository language:** English; communication with the owner: Russian.
+- **Design:** DESIGN.md tokens adapted to phone widths; screenshots at acceptance.
+- **Git:** `main` is the default branch; work via issues → branches → PRs; the owner merges; no force-push or history rewrite.
+- **Executors:** Claude Code (Opus 5.5) and Codex; autonomy = a whole stage, stopping at owner checkpoints and blockers.
 
-## Owner decisions (2026-10-26)
-| # | Question | Decision |
+## Owner decisions
+History: W1–W5 (web, first brainstorm) and B-1…B-11 (audit brainstorm) are in git history (v1 of this file, commit `1e254e7`, and the audit reports). The consolidated set:
+
+| # | Topic | Decision (2026-10-26) |
 |---|---|---|
-| W1 | Who uses the site | "Only me and people I know": login through Cloudflare Access (up to 50 people for free), the owner's keys on the server; can be opened to everyone later |
-| W2 | Speech recognition on the web | Groq Whisper in the cloud (the same whisper family as on the Mac; audio goes to Groq) |
-| W3 | Order of work | Switch to the website now; LINGO-01 is frozen in its current state (AC-17, H-3…H-5 postponed) |
-| W4 | Why not React Native | React Native would still need iOS signing (the same 7-day problem) and a rewrite of the core; a website removes installation entirely (executor's recommendation, the owner chose the website) |
-| W5 | Accounts | "I want to create an account so I can sync with any app": history is tied to an account, not to an iCloud folder |
+| O-01 | Main device | Phone on the go; Mac secondary but kept standalone |
+| O-02 | Locked screen | Website first (screen kept on with Wake Lock), native iPhone later (LINGO-06) |
+| O-03 | Budget | Strictly $0 |
+| O-04 | Focus after the web | Teacher (all four: repetition of my mistakes and words, memory about me, progress and report, plans and scenarios) — LINGO-05 |
+| O-05 | Goals | Life in Germany, German B1 (Goethe/telc) speaking, English exam speaking (IELTS-style), work, free conversation |
+| O-06 | Daily load | 4 × 30 min (2 DE + 2 EN) ≈ 240 replies/day |
+| O-07 | Architecture | Engine on the server for the web; Mac keeps its own logic; shared contracts |
+| O-08 | Mac recognition | Stays on-device (whisper.cpp) |
+| O-09 | Sign-in | GitHub OAuth, only the owner's account (no passkey, no Access) |
+| O-10 | Extra Groq accounts | Allowed as separate pools at the owner's own risk |
+| O-11 | Devices | iPhone Air, iPhone 11, iPad, Android phone, Windows PC, other people's computers |
+| O-12 | Executors | Claude Code (Opus 5.5) and Codex |
+| O-13 | Autonomy | A whole stage; stop at owner checkpoints and blockers; owner merges PRs |
+| O-14 | Branches | `main-en` merged into `main`; `main` is the default; feature branches + PRs |
+| O-15 | Location | Repository moved out of iCloud to `~/Developer/lingo` (done 2026-10-26) |
+| O-16 | GitHub | Issues + milestones + labels, CI + PR template |
+| O-17 | Stage 0 | Done by the executor as the first tasks |
+| O-18 | Layout | Monorepo (`apps/`, `services/`, `packages/`); the executor moves the Swift code |
+| O-19 | Mac and account | After the site, before the teacher (LINGO-04) |
+| O-20 | Web design | Adapt DESIGN.md (dark theme, same tokens), one column on phones |
+| O-21 | Reporting | Short Russian summary in chat + PR descriptions; details in English in `handoff.md` |
+| O-22 | Friends | Later; architecture supports several allow-listed accounts |
 
-## Assumptions (non-blocking; can be corrected at acceptance)
-- **B-1.** The site lives at a free `*.workers.dev` address under the owner's Cloudflare account; a custom domain is optional and out of scope.
-- **B-2.** The interface language is Russian by default with English available (the same String-catalog approach as the Mac app).
-- **B-3.** Friends use the same models through the owner's keys; the daily budget per friend is small by default (proposed: 60 chat turns and 30 minutes of recognized audio) and the owner can change it.
-- **B-4.** The web client stores the history in IndexedDB and works offline for reading; new turns need the network.
-- **B-5.** The frontend is React + TypeScript built with Vite (ADR-0002); the owner's frontend rules apply (DESIGN.md first; components checked against 21st.dev and component.gallery when their tools are available).
-- **B-6.** The event format of LINGO-01 (R-34…R-39) is reused unchanged, so the Mac app can join the same account later without migration.
+## Assumptions (correctable at acceptance)
+- **C-1.** The site lives at a free `*.workers.dev` address; no custom domain.
+- **C-2.** Web UI language: Russian by default, English switchable.
+- **C-3.** The Mac keeps its own Groq usage until LINGO-04; the engine's day plan cannot see it, so the plan keeps headroom.
+- **C-4.** iPad model and Android/Windows browser versions are recorded at the device checkpoint.
+- **C-5.** Teacher event types (memory, cards) are added in LINGO-05 without breaking schema v1 (new types, unknown types preserved).
 
-## Open questions (answered by the plan's measurements)
-- Does barge-in work on iOS Safari with echo cancellation and speech synthesis at the same time? (P-01, H-1)
-- Are Groq Whisper latency and quality with the owner's accent good enough on the web (median ≤ 2 s per utterance)? (P-01, P-06)
-- Which device voices does each browser expose (Premium voices in Safari, none in some browsers)? (P-01)
+## Open questions (answered by measurements in Stage 1)
+- Does barge-in work in Safari on iPhone Air and iPhone 11 with echo cancellation and speech synthesis together?
+- Real tempo: replies per 30-minute session (assumed 60) and tokens per turn after the economy step.
+- Which second model and which Workers AI model keep German and Russian explanations good enough?
