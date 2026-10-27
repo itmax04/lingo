@@ -18,7 +18,7 @@ Local checkout: `/Users/macbook/Developer/lingo-redesign`, branch `feat/redesign
 | Image lettering | INCOMPLETE | One confirmed Add-button spelling defect remains in the light keys reference; 131/132 targets have no missing required labels in normalized OCR, which is not a proof of exact typography |
 | Geometry within +/-4 pt | NOT PASSED | Generated geometry differs; the prepared geometry-lock pass was blocked by the subscription limit |
 | Live voice / Keychain / iCloud / provider / 30-minute session | NOT RUN | This is a presentation change; captures use isolated synthetic stores and never start the normal service loop |
-| CI | PENDING | To be updated with the PR checks after push |
+| CI | PASS | Code/assets commit `031a156`; [run 40545029185](https://github.com/itmax04/lingo/actions/runs/40545029185), both Swift and repository jobs successful |
 
 ## ImageGen blocker
 
@@ -37,3 +37,7 @@ New Mac sections are navigation-only Coming soon previews. Existing saved phrase
 Every pair in comparison-manifest.json is explicitly marked as not accepted for geometry. ImageGen changed column widths, wrapping, window chrome and control shapes. Actual dimensions differ from requested filename dimensions in some outputs; originals are preserved and scaling is explicit. Generated glows, gradients and inconsistent marks are replaced in native UI by exact flat tokens and a vector mark. The light icon concept and some remaining light teacher/system/architecture concepts retain inconsistent branding; the production app uses the separate transparent icon asset.
 
 Menu/correction evidence renders the actual shared SwiftUI components over a fixture window; it is not an operating-system popover-window capture. Future mockup statistics and resources are synthetic. No screenshot demonstrates working future accounts, exams or teacher logic. The change remains blocked and must not be presented as a completed final visual match.
+
+## Publication
+
+Draft PR: [https://github.com/itmax04/lingo/pull/33](https://github.com/itmax04/lingo/pull/33). The exact local commit was published to `feat/redesign`; main was not updated. The current PR checks report the latest documentation head separately from the pinned code/assets run above.

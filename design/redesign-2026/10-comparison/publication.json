@@ -1,0 +1,20 @@
+{
+  "pull_request": "https://github.com/itmax04/lingo/pull/33",
+  "draft": true,
+  "base": "main",
+  "branch": "feat/redesign",
+  "code_assets_commit": "031a15652eedb847fdaf5913bbd1ea84f082b80d",
+  "tree": "eb06defa0157be6a6cdbd356230fca9099d8d094",
+  "remote_commit_identical": true,
+  "code_assets_ci": {
+    "url": "https://github.com/itmax04/lingo/actions/runs/40545029185",
+    "conclusion": "success",
+    "jobs": {
+      "swift": "success",
+      "repository": "success"
+    }
+  },
+  "observed_main_sha": "1e254e7a631d28200716821810e5c3fe05bfd0d1",
+  "merged": false,
+  "visual_acceptance": "incomplete; see imagegen-status.json"
+}

@@ -17,7 +17,7 @@
 
 PASS: 99 tests in 29 suites; design (19 direct colors, 84 contrast pairs, 380 bilingual strings); English policy; full secret scan (0 findings); release build and strict signature verification; synthetic clicks `mic=1 pause=1 end=1`; six exact native color samples. See `evidence/validation.md` for limits.
 
-NOT PASSED: +/-4 pt geometry acceptance. NOT RUN: live microphone/provider/Keychain/iCloud use. CI and PR links are pending publication in this handoff.
+NOT PASSED: +/-4 pt geometry acceptance. NOT RUN: live microphone/provider/Keychain/iCloud use. PR: [https://github.com/itmax04/lingo/pull/33](https://github.com/itmax04/lingo/pull/33) (draft, targeting main). CI: **PASS** for the exact code/assets commit `031a15652eedb847fdaf5913bbd1ea84f082b80d`: [run 40545029185](https://github.com/itmax04/lingo/actions/runs/40545029185), both `swift` and `repository` successful.
 
 ## Blocker and next authorized work
 
@@ -32,3 +32,9 @@ After access resets: repair the remaining targets, finish geometry-lock refineme
 ## Source revisions
 
 AGENTS.md and the root Swift package were read from main `1e254e7`. Missing future roadmap/architecture/process documents and the source ImageGen prompt set were inspected read-only from `origin/design/imagegen-prompts` (`521345b`) and its documentation ancestry. These unmerged LINGO-03 implementation plans were not executed or merged. The owner's latest autonomous brief supersedes prior design approval gates.
+
+## Publication evidence
+
+The large initial Git transfer timed out. The existing authenticated GitHub API transported the blobs and bounded tree batches instead. The resulting remote commit is **byte-identical** to local `031a15652eedb847fdaf5913bbd1ea84f082b80d`, with tree `eb06defa0157be6a6cdbd356230fca9099d8d094`; no history rewrite or replacement commit was needed. The local branch tracks `origin/feat/redesign`. Main was not updated or merged.
+
+This follow-up commit only records publication evidence. The CI link above is pinned to the tested code/assets commit; current PR checks remain the authority for the latest documentation head. The ImageGen limit and visual acceptance gaps are unchanged.

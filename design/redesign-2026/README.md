@@ -195,3 +195,7 @@ Reproduce native captures with `scripts/build-app.sh` then `scripts/redesign-sna
 - [voice-turn / planned / light](09-architecture/architecture-voice-turn-planned-light-1536x1024.png) — [exact prompt](prompts-used/architecture-voice-turn-planned-light-1536x1024.md)
 - [history-sync / planned / dark](09-architecture/architecture-history-sync-planned-dark-1536x1024.png) — [exact prompt](prompts-used/architecture-history-sync-planned-dark-1536x1024.md)
 - [history-sync / planned / light](09-architecture/architecture-history-sync-planned-light-1536x1024.png) — [exact prompt](prompts-used/architecture-history-sync-planned-light-1536x1024.md)
+
+## Publication
+
+[Draft PR #33](https://github.com/itmax04/lingo/pull/33) targets main. [Code/assets CI](https://github.com/itmax04/lingo/actions/runs/40545029185) passed for `031a156` (Swift tests and repository checks). No merge was performed. Final visual refinement remains blocked as documented above.
