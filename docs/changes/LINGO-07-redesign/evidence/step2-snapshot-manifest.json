@@ -1,0 +1,1031 @@
+{
+  "scale": 2,
+  "matrix": "dark/light x ru/en",
+  "count": 128,
+  "captures": [
+    {
+      "file": "en-dark/mac-conversation-error-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a524a599d4da5ea1cba3394c1ad38649547f45649b38a9ccf744c0a165941820"
+    },
+    {
+      "file": "en-dark/mac-conversation-heard-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "f813d0a277fbd832f65b775d5e419e56ac7b37697262352b1e6560b6417329e5"
+    },
+    {
+      "file": "en-dark/mac-conversation-interrupted-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "34796b34a80a468c37bad426abc2ec7b9d8525186ed174f829e6b1458ddad6c0"
+    },
+    {
+      "file": "en-dark/mac-conversation-narrow-dark-1100x800.png",
+      "pixels": [
+        2200,
+        1600
+      ],
+      "sha256": "6fa2f01dd81ea06daa39345749ee80ac28e65a4eb0741bc616ea5cc824ee4a8e"
+    },
+    {
+      "file": "en-dark/mac-conversation-russian-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b2f48bd45705cc75a096530570fd39b063ec8958f913b5c42f3d42e07bdd87c4"
+    },
+    {
+      "file": "en-dark/mac-conversation-speaking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "49ac929c633eec478d0e5b43a9e0ef124186497bd65fac8c201250f29d3c9dc5"
+    },
+    {
+      "file": "en-dark/mac-correction-detail-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "15dcb28842f2816f6fa2d5f40d7a5cc1fbc71047834a12c72fe287979db05ab6"
+    },
+    {
+      "file": "en-dark/mac-dictionary-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9332820e41dcc57e574700468aceb2a48baa3eb16bf008bf84a4504e1466ca95"
+    },
+    {
+      "file": "en-dark/mac-new-session-form-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "39d35d9373189496534029774d93585a5cd15136200a00333495cf660546deb1"
+    },
+    {
+      "file": "en-dark/mac-onboarding-0-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "fad5c50c165cc02c704847c65e6bfc5cb0089ad5ec771f7c8a5549eabbbd103b"
+    },
+    {
+      "file": "en-dark/mac-onboarding-1-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "25b8bfaf5e5d35bc8b95ac94139e9f55456500a20501e543015b29b157c03665"
+    },
+    {
+      "file": "en-dark/mac-onboarding-2-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3cef77966e609c19c743d710c8cee73622fb9dd518fff33590df228cfc3fef23"
+    },
+    {
+      "file": "en-dark/mac-progress-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "17d714c093c2e0fad4fff754bafa97e476aad28a17172d0cdcb32286f506c3ed"
+    },
+    {
+      "file": "en-dark/mac-recap-complete-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3b52a7fef54f591dd74a5485c70a8adf737b48037abaef28ec4021fcb84a2069"
+    },
+    {
+      "file": "en-dark/mac-session-menu-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "6e4e8c8dbfc2ed6cb4e8e0a18f5258b17112d08c9841fe34cf7e98a8274d2892"
+    },
+    {
+      "file": "en-dark/mac-settings-data-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "deb37c386b5d487ac53b766309d23ffc61109bce2f14107743bbf450b7318d8d"
+    },
+    {
+      "file": "en-dark/mac-settings-keys-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9ad2da6e811b207fb3fe942924dd56021cbffffa3849f0d3199588c0c630f98c"
+    },
+    {
+      "file": "en-dark/mac-settings-quota-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7ec60debac2b1f789d376f7a388fe7d4a7156924829d82d5bffda527ac9e7638"
+    },
+    {
+      "file": "en-dark/mac-settings-sync-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "27beb27b987c2892c3c09007807e47daad5c5ab21886e040027e08760aab3397"
+    },
+    {
+      "file": "en-dark/mac-settings-voice-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "746eb7197ada975be33ef90febfeceea5fef46e568457af645e7ed4e4bd68ad4"
+    },
+    {
+      "file": "en-dark/mac-teacher-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e6f9cb6f5ba7df10fad179e17294b4eafddaaf2740505097dc05d0511e4f2eb4"
+    },
+    {
+      "file": "en-dark/mac-today-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7848848c2dac6413901260ec07cab0e19d9ceb23b28fc14dab7751b56e9ad6ee"
+    },
+    {
+      "file": "en-dark/mac-transcript-edit-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "311a8a0a96ffdbb5603417b1ad81daf3bc3b41b09d661f25fdf9881ed54d784c"
+    },
+    {
+      "file": "en-dark/mac-voice-idle-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "f4d0c9c2419d38d529d6db652538cd975c3570975961524263f2d5bbb66e1eb5"
+    },
+    {
+      "file": "en-dark/mac-voice-listening-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "adf4d0bd578b3fc3ab39e0589c854a25c4c3de057285dedb2f07eabec6a75dcb"
+    },
+    {
+      "file": "en-dark/mac-voice-offline-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "86f1cc708b9f77acb7f11908594684d9d6c9608a9dff0bd5d0c54b5ff9f31225"
+    },
+    {
+      "file": "en-dark/mac-voice-paused-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9ccd1def3a3b6534fb06a7448fae8291f63d127804c1c3a266d0dfac0cb59f0c"
+    },
+    {
+      "file": "en-dark/mac-voice-quota-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "81414270b48231371a25787bd6e167bb5452cd21db07f6a29bc9b5402a9b5853"
+    },
+    {
+      "file": "en-dark/mac-voice-recording-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "fcffdc7aa85a183e5be19bb3dd757ea1b3ce27272523425d0cecb0ab9dce28c3"
+    },
+    {
+      "file": "en-dark/mac-voice-recording-notice-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "4772d39a250548823bf1cdf40ff6bc9655eec55be1471a533816b5c8f953828a"
+    },
+    {
+      "file": "en-dark/mac-voice-speaking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "ac662c58c69fcb3a6a587ea8a07eabe1b174c4aaa7cc2fb2889926fd89a8f2e4"
+    },
+    {
+      "file": "en-dark/mac-voice-thinking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "820d0e4025a6f9ae19f13fc6fba7316daed3bd111ad8a02a27ec6e6754b633d6"
+    },
+    {
+      "file": "en-light/mac-conversation-error-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "c7bb82e75341edc2aaa76088d06d8a30c6dd5bc78ca58afdf0bd1b1c70119e7e"
+    },
+    {
+      "file": "en-light/mac-conversation-heard-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "eb3fb79b2cd3f1a1768f9c09dee50004c35032402979bdc183b5ba9a868a20a1"
+    },
+    {
+      "file": "en-light/mac-conversation-interrupted-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "c1f2a675bb8b4d7c04a88dcf87b15cb4ca4ba128dfa08a1e2df74c5469413cb8"
+    },
+    {
+      "file": "en-light/mac-conversation-narrow-light-1100x800.png",
+      "pixels": [
+        2200,
+        1600
+      ],
+      "sha256": "c6294fb274aabb60fadaae6c48461823ac2a62c30cb9fd93071413bf3dbf5aba"
+    },
+    {
+      "file": "en-light/mac-conversation-russian-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "896704a19c28ac8963774e4afda0f39db7a462d01e4441df4a71b6aafa5f6493"
+    },
+    {
+      "file": "en-light/mac-conversation-speaking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "885f2939dd816e2eeb9b1909dbfb92aada716745a134710f4a22c8861c9586e5"
+    },
+    {
+      "file": "en-light/mac-correction-detail-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b52386d52255ed25fcf4731fc229752b712eb179c1693933eb82ff05f5975e16"
+    },
+    {
+      "file": "en-light/mac-dictionary-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "f00088e97e64b9e67a2bb8dee7f1daf56d39bc8dd36fc07b792f4ab8fc5eb4be"
+    },
+    {
+      "file": "en-light/mac-new-session-form-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "5f4f7b43e2a0668a2212810c43c33e3178e88986045593018ffa8b8ae108cd44"
+    },
+    {
+      "file": "en-light/mac-onboarding-0-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "988b7cc4bfced72a18ec9a1ad6cbb22e3cd7ecbe04bfb13dcb5dbf71c3041a98"
+    },
+    {
+      "file": "en-light/mac-onboarding-1-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "700ce65b54645dfa328fd4868a6ad37432382a3e962b52867febd3081b3b4007"
+    },
+    {
+      "file": "en-light/mac-onboarding-2-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "96a60f9830be030df4a90126ba88a6c42d1b311a48a8ea859b3b9a9d8dd6f68c"
+    },
+    {
+      "file": "en-light/mac-progress-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "cbf55dcbff4c0dbb9b29b99152f0afaa25db25803e3bd9877802796b98b18f12"
+    },
+    {
+      "file": "en-light/mac-recap-complete-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "91397b4c53dca414b21cc45b434ddd71d92113670d42e61cb0facd2f99bcdfb9"
+    },
+    {
+      "file": "en-light/mac-session-menu-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "116a9ac8723dec19ead9e35bdb95d5fbb8554a0941d7287ae08b056156926563"
+    },
+    {
+      "file": "en-light/mac-settings-data-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9ce10a5f45cf08c23e7660bd5a1671b65af3de44042cc40a3a4b3a4d6ef24c89"
+    },
+    {
+      "file": "en-light/mac-settings-keys-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "97a50f1c4cdb742d7e1e5a35e0568e287e206e7afdd63f1cedc576b7d05da1ae"
+    },
+    {
+      "file": "en-light/mac-settings-quota-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e002c42da4904bfe41beafa9f0e899536ec0e39b0d233b141f8a6b8b52b105d1"
+    },
+    {
+      "file": "en-light/mac-settings-sync-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "de3bcb47e407c4c8e569f3088655e438008d90a57ee1d2ca975b7d767c624753"
+    },
+    {
+      "file": "en-light/mac-settings-voice-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "41b2c7053df220dc1158fb615d79f386c1db4aa5ffe7733899394aba7643d3fb"
+    },
+    {
+      "file": "en-light/mac-teacher-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "4b80f725301cbccbce134d0989a0903a6088e8f418631817c011996ca4fe830a"
+    },
+    {
+      "file": "en-light/mac-today-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "01c435447d275ee0a0235ee34cfa7b1da00fa922b7234b407d2232dd7cee2503"
+    },
+    {
+      "file": "en-light/mac-transcript-edit-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "0d9368afd0e4dc7b39962f0efe8a886a7385c7eb9cdf61ad143df859b8f03b00"
+    },
+    {
+      "file": "en-light/mac-voice-idle-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "8bd51f46c22e63c7bccd5e7bd2e461fdbaa088517749a91c31a40d843e057873"
+    },
+    {
+      "file": "en-light/mac-voice-listening-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "c07bcf1ec1482bca666972ef21e070c85395e914632db59a231f089dbefe2833"
+    },
+    {
+      "file": "en-light/mac-voice-offline-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "cd15265c8a8fe02736497abafc70152cdebc53b50f8a46d72b962ef844dc84b0"
+    },
+    {
+      "file": "en-light/mac-voice-paused-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "d1f57a255f7b269133095f903ada00ebd715d285dea0a6498d3a70c8bdd610e7"
+    },
+    {
+      "file": "en-light/mac-voice-quota-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "411db9b4ae011d777b63501a0bc4d3ec77381998764fc8b1e702f809edae18c6"
+    },
+    {
+      "file": "en-light/mac-voice-recording-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7ef1ad9d802fc484c659080eec0d3c4e6ba4b513a7fcbc3715a7994df92c143f"
+    },
+    {
+      "file": "en-light/mac-voice-recording-notice-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9892aaf20938413a542b46bf96e16ae16a52635d033e3f4effb85a68a3613495"
+    },
+    {
+      "file": "en-light/mac-voice-speaking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e536f24d3d8a2d2dd5fe2a21e5f85b3e3fba0268b933a48a01e74c565da9efc5"
+    },
+    {
+      "file": "en-light/mac-voice-thinking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "bc84bba09073102c32684df378d22eec629c8a6694a6d87a2b0f8123c1f666aa"
+    },
+    {
+      "file": "ru-dark/mac-conversation-error-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7e83de8b0f0d4367dcd56c19f50d8540dc770f33924c8eeb61013f639b01145e"
+    },
+    {
+      "file": "ru-dark/mac-conversation-heard-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7c75b5f5ae7b3690a048d3c49cf307114661811e3abf7f4d219d6726717a698d"
+    },
+    {
+      "file": "ru-dark/mac-conversation-interrupted-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "71824cdd9ceb44c229d4127cae59b149107574673d71b02c4e9ea3c0c65917f6"
+    },
+    {
+      "file": "ru-dark/mac-conversation-narrow-dark-1100x800.png",
+      "pixels": [
+        2200,
+        1600
+      ],
+      "sha256": "2a2c88b3a1881228d6da7b7704ed4a5ff0c4e829fa96240fc1b9087ddfec8833"
+    },
+    {
+      "file": "ru-dark/mac-conversation-russian-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "1b7b7f179f255916f6b9cac67e101400924c89fe5763f8bfb83305e4f9cb65cb"
+    },
+    {
+      "file": "ru-dark/mac-conversation-speaking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "7c0b152972a3cb2e31974a8a5639bf2108110f88daa1b93056403bd4aecad950"
+    },
+    {
+      "file": "ru-dark/mac-correction-detail-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a5712f401cb82ac53727b730a2bf9f95f6b1bb1f5b655229f0229adb4ced7465"
+    },
+    {
+      "file": "ru-dark/mac-dictionary-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "1358f55e78e68a054ba1d36eb9726f8e4d0964f2fdcbefd4967d68191a470f39"
+    },
+    {
+      "file": "ru-dark/mac-new-session-form-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3009fe94b621e8a169c54c2b2227c641aa7c99e270d3208ea5851c79ecd20769"
+    },
+    {
+      "file": "ru-dark/mac-onboarding-0-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "c4c32a9593f3d72b07d3b574ae738750b15c161bec7dbbb6272afd2f4554ec83"
+    },
+    {
+      "file": "ru-dark/mac-onboarding-1-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "fe11027974a8fea704a602ff9febc77ac8284136ae2972c69f7955e97601ea60"
+    },
+    {
+      "file": "ru-dark/mac-onboarding-2-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "dfaccc27e443b80624523b39412b516cc84de76dfb4a7d9b0af1e54b6066623d"
+    },
+    {
+      "file": "ru-dark/mac-progress-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e819ba362740609b29c9b10e07c870bc443890c1fe8a880d789a77ea7ae467d6"
+    },
+    {
+      "file": "ru-dark/mac-recap-complete-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3851d1dd7ef17ec14e6ed906344819fd8b46e985479af355f87a51a4a191e80b"
+    },
+    {
+      "file": "ru-dark/mac-session-menu-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "19ea962c556a436a3474da674bcf9d654042c5126feeb99e8eaabc8890484e9f"
+    },
+    {
+      "file": "ru-dark/mac-settings-data-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "6e0cbe2db7790404216fe62ae4ab841ca0a0a9ad6a07d17fd64fef44b74a7d6c"
+    },
+    {
+      "file": "ru-dark/mac-settings-keys-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "265318895eb324a8563e4dfd65cfa2f68b5823d79275e87df0dd484d7ba3503e"
+    },
+    {
+      "file": "ru-dark/mac-settings-quota-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "1c16222b10b406f5750ef27ad6103964210f4cb9d20b404d66ff219177ab083d"
+    },
+    {
+      "file": "ru-dark/mac-settings-sync-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3f75a910152f7a6cc171ed27cafe26891f8230c77a7f58000476cd40ef15ca64"
+    },
+    {
+      "file": "ru-dark/mac-settings-voice-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "730fb8c581a5edd54cf26bb5afef4d173ce2f17588f81383a5e0811593961efb"
+    },
+    {
+      "file": "ru-dark/mac-teacher-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "adf2e8f1a2484352d9d03f1960fee02c8775effb79362a969172f3534ee6c4b0"
+    },
+    {
+      "file": "ru-dark/mac-today-overview-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "40ec603700ba4cd1591531c2746dddc55b5ff32d6982154a613644ff32088aab"
+    },
+    {
+      "file": "ru-dark/mac-transcript-edit-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9cdd9588337499c12a86fa04ebe4a0e1eb62421322af5599edf382feda3fc1a9"
+    },
+    {
+      "file": "ru-dark/mac-voice-idle-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3adba39a9163cb115447219f02efeaecff695da1e58b6ce9f7d8fc3e55b63a98"
+    },
+    {
+      "file": "ru-dark/mac-voice-listening-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "d62035e5758d7de121927d74a7f7548cd52d6f4cfa5afffe273404004f32795b"
+    },
+    {
+      "file": "ru-dark/mac-voice-offline-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "4eb5f23cdaf265ccea5a194da97b25e8a60e269e8c21e30f43b832dc13462774"
+    },
+    {
+      "file": "ru-dark/mac-voice-paused-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "4f4ce53fed9125481977a3389681835443a7c0371a83c9864e07f89b0335abcb"
+    },
+    {
+      "file": "ru-dark/mac-voice-quota-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "1630f59b3e10a5fb8b43cdb0ceb0457dd5119021d5d816435ce0c2759ae9c8ce"
+    },
+    {
+      "file": "ru-dark/mac-voice-recording-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3de6997ceb94511e0c8645553996c983b6a64427fe25629e8216a7c932d5da06"
+    },
+    {
+      "file": "ru-dark/mac-voice-recording-notice-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9addabab7e36a050003a4b725cd69213ff0f419cb4a4c8f54789c05f70c3dcc1"
+    },
+    {
+      "file": "ru-dark/mac-voice-speaking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3afa93949096715524971cedc03d7a612b84c156eaeb144bd0beb77eee539b9e"
+    },
+    {
+      "file": "ru-dark/mac-voice-thinking-dark-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "6175bca9ea9a063e9edb07b8cebe6420e7c47e53d41bb569903e47e7f9ebae89"
+    },
+    {
+      "file": "ru-light/mac-conversation-error-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "82fe43c591ff8bdd2d3543a3ef4c54cf7d7e1409d1e916f64109006a1414bd5c"
+    },
+    {
+      "file": "ru-light/mac-conversation-heard-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "37e3326a16494db7e4597e7d2c1e7e135b6327f16e4d3214ce5fd7dcfa10a933"
+    },
+    {
+      "file": "ru-light/mac-conversation-interrupted-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b88b497e0e8e5deab3dcf88f9fa7e487f0c6718fdb21c7cf4fe67f86eeed8098"
+    },
+    {
+      "file": "ru-light/mac-conversation-narrow-light-1100x800.png",
+      "pixels": [
+        2200,
+        1600
+      ],
+      "sha256": "796313dc79bef02f1b7186bcbb2644dd99493d828779a68b885dc602db687718"
+    },
+    {
+      "file": "ru-light/mac-conversation-russian-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3006183d125c2309e708abceebb281578556799ca50a98dbebd39c117922d52c"
+    },
+    {
+      "file": "ru-light/mac-conversation-speaking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b59e3fcd54563e0da9e79b846ec0ea3c7fc7d9428330a431adf775d74a841428"
+    },
+    {
+      "file": "ru-light/mac-correction-detail-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b1eef4634e303548df7a35a4153a1c85ac521e3b370d641904634105f39d9b85"
+    },
+    {
+      "file": "ru-light/mac-dictionary-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "85419ec2ff9106ac4645306d3d369e39f7038b4c244d2900a81ba6339661266b"
+    },
+    {
+      "file": "ru-light/mac-new-session-form-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "16f1fe451e0cd1e870257559600b69e8154f3222e1a451266b7db3f634fe611e"
+    },
+    {
+      "file": "ru-light/mac-onboarding-0-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "ad7089d2370415b9c5aa32363bd2ed75a22a4988865d5f90116134271c8d59b6"
+    },
+    {
+      "file": "ru-light/mac-onboarding-1-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a2c20a6fd1360140ba2dd8478bf33f309c914ae81dae6929b206ef2439ed6866"
+    },
+    {
+      "file": "ru-light/mac-onboarding-2-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "5ed590f13678ca048e4afcb475bee9d4bf46661da3cec0de1311621bfe9c531c"
+    },
+    {
+      "file": "ru-light/mac-progress-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a91ee1e42320b738cfb3a337bc4e57ae25b703bf88b58636eedcc2b159a44efa"
+    },
+    {
+      "file": "ru-light/mac-recap-complete-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e22852bf61edcfc5ebc4b23f2f1ff2afb824fa7cea4c8e0f9e1f77688e8ae55b"
+    },
+    {
+      "file": "ru-light/mac-session-menu-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "023aba2b486915385dbcc2a72bdf047a2c9cab9d9aa6e0ab678fceeb3a6d54e4"
+    },
+    {
+      "file": "ru-light/mac-settings-data-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a66f3aa8fd8d71b3aee405a4cbfc2d608c89d362df13df9cc47f15a6f56952b5"
+    },
+    {
+      "file": "ru-light/mac-settings-keys-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e304d49d662512b0f965d0228a4370d1a91f4300807294d9adfe6b5062b5dd2e"
+    },
+    {
+      "file": "ru-light/mac-settings-quota-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "0873934839cae0524770ac9aab5b3f889cc61be8de06d30397e8a7c4c031f75b"
+    },
+    {
+      "file": "ru-light/mac-settings-sync-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "67e43908df88bbf29b9e509dfb40046c330e8436a3746ef31815f81e6d912d14"
+    },
+    {
+      "file": "ru-light/mac-settings-voice-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "a3c43414d0f19822dc43dd3185736ff94836126f70c487f1d5411c0264573bf2"
+    },
+    {
+      "file": "ru-light/mac-teacher-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "2927b9e86a7af8b0b1faf700eb6261711ebb2375150b8047c09fa87a1d53145c"
+    },
+    {
+      "file": "ru-light/mac-today-overview-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e32bcae0588288658a90529ecffa02a068b6e47744859945045726cbf65eb56f"
+    },
+    {
+      "file": "ru-light/mac-transcript-edit-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "e16b08ff0df3448e84f1e827de8078fbc8b59ddd504740ac58c51de6818b5f27"
+    },
+    {
+      "file": "ru-light/mac-voice-idle-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "f0aa2768ce6207fad4ad69f651cf16ad3521859728e686a4abcda75766b46950"
+    },
+    {
+      "file": "ru-light/mac-voice-listening-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3e5c12151879e141ef9c7c43cd4b9c8a5e436faf2a4e09c622bbfe6199a319fd"
+    },
+    {
+      "file": "ru-light/mac-voice-offline-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "dc7b71a451355d8620e8a4687dc8afc9c4d165abb3a144abdd22986b080f1777"
+    },
+    {
+      "file": "ru-light/mac-voice-paused-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "ee78f061ce1958f81495c92b9746ba0ef8d3037270c89aa40c4fb05057f13dcd"
+    },
+    {
+      "file": "ru-light/mac-voice-quota-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "b97e47c04eb6e540583de4db45064c6b354ed05464df493e88e039db98c49b97"
+    },
+    {
+      "file": "ru-light/mac-voice-recording-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "46c1c656d36d6ef9258784fe2d1fe1b19560b42288c0d013f0700080fcb52bf5"
+    },
+    {
+      "file": "ru-light/mac-voice-recording-notice-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "249b98c477bcdbde6ace427753996da792c1d1729a176ebdc58508324aaddf3a"
+    },
+    {
+      "file": "ru-light/mac-voice-speaking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "3b76803c03aad26124cc59c51fc3f1e5bd03557edc964a416d800eee55f643fb"
+    },
+    {
+      "file": "ru-light/mac-voice-thinking-light-1280x800.png",
+      "pixels": [
+        2560,
+        1600
+      ],
+      "sha256": "9800a28ab9b3225fad253e6510cf540492ec62dfd74ad9aebce9691efc06896e"
+    }
+  ]
+}

@@ -19,8 +19,6 @@ struct MainView: View {
                     hints
                 }
             }
-            .onAppear { if !wide { model.hintsVisible = false } }
-            .onChange(of: wide) { _, isWide in if !isWide { model.hintsVisible = false } }
             .overlay(alignment: .trailing) {
                 // R-40: below a width of 1280 the hints slide out over the feed.
                 if model.section == .conversations && !wide && model.hintsVisible {
@@ -66,12 +64,14 @@ struct MainView: View {
             }
             MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) })
             VStack(spacing: Theme.S.s16) {
-                VoicePanel(state: model.voiceState, levels: model.levels, lang: model.selectedSession?.settings.lang ?? model.langFilter, unavailable: !model.networkUp ? model.disabledReason : model.banner,
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    VoicePanel(state: model.voiceState, levels: model.levels, lang: model.studyLanguage, unavailable: model.voiceUnavailableReason(now: context.date),
                            onMic: { model.services?.micTapped() }, onPause: { model.services?.pauseTapped() },
                            onEnd: { model.services?.endTapped() },
                            extraControls: AnyView(VoiceToggles(model: model)))
                     .disabled(!model.disabledReason.isEmpty)
                     .help(model.disabledReason)
+                }
                 if !model.disabledReason.isEmpty, model.selectedSession != nil {
                     Text(model.disabledReason).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger)
                 }
@@ -99,6 +99,7 @@ struct MainView: View {
 
 /// Voice panel toggles (R-42): continuous mode, "I'm speaking Russian" (R-09, ⌥R), "Slow pace" (R-15).
 struct VoiceToggles: View {
+    @Environment(\.studyLanguage) private var studyLanguage
     @Bindable var model: AppModel
 
     var body: some View {
@@ -115,9 +116,9 @@ struct VoiceToggles: View {
                 Image(systemName: symbol).font(.system(size: 12, weight: .medium))
                 Text(title).font(Theme.F.caption)
             }
-            .foregroundStyle(on ? Theme.C.voiceAccent : Theme.C.textSecondary)
+            .foregroundStyle(on ? Theme.accent(studyLanguage) : Theme.C.textSecondary)
             .padding(.horizontal, 12).frame(height: 28)
-            .background(on ? Theme.C.voiceAccentSoft : Theme.C.surfaceControl, in: Capsule())
+            .background(on ? Theme.accentSurface(studyLanguage) : Theme.C.surfaceControl, in: Capsule())
         }
         .buttonStyle(LingoButtonStyle())
         .accessibilityLabel(title)

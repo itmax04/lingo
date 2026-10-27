@@ -13,6 +13,11 @@ struct VoicePanel: View {
     var extraControls: AnyView = AnyView(EmptyView())
 
 
+    var microphoneLabel: String {
+        state == .idle ? String(localized: "Speak") : String(localized: "Microphone: \(state.title)")
+    }
+    var activeLevels: [Float] { [.recording, .listening, .speaking].contains(state) ? levels : [] }
+
     var body: some View {
         VStack(spacing: 8) {
             HStack(spacing: 12) {
@@ -21,13 +26,13 @@ struct VoicePanel: View {
                         .font(.system(size: 18, weight: .medium)).foregroundStyle(Theme.accent(lang))
                         .frame(width: Theme.R.micCircle, height: Theme.R.micCircle)
                         .background(Theme.accentSurface(lang), in: Circle())
-                }.buttonStyle(LingoButtonStyle()).accessibilityLabel("Speak")
+                }.buttonStyle(LingoButtonStyle()).accessibilityLabel(microphoneLabel)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(unavailable ?? state.title).font(Theme.F.voiceState)
                         .foregroundStyle(unavailable == nil ? Theme.accent(lang) : Theme.C.statusDanger).lineLimit(2)
                     if state == .thinking { ProgressView().controlSize(.mini).accessibilityLabel("Thinking…") }
                 }.frame(minWidth: 76, alignment: .leading)
-                Waveform(levels: unavailable == nil && [.recording, .listening, .speaking].contains(state) ? levels : [], color: Theme.accent(lang))
+                Waveform(levels: activeLevels, color: Theme.accent(lang))
                     .frame(maxWidth: .infinity).frame(height: 36).accessibilityHidden(true)
                 RoundCaptionButton(symbol: state == .paused ? "play.fill" : "pause.fill",
                                    caption: state == .paused ? "Resume" : "Pause",
@@ -81,6 +86,7 @@ struct Waveform: View {
 
 /// Input field (R-43, DESIGN.md §5).
 struct InputBar: View {
+    @Environment(\.studyLanguage) private var studyLanguage
     @Binding var text: String
     var enabled = true
     var disabledReason: String?
@@ -117,7 +123,7 @@ struct InputBar: View {
 
             Button(action: onSend) {
                 ZStack {
-                    Circle().fill(Theme.C.surfaceSendButton)
+                    Circle().fill(Theme.accent(studyLanguage))
                     Image(systemName: "paperplane")
                         .font(.system(size: 18))
                         .foregroundStyle(Theme.C.iconSend)

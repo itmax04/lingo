@@ -31,10 +31,10 @@ Dynamic sRGB colors resolve per window appearance. Theme.swift is the executable
 | `statusSuccess` | `#216A49` | `#86D8AD` |
 | `textPrimary` | `#202428` | `#F5F4F0` |
 | `textSecondary` | `#505A63` | `#B5BBC1` |
-| `textTertiary` | `#59636B` | `#9DA5AC` |
+| `textTertiary` | `#5D676F` | `#9DA5AC` |
 | `iconSend` | `#FFFFFF` | `#202428` |
 
-German accent surfaces: light #F3E9D9, dark #352A1A. English accent surfaces: light #E4F2EE, dark #19332F. Use explicit DE/EN labels as well as color, never flags. Primary button text: light #FFFFFF, dark #202428. Primary button fill: accentGerman.
+German accent surfaces: light #F3E9D9, dark #352A1A. English accent surfaces: light #E4F2EE, dark #19332F. Use explicit DE/EN labels as well as color, never flags. Primary button text: light #FFFFFF, dark #202428. Primary button fill, selected navigation, focus rings and tint: `Theme.accent(currentStudyLanguage)` (German amber or English teal).
 
 ## 3. Typography
 
@@ -62,7 +62,9 @@ Content shadow token: none (opacity 0, blur 0, x 0, y 0). Native floating popove
 
 Transitions 180 ms ease-in-out. Speaking mark breathing scale 1.00–1.06 over 1.2 s. Reduce Motion disables breathing and animated scrolling and replaces the animated waveform with a level meter. No required information depends on motion or color alone. Keep keyboard focus, native controls and VoiceOver labels. Native controls use the platform focus ring; custom buttons add a 2 pt accent outline with a 4 pt inset. Hover is not the only state indication.
 
-Normal text must achieve at least 4.5:1 against its actual surface. `contrast.json` records token-pair calculations. Disabled controls are exempt from WCAG text contrast, but descriptions and Coming soon labels remain full-opacity readable text. Decorative dividers are not text and are not certified by the text contrast table.
+Light `textTertiary` is #5D676F to make the hierarchy lighter than #505A63 secondary text while retaining at least 4.5:1 even on selected rows.
+
+Normal text must achieve at least 4.5:1 against its actual surface. `contrast.json` records token-pair calculations; `check-design.py` independently computes WCAG sRGB luminance from `tokens.json` for every required pair. Disabled controls are exempt from WCAG text contrast, but descriptions and Coming soon labels remain full-opacity readable text. Decorative dividers are not text and are not certified by the text contrast table.
 
 ## 7. Future platform adaptation
 

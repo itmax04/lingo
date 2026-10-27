@@ -16,7 +16,7 @@ struct HintsPanel: View {
     var sections: [(String, String, [Phrase])] {
         let topic = phrases.filter { $0.source == .topic || $0.source == .hint }
         let how = phrases.filter { $0.source == .howToSay }
-        return [("topic", String(localized: "Topic phrases"), topic), ("fix", String(localized: "Corrections"), uniq(corrections)), ("how", String(localized: "How to say"), how), ("dict", String(localized: "Vocabulary ★"), dictionary)]
+        return [("topic", String(localized: "Topic phrases"), topic), ("fix", String(localized: "Corrections"), uniq(corrections)), ("how", String(localized: "How to say"), how), ("dict", String(localized: "Vocabulary ★"), dictionary)].filter { !$0.2.isEmpty }
     }
 
     func uniq(_ p: [Phrase]) -> [Phrase] {

@@ -21,4 +21,6 @@ jobs:
       - name: Secret scan (tree + index + history)
         run: scripts/secret-scan.sh
       - name: Design tokens, contrast and translations
-        run: python3 scripts/check-design.py
+        run: |
+          python3 -B -m unittest discover -s scripts/tests -v
+          python3 -B scripts/check-design.py

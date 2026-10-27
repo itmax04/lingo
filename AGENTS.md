@@ -132,7 +132,7 @@ Russian (and German) text is allowed only where it is **language data**:
 - eval cases and fixtures (`evals/**`, test inputs, `Fixtures.swift` utterances and translations, `Tests/LingoCoreTests/Snapshots/`);
 - recorded evidence (`docs/changes/*/evidence/`), which must not be altered.
 
-UI strings: write English literals; SwiftUI `Text("…")`, `Button("…")`, `.help("…")` etc. localize automatically; anything typed as `String` must use `String(localized: "…")`. Custom components take `LocalizedStringKey` (e.g. `SettingsCard(title:)`). The app's default interface language is Russian for the owner (see §8).
+UI strings: write English literals; SwiftUI `Text("…")`, `Button("…")`, `.help("…")` etc. localize automatically; anything typed as `String` must use `String(localized: "…")`. Custom components take `LocalizedStringKey` (e.g. `SettingsCard(title:)`). The interface follows the system language by default; Russian and English remain explicit in-app choices.
 
 ## 8. English migration — what is done and what is left
 
@@ -148,7 +148,7 @@ Done on `main-en` (2026-10-26):
    `xcrun xcstringstool sync Resources/Localizable.xcstrings --stringsdata <dir>/*.stringsdata`; the Russian texts are the previous literals in `git show feat/lingo-01:<file>`.
    Compile it in `scripts/build-app.sh` (`xcrun xcstringstool compile … --output-directory "$APP/Contents/Resources"`), set `CFBundleDevelopmentRegion=en` and `CFBundleLocalizations=[en, ru]`, and localize the two usage descriptions in `Info.plist` (`InfoPlist.xcstrings`).
    **Until this is done the app UI shows English** although the owner expects Russian.
-2. **Interface language** — the owner's macOS prefers `en-US`, so set the app's own `AppleLanguages` from an in-app setting (default Russian; options Russian / English / System) before the UI starts.
+2. **Interface language** — the owner's macOS prefers `en-US`, so set the app's own `AppleLanguages` from an in-app setting (default System; options Russian / English / System) before the UI starts.
 3. A `scripts/check-english.sh` that fails on Cyrillic outside the allowed places of §7, and a check that every `ru` catalog entry exists.
 4. Translate the remaining documents: `spec.md`, `plan.md`, `handoff.md`, `executor-prompt.md`, `ADR-0001-stack.md`, `DESIGN.md`, `evals/README.md`, `evals/live-script-mac.md`, `docs/reference/*`, descriptions in `evals/**/*.yaml` (keep the utterances).
 5. `KeyVerifier`: treat HTTP 404/405 on `GET /models` of a custom endpoint (Cloudflare has no model list there) as "key works, no model list" instead of an error.

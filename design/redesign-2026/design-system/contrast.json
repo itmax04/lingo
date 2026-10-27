@@ -89,42 +89,42 @@
       "theme": "light",
       "foreground": "textTertiary",
       "background": "bgWindow",
-      "ratio": 5.679,
+      "ratio": 5.346,
       "pass": true
     },
     {
       "theme": "light",
       "foreground": "textTertiary",
       "background": "bgSidebar",
-      "ratio": 5.334,
+      "ratio": 5.021,
       "pass": true
     },
     {
       "theme": "light",
       "foreground": "textTertiary",
       "background": "surfaceCard",
-      "ratio": 6.137,
+      "ratio": 5.777,
       "pass": true
     },
     {
       "theme": "light",
       "foreground": "textTertiary",
       "background": "surfaceBubbleAssistant",
-      "ratio": 6.137,
+      "ratio": 5.777,
       "pass": true
     },
     {
       "theme": "light",
       "foreground": "textTertiary",
       "background": "surfaceRowSelected",
-      "ratio": 4.808,
+      "ratio": 4.526,
       "pass": true
     },
     {
       "theme": "light",
       "foreground": "textTertiary",
       "background": "surfaceControl",
-      "ratio": 5.171,
+      "ratio": 4.868,
       "pass": true
     },
     {
@@ -293,6 +293,20 @@
       "foreground": "statusSuccess",
       "background": "surfaceControl",
       "ratio": 5.491,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "iconSend",
+      "background": "accentGerman",
+      "ratio": 6.609,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "iconSend",
+      "background": "accentEnglish",
+      "ratio": 6.277,
       "pass": true
     },
     {
@@ -587,6 +601,20 @@
       "foreground": "statusSuccess",
       "background": "surfaceControl",
       "ratio": 7.797,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "iconSend",
+      "background": "accentGerman",
+      "ratio": 8.764,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "iconSend",
+      "background": "accentEnglish",
+      "ratio": 8.809,
       "pass": true
     }
   ]

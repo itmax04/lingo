@@ -33,7 +33,6 @@ enum Theme {
         static let borderDivider = borderSubtle
         static let accentGerman = adaptive(0x855107, 0xF2B85B)
         static let accentEnglish = adaptive(0x136C61, 0x62D5C5)
-        static let accentPrimary = accentGerman
         static let bubbleUser = adaptive(0xF3E9D9, 0x29241C)
         static let avatarUserBg = surfaceControl
         static let avatarUserIcon = textSecondary
@@ -45,7 +44,7 @@ enum Theme {
         static let statusSuccess = adaptive(0x216A49, 0x86D8AD)
         static let textPrimary = adaptive(0x202428, 0xF5F4F0)
         static let textSecondary = adaptive(0x505A63, 0xB5BBC1)
-        static let textTertiary = adaptive(0x59636B, 0x9DA5AC)
+        static let textTertiary = adaptive(0x5D676F, 0x9DA5AC)
         static let textMetaOnAccent = textSecondary
         static let iconSend = adaptive(0xFFFFFF, 0x202428)
         static let accentButtonText = iconSend
@@ -100,4 +99,9 @@ extension View {
     func subtleStroke<S: InsettableShape>(_ shape: S) -> some View {
         overlay(shape.strokeBorder(Theme.C.borderSubtle, lineWidth: Theme.R.stroke))
     }
+}
+
+/// Study-language context belongs to each view hierarchy, including separate settings windows.
+extension EnvironmentValues {
+    @Entry var studyLanguage: Lang = .de
 }

@@ -29,9 +29,9 @@ struct SettingsView: View {
                     .padding(.bottom, 24)
                 ForEach(SettingsTab.allCases) { item in
                     Button { tab = item } label: {
-                        Text(item.title).font(Theme.F.rowTitle).foregroundStyle(tab == item ? Theme.C.accentPrimary : Theme.C.textSecondary)
+                        Text(item.title).font(Theme.F.rowTitle).foregroundStyle(tab == item ? Theme.accent(services?.model.studyLanguage ?? .de) : Theme.C.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading).padding(12)
-                            .background(tab == item ? Theme.C.voiceAccentSoft : Color.clear,
+                            .background(tab == item ? Theme.accentSurface(services?.model.studyLanguage ?? .de) : Color.clear,
                                         in: RoundedRectangle(cornerRadius: Theme.R.button))
                     }.buttonStyle(LingoButtonStyle())
                 }
@@ -57,6 +57,7 @@ struct SettingsView: View {
         .frame(minWidth: 900, minHeight: 700)
         .foregroundStyle(Theme.C.textPrimary)
         .modifier(InterfaceAppearance())
+        .environment(\.studyLanguage, services?.model.studyLanguage ?? .de)
     }
     private var unavailable: some View {
         VStack(spacing: 16) {

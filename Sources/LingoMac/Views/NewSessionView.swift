@@ -121,6 +121,7 @@ struct NewSessionView: View {
         .frame(width: 820, height: 680)
         .background(Theme.C.bgWindow)
         .modifier(InterfaceAppearance())
+        .environment(\.studyLanguage, settings.lang)
     }
 
     var startEnabled: Bool {

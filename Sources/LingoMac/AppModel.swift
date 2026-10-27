@@ -23,7 +23,10 @@ final class AppModel {
     var draft = ""
     var hintsVisible = true
     /// The assistant's reply as it is generated (R-13) and the step label.
-    var streaming: String?
+    var streaming: String? {
+        didSet { if oldValue == nil && streaming != nil { streamingCreatedAt = Date() } }
+    }
+    private var streamingCreatedAt = Date()
     var streamingSource: String?
     var thinking = false
     var banner: String?
@@ -64,7 +67,7 @@ final class AppModel {
         guard let t = streaming, !t.isEmpty, let sid = selectedSessionID, let s = selectedSession else { return messages }
         let parsed = ReplyProtocol.parse(t, studyLang: s.settings.lang)
         return messages + [ChatMessage(id: "streaming", session: sid, role: .assistant, text: t, lang: s.settings.lang,
-                                       segments: parsed.segments, createdAt: Date(), source: streamingSource)]
+                                       segments: parsed.segments, createdAt: streamingCreatedAt, source: streamingSource)]
     }
 
     func refreshSelection() {
@@ -74,6 +77,8 @@ final class AppModel {
         let lang = history.sessions[id]?.settings.lang ?? langFilter
         corrections = (history.fixes[id] ?? []).map { Phrase(lang: lang, text: $0.fix.corrected, translation: $0.fix.rule, source: .correction) }
     }
+
+    var studyLanguage: Lang { selectedSession?.settings.lang ?? langFilter }
 
     var selectedSession: Session? { sessions.first { $0.id == selectedSessionID } }
 
@@ -93,9 +98,33 @@ final class AppModel {
         return ""
     }
 
+    /// Presentation status comes from actual availability, never from a dismissible notice.
+    func voiceUnavailableReason(now: Date = Date()) -> String? {
+        if !networkUp { return String(localized: "Offline: model replies are unavailable") }
+        if !hasKey { return String(localized: "No key: Settings → Keys and models") }
+        if let settings = services?.settings.llm,
+           VoiceAvailability.quotaExhausted(settings: settings, now: now) {
+            return String(localized: "Quota exhausted")
+        }
+        return nil
+    }
+
     /// Sessions of the selected language, by last activity (R-05).
     var visibleSessions: [Session] {
         sessions.filter { !$0.deleted && $0.settings.lang == langFilter }
             .sorted { $0.lastActivity > $1.lastActivity }
+    }
+}
+
+/// Reads existing provider health without changing routing, budgets or retry behavior.
+enum VoiceAvailability {
+    static func quotaExhausted(settings: LLMSettings, health: ProviderHealth = .shared, now: Date = Date()) -> Bool {
+        let steps = settings.chain.filter { $0.enabled && (settings.pinnedEntryID == nil || $0.id == settings.pinnedEntryID) }
+            .flatMap { entry in
+                settings.keys(for: entry.provider).filter { !$0.invalid }.map {
+                    StepInfo(provider: entry.provider, model: entry.model, keyID: $0.id)
+                }
+            }
+        return !steps.isEmpty && steps.allSatisfy { health.pause(for: $0, now: now)?.error.status == 429 }
     }
 }

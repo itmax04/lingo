@@ -2,7 +2,7 @@
 
 ## Status
 
-**BLOCKED / PARTIAL**. Worktree `/Users/macbook/Developer/lingo-redesign`, branch `feat/redesign`, base `1e254e7`, issue https://github.com/itmax04/lingo/issues/32. The owner merges. LINGO-03 and issues #3–#30 remain untouched.
+**STEP 1–2 COMPLETE / WAITING FOR OWNER.** Final visual acceptance remains partial. Worktree `/Users/macbook/Developer/lingo-redesign`, branch `feat/redesign`, base `1e254e7`, issue https://github.com/itmax04/lingo/issues/32. The owner merges. LINGO-03 and issues #3–#30 remain untouched.
 
 ## Completed
 
@@ -23,7 +23,7 @@ NOT PASSED: +/-4 pt geometry acceptance. NOT RUN: live microphone/provider/Keych
 
 Built-in subscription ImageGen returned HTTP 429 `usage_limit_reached`. Estimated reset: **2026-10-28 06:45 UTC / 07:45 Berlin**. No paid API fallback. No scheduled resume was created.
 
-All base outputs are present in `/Users/macbook/Desktop/Lingo-Final-2026/` and `design/redesign-2026/`. `blocked-work.json` lists ten unfinished consistency repairs; `production-repair-tasks.json` contains 37 prepared geometry-lock prompts that were **never executed**. Continue only when subscription access is available; do not loop on 429 or substitute a paid API. Keep at most three successful image attempts per target and record failed references truthfully.
+All base outputs are present in `/Users/macbook/Desktop/Lingo-Final-2026/` and `design/redesign-2026/`. `blocked-work.json` lists ten unfinished consistency repairs; `production-repair-tasks.json` contains 37 prepared geometry-lock prompts that were **never executed**. Resume STEP 3–5 only after the owner explicitly asks, and only generate after subscription access is available; do not loop on 429 or substitute a paid API. Keep at most three successful image attempts per target and record failed references truthfully.
 
 One confirmed lettering defect remains in `mac-settings-keys-light-1536x1024`: the Add button text is misspelled. The native app's catalog text is correct. Normalized OCR finds no missing required labels in the other 131 targets; that does not certify letter-perfect output, style consistency or absence of extra text.
 
@@ -49,3 +49,27 @@ Read those architecture/process documents from the authorized prompt-source bran
 Replaced `redesign.yml` with the documented `ci-repo.yml` and `ci-mac.yml` workflows, preserving the Mac path filters.
 Repository hygiene runs the design check; the single macOS job builds/tests and compiles both String Catalogs.
 Validation: workflow structure inspected; execution of the revised checks follows STEP 2. No history rewrite, force push or main update.
+
+## Prompt 1, STEP 2 — completed 2026-10-27
+
+All twelve findings a–l are addressed. The full change/evidence mapping is in [STEP 1–2 evidence](evidence/step1-step2.md).
+System language default; persistent hints visibility; real voice blockers and live recording levels; study-language accents;
+stateful microphone accessibility; nonempty hint sections; exact source-text correction ranges and a separate popover control;
+correction indexes per feed change; stable streaming timestamps; settled asynchronous 2× snapshots; readable light tertiary text;
+computed WCAG checks; one root DESIGN.md.
+
+Final local checks:
+- PASS: `swift build`; `swift test` — 112 tests in 30 suites (13 added regression tests).
+- PASS: Python contrast suite — 3 tests; design — 19 tokens, 88 calculated contrast pairs, 380 bilingual strings (0 missing Russian translations).
+- PASS: `scripts/build-app.sh`; `codesign --verify --strict dist/Lingo.app`; `--ui-click-test` — `mic=1 pause=1 end=1`.
+- PASS: `--ui-snapshot --ui-all` in dark/light × RU/EN — 128 captures, all 2× (2560×1600 px; narrow 2200×1600 px).
+- PASS: English policy, `git diff --check`, full secret scan — 0 findings.
+- PASS: protected core/prompts/providers/contracts/package have no diff from the previous PR head.
+
+Eight representative native captures are checked in under `evidence/step2-snapshots/`; all 128 dimensions and hashes are recorded in
+`evidence/step2-snapshot-manifest.json`. The full local matrix is in this chat's `work/step2-snapshots/` folder.
+This is regression evidence only; no new geometry acceptance or ImageGen reference was produced.
+
+Next step: **WAIT for the owner's explicit instruction to continue STEP 3–5.** ImageGen was not called. Earliest generation time remains
+2026-10-28 07:45 Europe/Berlin. No scheduled resume. PR #33 remains draft; do not merge or mark it ready during this partial run.
+The app stays at `/Users/macbook/Developer/lingo-redesign/dist/Lingo.app`; nothing was written to the Desktop deliverable folder.

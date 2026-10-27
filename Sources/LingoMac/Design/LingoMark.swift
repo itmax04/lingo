@@ -23,12 +23,13 @@ struct LingoGlyph: Shape {
 }
 
 struct LingoMark: View {
-    var color = Theme.C.accentPrimary
+    var color: Color?
+    @Environment(\.studyLanguage) private var studyLanguage
     var speaking = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var expanded = false
     var body: some View {
-        LingoGlyph().stroke(color, style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
+        LingoGlyph().stroke(color ?? Theme.accent(studyLanguage), style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
             .padding(4)
             .scaleEffect(speaking && !reduceMotion && expanded ? 1.06 : 1)
             .onAppear { breathe() }

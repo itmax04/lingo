@@ -38,6 +38,7 @@ struct LingoButtonStyle: ButtonStyle {
         let pressed: Bool
         @ViewBuilder let content: () -> Content
         @State private var hover = false
+        @Environment(\.studyLanguage) private var studyLanguage
         @Environment(\.isEnabled) private var enabled
         @Environment(\.isFocused) private var focused
 
@@ -48,7 +49,7 @@ struct LingoButtonStyle: ButtonStyle {
                 .contentShape(Rectangle())
                 .overlay {
                     RoundedRectangle(cornerRadius: Theme.R.button)
-                        .strokeBorder(focused ? Theme.C.accentPrimary : .clear, lineWidth: 2)
+                        .strokeBorder(focused ? Theme.accent(studyLanguage) : .clear, lineWidth: 2)
                         .padding(-4).allowsHitTesting(false).accessibilityHidden(true)
                 }
         }

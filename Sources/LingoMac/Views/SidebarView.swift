@@ -28,7 +28,7 @@ struct SidebarView: View {
                             Text(section.title).font(Theme.F.rowTitle)
                             Spacer(minLength: 0)
                         }
-                        .foregroundStyle(model.section == section ? Theme.C.textPrimary : Theme.C.textSecondary)
+                        .foregroundStyle(model.section == section ? Theme.accent(model.studyLanguage) : Theme.C.textSecondary)
                         .padding(.horizontal, 12).frame(height: 40)
                         .background(model.section == section ? Theme.C.surfaceRowSelected : Color.clear,
                                     in: RoundedRectangle(cornerRadius: Theme.R.button))
@@ -45,7 +45,7 @@ struct SidebarView: View {
                 .foregroundStyle(Theme.C.accentButtonText)
                 .padding(.horizontal, Theme.S.s16)
                 .frame(height: Theme.R.primaryButtonHeight)
-                .background(Theme.C.accentPrimary, in: RoundedRectangle(cornerRadius: Theme.R.button))
+                .background(Theme.accent(model.studyLanguage), in: RoundedRectangle(cornerRadius: Theme.R.button))
             }
             .buttonStyle(LingoButtonStyle())
             .keyboardShortcut("n", modifiers: .command)

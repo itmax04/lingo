@@ -76,20 +76,43 @@ struct InlineCorrection {
     let wrong: String
     let right: String
     let after: String
+    let replacementPrefix: String
+    let replacementSuffix: String
     init?(text: String, fix: Fix) {
-        guard let range = text.range(of: fix.original, options: .caseInsensitive), fix.original != fix.corrected else { return nil }
-        let a = fix.original.split(separator: " ").map(String.init)
-        let b = fix.corrected.split(separator: " ").map(String.init)
+        guard fix.original != fix.corrected else { return nil }
+        let words = try! NSRegularExpression(pattern: #"\S+"#)
+        func ranges(_ value: String) -> [Range<String.Index>] {
+            words.matches(in: value, range: NSRange(value.startIndex..., in: value))
+                .compactMap { Range($0.range, in: value) }
+        }
+        let originalRanges = ranges(fix.original)
+        let correctedRanges = ranges(fix.corrected)
+        guard !originalRanges.isEmpty else { return nil }
+        let a = originalRanges.map { String(fix.original[$0]) }
+        let b = correctedRanges.map { String(fix.corrected[$0]) }
+        // Match language-model quotes despite casing or whitespace differences, but display the actual transcript slice.
+        let pattern = a.map(NSRegularExpression.escapedPattern(for:)).joined(separator: #"\s+"#)
+        guard let match = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+            .firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range, in: text) else { return nil }
+        let matched = String(text[range])
+        let actualRanges = ranges(matched)
+        guard actualRanges.count == a.count else { return nil }
         var first = 0
         while first < min(a.count, b.count), a[first] == b[first] { first += 1 }
         var last = 0
         while last < min(a.count - first, b.count - first), a[a.count - last - 1] == b[b.count - last - 1] { last += 1 }
-        let prefix = a.prefix(first).joined(separator: " ")
-        let suffix = a.suffix(last).joined(separator: " ")
-        before = String(text[..<range.lowerBound]) + prefix + (prefix.isEmpty ? "" : " ")
-        wrong = a[first..<(a.count - last)].joined(separator: " ")
-        right = b[first..<(b.count - last)].joined(separator: " ")
-        after = (suffix.isEmpty ? "" : " ") + suffix + String(text[range.upperBound...])
+        let start = first < actualRanges.count ? actualRanges[first].lowerBound : matched.endIndex
+        let end = first < a.count - last ? actualRanges[a.count - last - 1].upperBound : start
+        before = String(text[..<range.lowerBound]) + String(matched[..<start])
+        wrong = String(matched[start..<end])
+        if first < b.count - last {
+            right = String(fix.corrected[correctedRanges[first].lowerBound..<correctedRanges[b.count - last - 1].upperBound])
+        } else { right = "" }
+        after = String(matched[end...]) + String(text[range.upperBound...])
+        // Inserting a missing word needs a separator only when adjacent source text has none.
+        replacementPrefix = wrong.isEmpty && before.last.map({ !$0.isWhitespace }) == true && !right.isEmpty ? " " : ""
+        replacementSuffix = wrong.isEmpty && after.first.map({ !$0.isWhitespace }) == true && !right.isEmpty ? " " : ""
     }
 }
 
@@ -134,27 +157,30 @@ struct MessageBubble: View {
                             in: RoundedRectangle(cornerRadius: Theme.R.bubble))
                 .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.bubble))
                 .contentShape(RoundedRectangle(cornerRadius: Theme.R.bubble))
-                .onTapGesture { if correction == nil || !isUser { onTap() } }
+                .onTapGesture(perform: onTap)
             }
             if !isUser { Spacer(minLength: 16) }
         }
     }
     @ViewBuilder private var content: some View {
         if isUser, let fix = correction, let diff = InlineCorrection(text: message.text, fix: fix) {
-            Button { showCorrection = true } label: {
+            VStack(alignment: .leading, spacing: Theme.S.s8) {
                 (Text(diff.before).foregroundColor(Theme.C.textPrimary)
                  + Text(diff.wrong).strikethrough().foregroundColor(Theme.C.statusDanger)
-                 + Text(diff.wrong.isEmpty || diff.right.isEmpty ? "" : " ")
+                 + Text(diff.wrong.isEmpty || diff.right.isEmpty ? diff.replacementPrefix : " ")
                  + Text(diff.right).foregroundColor(Theme.accent(studyLanguage ?? message.lang)).bold()
-                 + Text(diff.after).foregroundColor(Theme.C.textPrimary))
+                 + Text(diff.replacementSuffix + diff.after).foregroundColor(Theme.C.textPrimary))
                 .font(Theme.F.bubble).multilineTextAlignment(.leading)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Correction: \(fix.original) — correct: \(fix.corrected)")
-            .popover(isPresented: $showCorrection) {
-                CorrectionDetailView(fix: fix, onEdit: onTap) {
-                    onStar(Phrase(lang: message.lang, text: fix.corrected, translation: fix.rule, source: .correction))
-                    showCorrection = false
+                Button { showCorrection = true } label: {
+                    Label("Correction", systemImage: "text.badge.checkmark").font(Theme.F.meta)
+                }
+                .buttonStyle(LingoButtonStyle())
+                .accessibilityLabel("Correction: \(fix.original) — correct: \(fix.corrected)")
+                .popover(isPresented: $showCorrection) {
+                    CorrectionDetailView(fix: fix, onEdit: { showCorrection = false; onTap() }) {
+                        onStar(Phrase(lang: message.lang, text: fix.corrected, translation: fix.rule, source: .correction))
+                        showCorrection = false
+                    }
                 }
             }
         } else if isUser || message.segments.isEmpty {
@@ -218,27 +244,7 @@ struct MessageList: View {
     var onTap: (ChatMessage) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private func correction(for message: ChatMessage) -> Fix? {
-        guard showInlineCorrections, message.role == .user,
-              let index = messages.firstIndex(where: { $0.id == message.id }) else { return nil }
-        for following in messages.dropFirst(index + 1) {
-            if following.role == .user { break }
-            for segment in following.segments {
-                if case .fix(let fix) = segment, InlineCorrection(text: message.text, fix: fix) != nil { return fix }
-            }
-        }
-        return nil
-    }
-    private func fallbackCorrections(for message: ChatMessage) -> [Fix] {
-        guard message.role == .assistant,
-              let index = messages.firstIndex(where: { $0.id == message.id }) else { return [] }
-        let previous = messages.prefix(index).last(where: { $0.role == .user })
-        return message.segments.compactMap { segment in
-            guard case .fix(let fix) = segment else { return nil }
-            if let previous, correction(for: previous) == fix { return nil }
-            return fix
-        }
-    }
+    @State private var corrections = MessageCorrections()
     var body: some View {
         GeometryReader { geometry in
             ScrollViewReader { proxy in
@@ -246,10 +252,10 @@ struct MessageList: View {
                     LazyVStack(spacing: Theme.S.messageGap) {
                         ForEach(messages) { message in
                             MessageBubble(message: message, maxWidth: max(160, geometry.size.width * Theme.S.bubbleMaxFraction),
-                                          correction: correction(for: message),
+                                          correction: corrections.inline[message.id],
                                           studyLanguage: studyLanguage,
                                           speaking: isSpeaking && message.id == messages.last?.id,
-                                          fallbackCorrections: fallbackCorrections(for: message),
+                                          fallbackCorrections: corrections.fallback[message.id] ?? [],
                                           onTap: { onTap(message) }, onStar: onStar).id(message.id)
                         }
                     }.padding(24)
@@ -259,6 +265,35 @@ struct MessageList: View {
                     if reduceMotion { proxy.scrollTo(id, anchor: .bottom) }
                     else { withAnimation(.easeInOut(duration: Theme.transitionSeconds)) { proxy.scrollTo(id, anchor: .bottom) } }
                 }
+            }
+        }
+        .onChange(of: messages, initial: true) { _, value in
+            corrections = MessageCorrections(messages: value, showInline: showInlineCorrections)
+        }
+        .onChange(of: showInlineCorrections) { _, value in
+            corrections = MessageCorrections(messages: messages, showInline: value)
+        }
+    }
+}
+
+/// One pass per feed change; bubble rendering performs dictionary lookups only.
+struct MessageCorrections {
+    private(set) var inline: [String: Fix] = [:]
+    private(set) var fallback: [String: [Fix]] = [:]
+    init(messages: [ChatMessage] = [], showInline: Bool = true) {
+        var user: ChatMessage?
+        for message in messages {
+            if message.role == .user { user = message; continue }
+            for segment in message.segments {
+                guard case .fix(let fix) = segment else { continue }
+                if showInline, let user, user.session == message.session {
+                    if inline[user.id] == fix { continue }
+                    if inline[user.id] == nil, InlineCorrection(text: user.text, fix: fix) != nil {
+                        inline[user.id] = fix
+                        continue
+                    }
+                }
+                fallback[message.id, default: []].append(fix)
             }
         }
     }
