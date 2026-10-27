@@ -20,9 +20,13 @@ struct NewSessionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.S.s16) {
-            Text("New session").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
+            HStack(spacing: 12) {
+                LingoMark().frame(width: 32, height: 32)
+                Text("New session").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
+                Spacer()
+            }
             ScrollView {
-                VStack(alignment: .leading, spacing: Theme.S.s16) {
+                LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)], alignment: .leading, spacing: 20) {
                     field("Language") { LanguageSegment(selection: $settings.lang).frame(width: Theme.S.sidebarWidth) }
                     field("Mode") {
                         Picker("", selection: $settings.mode) {
@@ -52,6 +56,13 @@ struct NewSessionView: View {
                                 Text("Lingo's rules take precedence over a custom prompt: the reply language, the reply format and the ban on rating pronunciation do not change (R-03).")
                                     .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                             }
+                        }
+                    }
+                    field("Planned modes") {
+                        HStack {
+                            Label("Scenario", systemImage: "book").font(Theme.F.rowTitle)
+                            Label("Exam", systemImage: "graduationcap").font(Theme.F.rowTitle)
+                            Text("Coming soon").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                         }
                     }
                     field("Level") {
@@ -95,21 +106,21 @@ struct NewSessionView: View {
             }
             HStack {
                 Spacer()
-                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
+                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction).controlSize(.large)
                 Button("Start") {
                     var s = settings
                     s.level = levelChoice == "custom" ? customLevel : levelChoice
                     onStart(s, title.isEmpty ? nil : title)
                 }
-                .keyboardShortcut(.defaultAction)
+                .keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(!startEnabled)
                 .help(startEnabled ? "" : (settings.corrections.isEmpty ? "Choose at least one correction mode" : "Write your custom prompt"))
             }
         }
         .padding(Theme.S.s24)
-        .frame(width: 620, height: 640)
+        .frame(width: 820, height: 680)
         .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .modifier(InterfaceAppearance())
     }
 
     var startEnabled: Bool {

@@ -4,6 +4,7 @@ import SwiftUI
 /// Three-column window (R-40): sidebar | feed + voice panel + input | hints.
 struct MainView: View {
     @Bindable var model: AppModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geo in
@@ -11,22 +12,25 @@ struct MainView: View {
             HStack(spacing: 0) {
                 SidebarView(model: model, onNewSession: { model.showNewSession = true })
                 ColumnDivider()
-                center
-                if wide && model.hintsVisible {
+                if model.section == .conversations { center }
+                else { PlannedSectionView(section: model.section) { model.section = .conversations } }
+                if model.section == .conversations && wide && model.hintsVisible {
                     ColumnDivider()
                     hints
                 }
             }
+            .onAppear { if !wide { model.hintsVisible = false } }
+            .onChange(of: wide) { _, isWide in if !isWide { model.hintsVisible = false } }
             .overlay(alignment: .trailing) {
                 // R-40: below a width of 1280 the hints slide out over the feed.
-                if !wide && model.hintsVisible {
+                if model.section == .conversations && !wide && model.hintsVisible {
                     HStack(spacing: 0) { ColumnDivider(); hints }
-                        .transition(.move(edge: .trailing))
+                        .transition(reduceMotion ? .opacity : .move(edge: .trailing))
                 }
             }
         }
         .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .modifier(InterfaceAppearance())
         .sheet(item: $model.editing) { m in
             EditMessageView(message: m, onSave: { t in model.editing = nil; model.services?.editMessage(m.id, text: t) },
                             onRegenerate: { t in
@@ -38,7 +42,7 @@ struct MainView: View {
         }
         .sheet(isPresented: $model.showNewSession) {
             NewSessionView(lang: model.langFilter, lastCorrections: model.services?.settings.lastCorrections ?? [],
-                           onStart: { s, t in model.showNewSession = false; model.services?.createSession(s, title: t) },
+                           onStart: { s, t in model.showNewSession = false; model.section = .conversations; model.services?.createSession(s, title: t) },
                            onCancel: { model.showNewSession = false })
         }
     }
@@ -60,9 +64,9 @@ struct MainView: View {
                 Text(b).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger).padding(Theme.S.s8)
                     .onTapGesture { model.banner = nil }
             }
-            MessageList(messages: model.displayMessages, onTap: { m in model.services?.tapped(m) })
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) })
             VStack(spacing: Theme.S.s16) {
-                VoicePanel(state: model.voiceState, levels: model.levels,
+                VoicePanel(state: model.voiceState, levels: model.levels, lang: model.selectedSession?.settings.lang ?? model.langFilter, unavailable: !model.networkUp ? model.disabledReason : model.banner,
                            onMic: { model.services?.micTapped() }, onPause: { model.services?.pauseTapped() },
                            onEnd: { model.services?.endTapped() },
                            extraControls: AnyView(VoiceToggles(model: model)))
@@ -107,13 +111,13 @@ struct VoiceToggles: View {
 
     func toggle(_ title: LocalizedStringKey, symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: Theme.S.s4) {
-                Image(systemName: symbol).font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(on ? Theme.C.voiceAccent : Theme.C.textSecondary)
-                    .frame(width: Theme.R.sendButton, height: Theme.R.sendButton)
-                    .background(on ? Theme.C.voiceAccentSoft : Theme.C.surfaceControl, in: Circle())
-                Text(title).font(Theme.F.caption).foregroundStyle(Theme.C.textPrimary).lineLimit(1).fixedSize()
+            HStack(spacing: 8) {
+                Image(systemName: symbol).font(.system(size: 12, weight: .medium))
+                Text(title).font(Theme.F.caption)
             }
+            .foregroundStyle(on ? Theme.C.voiceAccent : Theme.C.textSecondary)
+            .padding(.horizontal, 12).frame(height: 28)
+            .background(on ? Theme.C.voiceAccentSoft : Theme.C.surfaceControl, in: Capsule())
         }
         .buttonStyle(LingoButtonStyle())
         .accessibilityLabel(title)

@@ -14,11 +14,27 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Lingo")
+            HStack(spacing: 8) { LingoMark().frame(width: 36, height: 36); Text("Lingo").font(Theme.F.logo) }
                 .font(Theme.F.logo)
                 .foregroundStyle(Theme.C.textPrimary)
                 .padding(.top, Theme.S.s8)
                 .padding(.bottom, Theme.S.s20)
+
+            VStack(spacing: 4) {
+                ForEach(AppSection.allCases) { section in
+                    Button { model.section = section } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: section.symbol).frame(width: 20)
+                            Text(section.title).font(Theme.F.rowTitle)
+                            Spacer(minLength: 0)
+                        }
+                        .foregroundStyle(model.section == section ? Theme.C.textPrimary : Theme.C.textSecondary)
+                        .padding(.horizontal, 12).frame(height: 40)
+                        .background(model.section == section ? Theme.C.surfaceRowSelected : Color.clear,
+                                    in: RoundedRectangle(cornerRadius: Theme.R.button))
+                    }.buttonStyle(LingoButtonStyle())
+                }
+            }.padding(.bottom, 20)
 
             Button(action: onNewSession) {
                 HStack(spacing: Theme.S.s16) {
@@ -26,7 +42,7 @@ struct SidebarView: View {
                     Text("New session").font(Theme.F.button)
                     Spacer(minLength: 0)
                 }
-                .foregroundStyle(Theme.C.textPrimary)
+                .foregroundStyle(Theme.C.accentButtonText)
                 .padding(.horizontal, Theme.S.s16)
                 .frame(height: Theme.R.primaryButtonHeight)
                 .background(Theme.C.accentPrimary, in: RoundedRectangle(cornerRadius: Theme.R.button))
@@ -48,13 +64,13 @@ struct SidebarView: View {
                 LazyVStack(spacing: Theme.S.s4) {
                     ForEach(model.visibleSessions) { s in
                         SessionRow(session: s, selected: s.id == model.selectedSessionID, onSelect: {
+                            model.section = .conversations
                             model.selectedSessionID = s.id
                             model.refreshSelection()
                         }, menu: AnyView(Menu {
-                            Button("Rename…") { renameText = s.title; renaming = s }
-                            Button("Show in journal") { model.services?.revealJournal() }
-                            Divider()
-                            Button("Delete…", role: .destructive) { deleting = s }
+                            SessionActionsContent(onRename: { renameText = s.title; renaming = s },
+                                                  onReveal: { model.services?.revealJournal() },
+                                                  onDelete: { deleting = s })
                         } label: {
                             Image(systemName: "ellipsis").font(.system(size: 14)).foregroundStyle(Theme.C.textTertiary)
                         }
@@ -67,6 +83,10 @@ struct SidebarView: View {
             .padding(.horizontal, sidebarListInset)
 
             Spacer(minLength: 0)
+            Button { NSApp.sendAction(#selector(AppDelegate.showSettings(_:)), to: nil, from: nil) } label: {
+                Label("Settings…", systemImage: "gearshape").font(Theme.F.rowTitle)
+                    .foregroundStyle(Theme.C.textSecondary)
+            }.buttonStyle(LingoButtonStyle()).padding(.top, 12)
             Button {
                 if case .unavailable = model.syncState { model.services?.chooseSyncFolder() }
                 else if case .notConfigured = model.syncState { model.services?.chooseSyncFolder() }
@@ -103,13 +123,13 @@ struct LanguageSegment: View {
         HStack(spacing: 0) {
             ForEach(Lang.studied, id: \.self) { lang in
                 Button { selection = lang } label: {
-                    Text(lang.nativeName)
+                    Text(lang == .de ? String(localized: "German") : String(localized: "English"))
                         .font(Theme.F.segment)
-                        .foregroundStyle(selection == lang ? Theme.C.textPrimary : Theme.C.textSecondary)
+                        .foregroundStyle(selection == lang ? Theme.accent(lang) : Theme.C.textSecondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background {
                             if selection == lang {
-                                RoundedRectangle(cornerRadius: Theme.R.button).fill(Theme.C.accentPrimary)
+                                RoundedRectangle(cornerRadius: Theme.R.button).fill(Theme.accentSurface(lang))
                             }
                         }
                 }
@@ -135,7 +155,7 @@ struct SessionRow: View {
 
     var body: some View {
         HStack(spacing: Theme.S.s12) {
-            Image(systemName: "bubble.left")
+            Image(systemName: session.settings.lang == .de ? "bubble.left" : "bubble.right")
                 .font(.system(size: 16))
                 .foregroundStyle(Theme.C.textTertiary)
             VStack(alignment: .leading, spacing: Theme.S.s4) {
@@ -174,5 +194,21 @@ struct SyncStatusLine: View {
         }
         .font(Theme.F.rowMeta)
         .foregroundStyle(Theme.C.textSecondary)
+    }
+}
+
+
+/// Native Menu content reused in the fixture component preview; actions are unchanged.
+struct SessionActionsContent: View {
+    var onRename: () -> Void = {}
+    var onReveal: () -> Void = {}
+    var onDelete: () -> Void = {}
+    var body: some View {
+        Group {
+            Button("Rename…", action: onRename)
+            Button("Show in journal", action: onReveal)
+            Divider()
+            Button("Delete…", role: .destructive, action: onDelete)
+        }
     }
 }

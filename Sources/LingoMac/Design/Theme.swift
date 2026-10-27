@@ -1,132 +1,101 @@
+import AppKit
+import LingoCore
 import SwiftUI
 
-/// DESIGN.md tokens one to one (§1–§4). Nothing here that is not in DESIGN.md.
-/// Dark theme only (DESIGN.md: "Theme: dark only in v1").
+/// Quiet, DESIGN.md v2. Named dynamic colours resolve against the window's appearance.
 enum Theme {
-    // MARK: §1 Colors
+    static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let hex = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+            return NSColor(srgbRed: Double((hex >> 16) & 255) / 255,
+                           green: Double((hex >> 8) & 255) / 255,
+                           blue: Double(hex & 255) / 255, alpha: 1)
+        })
+    }
+    static func accent(_ lang: Lang) -> Color { lang == .en ? C.accentEnglish : C.accentGerman }
+    static func accentSurface(_ lang: Lang) -> Color {
+        lang == .en ? adaptive(0xE4F2EE, 0x19332F) : adaptive(0xF3E9D9, 0x352A1A)
+    }
     enum C {
-        static let bgWindow = Color(hex: 0x121619)
-        static let bgSidebar = Color(hex: 0x14181B)
-        static let bgHints = Color(hex: 0x161A1E)
-        static let bgTitlebar = Color(hex: 0x1B2125)
-        static let surfaceCard = Color(hex: 0x1F252A)
-        static let surfaceVoicePanel = Color(hex: 0x171D22)
-        static let surfaceInput = Color(hex: 0x181F21)
-        static let surfaceBubbleAssistant = Color(hex: 0x242E38)
-        static let surfaceRowSelected = Color(hex: 0x232C39)
-        static let surfaceControl = Color(hex: 0x283039)
-        static let surfaceSendButton = Color(hex: 0x333D47)
-        static let surfaceChip = Color(hex: 0x101719)
-        static let borderSubtle = Color(hex: 0x23292E)
-        static let borderDivider = Color(hex: 0x272B2E)
-        static let accentPrimary = Color(hex: 0x1162F4)
-        static let bubbleUser = Color(hex: 0x105DEB)
-        static let avatarUserBg = Color(hex: 0x1B324F)
-        static let avatarUserIcon = Color(hex: 0x4075D1)
-        static let avatarBotBg = Color(hex: 0x274246)
-        static let avatarBotIcon = Color(hex: 0x87EBE0)
-        static let voiceAccent = Color(hex: 0x5BF2DF)
-        static let voiceAccentSoft = Color(hex: 0x1C433F)
-        static let statusDanger = Color(hex: 0xE64542)
-        static let statusSuccess = Color(hex: 0x1FD67F)
-        static let textPrimary = Color(hex: 0xFFFFFF)
-        static let textSecondary = Color(hex: 0xAAB3BF)
-        static let textTertiary = Color(hex: 0x848B97)
-        static let textMetaOnAccent = Color(hex: 0xAFE8FF)
-        static let iconSend = Color(hex: 0xE7EFF8)
+        static let bgWindow = adaptive(0xF7F6F3, 0x111315)
+        static let bgSidebar = adaptive(0xF0EFEB, 0x16191C)
+        static let bgHints = adaptive(0xF7F6F3, 0x16191C)
+        static let bgTitlebar = bgSidebar
+        static let surfaceCard = adaptive(0xFFFFFF, 0x1D2125)
+        static let surfaceVoicePanel = surfaceCard
+        static let surfaceInput = surfaceCard
+        static let surfaceBubbleAssistant = adaptive(0xFFFFFF, 0x20262A)
+        static let surfaceRowSelected = adaptive(0xE4E4DE, 0x2B3136)
+        static let surfaceControl = adaptive(0xEBECE8, 0x2B3136)
+        static let surfaceSendButton = adaptive(0x855107, 0xF2B85B)
+        static let surfaceChip = surfaceControl
+        static let borderSubtle = adaptive(0xD3D7D9, 0x343A40)
+        static let borderDivider = borderSubtle
+        static let accentGerman = adaptive(0x855107, 0xF2B85B)
+        static let accentEnglish = adaptive(0x136C61, 0x62D5C5)
+        static let accentPrimary = accentGerman
+        static let bubbleUser = adaptive(0xF3E9D9, 0x29241C)
+        static let avatarUserBg = surfaceControl
+        static let avatarUserIcon = textSecondary
+        static let avatarBotBg = adaptive(0xF3E9D9, 0x352A1A)
+        static let avatarBotIcon = accentGerman
+        static let voiceAccent = accentGerman
+        static let voiceAccentSoft = avatarBotBg
+        static let statusDanger = adaptive(0xA52A32, 0xFF9CA2)
+        static let statusSuccess = adaptive(0x216A49, 0x86D8AD)
+        static let textPrimary = adaptive(0x202428, 0xF5F4F0)
+        static let textSecondary = adaptive(0x505A63, 0xB5BBC1)
+        static let textTertiary = adaptive(0x59636B, 0x9DA5AC)
+        static let textMetaOnAccent = textSecondary
+        static let iconSend = adaptive(0xFFFFFF, 0x202428)
+        static let accentButtonText = iconSend
     }
-
-    // MARK: §2 Typography (SF Pro, sizes in pt)
     enum F {
-        static let logo = Font.system(size: 30, weight: .bold)
-        static let title = Font.system(size: 22, weight: .semibold)
-        static let subtitle = Font.system(size: 14, weight: .regular)
-        static let button = Font.system(size: 16, weight: .medium)
-        static let segment = Font.system(size: 14, weight: .medium)
-        static let section = Font.system(size: 13, weight: .regular)
-        static let rowTitle = Font.system(size: 14, weight: .regular)
-        static let rowMeta = Font.system(size: 12, weight: .regular)
-        static let bubble = Font.system(size: 17, weight: .regular)
-        static let meta = Font.system(size: 11, weight: .regular)
-        static let panelTitle = Font.system(size: 17, weight: .semibold)
-        static let hintPhrase = Font.system(size: 16, weight: .semibold)
-        static let hintTranslation = Font.system(size: 13, weight: .regular)
-        static let voiceState = Font.system(size: 16, weight: .semibold)
-        static let caption = Font.system(size: 11, weight: .regular)
-        static let chip = Font.system(size: 13, weight: .regular)
+        static let logo = Font.system(size: 28, weight: .semibold)
+        static let title = Font.system(size: 24, weight: .semibold)
+        static let subtitle = Font.system(size: 13)
+        static let button = Font.system(size: 14, weight: .medium)
+        static let segment = Font.system(size: 13, weight: .medium)
+        static let section = Font.system(size: 12, weight: .medium)
+        static let rowTitle = Font.system(size: 14)
+        static let rowMeta = Font.system(size: 12)
+        static let bubble = Font.system(size: 16)
+        static let meta = Font.system(size: 12)
+        static let panelTitle = Font.system(size: 18, weight: .semibold)
+        static let hintPhrase = Font.system(size: 15, weight: .medium)
+        static let hintTranslation = Font.system(size: 13)
+        static let voiceState = Font.system(size: 14, weight: .medium)
+        static let caption = Font.system(size: 12)
+        static let chip = Font.system(size: 12, weight: .medium)
     }
-
-    // MARK: §3 Spacing and grid (4 pt step: 4, 8, 12, 16, 20, 24, 32)
     enum S {
-        static let s4: CGFloat = 4
-        static let s8: CGFloat = 8
-        static let s12: CGFloat = 12
-        static let s16: CGFloat = 16
-        static let s20: CGFloat = 20
-        static let s24: CGFloat = 24
-        static let s32: CGFloat = 32
-
-        static let sidebarWidth: CGFloat = 256
-        static let hintsWidth: CGFloat = 264
-        static let headerHeight: CGFloat = 72
-        static let columnPadding: CGFloat = 16
-        static let messageGap: CGFloat = 16
-        static let bubblePaddingH: CGFloat = 16
-        static let bubblePaddingV: CGFloat = 12
-        static let avatarGap: CGFloat = 12
-        static let rowPadding: CGFloat = 12
-        static let cardGap: CGFloat = 12
-        /// Bubble width — at most 70% of the center column.
-        static let bubbleMaxFraction: CGFloat = 0.7
-        /// R-40: below a window width of 1280 the right column collapses.
-        static let hintsCollapseWidth: CGFloat = 1280
-        /// R-40: minimum window size.
+        static let s4: CGFloat = 4, s8: CGFloat = 8, s12: CGFloat = 12, s16: CGFloat = 16
+        static let s20: CGFloat = 20, s24: CGFloat = 24, s32: CGFloat = 32
+        static let sidebarWidth: CGFloat = 232, hintsWidth: CGFloat = 272, headerHeight: CGFloat = 80
+        static let columnPadding: CGFloat = 16, messageGap: CGFloat = 24
+        static let bubblePaddingH: CGFloat = 16, bubblePaddingV: CGFloat = 16
+        static let avatarGap: CGFloat = 12, rowPadding: CGFloat = 12, cardGap: CGFloat = 12
+        static let bubbleMaxFraction: CGFloat = 0.82, hintsCollapseWidth: CGFloat = 1280
         static let minWindow = CGSize(width: 1100, height: 700)
     }
-
-    // MARK: §4 Radii and sizes
     enum R {
-        static let button: CGFloat = 8
-        static let bubble: CGFloat = 16
-        static let card: CGFloat = 10
-
-        static let primaryButtonHeight: CGFloat = 40
-        static let segmentHeight: CGFloat = 36
-        static let rowHeight: CGFloat = 50
-        static let avatar: CGFloat = 40
-        static let voicePanelHeight: CGFloat = 86
-        static let micCircle: CGFloat = 50
-        static let roundButton: CGFloat = 44
-        static let inputHeight: CGFloat = 48
-        static let sendButton: CGFloat = 40
-        static let hintCardMinHeight: CGFloat = 78
-        static let chipHeight: CGFloat = 32
-        static let stroke: CGFloat = 1
-        /// Added to DESIGN.md §4 (P-01): waveform bar and gap.
-        static let waveBar: CGFloat = 3
-        static let waveGap: CGFloat = 4
-        /// Added to DESIGN.md §4 (P-01): status dot in the source badge.
-        static let statusDot: CGFloat = 12
+        static let button: CGFloat = 12, bubble: CGFloat = 16, card: CGFloat = 12
+        static let primaryButtonHeight: CGFloat = 44, segmentHeight: CGFloat = 36, rowHeight: CGFloat = 56
+        static let avatar: CGFloat = 32, voicePanelHeight: CGFloat = 112, micCircle: CGFloat = 44
+        static let roundButton: CGFloat = 36, inputHeight: CGFloat = 48, sendButton: CGFloat = 40
+        static let hintCardMinHeight: CGFloat = 100, chipHeight: CGFloat = 28, stroke: CGFloat = 1
+        static let waveBar: CGFloat = 2, waveGap: CGFloat = 4, statusDot: CGFloat = 6
     }
-
-    // MARK: §6 States
-    static let hoverOpacity: Double = 0.85
-    static let disabledOpacity: Double = 0.4
-    /// §5: hover over a session row — the selected background at 50% opacity.
-    static let rowHoverOpacity: Double = 0.5
+    static let hoverOpacity: Double = 0.88, disabledOpacity: Double = 0.5, rowHoverOpacity: Double = 0.55
+    static let transitionSeconds: Double = 0.18
 }
 
 extension Color {
     init(hex: UInt32) {
-        self.init(.sRGB,
-                  red: Double((hex >> 16) & 0xFF) / 255,
-                  green: Double((hex >> 8) & 0xFF) / 255,
-                  blue: Double(hex & 0xFF) / 255,
-                  opacity: 1)
+        self.init(.sRGB, red: Double((hex >> 16) & 255) / 255,
+                  green: Double((hex >> 8) & 255) / 255, blue: Double(hex & 255) / 255, opacity: 1)
     }
 }
-
-/// `stroke.subtle` outline (1 pt, `border.subtle`).
 extension View {
     func subtleStroke<S: InsettableShape>(_ shape: S) -> some View {
         overlay(shape.strokeBorder(Theme.C.borderSubtle, lineWidth: Theme.R.stroke))

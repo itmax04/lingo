@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo listens to your speech for conversation practice. Audio is recognized on this Mac and is not saved; only text is sent to the model."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo слушает вашу речь для разговорной практики. Звук распознаётся на этом Mac и не сохраняется; модели отправляется только текст."
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo recognizes speech on this Mac to turn your utterances into text for conversation practice."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo распознаёт речь на этом Mac и превращает ваши реплики в текст для разговорной практики."
+          }
+        }
+      }
+    }
+  }
+}

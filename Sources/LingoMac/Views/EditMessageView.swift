@@ -37,8 +37,8 @@ struct EditMessageView: View {
             }
         }
         .padding(Theme.S.s24)
-        .frame(width: 520)
+        .frame(width: 520, height: 320)
         .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .modifier(InterfaceAppearance())
     }
 }

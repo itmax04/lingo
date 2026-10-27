@@ -8,12 +8,18 @@ struct OnboardingView: View {
     let services: AppServices
     let keys: KeysController
     let onDone: () -> Void
-    @State private var step = 0
+    @State private var step: Int
     @State private var mic = Permissions.microphone
     @State private var speech = Permissions.speech
 
+    init(services: AppServices, keys: KeysController, initialStep: Int = 0, onDone: @escaping () -> Void) {
+        self.services = services; self.keys = keys; self.onDone = onDone
+        _step = State(initialValue: initialStep)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.S.s16) {
+            LingoMark().frame(width: 44, height: 44)
             Text("Welcome to Lingo").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
             Text("Step \(step + 1) of 3").font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
             switch step {
@@ -56,9 +62,9 @@ struct OnboardingView: View {
             }
         }
         .padding(Theme.S.s24)
-        .frame(width: 680, height: 520)
+        .frame(width: 720, height: 560)
         .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .modifier(InterfaceAppearance())
     }
 
     func next() {

@@ -1,0 +1,1624 @@
+[
+  {
+    "id": "iphone-account-devices-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-account-devices-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-account-devices-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-account-devices-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-account-mac-connection-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-account-mac-connection-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-account-mac-connection-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-account-mac-connection-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversation-idle-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-idle-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-idle-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-idle-light-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-language-and-interruption-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-language-and-interruption-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversation-language-and-interruption-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-language-and-interruption-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversation-limit-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-limit-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversation-limit-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-limit-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversation-listening-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-listening-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-listening-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-listening-light-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-offline-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-offline-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-offline-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-offline-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversation-paused-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-paused-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversation-paused-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-paused-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversation-recording-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-recording-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-recording-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-recording-light-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-conversation-speaking-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-speaking-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversation-speaking-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-speaking-light-1024x1536.png",
+    "dimensions": [
+      851,
+      1848
+    ]
+  },
+  {
+    "id": "iphone-conversation-thinking-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-thinking-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversation-thinking-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversation-thinking-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-conversations-list-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "I like to visit the old harbour…"
+    ],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversations-list-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-conversations-list-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "I like to visit the old harbour…"
+    ],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-conversations-list-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1847
+    ]
+  },
+  {
+    "id": "iphone-correction-detail-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-correction-detail-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-correction-detail-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "seit zwei Tage → seit zwei Tagen"
+    ],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-correction-detail-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-data-export-delete-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-data-export-delete-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-data-export-delete-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-data-export-delete-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-dictionary-starred-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-dictionary-starred-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-dictionary-starred-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-dictionary-starred-light-1024x1536.png",
+    "dimensions": [
+      851,
+      1847
+    ]
+  },
+  {
+    "id": "iphone-hints-phrases-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-hints-phrases-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-hints-phrases-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-hints-phrases-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-native-dynamic-island-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-native-dynamic-island-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-native-dynamic-island-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 3,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-native-dynamic-island-light-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "iphone-native-locked-screen-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-native-locked-screen-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-native-locked-screen-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-native-locked-screen-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-new-session-form-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "Немецкий | Английский",
+      "A2 B1 B2 C1",
+      "Lingo | Я"
+    ],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-new-session-form-dark-1024x1536.png",
+    "dimensions": [
+      851,
+      1848
+    ]
+  },
+  {
+    "id": "iphone-new-session-form-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-new-session-form-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-onboarding-microphone-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-onboarding-microphone-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-onboarding-microphone-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-onboarding-microphone-light-1024x1536.png",
+    "dimensions": [
+      850,
+      1850
+    ]
+  },
+  {
+    "id": "iphone-recap-complete-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-recap-complete-dark-1024x1536.png",
+    "dimensions": [
+      851,
+      1848
+    ]
+  },
+  {
+    "id": "iphone-recap-complete-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-recap-complete-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-settings-resources-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-settings-resources-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-settings-resources-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-settings-resources-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-sign-in-github-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-sign-in-github-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "iphone-sign-in-github-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-sign-in-github-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1847
+    ]
+  },
+  {
+    "id": "iphone-today-overview-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "План на день · 4 × 30 мин"
+    ],
+    "attempts": 1,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-today-overview-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "iphone-today-overview-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "План на день · 4 × 30 мин"
+    ],
+    "attempts": 2,
+    "area": "iphone",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/02-iphone/iphone-today-overview-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "ipad-conversation-landscape-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "ipad",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/03-ipad/ipad-conversation-landscape-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "ipad-conversation-landscape-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "ipad",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/03-ipad/ipad-conversation-landscape-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "ipad-conversation-portrait-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "ipad",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/03-ipad/ipad-conversation-portrait-dark-1024x1536.png",
+    "dimensions": [
+      1038,
+      1515
+    ]
+  },
+  {
+    "id": "ipad-conversation-portrait-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "ipad",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/03-ipad/ipad-conversation-portrait-light-1024x1536.png",
+    "dimensions": [
+      1048,
+      1501
+    ]
+  },
+  {
+    "id": "mac-conversation-narrow-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 3,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-conversation-narrow-dark-1536x1024.png",
+    "dimensions": [
+      1470,
+      1070
+    ]
+  },
+  {
+    "id": "mac-conversation-narrow-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 3,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-conversation-narrow-light-1536x1024.png",
+    "dimensions": [
+      1470,
+      1070
+    ]
+  },
+  {
+    "id": "mac-conversation-speaking-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-conversation-speaking-dark-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-conversation-speaking-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-conversation-speaking-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-correction-detail-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-correction-detail-dark-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-correction-detail-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-correction-detail-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-dictionary-starred-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-dictionary-starred-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-dictionary-starred-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-dictionary-starred-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-new-session-form-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-new-session-form-dark-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-new-session-form-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-new-session-form-light-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-onboarding-keys-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-keys-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-onboarding-keys-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-keys-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-onboarding-microphone-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-microphone-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-onboarding-microphone-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 3,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-microphone-light-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-onboarding-sync-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-sync-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-onboarding-sync-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-onboarding-sync-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-progress-soon-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-progress-soon-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-progress-soon-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-progress-soon-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-recap-complete-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [
+      "seit zwei Tage → seit zwei Tagen",
+      "ich habe gegangen → ich bin gegangen"
+    ],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-recap-complete-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-recap-complete-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [
+      "seit zwei Tage → seit zwei Tagen"
+    ],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-recap-complete-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-session-menu-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-session-menu-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-session-menu-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-session-menu-light-1536x1024.png",
+    "dimensions": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "mac-settings-data-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-data-dark-1536x1024.png",
+    "dimensions": [
+      1422,
+      1106
+    ]
+  },
+  {
+    "id": "mac-settings-data-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-data-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-settings-keys-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-keys-dark-1536x1024.png",
+    "dimensions": [
+      1422,
+      1106
+    ]
+  },
+  {
+    "id": "mac-settings-keys-light-1536x1024",
+    "missing": [
+      "Добавить"
+    ],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-keys-light-1536x1024.png",
+    "dimensions": [
+      1422,
+      1106
+    ],
+    "manual_review": {
+      "confirmed": true,
+      "actual_label": "Добанить",
+      "expected_label": "Добавить",
+      "status": "blocked by ImageGen limit"
+    }
+  },
+  {
+    "id": "mac-settings-quota-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-quota-dark-1536x1024.png",
+    "dimensions": [
+      1422,
+      1106
+    ]
+  },
+  {
+    "id": "mac-settings-quota-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-quota-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-settings-sync-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-sync-dark-1536x1024.png",
+    "dimensions": [
+      1419,
+      1109
+    ]
+  },
+  {
+    "id": "mac-settings-sync-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-sync-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-settings-voice-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-voice-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-settings-voice-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-settings-voice-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-teacher-soon-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-teacher-soon-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-teacher-soon-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-teacher-soon-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-today-overview-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [
+      "План на день · 4 × 30 мин",
+      "Немецкий · У врача",
+      "Английский · IELTS Part 2",
+      "Немецкий · Свободный разговор",
+      "Английский · Работа: собеседование"
+    ],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-today-overview-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-today-overview-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [
+      "План на день · 4 × 30 мин"
+    ],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-today-overview-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-transcript-edit-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-transcript-edit-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-transcript-edit-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-transcript-edit-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-voice-states-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-voice-states-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "mac-voice-states-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "mac",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/04-mac/mac-voice-states-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "web-conversation-desktop-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "web",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/05-web-desktop/web-conversation-desktop-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "web-conversation-desktop-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "web",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/05-web-desktop/web-conversation-desktop-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "android-conversation-chrome-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "android",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/06-android-windows/android-conversation-chrome-dark-1024x1536.png",
+    "dimensions": [
+      842,
+      1869
+    ]
+  },
+  {
+    "id": "android-conversation-chrome-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "android",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/06-android-windows/android-conversation-chrome-light-1024x1536.png",
+    "dimensions": [
+      841,
+      1870
+    ]
+  },
+  {
+    "id": "windows-conversation-chrome-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "windows",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/06-android-windows/windows-conversation-chrome-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "windows-conversation-chrome-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "windows",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/06-android-windows/windows-conversation-chrome-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "teacher-f1-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f1-concept-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f1-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f1-concept-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "teacher-f10-concept-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f10-concept-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "teacher-f10-concept-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f10-concept-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "teacher-f2-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f2-concept-dark-1024x1536.png",
+    "dimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "id": "teacher-f2-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f2-concept-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "teacher-f3-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f3-concept-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f3-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f3-concept-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f4-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f4-concept-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f4-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f4-concept-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "teacher-f5-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f5-concept-dark-1024x1536.png",
+    "dimensions": [
+      851,
+      1847
+    ]
+  },
+  {
+    "id": "teacher-f5-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f5-concept-light-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "teacher-f6-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [
+      "Было → Лучше",
+      "seit zwei Tage → seit zwei Tagen"
+    ],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f6-concept-dark-1024x1536.png",
+    "dimensions": [
+      851,
+      1848
+    ]
+  },
+  {
+    "id": "teacher-f6-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f6-concept-light-1024x1536.png",
+    "dimensions": [
+      851,
+      1847
+    ]
+  },
+  {
+    "id": "teacher-f7-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f7-concept-dark-1024x1536.png",
+    "dimensions": [
+      851,
+      1848
+    ]
+  },
+  {
+    "id": "teacher-f7-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f7-concept-light-1024x1536.png",
+    "dimensions": [
+      851,
+      1847
+    ]
+  },
+  {
+    "id": "teacher-f8-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f8-concept-dark-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f8-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f8-concept-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "teacher-f9-concept-dark-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f9-concept-dark-1024x1536.png",
+    "dimensions": [
+      853,
+      1844
+    ]
+  },
+  {
+    "id": "teacher-f9-concept-light-1024x1536",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "teacher",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/07-teacher/teacher-f9-concept-light-1024x1536.png",
+    "dimensions": [
+      852,
+      1846
+    ]
+  },
+  {
+    "id": "system-components-library-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-components-library-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "system-components-library-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-components-library-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "system-icon-app-dark-1024x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-icon-app-dark-1024x1024.png",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "system-icon-app-light-1024x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-icon-app-light-1024x1024.png",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "system-mark-sheet-dark-1024x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-mark-sheet-dark-1024x1024.png",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "system-palette-sheet-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 2,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-palette-sheet-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "system-typography-scale-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-typography-scale-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "system-typography-scale-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "system",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/08-design-system/system-typography-scale-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-history-sync-planned-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-history-sync-planned-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-history-sync-planned-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-history-sync-planned-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-system-context-planned-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-system-context-planned-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-system-context-planned-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-system-context-planned-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-voice-turn-planned-dark-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-voice-turn-planned-dark-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "architecture-voice-turn-planned-light-1536x1024",
+    "missing": [],
+    "layout_split_strings": [],
+    "attempts": 1,
+    "area": "architecture",
+    "file": "/Users/macbook/Desktop/Lingo-Final-2026/09-architecture/architecture-voice-turn-planned-light-1536x1024.png",
+    "dimensions": [
+      1536,
+      1024
+    ]
+  }
+]

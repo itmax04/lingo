@@ -1,0 +1,19 @@
+# ImageGen text repair attempt 2
+
+Subscription ImageGen; transparent_background=false. Reference: direction-a-board-overview-dark-1536x1024.png
+
+Use case: infographic-diagram.
+Visual direction "Quiet": calm, minimal, focused on reading and listening, in the spirit of Apple's own apps and ChatGPT voice mode.
+Dark theme: soft graphite background (#111315-ish), slightly lighter panels, hairline dividers, near-white text, muted grey secondary text.
+Light theme: warm paper white (#F7F6F3-ish), white panels, light grey hairlines, near-black text.
+Accents: German = warm amber (#E8A33D-ish), English = calm teal (#2BB3A3-ish); used sparingly (active tab, waveform, language badge, primary button).
+Shapes: radii 12–16, almost no shadows (one very soft elevation for floating panels), thin 1.5-px line icons.
+Waveform: a single thin flowing line in the session's language accent.
+Lingo mark: a simple rounded geometric glyph (two overlapping speech-wave arcs forming an abstract "L"), monochrome with the accent tint.
+Exact palette override for Quiet: dark background #111315, sidebar #16191C, card #1D2125, assistant #20262A, learner #29241C, primary text #F5F4F0, secondary text #B5BBC1, muted text #9DA5AC, border #343A40, German text/wave #F2B85B, English #62D5C5. Light background #F7F6F3, sidebar #F0EFEB, cards #FFFFFF, assistant #FFFFFF, learner #F3E9D9, primary text #202428, secondary #505A63, muted #59636B, border #D3D7D9, German text/wave #855107, English #136C61. Accent buttons use dark foreground in dark theme and white foreground in light theme; no low-contrast white-on-yellow. Exact geometry where applicable: sidebar 232pt, hints 272pt, center remaining; 4pt grid; margin 24pt, bubble padding16pt; title24pt, body16pt, caption12pt; radii12pt. Simple two rounded arcs form the abstract Lingo L mark, no robot, no person.
+Create ONE new final production reference, using the attached board for style only. Do not copy the board composition. Theme: dark. Output exactly 1536 by 1024 pixels.
+A flat design-system sheet.
+Design-system sheet «Lingo · Colours», dark and light side by side, exact token labels «bg.window», «bg.sidebar», «surface.card», «text.primary», «text.secondary», «text.tertiary», «border.subtle», «accent.de», «accent.en». Show only the exact HEX values given in the palette override beside corresponding swatches. No other text.
+
+
+FINAL TEXT REPAIR (§7): prioritize readable exact lettering over decoration. Render every required quoted UI string, in its original language, exactly. Missing strings in the preceding attempt were: ["Lingo · Colours"]. Make room for these labels; never substitute a glyph or icon for a required word. Keep the Quiet thin outline double-loop mark, identical across themes. No giant orb, no robot, no pronunciation assessment. For a narrow Mac collapsed hints may be a clearly labeled expandable control; the first assistant utterance and two hint phrases still need a readable place. Keep the full original wrong and corrected words for the inline correction, showing Tage struck through followed by Tagen. Do not invent any extra text.

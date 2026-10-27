@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>ru</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Lingo</string>
 	<key>CFBundleExecutable</key>
@@ -34,5 +34,10 @@
 	<string>Lingo recognizes speech on this Mac to turn your utterances into text for conversation practice.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ru</string>
+	</array>
 </dict>
 </plist>

@@ -5,6 +5,7 @@ import SwiftUI
 /// models from `GET /models`, first-token timeout. After saving, a key is shown only by its last 4 characters (R-48).
 struct KeysSettingsView: View {
     @Bindable var keys: KeysController
+    @State private var provider: ProviderID = .groq
 
     var body: some View {
         ScrollView {
@@ -12,9 +13,10 @@ struct KeysSettingsView: View {
                 Text("Keys are stored only in this Mac's Keychain. The model receives the text of utterances; audio never leaves the Mac.")
                     .font(Theme.F.section)
                     .foregroundStyle(Theme.C.textSecondary)
-                ForEach(ProviderID.allCases, id: \.self) { p in
-                    ProviderKeysCard(keys: keys, provider: p)
-                }
+                Picker("Provider", selection: $provider) {
+                    ForEach(ProviderID.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                }.frame(maxWidth: 320, alignment: .leading)
+                ProviderKeysCard(keys: keys, provider: provider).id(provider)
                 ChainCard(keys: keys)
             }
             .padding(Theme.S.s24)
@@ -76,11 +78,17 @@ struct ProviderKeysCard: View {
                     Text("Key \(i + 1)  ••••\(k.last4)").font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary)
                         .monospacedDigit()
                     VStack(alignment: .leading, spacing: 0) {
+                        if !k.label.isEmpty { Text(k.label).foregroundStyle(Theme.C.textSecondary) }
                         if k.invalid { Text(String(localized: "Invalid") + (k.invalidReason.map { " (\($0))" } ?? "")).foregroundStyle(Theme.C.statusDanger) }
                         if let c = keys.checks[k.id] { Text(c).foregroundStyle(Theme.C.textSecondary).lineLimit(2) }
                     }
                     .font(Theme.F.meta)
                     Spacer(minLength: 0)
+                    TextField("Optional key label", text: Binding(get: { k.label }, set: { value in
+                        keys.update { settings in
+                            if let index = settings.keys.firstIndex(where: { $0.id == k.id }) { settings.keys[index].label = value }
+                        }
+                    })).frame(width: 120).textFieldStyle(.roundedBorder)
                     Button("Check") { keys.verify(k.id) }.disabled(keys.busy.contains(k.id))
                     Button("Delete", role: .destructive) { keys.delete(k.id) }
                 }

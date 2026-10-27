@@ -48,7 +48,7 @@ struct HintsPanel: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Theme.S.cardGap) {
                     ForEach(sections, id: \.0) { key, title, list in
-                        if !list.isEmpty {
+                        Group {
                             Button {
                                 if collapsed.contains(key) { collapsed.remove(key) } else { collapsed.insert(key) }
                             } label: {
@@ -115,7 +115,7 @@ struct HintCard: View {
                 Button(action: onStar) {
                     Image(systemName: starred ? "star.fill" : "star")
                         .font(.system(size: 14))
-                        .foregroundStyle(starred ? Theme.C.accentPrimary : Theme.C.textPrimary)
+                        .foregroundStyle(starred ? Theme.accent(phrase.lang) : Theme.C.textPrimary)
                 }
                 .buttonStyle(LingoButtonStyle())
                 .accessibilityLabel(starred ? "Remove from vocabulary" : "Save to vocabulary")

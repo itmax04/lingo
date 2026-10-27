@@ -23,20 +23,46 @@ struct SettingsView: View {
     @State var tab: SettingsTab = .keys
 
     var body: some View {
-        TabView(selection: $tab) {
-            KeysSettingsView(keys: keys)
-                .tabItem { Text(SettingsTab.keys.title) }
-                .tag(SettingsTab.keys)
-            if let svc = services {
-                QuotaView(services: svc).tabItem { Text(SettingsTab.quota.title) }.tag(SettingsTab.quota)
-                VoiceSettingsView(services: svc).tabItem { Text(SettingsTab.voice.title) }.tag(SettingsTab.voice)
-                SyncSettingsView(services: svc, model: svc.model).tabItem { Text(SettingsTab.sync.title) }.tag(SettingsTab.sync)
-                DataSettingsView(services: svc).tabItem { Text(SettingsTab.data.title) }.tag(SettingsTab.data)
-            }
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) { LingoMark().frame(width: 32, height: 32); Text("Lingo").font(Theme.F.logo) }
+                    .padding(.bottom, 24)
+                ForEach(SettingsTab.allCases) { item in
+                    Button { tab = item } label: {
+                        Text(item.title).font(Theme.F.rowTitle).foregroundStyle(tab == item ? Theme.C.accentPrimary : Theme.C.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+                            .background(tab == item ? Theme.C.voiceAccentSoft : Color.clear,
+                                        in: RoundedRectangle(cornerRadius: Theme.R.button))
+                    }.buttonStyle(LingoButtonStyle())
+                }
+                Spacer()
+            }.padding(20).frame(width: 200).background(Theme.C.bgSidebar)
+            ColumnDivider()
+            VStack(spacing: 0) {
+                HStack { Text(tab.title).font(Theme.F.title); Spacer() }.padding(24)
+                switch tab {
+                case .keys: KeysSettingsView(keys: keys)
+                case .quota:
+                    if let services { QuotaView(services: services) } else { unavailable }
+                case .voice:
+                    if let services { VoiceSettingsView(services: services) }
+                    else { InterfaceSettingsView().padding(24) }
+                case .sync:
+                    if let services { SyncSettingsView(services: services, model: services.model) } else { unavailable }
+                case .data:
+                    if let services { DataSettingsView(services: services) } else { unavailable }
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity).background(Theme.C.bgWindow)
         }
-        .frame(minWidth: 820, minHeight: 600)
-        .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .frame(minWidth: 900, minHeight: 700)
+        .foregroundStyle(Theme.C.textPrimary)
+        .modifier(InterfaceAppearance())
+    }
+    private var unavailable: some View {
+        VStack(spacing: 16) {
+            Text("Available in the running app").font(Theme.F.subtitle)
+            Spacer()
+        }.padding(24)
     }
 }
 
@@ -49,7 +75,7 @@ final class SettingsWindowController {
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 720),
                          styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
         w.title = String(localized: "Lingo Settings")
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.appearance = nil
         w.contentView = NSHostingView(rootView: SettingsView(keys: keys, services: services, tab: tab))
         w.isReleasedWhenClosed = false
         w.center()

@@ -6,6 +6,8 @@ import Observation
 @MainActor
 @Observable
 final class AppModel {
+    var section: AppSection = .today
+    var sessionSearch = ""
     var sessions: [Session] = []
     var selectedSessionID: String?
     var langFilter: Lang = .en

@@ -20,7 +20,13 @@ microphone ─► VAD + utterance segmentation ─► whisper.cpp (on device) �
 
 Owner: GitHub `itmax04`. The repository is private.
 
-## 2. Status (2026-10-26)
+## 2. Current override (2026-10-27)
+
+The owner's current priority is **LINGO-07 Mac redesign**, issue #32, branch `feat/redesign`, PR to `main` (owner merges). Use the root Swift package. LINGO-03 and issues #3–#30 are paused: no monorepo/server/web implementation. Future platforms and teacher functions are visual concepts only. The owner authorized autonomous design choices without phase approval. All core behavior, prompts and journal formats remain unchanged. See `docs/changes/LINGO-07-redesign/` and DESIGN.md v2.
+
+The historical status below is retained for context; the override above controls current work.
+
+## 2a. Historical status (2026-10-26)
 
 | Item | State |
 |---|---|
@@ -106,7 +112,7 @@ Key design facts:
 
 1. **Free only.** No paid APIs, subscriptions, providers that require a card, or a paid Apple developer account.
 2. **No secrets anywhere.** API keys, Apple ID, passwords and personal data never go into code, logs, tests, commits, journals or chat. Test data is synthetic. Never ask the owner to paste a key into chat; keys are entered only in the app's settings.
-3. **Git safety.** Work on `main-en`. Commit after each step and push. Forbidden: force-push, `reset --hard`, deleting branches, rewriting history, merging into `main` without the owner. Never commit `private/`, models, logs or `evals/out/`.
+3. **Git safety.** For LINGO-07, work on `feat/redesign` and open a PR to `main`; the owner merges. Commit after each step and push. Forbidden: force-push, `reset --hard`, deleting branches, rewriting history, merging into `main` without the owner. Never commit `private/`, models, logs or `evals/out/`.
 4. **System settings are the owner's.** Do not change TCC permissions, Keychain trust or macOS settings; give the owner step-by-step instructions instead (voices, microphone access, iCloud).
 5. **Models** are downloaded only from official repositories over HTTPS with a SHA256 check (`ModelStore`). Disk is tight (≈14 GB free): delete models that are not used.
 6. **Dependencies** only from ADR-0001 §11. Anything else needs an ADR entry and the owner's decision.

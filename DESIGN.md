@@ -1,142 +1,75 @@
-# DESIGN.md — Lingo
+# DESIGN.md — Lingo Quiet, version 2
 
-Источник: макет владельца [docs/design/lingo-mac.webp](docs/design/lingo-mac.webp) (1774×887 px), выбор владельца Q15 от 2026-10-25.
-Цвета сняты пипеткой с макета 2026-10-25 (самый частый цвет пикселей в области элемента). Размеры пересчитаны из пикселей макета в pt с коэффициентом **1,44**
-(окно на макете ≈ 1730 px ≈ 1200 pt). Значений, которых здесь нет, **не придумывать**. Если чего-то не хватает, исполнитель
-добавляет значение сюда с пометкой «(добавлено, P-xx, обоснование)» и показывает владельцу при приёмке.
+Change: LINGO-07, issue #32. Status: implementation specification; generated references remain subject to the evidence audit. This document supersedes the former dark-only visual system. The executor selected A Quiet under the owner's autonomous instruction.
 
-Платформа: macOS (SwiftUI) в LINGO-01. iPhone — по отдельному дизайну владельца (LINGO-02); этот файл тогда дополняется.
-Тема: **только тёмная** в v1. Светлой темы на макете нет, её значения не придумываются.
+## 1. Principles and boundaries
 
-## 1. Цвета
-| Токен | HEX | Где на макете |
+Use calm, flat surfaces, readable text and a compact voice control area. Conversation text is the primary content. The mark is an abstract pair of overlapping loops, never a robot or a person. A thin waveform reflects captured levels. No pronunciation assessment, microphone quality score or invented learner statistics.
+
+Existing Mac actions remain unchanged. Today, standalone Vocabulary, Progress and Teacher are explicit Coming soon previews. Existing saved phrases remain usable in the conversation's Vocabulary hints section. Accounts, web, mobile, exams, review scheduling and teacher logic in reference images describe future work only.
+
+## 2. Colors
+
+Dynamic sRGB colors resolve per window appearance. Theme.swift is the executable mapping. The following HEX values are exact, not sampled from generated pixels.
+
+| Token | Light | Dark |
 |---|---|---|
-| `bg.window` | `#121619` | Фон ленты сообщений |
-| `bg.sidebar` | `#14181B` | Левая колонка |
-| `bg.hints` | `#161A1E` | Правая колонка |
-| `bg.titlebar` | `#1B2125` | Полоса заголовка окна |
-| `surface.card` | `#1F252A` | Карточки подсказок, дорожка сегмента English/Deutsch |
-| `surface.voicePanel` | `#171D22` | Голосовая панель |
-| `surface.input` | `#181F21` | Поле ввода |
-| `surface.bubbleAssistant` | `#242E38` | Пузырь помощника |
-| `surface.rowSelected` | `#232C39` | Выбранная сессия в списке |
-| `surface.control` | `#283039` | Круглая кнопка «Пауза» |
-| `surface.sendButton` | `#333D47` | Круглая кнопка отправки |
-| `surface.chip` | `#101719` | Плашка источника («На устройстве») |
-| `border.subtle` | `#23292E` | Обводка карточек, плашки, голосовой панели и поля ввода |
-| `border.divider` | `#272B2E` | Разделители колонок |
-| `accent.primary` | `#1162F4` | «Новая сессия», активный сегмент |
-| `bubble.user` | `#105DEB` | Пузырь пользователя |
-| `avatar.userBg` | `#1B324F` | Круг аватара пользователя |
-| `avatar.userIcon` | `#4075D1` | Иконка человека |
-| `avatar.botBg` | `#274246` | Круг аватара помощника |
-| `avatar.botIcon` | `#87EBE0` | Иконка робота |
-| `voice.accent` | `#5BF2DF` | «Слушаю», волна, иконка микрофона |
-| `voice.accentSoft` | `#1C433F` | Круг микрофона на панели |
-| `status.danger` | `#E64542` | Кнопка «Завершить» |
-| `status.success` | `#1FD67F` | Точка статуса в плашке источника |
-| `text.primary` | `#FFFFFF` | Заголовки, текст пузырей, названия сессий |
-| `text.secondary` | `#AAB3BF` | Подзаголовок, даты сессий, перевод фраз, «Мои сессии» |
-| `text.tertiary` | `#848B97` | Плейсхолдер поля ввода, иконки в покое |
-| `text.metaOnAccent` | `#AFE8FF` | Время и ✓✓ на синем пузыре |
-| `icon.send` | `#E7EFF8` | Иконка «отправить» |
+| `bgWindow` | `#F7F6F3` | `#111315` |
+| `bgSidebar` | `#F0EFEB` | `#16191C` |
+| `bgHints` | `#F7F6F3` | `#16191C` |
+| `surfaceCard` | `#FFFFFF` | `#1D2125` |
+| `surfaceBubbleAssistant` | `#FFFFFF` | `#20262A` |
+| `surfaceRowSelected` | `#E4E4DE` | `#2B3136` |
+| `surfaceControl` | `#EBECE8` | `#2B3136` |
+| `surfaceSendButton` | `#855107` | `#F2B85B` |
+| `borderSubtle` | `#D3D7D9` | `#343A40` |
+| `accentGerman` | `#855107` | `#F2B85B` |
+| `accentEnglish` | `#136C61` | `#62D5C5` |
+| `bubbleUser` | `#F3E9D9` | `#29241C` |
+| `avatarBotBg` | `#F3E9D9` | `#352A1A` |
+| `statusDanger` | `#A52A32` | `#FF9CA2` |
+| `statusSuccess` | `#216A49` | `#86D8AD` |
+| `textPrimary` | `#202428` | `#F5F4F0` |
+| `textSecondary` | `#505A63` | `#B5BBC1` |
+| `textTertiary` | `#59636B` | `#9DA5AC` |
+| `iconSend` | `#FFFFFF` | `#202428` |
 
-`text.secondary` выведен по сглаженным пикселям текста (самый светлый пиксель #C7D2E1 минус сглаживание). При приёмке он сверяется скриншотом рядом с макетом.
+German accent surfaces: light #F3E9D9, dark #352A1A. English accent surfaces: light #E4F2EE, dark #19332F. Use explicit DE/EN labels as well as color, never flags. Primary button text: light #FFFFFF, dark #202428. Primary button fill: accentGerman.
 
-## 2. Типографика
-Шрифт — системный SF Pro (`.system`), кириллица и латиница одним шрифтом. Размеры в pt:
-| Токен | Размер / насыщенность | Где |
-|---|---|---|
-| `type.logo` | 30 / bold | «Lingo» |
-| `type.title` | 22 / semibold | Название сессии в шапке |
-| `type.subtitle` | 14 / regular, `text.secondary` | «Свободный разговор на английском» |
-| `type.button` | 16 / medium | «Новая сессия» |
-| `type.segment` | 14 / medium | English / Deutsch |
-| `type.section` | 13 / regular, `text.secondary` | «Мои сессии», «Полезные фразы для этой темы» |
-| `type.rowTitle` | 14 / regular | Название сессии в списке |
-| `type.rowMeta` | 12 / regular, `text.secondary` | «Сегодня, 14:28» |
-| `type.bubble` | 17 / regular | Текст сообщений |
-| `type.meta` | 11 / regular | Время в пузырях, метка «провайдер · модель» |
-| `type.panelTitle` | 17 / semibold | «Подсказки» |
-| `type.hintPhrase` | 16 / semibold | Фраза подсказки |
-| `type.hintTranslation` | 13 / regular, `text.secondary` | Перевод |
-| `type.voiceState` | 16 / semibold, `voice.accent` | «Слушаю» |
-| `type.caption` | 11 / regular | «Пауза», «Завершить» под кнопками |
-| `type.chip` | 13 / regular | «На устройстве» |
+## 3. Typography
 
-Динамический размер шрифта на macOS не используется. Минимальный размер текста — 11 pt.
+Use system SF Pro through Font.system; no bundled or paid font files. Logo 28 semibold; page title 24 semibold; panel title 18 semibold; conversation 16 regular; hint phrase 15 medium; button 14 medium; row 14 regular; subtitle/translation 13 regular; metadata/caption/section 12. State labels 14 medium. Text remains selectable in conversation content and errors. Preserve Russian and English translations; user language data is not translated.
 
-## 3. Отступы и сетка
-Базовый шаг — 4 pt. Используются только значения: **4, 8, 12, 16, 20, 24, 32**.
-| Токен | Значение | Где |
-|---|---|---|
-| `layout.sidebarWidth` | 256 pt | Левая колонка |
-| `layout.hintsWidth` | 264 pt | Правая колонка (сворачивается при ширине окна < 1280, R-40) |
-| `layout.headerHeight` | 72 pt | Шапка центральной колонки |
-| `space.columnPadding` | 16 pt | Внутренние поля колонок |
-| `space.messageGap` | 16 pt | Между сообщениями |
-| `space.bubblePaddingH` / `V` | 16 / 12 pt | Поля внутри пузыря |
-| `space.avatarGap` | 12 pt | Аватар ↔ пузырь |
-| `space.rowPadding` | 12 pt | Строка сессии |
-| `space.cardGap` | 12 pt | Между карточками подсказок |
+## 4. Geometry
 
-Ширина пузыря — не больше 70% центральной колонки.
+Spacing uses 4 pt increments: 4, 8, 12, 16, 20, 24, 32. Hairlines 1 pt and optical icon strokes are exceptions. Main reference canvas 1280×800 pt; sidebar 232 pt; hints 272 pt; header 80 pt. The hints column collapses below 1280 pt; minimum supported Mac content size 1100×700 pt. Do not fabricate a mobile-sized native Mac window.
 
-## 4. Радиусы и размеры элементов
-| Токен | Значение |
-|---|---|
-| `radius.button` | 8 pt («Новая сессия», сегмент, строка сессии) |
-| `radius.bubble` | 16 pt |
-| `radius.card` | 10 pt (карточки подсказок) |
-| `radius.capsule` | половина высоты (голосовая панель, поле ввода, плашка источника) |
-| `size.primaryButtonHeight` | 40 pt |
-| `size.segmentHeight` | 36 pt |
-| `size.rowHeight` | 50 pt |
-| `size.avatar` | 40 pt, круг |
-| `size.voicePanelHeight` | 86 pt |
-| `size.micCircle` | 50 pt |
-| `size.roundButton` | 44 pt (Пауза, Завершить) |
-| `size.inputHeight` | 48 pt |
-| `size.sendButton` | 40 pt |
-| `size.hintCardMinHeight` | 78 pt |
-| `size.chipHeight` | 32 pt |
-| `stroke.subtle` | 1 pt, `border.subtle` |
-| `size.waveBar` / `space.waveGap` | 3 / 4 pt (добавлено, P-01: столбики волны на макете ≈ 4 px шириной и ≈ 6 px шагом) |
-| `size.statusDot` | 12 pt (добавлено, P-01: точка в плашке источника на макете ≈ 16 px) |
+Conversation gaps 24 pt; bubble padding 16 pt; avatar/mark 32 pt with 12 pt gap; bubble maximum fraction 0.82. Primary button height 44 pt; voice panel height 112 pt; microphone target 44 pt; secondary voice control 36 pt plus caption. Input height 48 pt. Card/button radius 12 pt; bubble radius 16 pt. Settings navigation 200 pt; new-session content 820×680 pt; onboarding 720×560 pt; transcript editor 520×320 pt.
 
-## 5. Компоненты
-- **Строка сессии.** Иконка «пузырь» в `text.tertiary`, название `type.rowTitle`, дата `type.rowMeta`, «…» справа.
-  Выбранная — фон `surface.rowSelected`. При наведении — тот же фон с прозрачностью 50%.
-- **Сегмент языка.** Дорожка `surface.card`, активный сегмент `accent.primary` + `text.primary`, неактивный — `text.secondary`.
-- **Пузырь пользователя.** Фон `bubble.user`, справа. Внизу справа: время + ✓/✓✓ в `text.metaOnAccent`. Справа от пузыря аватар (`avatar.userBg`/`avatar.userIcon`).
-- **Пузырь помощника.** Фон `surface.bubbleAssistant`, слева, аватар-робот (`avatar.botBg`/`avatar.botIcon`). Время `text.secondary`.
-  - Блок исправления `@fix` внутри пузыря: обводка `stroke.subtle`, радиус `radius.card`.
-  - Русский сегмент (R-17): фон `surface.card` внутри пузыря.
-  - Прерванная часть: `text.tertiary`.
-- **Голосовая панель.** Капсула `surface.voicePanel` + `stroke.subtle`.
-  - Слева круг `voice.accentSoft` с иконкой микрофона `voice.accent`, подпись состояния `type.voiceState`.
-  - В центре волна: столбики `voice.accent`, затухающие к краям (прозрачность 100% → 30%).
-  - Справа кнопки «Пауза» (`surface.control`) и «Завершить» (`status.danger`), подписи `type.caption`.
-- **Поле ввода.** Капсула `surface.input` + `stroke.subtle`, иконка клавиатуры `text.tertiary`, вертикальный разделитель `border.divider`, плейсхолдер `text.tertiary`.
-  Кнопка отправки — круг `surface.sendButton`, иконка `icon.send`.
-- **Плашка источника.** Капсула `surface.chip` + `stroke.subtle`, точка `status.success` (или `status.danger`, если «Нет сети»), текст `type.chip`, шеврон.
-- **Карточка подсказки.** `surface.card` + `stroke.subtle`, `radius.card`. Фраза `type.hintPhrase`, перевод `type.hintTranslation`, иконка динамика справа, ★ рядом с ней.
-  Иконки по умолчанию `text.primary` в покое, ★ активная — `accent.primary`.
+Content shadow token: none (opacity 0, blur 0, x 0, y 0). Native floating popovers retain the system window shadow; that system effect is not claimed to match generated shadows. The app icon is the permitted raster exception.
 
-Иконки — SF Symbols, вес regular, размер по тексту строки.
+## 5. Components and states
 
-## 6. Состояния
-- **Фокус клавиатуры:** системное кольцо фокуса macOS (accent цвета `accent.primary`).
-- **Наведение:** фон кнопок становится светлее. Отдельных цветов нет, используется `opacity(0.85)` поверх исходного.
-- **Неактивно:** `opacity(0.4)` и подсказка с причиной (R-33, S-01).
-- **Ошибка:** текст `status.danger` под элементом.
+- Sidebar: mark, product name, five navigation entries, language filter, new session, real session history, sync status and Settings. Planned entries visibly say Coming soon.
+- Conversation: assistant on the left, learner on the right; inline original word struck through with corrected word beside it. Correction detail shows original, corrected text and explanation; original journal data is retained. Unattachable fixes remain a separate block.
+- Reply state: idle, recording, listening, thinking, speaking, paused. Network, quota and chain failures use explicit text and an error symbol. Do not infer new business states or alter voice transitions.
+- Voice panel: one compact rectangle; state label, level line, microphone, pause/resume, finish and existing toggles. No giant decorative orb.
+- Hints: Topic phrases, Corrections, How to say, Vocabulary ★. Preserve playback and starring behavior.
+- Settings: provider/model keys, quotas, voice, sync and data. Additional account is a label on an existing key, not a promise of quota independence.
+- Forms and alerts: keyboard default/cancel actions, clear labels, visible validation and destructive intent. Never execute exports or deletion during screenshot capture.
 
-## 7. Движение
-- Только системные анимации SwiftUI (`.default`, `.easeInOut` 0,2 с) для появления сообщений и смены состояний панели.
-- Волна — по уровню звука, без декоративной анимации.
-- При «Уменьшить движение» (`accessibilityReduceMotion`) волна заменяется статичной полосой уровня, переходы — без анимации.
+## 6. Motion and accessibility
 
-## 8. Доступность
-- Контраст `text.primary` и `text.secondary` к фонам колонок ≥ 4,5:1 (проверить на P-10, записать в handoff).
-- Все кнопки-иконки имеют `accessibilityLabel` на русском.
-- Команды доступны с клавиатуры: пробел (удержание — говорить), Esc (стоп), ⌥R («говорю по-русски»), ⌘N (новая сессия), ⌘, (настройки).
+Transitions 180 ms ease-in-out. Speaking mark breathing scale 1.00–1.06 over 1.2 s. Reduce Motion disables breathing and animated scrolling and replaces the animated waveform with a level meter. No required information depends on motion or color alone. Keep keyboard focus, native controls and VoiceOver labels. Native controls use the platform focus ring; custom buttons add a 2 pt accent outline with a 4 pt inset. Hover is not the only state indication.
+
+Normal text must achieve at least 4.5:1 against its actual surface. `contrast.json` records token-pair calculations. Disabled controls are exempt from WCAG text contrast, but descriptions and Coming soon labels remain full-opacity readable text. Decorative dividers are not text and are not certified by the text contrast table.
+
+## 7. Future platform adaptation
+
+Phone uses one column with bottom navigation Today / Conversations / Vocabulary / Progress; primary voice actions stay within thumb reach with at least 44 pt targets and safe-area padding. Hints become a sheet. iPad uses adaptive two/three columns in landscape and collapsible secondary content in portrait. Web uses the same token values as CSS variables and `system-ui, -apple-system, BlinkMacSystemFont, sans-serif`; Windows and Android use system fallback fonts without downloading SF Pro. Native Live Activity and Dynamic Island are concepts, not implemented capabilities.
+
+## 8. Reproducibility and evidence
+
+Generated gradients, blurred edges, inconsistent marks, text shaping and variable canvas dimensions are not executable specifications. Replace them with flat token colors, native SF typography and the vector LingoGlyph. The permitted app-icon bitmap is a separate asset; generated screenshots are never embedded in UI.
+
+Preserve original ImageGen outputs and exact prompts. Normalize comparison canvases with recorded scaling only; do not claim pixel agreement from resampling. Every Mac screen requires reference | implementation evidence in both themes. The ±4 pt acceptance criterion remains unpassed until measured; all larger differences stay listed in the report. Autonomous choice is not owner approval of a deviation.

@@ -1,52 +1,17 @@
 import SwiftUI
 
-/// Round 40 pt avatar (DESIGN.md §5).
+/// Abstract assistant identity; user messages do not use human portraits.
 struct Avatar: View {
     let role: AvatarRole
+    var speaking = false
     enum AvatarRole { case user, bot }
-
     var body: some View {
-        ZStack {
-            Circle().fill(role == .user ? Theme.C.avatarUserBg : Theme.C.avatarBotBg)
-            switch role {
-            case .user:
-                Image(systemName: "person.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Theme.C.avatarUserIcon)
-            case .bot:
-                RobotIcon()
-                    .fill(Theme.C.avatarBotIcon)
-                    .frame(width: 20, height: 20)
-            }
+        Group {
+            if role == .bot { LingoMark(speaking: speaking) }
+            else { Image(systemName: "person.crop.circle").foregroundStyle(Theme.C.textSecondary) }
         }
         .frame(width: Theme.R.avatar, height: Theme.R.avatar)
         .accessibilityHidden(true)
-    }
-}
-
-/// Robot icon as in the mockup (SF Symbols has none): a head with an antenna and eyes.
-struct RobotIcon: Shape {
-    func path(in r: CGRect) -> Path {
-        var p = Path()
-        let w = r.width, h = r.height
-        // Antenna.
-        p.addEllipse(in: CGRect(x: r.minX + w * 0.43, y: r.minY, width: w * 0.14, height: w * 0.14))
-        p.addRect(CGRect(x: r.minX + w * 0.47, y: r.minY + w * 0.1, width: w * 0.06, height: h * 0.14))
-        // Ears.
-        p.addRoundedRect(in: CGRect(x: r.minX, y: r.minY + h * 0.45, width: w * 0.1, height: h * 0.22), cornerSize: CGSize(width: w * 0.04, height: w * 0.04))
-        p.addRoundedRect(in: CGRect(x: r.maxX - w * 0.1, y: r.minY + h * 0.45, width: w * 0.1, height: h * 0.22), cornerSize: CGSize(width: w * 0.04, height: w * 0.04))
-        // Head with cut-out eyes (even-odd).
-        let head = CGRect(x: r.minX + w * 0.12, y: r.minY + h * 0.24, width: w * 0.76, height: h * 0.66)
-        p.addRoundedRect(in: head, cornerSize: CGSize(width: w * 0.2, height: w * 0.2))
-        let face = head.insetBy(dx: w * 0.1, dy: h * 0.1)
-        p.addRoundedRect(in: face, cornerSize: CGSize(width: w * 0.14, height: w * 0.14))
-        p.addEllipse(in: CGRect(x: face.minX + face.width * 0.18, y: face.midY - h * 0.07, width: w * 0.14, height: h * 0.14))
-        p.addEllipse(in: CGRect(x: face.maxX - face.width * 0.18 - w * 0.14, y: face.midY - h * 0.07, width: w * 0.14, height: h * 0.14))
-        return p
-    }
-
-    func fill(_ color: Color) -> some View {
-        self.fill(color, style: FillStyle(eoFill: true))
     }
 }
 
@@ -63,7 +28,7 @@ struct DeliveryTicks: View {
     }
 }
 
-/// Hover — `opacity(0.85)` over the original, disabled — `opacity(0.4)` (DESIGN.md §6).
+/// Pointer feedback and an explicit keyboard focus outline use DESIGN.md v2 tokens.
 struct LingoButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         HoverWrapper(pressed: configuration.isPressed) { configuration.label }
@@ -74,12 +39,18 @@ struct LingoButtonStyle: ButtonStyle {
         @ViewBuilder let content: () -> Content
         @State private var hover = false
         @Environment(\.isEnabled) private var enabled
+        @Environment(\.isFocused) private var focused
 
         var body: some View {
             content()
                 .opacity(enabled ? ((hover || pressed) ? Theme.hoverOpacity : 1) : Theme.disabledOpacity)
                 .onHover { hover = $0 }
                 .contentShape(Rectangle())
+                .overlay {
+                    RoundedRectangle(cornerRadius: Theme.R.button)
+                        .strokeBorder(focused ? Theme.C.accentPrimary : .clear, lineWidth: 2)
+                        .padding(-4).allowsHitTesting(false).accessibilityHidden(true)
+                }
         }
     }
 }

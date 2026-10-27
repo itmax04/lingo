@@ -1,0 +1,4 @@
+# Preserve exact generation prompts, including trailing spaces from the source/call.
+# Whitespace checks remain enabled for application code and repository prose.
+design/redesign-2026/prompts-used/*.md whitespace=-blank-at-eol
+design/redesign-2026/prompts/IMAGEGEN-PROMPTS.md whitespace=-blank-at-eol
