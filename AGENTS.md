@@ -105,6 +105,7 @@ UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swif
 | How a part works | `docs/architecture/ARCHITECTURE.md`, then the code |
 | Data formats / API | `packages/contracts/` |
 | How to test / release | `docs/process/TESTING.md`, `docs/process/RELEASE.md` |
+| Start prompt for each stage | `docs/process/STAGE-PROMPTS.md` |
 | Terms | `docs/GLOSSARY.md` |
 | Design | `DESIGN.md`, `docs/design/lingo-mac.webp` |
 
