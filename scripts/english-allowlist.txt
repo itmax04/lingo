@@ -29,6 +29,7 @@ evals/*.yaml
 evals/*/*.yaml
 packages/contracts/*
 docs/changes/*/evidence/*
+design/*/prompts/*
 
 # --- Owner-facing Russian templates and file names quoted in docs ---
 docs/process/SDLC.md
