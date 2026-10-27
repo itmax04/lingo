@@ -38,3 +38,14 @@ AGENTS.md and the root Swift package were read from main `1e254e7`. Missing futu
 The large initial Git transfer timed out. The existing authenticated GitHub API transported the blobs and bounded tree batches instead. The resulting remote commit is **byte-identical** to local `031a15652eedb847fdaf5913bbd1ea84f082b80d`, with tree `eb06defa0157be6a6cdbd356230fca9099d8d094`; no history rewrite or replacement commit was needed. The local branch tracks `origin/feat/redesign`. Main was not updated or merged.
 
 This follow-up commit only records publication evidence. The CI link above is pinned to the tested code/assets commit; current PR checks remain the authority for the latest documentation head. The ImageGen limit and visual acceptance gaps are unchanged.
+
+## Prompt 1, STEP 1 — 2026-10-27
+
+Owner authorized STEP 1–2 only, using Prompt 1 from `origin/design/imagegen-prompts` (`1abe972`); no ImageGen or STEP 3–5 until explicitly resumed.
+`git fetch` succeeded. `git merge origin/main` returned `Already up to date` against `1e254e7`; no merge commit or conflict resolution was needed.
+The remote still reports PR #1 and #31 open; their architecture/process changes and DESIGN.md Web adaptation are not in main.
+Read those architecture/process documents from the authorized prompt-source branch without merging unrelated work.
+
+Replaced `redesign.yml` with the documented `ci-repo.yml` and `ci-mac.yml` workflows, preserving the Mac path filters.
+Repository hygiene runs the design check; the single macOS job builds/tests and compiles both String Catalogs.
+Validation: workflow structure inspected; execution of the revised checks follows STEP 2. No history rewrite, force push or main update.
