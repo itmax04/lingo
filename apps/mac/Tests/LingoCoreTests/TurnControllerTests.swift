@@ -79,6 +79,11 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
             }
         }
         func settle(_ s: Double = 0.3) async { try? await Task.sleep(for: .seconds(s)) }
+        /// Waits until `condition` holds (at most `timeout` s): a slow CI runner needs longer than a fixed pause.
+        func waitUntil(timeout: Double = 3, _ condition: () -> Bool) async {
+            let end = Date().addingTimeInterval(timeout)
+            while !condition(), Date() < end { try? await Task.sleep(for: .milliseconds(25)) }
+        }
     }
 
     func env(texts: [String], recDelay: Double = 0, reply: @escaping @Sendable (String) -> MockProvider.Behavior = { _ in .text(["@say de: Schön! Wie lange schon?"]) }) async throws -> Env {
@@ -112,11 +117,11 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         e.tc.pushDown()
         await e.feed(1200, speech: true)
         e.tc.pushUp()
-        await e.settle()
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
         #expect(e.tc.state == .speaking)
         e.sink.finish()
-        await e.settle(0.2)
+        await e.waitUntil { e.tc.state == .idle }
         #expect(e.tc.state == .idle)
         let msgs = await e.store.state.messages[e.sid]!
         #expect(msgs.map(\.role) == [.user, .assistant] && msgs[0].text == "Ich wohne in Hamburg.")
