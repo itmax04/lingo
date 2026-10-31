@@ -74,6 +74,7 @@ describe("time", () => {
   it("odd milliseconds round-trip in the shared fixture", () => {
     for (const l of lines("fixtures/events/timestamps.jsonl")) expect(eventLine(parseEventLine(l))).toBe(l);
     expect(() => formatTS(Date.UTC(10000, 0, 1))).toThrow();
+    expect(parseTS("0050-01-01T00:00:00.000Z")).toBe(Date.parse("0050-01-01T00:00:00.000Z"));
   });
 
   it("keeps milliseconds", () => {
