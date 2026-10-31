@@ -61,7 +61,12 @@
         "fix.recorded",
         "hint.added",
         "phrase.starred",
-        "phrase.unstarred"
+        "phrase.unstarred",
+        "vocab.added",
+        "vocab.updated",
+        "vocab.removed",
+        "vocab.used",
+        "profile.updated"
       ]
     },
     "session": {
@@ -218,6 +223,86 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/PhrasePayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "vocab.added"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/VocabAdded"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "vocab.updated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/VocabUpdated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "vocab.removed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/VocabRemoved"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "vocab.used"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/VocabUsed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "profile.updated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ProfileUpdated"
           }
         }
       }
@@ -583,6 +668,143 @@
         }
       },
       "additionalProperties": true
+    },
+    "VocabDraft": {
+      "type": "object",
+      "description": "A learner's vocabulary item as added (LINGO-08 VR-01).",
+      "required": [
+        "lang",
+        "text",
+        "source"
+      ],
+      "properties": {
+        "lang": {
+          "$ref": "#/$defs/Lang"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "translation": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "example": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "list",
+            "starred"
+          ]
+        }
+      }
+    },
+    "VocabAdded": {
+      "type": "object",
+      "description": "vocab.added, session \"\". The item id is the event id. Two items with the same language and normalised text are one item: the earliest vocab.added is kept.",
+      "required": [
+        "item"
+      ],
+      "properties": {
+        "item": {
+          "$ref": "#/$defs/VocabDraft"
+        }
+      }
+    },
+    "VocabUpdated": {
+      "type": "object",
+      "description": "vocab.updated: only present fields change; each field is last-writer-wins by (lamport, device).",
+      "required": [
+        "item"
+      ],
+      "properties": {
+        "item": {
+          "type": "string",
+          "description": "Id of the vocab.added event."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "translation": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "example": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "VocabRemoved": {
+      "type": "object",
+      "description": "vocab.removed: final — removes every vocab.added with the same key whose version (lamport, device, id) is below the removal's, with their later updates and uses; a later add of the same text is a new item.",
+      "required": [
+        "item"
+      ],
+      "properties": {
+        "item": {
+          "type": "string"
+        }
+      }
+    },
+    "VocabUsed": {
+      "type": "object",
+      "description": "vocab.used: session = where it happened. Counted once per (item, by, message); when such events disagree, mistake wins. Ids of starred phrases are \"star:<lang>:<normalised text>\"; ids of a duplicate item (same language and text) count for the earliest item.",
+      "required": [
+        "item",
+        "message",
+        "by",
+        "outcome"
+      ],
+      "properties": {
+        "item": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "description": "The learner's message (by learner) or the assistant's reply (by assistant)."
+        },
+        "by": {
+          "enum": [
+            "learner",
+            "assistant"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "ok",
+            "mistake"
+          ]
+        }
+      }
+    },
+    "ProfileUpdated": {
+      "type": "object",
+      "description": "profile.updated, session \"\": learner goals and interests (LINGO-08 PR-01); present fields are last-writer-wins.",
+      "properties": {
+        "goals": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "interests": {
+          "type": "string",
+          "maxLength": 300
+        }
+      }
     }
   }
 }

@@ -71,4 +71,57 @@ public enum Payload {
         public var phrase: Phrase
         public init(phrase: Phrase) { self.phrase = phrase }
     }
+
+    // MARK: My vocabulary (LINGO-08, VR-02) and the learner profile (PR-01)
+
+    public struct VocabDraft: Codable, Sendable, Hashable {
+        public var lang: Lang
+        public var text: String
+        public var translation: String?
+        public var note: String?
+        public var example: String?
+        public var source: VocabSource
+        public init(lang: Lang, text: String, translation: String? = nil, note: String? = nil, example: String? = nil, source: VocabSource = .manual) {
+            self.lang = lang; self.text = text; self.translation = translation; self.note = note; self.example = example; self.source = source
+        }
+    }
+
+    public struct VocabAdded: Codable, Sendable, Hashable {
+        public var item: VocabDraft
+        public init(item: VocabDraft) { self.item = item }
+    }
+
+    /// Only the fields that are present change (each one last-writer-wins).
+    public struct VocabUpdated: Codable, Sendable, Hashable {
+        public var item: String
+        public var text: String?
+        public var translation: String?
+        public var note: String?
+        public var example: String?
+        public init(item: String, text: String? = nil, translation: String? = nil, note: String? = nil, example: String? = nil) {
+            self.item = item; self.text = text; self.translation = translation; self.note = note; self.example = example
+        }
+    }
+
+    public struct VocabRemoved: Codable, Sendable, Hashable {
+        public var item: String
+        public init(item: String) { self.item = item }
+    }
+
+    public struct VocabUsed: Codable, Sendable, Hashable {
+        public var item: String
+        /// The learner's message (by learner) or the assistant's reply (by assistant): one event counts per (item, by, message).
+        public var message: String
+        public var by: VocabActor
+        public var outcome: VocabOutcome
+        public init(item: String, message: String, by: VocabActor, outcome: VocabOutcome) {
+            self.item = item; self.message = message; self.by = by; self.outcome = outcome
+        }
+    }
+
+    public struct ProfileUpdated: Codable, Sendable, Hashable {
+        public var goals: String?
+        public var interests: String?
+        public init(goals: String? = nil, interests: String? = nil) { self.goals = goals; self.interests = interests }
+    }
 }

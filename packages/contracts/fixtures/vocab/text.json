@@ -1,0 +1,31 @@
+{
+  "rule": "VR-07a (normalise, key) and VR-03 (pasted list) of docs/changes/LINGO-08/spec.md (v2).",
+  "normalize": [
+    {"in": "  Let's   GO!  ", "out": "lets go"},
+    {"in": "Größe, bitte.", "out": "größe bitte"},
+    {"in": "E-Mail", "out": "e mail"},
+    {"in": "«Feierabend»", "out": "feierabend"},
+    {"in": "rock’n’roll", "out": "rocknroll"}
+  ],
+  "key": [
+    {"lang": "de", "text": "Feierabend!", "out": "de:feierabend"},
+    {"lang": "en", "text": "Nice to meet you.", "out": "en:nice to meet you"}
+  ],
+  "parseList": {
+    "in": "Feierabend — конец рабочего дня\n- sich verabreden - договориться о встрече\n\n2) Fernweh: тоска по дальним странам\n• eine Ausrede\tотговорка\nотговорка — eine Ausrede2\nwell-known — известный\nAchtung: Stufe — осторожно, ступенька\nnur Text\nword -\n-5 Grad: minus fünf\n1.5 kg — полтора килограмма\n",
+    "entries": [
+      {"text": "Feierabend", "translation": "конец рабочего дня"},
+      {"text": "sich verabreden", "translation": "договориться о встрече"},
+      {"text": "Fernweh", "translation": "тоска по дальним странам"},
+      {"text": "eine Ausrede", "translation": "отговорка"},
+      {"text": "eine Ausrede2", "translation": "отговорка"},
+      {"text": "well-known", "translation": "известный"},
+      {"text": "Achtung", "translation": "Stufe — осторожно, ступенька"},
+      {"text": "nur Text", "translation": ""},
+      {"text": "word -", "translation": ""},
+      {"text": "-5 Grad", "translation": "minus fünf"},
+      {"text": "1.5 kg", "translation": "полтора килограмма"}
+    ],
+    "rejected": 0
+  }
+}
