@@ -52,12 +52,16 @@ public enum VocabularyText {
         return out
     }
 
+    /// A bullet or a number is removed only when a space follows it, so "-5 Grad" and "1.5 kg" stay as they are.
     static func stripBullet(_ line: String) -> String {
         var s = Substring(line)
-        if let f = s.first, "-•*–—".contains(f) { s = s.dropFirst() }
+        if let f = s.first, "-•*–—".contains(f), s.dropFirst().first?.isWhitespace == true { s = s.dropFirst() }
         else {
             let digits = s.prefix { $0.isNumber }
-            if !digits.isEmpty, let next = s.dropFirst(digits.count).first, next == "." || next == ")" { s = s.dropFirst(digits.count + 1) }
+            let rest = s.dropFirst(digits.count)
+            if !digits.isEmpty, let next = rest.first, next == "." || next == ")", rest.dropFirst().first?.isWhitespace == true {
+                s = s.dropFirst(digits.count + 1)
+            }
         }
         return s.trimmingCharacters(in: .whitespaces)
     }
@@ -80,7 +84,7 @@ public enum VocabularyMatcher {
     ]
     static let endings: [Lang: Set<String>] = [
         .de: ["", "e", "en", "n", "st", "t", "et", "est", "te", "ten", "tet", "er", "es", "em", "s", "ens"],
-        .en: ["", "s", "es", "ed", "d", "ing", "er"],
+        .en: ["", "s", "es", "ed", "ing", "er"],
     ]
     static let droppedEEndings: Set<String> = ["e", "es", "ed", "er", "ing"]
     /// Longest first, so that `vorbei` is tried before `vor`.
@@ -97,8 +101,9 @@ public enum VocabularyMatcher {
     static func stem(_ t: String, lang: Lang) -> String {
         switch lang {
         case .de:
-            if t.count > 5, t.hasSuffix("en") { return String(t.dropLast(2)) }
-            if t.count > 4, t.hasSuffix("n") || t.hasSuffix("e") { return String(t.dropLast()) }
+            // At least 5 letters, so that short nouns keep their ending ("Rose" does not become "Ros" + "t").
+            if t.count >= 5, t.hasSuffix("en") { return String(t.dropLast(2)) }
+            if t.count >= 5, t.hasSuffix("n") || t.hasSuffix("e") { return String(t.dropLast()) }
             return t
         default:
             if t.count > 3, t.hasSuffix("e") { return String(t.dropLast()) }
@@ -148,11 +153,16 @@ public enum VocabularyMatcher {
     public static func match(_ itemText: String, in utterance: String, lang: Lang) -> [Int]? {
         let a = itemTokens(itemText, lang: lang), b = VocabularyText.tokens(utterance)
         guard !a.isEmpty, !b.isEmpty else { return nil }
-        // Cheap pre-check: every item token must occur somewhere, otherwise there is nothing to search.
-        for t in a where !b.indices.contains(where: { tokenAt(t, b, $0, lang: lang) != nil }) { return nil }
+        // Every item token's possible placements, computed once; an item with a token that occurs nowhere is not searched.
+        let hits: [[Int: [Int]]] = a.map { t in
+            var m: [Int: [Int]] = [:]
+            for i in b.indices { if let h = tokenAt(t, b, i, lang: lang) { m[i] = h } }
+            return m
+        }
+        if hits.contains(where: \.isEmpty) { return nil }
         if lang == .de {
-            // Any order within a window (word order changes in German clauses). The step budget bounds a long item of common
-            // words against a long reply; running out counts as "not found" (an accepted miss).
+            // Any order within a window (word order changes in German clauses). The step budget bounds an item that repeats a word
+            // against a long reply; running out counts as "not found" (an accepted miss, VR-07b).
             let width = a.count + maxGap * (a.count - 1)
             var steps = 0
             func assign(_ k: Int, _ range: Range<Int>, _ used: Set<Int>) -> [Int]? {
@@ -160,7 +170,7 @@ public enum VocabularyMatcher {
                 for i in range where !used.contains(i) {
                     steps += 1
                     if steps > maxSteps { return nil }
-                    guard let hit = tokenAt(a[k], b, i, lang: lang), used.isDisjoint(with: hit) else { continue }
+                    guard let hit = hits[k][i], used.isDisjoint(with: hit) else { continue }
                     if let rest = assign(k + 1, range, used.union(hit)) { return hit + rest }
                 }
                 return nil
@@ -170,13 +180,18 @@ public enum VocabularyMatcher {
             }
             return nil
         }
+        // In order: memoised on (token, previous word), so the search is polynomial.
+        var failed: Set<Int> = []
         func place(_ k: Int, after prev: Int) -> [Int]? {
             if k == a.count { return [] }
+            let memo = k * (b.count + 1) + prev + 1
+            if failed.contains(memo) { return nil }
             let range = k == 0 ? 0..<b.count : (prev + 1)..<min(b.count, prev + 2 + maxGap)
             for j in range {
-                guard let hit = tokenAt(a[k], b, j, lang: lang), let rest = place(k + 1, after: hit[0]) else { continue }
+                guard let hit = hits[k][j], let rest = place(k + 1, after: hit[0]) else { continue }
                 return hit + rest
             }
+            failed.insert(memo)
             return nil
         }
         return place(0, after: -1)

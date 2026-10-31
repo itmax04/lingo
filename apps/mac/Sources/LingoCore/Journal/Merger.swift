@@ -149,7 +149,6 @@ public enum Merger {
             var translation: LWW<String>
             var note: LWW<String>
             var example: LWW<String>
-            var removed = LWW(false)
         }
         var vocab: [String: VocabAcc] = [:]
         var vocabUpdates: [(Version, Payload.VocabUpdated)] = []
@@ -272,14 +271,26 @@ public enum Merger {
         }
         for (key, reg) in stars where reg.value { st.starred[key] = starPhrase[key] }
 
-        // My vocabulary. Two items with the same language and text (added on two devices) are one: the earliest is canonical (VR-02).
-        var canonical: [String: String] = [:]
-        var byKey: [String: (Event, String)] = [:]
-        for (id, acc) in vocab.sorted(by: { (a, b) in (a.value.event.tsMillis, a.value.event.device, a.value.event.seq, a.key) < (b.value.event.tsMillis, b.value.event.device, b.value.event.seq, b.key) }) {
-            let key = VocabularyText.key(lang: acc.draft.lang, text: acc.draft.text)
-            if let first = byKey[key] { canonical[id] = first.1 } else { byKey[key] = (acc.event, id); canonical[id] = id }
+        // My vocabulary (VR-02). A removal of any item with a given language and text removes every add of that text whose version is
+        // below the removal's (removal is final for them); later adds start again. Of the live adds of one text (two devices), the
+        // earliest is canonical. Removed adds map to themselves and are dropped, with their updates and uses.
+        func addKey(_ acc: VocabAcc) -> String { VocabularyText.key(lang: acc.draft.lang, text: acc.draft.text) }
+        var removedBelow: [String: Version] = [:]
+        for (v, id) in vocabRemovals {
+            guard let acc = vocab[id] else { continue }
+            let k = addKey(acc)
+            if let cur = removedBelow[k], cur >= v { continue }
+            removedBelow[k] = v
         }
-        // Field updates and removals are applied by version (order of arrival does not matter); removal is final.
+        var canonical: [String: String] = [:]
+        var byKey: [String: String] = [:]
+        var dead: Set<String> = []
+        for (id, acc) in vocab.sorted(by: { (a, b) in (a.value.event.tsMillis, a.value.event.device, a.value.event.seq, a.key) < (b.value.event.tsMillis, b.value.event.device, b.value.event.seq, b.key) }) {
+            let key = addKey(acc)
+            if let r = removedBelow[key], Version(acc.event) < r { dead.insert(id); canonical[id] = id; continue }
+            if let first = byKey[key] { canonical[id] = first } else { byKey[key] = id; canonical[id] = id }
+        }
+        // Field updates are applied by version (order of arrival does not matter).
         for (v, u) in vocabUpdates {
             guard let id = canonical[u.item] else { continue }
             if let t = u.text, !VocabularyText.normalize(t).isEmpty { vocab[id]?.text.apply(t, v) }
@@ -287,8 +298,7 @@ public enum Merger {
             if let t = u.note { vocab[id]?.note.apply(t, v) }
             if let t = u.example { vocab[id]?.example.apply(t, v) }
         }
-        for (v, id) in vocabRemovals { if let c = canonical[id] { vocab[c]?.removed.apply(true, v) } }
-        for (id, acc) in vocab where canonical[id] == id && !acc.removed.value {
+        for (id, acc) in vocab where canonical[id] == id && !dead.contains(id) {
             st.vocab[id] = VocabItem(id: id, lang: acc.draft.lang, text: acc.text.value, translation: acc.translation.value,
                                      note: acc.note.value, example: acc.example.value, source: acc.draft.source, createdAt: acc.event.ts)
         }

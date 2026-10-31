@@ -12,7 +12,7 @@
     {"lang": "en", "text": "Nice to meet you.", "out": "en:nice to meet you"}
   ],
   "parseList": {
-    "in": "Feierabend — конец рабочего дня\n- sich verabreden - договориться о встрече\n\n2) Fernweh: тоска по дальним странам\n• eine Ausrede\tотговорка\nотговорка — eine Ausrede2\nwell-known — известный\nAchtung: Stufe — осторожно, ступенька\nnur Text\nword -\n",
+    "in": "Feierabend — конец рабочего дня\n- sich verabreden - договориться о встрече\n\n2) Fernweh: тоска по дальним странам\n• eine Ausrede\tотговорка\nотговорка — eine Ausrede2\nwell-known — известный\nAchtung: Stufe — осторожно, ступенька\nnur Text\nword -\n-5 Grad: minus fünf\n1.5 kg — полтора килограмма\n",
     "entries": [
       {"text": "Feierabend", "translation": "конец рабочего дня"},
       {"text": "sich verabreden", "translation": "договориться о встрече"},
@@ -22,7 +22,9 @@
       {"text": "well-known", "translation": "известный"},
       {"text": "Achtung", "translation": "Stufe — осторожно, ступенька"},
       {"text": "nur Text", "translation": ""},
-      {"text": "word -", "translation": ""}
+      {"text": "word -", "translation": ""},
+      {"text": "-5 Grad", "translation": "minus fünf"},
+      {"text": "1.5 kg", "translation": "полтора килограмма"}
     ],
     "rejected": 0
   }

@@ -763,7 +763,7 @@
     },
     "VocabRemoved": {
       "type": "object",
-      "description": "vocab.removed: final — a removed item never comes back, whatever its later updates.",
+      "description": "vocab.removed: final — removes every vocab.added with the same key whose version (lamport, device, id) is below the removal's, with their later updates and uses; a later add of the same text is a new item.",
       "required": [
         "item"
       ],

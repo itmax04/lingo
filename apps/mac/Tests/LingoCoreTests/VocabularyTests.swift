@@ -84,6 +84,8 @@ private func isoDate(_ s: String) -> Date {
         #expect(r1.added == 2 && r1.duplicates == 0)
         let r2 = try await e.addVocabulary(lang: .de, entries: [("feierabend!", ""), ("eine Ausrede", "отговорка")], source: .manual)
         #expect(r2.added == 1 && r2.duplicates == 1)
+        let r4 = try await e.addVocabulary(lang: .de, entries: [(String(repeating: "x", count: 121), "")], source: .manual)
+        #expect(r4.added == 0 && r4.rejected == 1)  // too long: rejected, not cut
         let r3 = try await e.addVocabulary(lang: .en, entries: [("Feierabend", "")], source: .manual)  // other language: not a duplicate
         #expect(r3.added == 1)
         let st = await store.state
@@ -220,6 +222,30 @@ private func isoDate(_ s: String) -> Date {
                       ev(EventType.vocabRemoved, seq: 2, lamport: 2, ms: 2_000, Payload.VocabRemoved(item: add.id)),
                       ev(EventType.vocabUpdated, device: "web-bbbb", seq: 1, lamport: 9, ms: 3_000, Payload.VocabUpdated(item: add.id, note: "later"))]
         for order in [events, events.reversed()] { #expect(Merger.build(Array(order)).vocab.isEmpty) }
+    }
+
+    @Test func aRemovedTextCanBeAddedAgainAndDoesNotBringBackAnOlderDuplicate() {
+        let a1 = ev(EventType.vocabAdded, seq: 1, lamport: 1, ms: 1_000, Payload.VocabAdded(item: .init(lang: .de, text: "Feierabend")))
+        let a2 = ev(EventType.vocabAdded, device: "web-bbbb", seq: 1, lamport: 1, ms: 1_500, Payload.VocabAdded(item: .init(lang: .de, text: "feierabend!")))
+        let rm = ev(EventType.vocabRemoved, seq: 2, lamport: 3, ms: 2_000, Payload.VocabRemoved(item: a1.id))
+        // Removing the canonical item removes the older duplicate too (it does not come back).
+        for order in [[a1, a2, rm], [rm, a2, a1]] { #expect(Merger.build(order).vocab.isEmpty) }
+        // A later add of the same text is a new, visible item, with its own uses.
+        let again = ev(EventType.vocabAdded, seq: 3, lamport: 4, ms: 3_000, Payload.VocabAdded(item: .init(lang: .de, text: "Feierabend")))
+        let use = ev(EventType.vocabUsed, "s9", seq: 4, lamport: 5, ms: 4_000, Payload.VocabUsed(item: again.id, message: "m9", by: .learner, outcome: .ok))
+        let oldUse = ev(EventType.vocabUsed, "s8", seq: 5, lamport: 6, ms: 4_500, Payload.VocabUsed(item: a1.id, message: "m8", by: .learner, outcome: .ok))
+        for order in [[a1, a2, rm, again, use, oldUse], [oldUse, use, again, rm, a2, a1]] {
+            let st = Merger.build(order)
+            #expect(st.vocab.keys.sorted() == [again.id])
+            #expect(st.vocab[again.id]?.used == 1)  // the use of the removed item is dropped
+        }
+    }
+
+    @Test func aRepeatedWordItemDoesNotStallTheMatcher() {
+        let t0 = Date()
+        #expect(!VocabularyMatcher.contains("die die die die die die x", in: String(repeating: "die und ", count: 60), lang: .de))
+        #expect(!VocabularyMatcher.contains("a a a a a a a a a a a a b", in: String(repeating: "a ", count: 90), lang: .en))
+        #expect(Date().timeIntervalSince(t0) < 1)
     }
 
     @Test func statisticsBeforeASessionLeaveItsOwnUsesOut() throws {
