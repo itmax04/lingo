@@ -1,0 +1,38 @@
+{
+  "rule": "VR-06 of docs/changes/LINGO-08/spec.md: items of the session language, not used correctly in this session; sort by used asc, offered asc, lastPractised asc (never first), createdAt desc, id asc; take count.",
+  "cases": [
+    {
+      "name": "never practised first, then fewer uses",
+      "lang": "de", "count": 3, "usedInSession": [],
+      "items": [
+        {"id": "A", "lang": "de", "text": "sich verabreden", "createdAt": "2026-10-01T10:00:00.000Z", "offered": 2, "used": 1, "mistakes": 0, "lastPractised": "2026-10-20T10:00:00.000Z"},
+        {"id": "B", "lang": "de", "text": "Feierabend", "createdAt": "2026-10-02T10:00:00.000Z", "offered": 0, "used": 0, "mistakes": 0, "lastPractised": null},
+        {"id": "C", "lang": "de", "text": "Fernweh", "createdAt": "2026-10-03T10:00:00.000Z", "offered": 1, "used": 0, "mistakes": 1, "lastPractised": "2026-10-10T10:00:00.000Z"},
+        {"id": "D", "lang": "de", "text": "eine Ausrede", "createdAt": "2026-10-04T10:00:00.000Z", "offered": 0, "used": 0, "mistakes": 0, "lastPractised": null},
+        {"id": "E", "lang": "en", "text": "to make ends meet", "createdAt": "2026-10-05T10:00:00.000Z", "offered": 0, "used": 0, "mistakes": 0, "lastPractised": null}
+      ],
+      "expected": ["D", "B", "C"]
+    },
+    {
+      "name": "used correctly in this session makes room for the next one",
+      "lang": "de", "count": 2, "usedInSession": ["D"],
+      "items": [
+        {"id": "A", "lang": "de", "text": "sich verabreden", "createdAt": "2026-10-01T10:00:00.000Z", "offered": 2, "used": 1, "mistakes": 0, "lastPractised": "2026-10-20T10:00:00.000Z"},
+        {"id": "B", "lang": "de", "text": "Feierabend", "createdAt": "2026-10-02T10:00:00.000Z", "offered": 0, "used": 0, "mistakes": 0, "lastPractised": null},
+        {"id": "D", "lang": "de", "text": "eine Ausrede", "createdAt": "2026-10-04T10:00:00.000Z", "offered": 1, "used": 1, "mistakes": 0, "lastPractised": "2026-10-31T10:00:00.000Z"}
+      ],
+      "expected": ["B", "A"]
+    },
+    {
+      "name": "ties: older practice first, then newer item, then id",
+      "lang": "en", "count": 3, "usedInSession": [],
+      "items": [
+        {"id": "x2", "lang": "en", "text": "a piece of cake", "createdAt": "2026-10-01T10:00:00.000Z", "offered": 1, "used": 0, "mistakes": 0, "lastPractised": "2026-10-15T10:00:00.000Z"},
+        {"id": "x1", "lang": "en", "text": "to break the ice", "createdAt": "2026-10-01T10:00:00.000Z", "offered": 1, "used": 0, "mistakes": 0, "lastPractised": "2026-10-15T10:00:00.000Z"},
+        {"id": "y", "lang": "en", "text": "to call it a day", "createdAt": "2026-10-03T10:00:00.000Z", "offered": 1, "used": 0, "mistakes": 0, "lastPractised": "2026-10-12T10:00:00.000Z"},
+        {"id": "z", "lang": "en", "text": "spot on", "createdAt": "2026-10-04T10:00:00.000Z", "offered": 1, "used": 0, "mistakes": 0, "lastPractised": "2026-10-15T10:00:00.000Z"}
+      ],
+      "expected": ["y", "z", "x1"]
+    }
+  ]
+}

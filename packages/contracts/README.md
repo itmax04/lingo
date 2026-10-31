@@ -10,6 +10,9 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/events/sample-journal.jsonl` | One event of every type, written by the real Swift code (keys sorted) | round-trip tests: parse → serialize must give identical lines |
 | `fixtures/events/merge-two-devices.input.jsonl` | Two devices, interleaved order, one duplicate | merge parity |
 | `fixtures/events/merge-two-devices.expected.json` | Expected visible sessions, ordered messages (with `heard`, `interruptedAt`), starred keys | merge parity (Swift `Merger.build` produced it) |
+| `fixtures/vocab/selection.json` | Which vocabulary items the model practises next (LINGO-08 VR-06) | Swift `VocabularyContractTests`, the TS port |
+| `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07), with negative cases | Swift `VocabularyContractTests`, the TS port |
+| `fixtures/vocab/events.jsonl` | One event of every vocabulary/profile type, written by the real Swift code | round-trip tests |
 | `api/openapi.yaml` | Engine HTTP API (sign-in, sync, lease, transcribe, turn SSE, budget, export, delete) | engine implementation, web client, later the Mac adapter |
 | `prompts/` *(moved here in plan step P-01)* | System-prompt snapshots (today `Tests/LingoCoreTests/Snapshots/*.txt`) | Swift `PromptBuilderTests`, TS prompt builder tests — byte-identical |
 | `evals/` *(moved here in P-01)* | `commands`, `turn`, `audio`, `dialog` eval sets (today `evals/`) | Swift `lingo-eval`, TS ports, the engine's eval runner |

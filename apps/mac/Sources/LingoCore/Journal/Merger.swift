@@ -45,6 +45,13 @@ public struct HistoryState: Sendable {
     public var hints: [String: [Phrase]] = [:]
     /// Vocabulary ★ (R-28): phrase key → phrase.
     public var starred: [String: Phrase] = [:]
+    /// My vocabulary (VR-01…VR-05): the learner's own items with statistics; ★ phrases are added by `vocabulary(lang:)`.
+    public var vocab: [String: VocabItem] = [:]
+    /// Statistics of ★ phrases used as items, by `VocabItem.starredID`.
+    public var starredStats: [String: VocabItem] = [:]
+    /// Items the learner used correctly in each session (VR-06: they make room for the next ones).
+    public var vocabUsedInSession: [String: Set<String>] = [:]
+    public var profile = LearnerProfile()
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -53,6 +60,21 @@ public struct HistoryState: Sendable {
     public var unknownEvents = 0
 
     public init() {}
+
+    /// All practice items of a language (or all): the learner's own items and the ★ phrases (A-02).
+    public func vocabulary(lang: Lang? = nil) -> [VocabItem] {
+        var out = vocab.values.filter { lang == nil || $0.lang == lang }
+        for (key, p) in starred where lang == nil || p.lang == lang {
+            let id = VocabItem.starredID(key)
+            var item = starredStats[id] ?? VocabItem(id: id, lang: p.lang, text: p.text, createdAt: .distantPast)
+            item.lang = p.lang; item.text = p.text; item.translation = p.translation; item.source = .starred
+            // A ★ phrase that is also a manual item is shown once (the manual one).
+            if !out.contains(where: { VocabularyText.key(lang: $0.lang, text: $0.text) == VocabularyText.key(lang: p.lang, text: p.text) }) {
+                out.append(item)
+            }
+        }
+        return out
+    }
 
     /// Visible sessions by last activity (R-05).
     public func visibleSessions(lang: Lang? = nil) -> [Session] {
@@ -103,6 +125,21 @@ public enum Merger {
         var stars: [String: LWW<Bool>] = [:]
         var starPhrase: [String: Phrase] = [:]
         var hintKeys: [String: Set<String>] = [:]
+        struct VocabAcc {
+            var event: Event
+            var draft: Payload.VocabDraft
+            var text: LWW<String>
+            var translation: LWW<String>
+            var note: LWW<String>
+            var example: LWW<String>
+            var removed = LWW(false)
+        }
+        var vocab: [String: VocabAcc] = [:]
+        var vocabUpdates: [(Version, Payload.VocabUpdated)] = []
+        var vocabRemovals: [(Version, String)] = []
+        var vocabUses: [(Event, Payload.VocabUsed)] = []
+        var starTime: [String: Date] = [:]
+        var goals = LWW(""), interests = LWW("")
 
         for e in events {
             st.maxLamport = max(st.maxLamport, e.lamport)
@@ -161,7 +198,25 @@ public enum Merger {
                 var reg = stars[key] ?? LWW(false)
                 reg.apply(e.type == EventType.phraseStarred, ver)
                 stars[key] = reg
-                if reg.version == ver { starPhrase[key] = p.phrase }
+                if reg.version == ver { starPhrase[key] = p.phrase; if e.type == EventType.phraseStarred { starTime[key] = e.ts } }
+            case EventType.vocabAdded:
+                guard let p = try? e.payload.decode(Payload.VocabAdded.self) else { st.unknownEvents += 1; continue }
+                let d = p.item
+                vocab[e.id] = VocabAcc(event: e, draft: d, text: LWW(d.text), translation: LWW(d.translation ?? ""),
+                                       note: LWW(d.note ?? ""), example: LWW(d.example ?? ""))
+            case EventType.vocabUpdated:
+                guard let p = try? e.payload.decode(Payload.VocabUpdated.self) else { st.unknownEvents += 1; continue }
+                vocabUpdates.append((ver, p))
+            case EventType.vocabRemoved:
+                guard let p = try? e.payload.decode(Payload.VocabRemoved.self) else { st.unknownEvents += 1; continue }
+                vocabRemovals.append((ver, p.item))
+            case EventType.vocabUsed:
+                guard let p = try? e.payload.decode(Payload.VocabUsed.self) else { st.unknownEvents += 1; continue }
+                vocabUses.append((e, p))
+            case EventType.profileUpdated:
+                guard let p = try? e.payload.decode(Payload.ProfileUpdated.self) else { st.unknownEvents += 1; continue }
+                if let g = p.goals { goals.apply(g, ver) }
+                if let i = p.interests { interests.apply(i, ver) }
             default:
                 st.unknownEvents += 1
             }
@@ -199,6 +254,37 @@ public enum Merger {
             st.messages[sid] = out
         }
         for (key, reg) in stars where reg.value { st.starred[key] = starPhrase[key] }
+
+        // My vocabulary: field updates and removals are applied by version (order of arrival does not matter).
+        for (v, u) in vocabUpdates {
+            if let t = u.text { vocab[u.item]?.text.apply(t, v) }
+            if let t = u.translation { vocab[u.item]?.translation.apply(t, v) }
+            if let t = u.note { vocab[u.item]?.note.apply(t, v) }
+            if let t = u.example { vocab[u.item]?.example.apply(t, v) }
+        }
+        for (v, id) in vocabRemovals { vocab[id]?.removed.apply(true, v) }
+        for (id, acc) in vocab where !acc.removed.value {
+            st.vocab[id] = VocabItem(id: id, lang: acc.draft.lang, text: acc.text.value, translation: acc.translation.value,
+                                     note: acc.note.value, example: acc.example.value, source: acc.draft.source, createdAt: acc.event.ts)
+        }
+        for (key, p) in st.starred {
+            let id = VocabItem.starredID(key)
+            st.starredStats[id] = VocabItem(id: id, lang: p.lang, text: p.text, translation: p.translation, source: .starred,
+                                            createdAt: starTime[key] ?? .distantPast)
+        }
+        for (e, u) in vocabUses {
+            func bump(_ item: inout VocabItem) {
+                switch (u.by, u.outcome) {
+                case (.assistant, _): item.offered += 1
+                case (.learner, .ok): item.used += 1
+                case (.learner, .mistake): item.mistakes += 1
+                }
+                item.lastPractised = max(item.lastPractised ?? .distantPast, e.ts)
+            }
+            if st.vocab[u.item] != nil { bump(&st.vocab[u.item]!) } else if st.starredStats[u.item] != nil { bump(&st.starredStats[u.item]!) }
+            if u.by == .learner, u.outcome == .ok, !e.session.isEmpty { st.vocabUsedInSession[e.session, default: []].insert(u.item) }
+        }
+        st.profile = LearnerProfile(goals: goals.value, interests: interests.value)
         return st
     }
 }

@@ -263,6 +263,49 @@ public actor DialogEngine {
         try await store.append(on ? EventType.phraseStarred : EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
     }
 
+    // MARK: My vocabulary (LINGO-08, VR-03, VR-04) and the learner profile (PR-01)
+
+    /// Adds items; an item whose normalised text already exists in that language is skipped. Returns (added, duplicates).
+    @discardableResult
+    public func addVocabulary(lang: Lang, entries: [(text: String, translation: String)], source: VocabSource) async throws -> (added: Int, duplicates: Int) {
+        let st = await store.state
+        var keys = Set(st.vocabulary(lang: lang).map { VocabularyText.key(lang: $0.lang, text: $0.text) })
+        var batch: [(type: String, session: String, payload: JSONValue)] = []
+        var dup = 0
+        for e in entries {
+            let text = String(e.text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(120))
+            guard !VocabularyText.normalize(text).isEmpty else { continue }
+            let key = VocabularyText.key(lang: lang, text: text)
+            guard keys.insert(key).inserted else { dup += 1; continue }
+            let tr = String(e.translation.trimmingCharacters(in: .whitespacesAndNewlines).prefix(160))
+            batch.append((EventType.vocabAdded, "", try JSONValue.from(Payload.VocabAdded(item: Payload.VocabDraft(
+                lang: lang, text: text, translation: tr.isEmpty ? nil : tr, source: source)))))
+        }
+        if !batch.isEmpty { _ = try await store.appendBatch(batch) }
+        return (batch.count, dup)
+    }
+
+    public func updateVocabulary(_ id: String, text: String? = nil, translation: String? = nil, note: String? = nil, example: String? = nil) async throws {
+        try await store.append(EventType.vocabUpdated, session: "", Payload.VocabUpdated(
+            item: id, text: text.map { String($0.prefix(120)) }, translation: translation.map { String($0.prefix(160)) },
+            note: note.map { String($0.prefix(300)) }, example: example.map { String($0.prefix(200)) }))
+    }
+
+    /// Removes an item; a ★ phrase is un-starred instead.
+    public func removeVocabulary(_ id: String) async throws {
+        let st = await store.state
+        if id.hasPrefix("star:"), let p = st.starred[String(id.dropFirst(5))] {
+            try await store.append(EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
+            return
+        }
+        try await store.append(EventType.vocabRemoved, session: "", Payload.VocabRemoved(item: id))
+    }
+
+    public func updateProfile(goals: String? = nil, interests: String? = nil) async throws {
+        try await store.append(EventType.profileUpdated, session: "", Payload.ProfileUpdated(
+            goals: goals.map { String($0.prefix(300)) }, interests: interests.map { String($0.prefix(300)) }))
+    }
+
     // MARK: Translation of one message (user action)
 
     public enum TranslationError: Error, Equatable { case unavailable(String), empty }

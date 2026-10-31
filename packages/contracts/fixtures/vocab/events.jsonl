@@ -1,0 +1,5 @@
+{"device":"mac-fixture","id":"01K8WVBC80HDCC4877K2EW8RTK","lamport":1,"payload":{"item":{"lang":"de","source":"manual","text":"Feierabend","translation":"конец рабочего дня"}},"seq":1,"session":"","ts":"2025-10-31T10:00:00.000Z","type":"vocab.added","v":1}
+{"device":"mac-fixture","id":"01K8WVBC807DCTM7RJ44V9C4XT","lamport":2,"payload":{"item":"01K8WVBC80HDCC4877K2EW8RTK","note":"nach der Arbeit"},"seq":2,"session":"","ts":"2025-10-31T10:00:00.000Z","type":"vocab.updated","v":1}
+{"device":"mac-fixture","id":"01K8WVBC808P5G5QPCXEB4GQF6","lamport":3,"payload":{"by":"learner","item":"01K8WVBC80HDCC4877K2EW8RTK","outcome":"ok"},"seq":3,"session":"s1","ts":"2025-10-31T10:00:00.000Z","type":"vocab.used","v":1}
+{"device":"mac-fixture","id":"01K8WVBC801R0S40YEB51606QK","lamport":4,"payload":{"goals":"B2 exam","interests":"football"},"seq":4,"session":"","ts":"2025-10-31T10:00:00.000Z","type":"profile.updated","v":1}
+{"device":"mac-fixture","id":"01K8WVBC80T7AXSW1KQ8P6XF9K","lamport":5,"payload":{"item":"01K8WVBC80HDCC4877K2EW8RTK"},"seq":5,"session":"","ts":"2025-10-31T10:00:00.000Z","type":"vocab.removed","v":1}

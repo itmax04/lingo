@@ -47,10 +47,17 @@ public enum EventType {
     public static let hintAdded = "hint.added"
     public static let phraseStarred = "phrase.starred"
     public static let phraseUnstarred = "phrase.unstarred"
+    /// My vocabulary (LINGO-08, VR-02) and the learner profile (PR-01).
+    public static let vocabAdded = "vocab.added"
+    public static let vocabUpdated = "vocab.updated"
+    public static let vocabRemoved = "vocab.removed"
+    public static let vocabUsed = "vocab.used"
+    public static let profileUpdated = "profile.updated"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
-                                         hintAdded, phraseStarred, phraseUnstarred]
+                                         hintAdded, phraseStarred, phraseUnstarred,
+                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated]
 }
 
 // MARK: - JSON Lines row

@@ -1,0 +1,17 @@
+{
+  "rule": "VR-07 of docs/changes/LINGO-08/spec.md: normalise (lower case, punctuation removed, apostrophes dropped, umlauts and ß kept); tokens of the item in the same order with at most 2 other tokens between neighbours; a token matches equal text, or for tokens of >= 5 letters a common prefix of at least max(5, length - 2) letters.",
+  "cases": [
+    {"item": "Feierabend", "utterance": "Ich habe um sechs Feierabend.", "expected": true},
+    {"item": "sich verabreden", "utterance": "Wir haben uns gestern verabredet, aber er kam nicht.", "expected": false, "why": "'sich' does not occur: the reflexive pronoun changes (uns); add the verb alone to practise inflected forms"},
+    {"item": "verabreden", "utterance": "Wir haben uns gestern verabredet.", "expected": true},
+    {"item": "eine Ausrede", "utterance": "Das ist doch nur eine schlechte Ausrede!", "expected": true},
+    {"item": "eine Ausrede", "utterance": "Ausrede eine", "expected": false, "why": "order"},
+    {"item": "to make ends meet", "utterance": "It's hard to make ends meet in a big city.", "expected": true},
+    {"item": "to make ends meet", "utterance": "I need to make my ends meet", "expected": true, "why": "one word between"},
+    {"item": "break the ice", "utterance": "I tried to break the awkward silence and ice", "expected": false, "why": "gap of 3 tokens between 'the' and 'ice'"},
+    {"item": "cat", "utterance": "I like my category of work", "expected": false, "why": "short tokens must be equal: no substring match"},
+    {"item": "let's call it a day", "utterance": "OK, lets call it a day.", "expected": true, "why": "apostrophes dropped"},
+    {"item": "Größe", "utterance": "Welche größe haben Sie?", "expected": true},
+    {"item": "Fernweh", "utterance": "Ich habe Heimweh.", "expected": false}
+  ]
+}
