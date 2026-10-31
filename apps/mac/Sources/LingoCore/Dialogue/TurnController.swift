@@ -22,11 +22,14 @@ public final class TurnController {
         public var lastAssistant: ChatMessage?
         public var lastUser: ChatMessage?
         public var phrases: [String]
-        public init(session: Session, lastAssistant: ChatMessage?, lastUser: ChatMessage?, phrases: [String]) {
+        /// The learner's vocabulary targets of the session (VR-07c): a hint for speech recognition.
+        public var targets: [String] = []
+        public init(session: Session, lastAssistant: ChatMessage?, lastUser: ChatMessage?, phrases: [String], targets: [String] = []) {
             self.session = session
             self.lastAssistant = lastAssistant
             self.lastUser = lastUser
             self.phrases = phrases
+            self.targets = targets
         }
     }
 
@@ -254,7 +257,7 @@ public final class TurnController {
         lastSpeechEnd = speechEnd
         state = .thinking
         answerStarted = false
-        let recCtx = RecognitionContext.make(lastAssistant: ctx.lastAssistant?.spokenText, topic: ctx.session.settings.topic, phrases: ctx.phrases)
+        let recCtx = RecognitionContext.make(lastAssistant: ctx.lastAssistant?.spokenText, topic: ctx.session.settings.topic, phrases: ctx.phrases, targets: ctx.targets)
         let prevID = lastUserID, prevText = lastUserText
         turnTask = Task { [weak self] in
             guard let self else { return }

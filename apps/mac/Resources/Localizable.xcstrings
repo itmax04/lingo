@@ -2687,6 +2687,23 @@
       },
       "extractionState": "manual"
     },
+    "My words": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My words"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мои слова"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "New session": {
       "localizations": {
         "en": {
