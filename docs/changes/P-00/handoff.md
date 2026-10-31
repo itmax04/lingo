@@ -1,6 +1,6 @@
 # P-00 active decision and adoption handoff
 
-Date: 2026-10-29 (Europe/Berlin). Status at this build: adoption delta committed on branch `docs/p-00-adoption` (not pushed, not merged); formal P-00 adoption on main is not claimed. No product implementation is completed.
+Date: 2026-10-29 (Europe/Berlin). Status at this build: adoption delta committed on branch `docs/p-00-adoption` (published as PR #35; the chain #1/#31/#34 was merged on 2026-10-31 under G-CHAIN); formal P-00 adoption on main is not claimed. No product implementation is completed.
 
 ## Actual owner decisions
 
@@ -18,7 +18,7 @@ Current bounded execution plan: P00-ADOPTION-PLAN-03 v1, SHA-256 `c3cb420c5635f5
 
 DG-03 A permits only the reviewed 15-document delta plus its explicit acceptance-status records inside those paths, on an own codex/ branch and own PR to compatible main, after current local checks, AI review, full publication-history secret scan, CI/workflow/base/diff and verified $0 conditions. No additional manual owner document review is required. The current build does not publish or merge.
 
-Current main differs from the approved baseline across 44 paths, 35 outside the own 15. Existing PRs #1/#31/#34 are not merged by this authority; #33 remains outside it. No import, retarget, edit or implicit merge of that chain, direct main push, force/history rewrite or protection bypass. Dependent publication waits for compatible scoped base resolution; local delivery may complete while it is blocked.
+Current main differs from the approved baseline across 44 paths, 35 outside the own 15. Existing PRs #1/#31/#34 were not merged by DG-03 A; they were merged on 2026-10-31 under the separate owner decision G-CHAIN, with green CI and independent AI review; #33 remains outside it. No import, retarget, edit or implicit merge of that chain, direct main push, force/history rewrite or protection bypass. Dependent publication waits for compatible scoped base resolution; local delivery may complete while it is blocked.
 
 D04-01 retains AI-only implementation/review for R2/R3 without a mandatory human reviewer. Current R1 author self-review is not an independent AI release review. Preserve $0/no card, no secrets/audio/utterance diagnostics/pronunciation assessment, Russian first-run with Russian/English/System choices, offline read-only seeded fixtures and owner-run accounts/settings/production/migrations/devices. No future product/device/duration gate is closed; LINGO-07 precedes LINGO-03 Stage 0.
 
