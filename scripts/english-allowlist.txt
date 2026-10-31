@@ -21,9 +21,6 @@ docs/process/SDLC.md
 docs/changes/LINGO-01/intent.md
 docs/changes/LINGO-03/handoff.md
 
-# --- Pending translation (LINGO-03 P-06 removes these lines) ---
-docs/changes/LINGO-01/handoff.md
-
 # Quoted Russian utterances of the PDF example (language data) and the source file name; the prose is English.
 docs/reference/pdf-patterns.md
 
