@@ -132,7 +132,9 @@ public actor DialogEngine {
         var history = st.messages[session] ?? []
         // "Reply again": the context goes up to and including the user's utterance (the old reply is ignored).
         if let r = replyTo, let i = history.firstIndex(where: { $0.id == r }) { history = Array(history[...i]) }
-        let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy)
+        // The profile is frozen per session (PR-01); the targets use the statistics from before the session (VR-06).
+        let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
+                                              profile: st.promptProfile(session: session), vocabulary: st.vocabTargets(session: session))
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?
