@@ -6732,6 +6732,23 @@
           }
         }
       }
+    },
+    "Finishing the session…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finishing the session…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершаю сессию…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

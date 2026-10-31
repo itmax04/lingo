@@ -288,15 +288,45 @@ public actor DialogEngine {
 
     // MARK: Finishing (R-22, R-23)
 
+    /// The goodbye of "Finish" (R-22): a fixed short phrase in the study language, written as an assistant message. It does not call a model:
+    /// a model asked to "finish" answered the last utterance instead (a question), and every click produced one more such reply.
+    /// Returns nil when the session is missing or already finished, so a second click changes nothing.
+    public func farewell(session: String) async -> (lang: Lang, text: String)? {
+        let st = await store.state
+        guard let s = st.sessions[session], s.state != .ended else { return nil }
+        // The study language is en or de; Russian is never spoken without a request (R-26), so anything else gets the English line.
+        let lang: Lang = s.settings.lang == .de ? .de : .en
+        let text = lang == .de ? "Das war eine gute Übung. Bis zum nächsten Mal!" : "That was good practice. See you next time!"
+        let seg = ReplySegment.say(lang, text)
+        do {
+            _ = try await store.append(EventType.messageCreated, session: session,
+                                       Payload.MessageCreated(role: .assistant, text: "@say \(lang.rawValue): \(text)", lang: lang, segments: [seg], source: "Lingo"))
+        } catch { return nil }  // a goodbye that is not in the journal is not spoken either
+        return (lang, text)
+    }
+
     /// "Finish" or "that's all": a goodbye in the target language (already in the reply to the finish command), a recap in Russian
     /// if the "after the conversation" mode is on (R-23), the "finished" state, and a summary.
     public func end(_ session: String) async {
+        guard await markEnded(session) else { return }
+        await finalizeEnded(session)
+    }
+
+    /// The "finished" state, written at once (no model call), so the app can accept input again right away.
+    /// Returns false when the session is missing or was already finished.
+    public func markEnded(_ session: String) async -> Bool {
         let st = await store.state
-        guard let s = st.sessions[session], s.state != .ended else { return }
-        if s.settings.corrections.contains(.after) {
-            await recap(session)
-        }
+        guard let s = st.sessions[session], s.state != .ended else { return false }
+        _ = s
         _ = try? await store.append(EventType.sessionEnded, session: session, payload: .object([:]))
+        return true
+    }
+
+    /// What follows the end of a session and needs the model: the recap in the "after" mode (R-23) and the final summary.
+    public func finalizeEnded(_ session: String) async {
+        let st = await store.state
+        guard let s = st.sessions[session] else { return }
+        if s.settings.corrections.contains(.after) { await recap(session) }
         await maybeSummarize(session, force: true)
     }
 

@@ -44,6 +44,8 @@ public final class TurnController {
     public var onLevel: ((Float) -> Void)?
     public var onTurn: ((TurnEvent) -> Void)?
     public var onNotice: ((String) -> Void)?
+    /// The learner said "that's all" (R-22). Their line is saved, no model reply is requested; the app ends the session with its own goodbye.
+    public var onFinishCommand: ((String) -> Void)?
     public private(set) var mode: Mode = .pushToTalk
     /// "I'm speaking Russian" (R-09): the next single utterance is recognized as Russian.
     public var forceRussianOnce = false
@@ -279,6 +281,12 @@ public final class TurnController {
                 self.metrics?.note(turnID, "command", c.rawValue)
                 _ = try? await self.engine.recordUser(session: ctx.session.id, text: text, lang: tr.lang)
                 self.replayLast(ctx: ctx, slower: c == .slower, turnID: turnID)
+                return
+            }
+            if cmd?.kind == .finish {
+                self.metrics?.note(turnID, "command", CommandKind.finish.rawValue)
+                _ = try? await self.engine.recordUser(session: ctx.session.id, text: text, lang: tr.lang)
+                if !Task.isCancelled { self.onFinishCommand?(ctx.session.id) }
                 return
             }
             if c(cmd) != .slower { self.slowStep = 0 }
