@@ -43,9 +43,9 @@ enum BlindReview {
             """
             key.append(KeyItem(n: i + 1, caseID: r.id, model: r.model))
         }
-        try md.write(toFile: "evals/blind-review.md", atomically: true, encoding: .utf8)
+        try md.write(toFile: "packages/contracts/evals/blind-review.md", atomically: true, encoding: .utf8)
         _ = try EvalIO.writeOut("blind-key.json", key)
-        print("blind: evals/blind-review.md (\(key.count) replies), key evals/out/blind-key.json")
+        print("blind: packages/contracts/evals/blind-review.md (\(key.count) replies), key packages/contracts/evals/out/blind-key.json")
         return 0
     }
 }

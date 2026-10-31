@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Builds dist/Lingo.app (ADR-0001 §2–3, plan.md P-01). Modelled on Interview Copilot (scripts/build-app.sh, commit cf0e764).
+# Builds dist/Lingo.app (repo root) (ADR-0001 §2–3, plan.md P-01). Modelled on Interview Copilot (scripts/build-app.sh, commit cf0e764).
 # Signed with a persistent local self-signed certificate (A-5) so macOS permissions (TCC) survive rebuilds.
 # Search order: $CODESIGN_IDENTITY, "Lingo Dev", "InterviewCopilot".
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
-"$ROOT/scripts/ensure-build-dir.sh"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+MAC="$ROOT/apps/mac"
+cd "$MAC"
+"$MAC/scripts/ensure-build-dir.sh"
 
 APP_NAME="Lingo"
 BUNDLE_ID="com.itmax04.lingo.mac"
@@ -44,7 +45,7 @@ BIN="$(swift build -c release --show-bin-path)/$APP_NAME"
 echo "==> packaging"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/$APP_NAME"
-cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
+cp "$MAC/Resources/Info.plist" "$APP/Contents/Info.plist"
 # Build version (review F-05): the build number is the commit count, the revision is the commit (+ "-dirty" with uncommitted changes).
 GIT_REV="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ] && GIT_REV="$GIT_REV-dirty"
@@ -52,14 +53,14 @@ BUILD_NO="$(git rev-list --count HEAD 2>/dev/null || echo 0)"
 /usr/libexec/PlistBuddy -c "Add :LingoGitRevision string $GIT_REV" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NO" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :LingoBuildDate string $(date -u +%Y-%m-%dT%H:%M:%SZ)" "$APP/Contents/Info.plist"
-find "$ROOT/Resources" -maxdepth 1 -type f ! -name Info.plist -exec cp {} "$APP/Contents/Resources/" \;
+find "$MAC/Resources" -maxdepth 1 -type f ! -name Info.plist -exec cp {} "$APP/Contents/Resources/" \;
 
-xcrun xcstringstool compile "$ROOT/Resources/Localizable.xcstrings" --output-directory "$APP/Contents/Resources"
-if [ -f "$ROOT/Resources/InfoPlist.xcstrings" ]; then
-  xcrun xcstringstool compile "$ROOT/Resources/InfoPlist.xcstrings" --output-directory "$APP/Contents/Resources"
+xcrun xcstringstool compile "$MAC/Resources/Localizable.xcstrings" --output-directory "$APP/Contents/Resources"
+if [ -f "$MAC/Resources/InfoPlist.xcstrings" ]; then
+  xcrun xcstringstool compile "$MAC/Resources/InfoPlist.xcstrings" --output-directory "$APP/Contents/Resources"
 fi
 # The icon is rendered at native sizes, then iconutil builds the .icns.
-"$BIN" --export-iconset "$STAGE/AppIcon.iconset" --icon-source "$ROOT/Resources/AppIcon.png"
+"$BIN" --export-iconset "$STAGE/AppIcon.iconset" --icon-source "$MAC/Resources/AppIcon.png"
 iconutil -c icns "$STAGE/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
 
 # Native libraries (the whisper XCFramework), if any, go into Frameworks.

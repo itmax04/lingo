@@ -37,7 +37,7 @@ def contrast_checks(tokens):
 def validate(root):
     system = root / 'design/redesign-2026/design-system'
     tokens = json.loads((system / 'tokens.json').read_text())
-    source = (root / 'Sources/LingoMac/Design/Theme.swift').read_text()
+    source = (root / 'apps/mac/Sources/LingoMac/Design/Theme.swift').read_text()
     actual = {key: {'light': '#' + light, 'dark': '#' + dark}
               for key, light, dark in re.findall(r'static let (\w+) = adaptive\(0x([0-9A-F]{6}), 0x([0-9A-F]{6})\)', source)}
     assert tokens == actual, 'Theme.swift differs from the canonical token manifest'
@@ -46,7 +46,7 @@ def validate(root):
     assert contrast == {'threshold': THRESHOLD, 'checks': checks}, 'contrast.json is stale; regenerate it from tokens.json'
     assert list(root.rglob('DESIGN.md')) == [root / 'DESIGN.md'], 'Keep only the root DESIGN.md'
     count = 0
-    for path in (root / 'Resources').glob('*.xcstrings'):
+    for path in (root / 'apps/mac/Resources').glob('*.xcstrings'):
         catalog = json.loads(path.read_text())
         assert catalog['sourceLanguage'] == 'en'
         for key, entry in catalog['strings'].items():

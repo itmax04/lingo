@@ -5,7 +5,8 @@ import Testing
 
 @Suite struct DialogRulesTests {
     static let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        .appendingPathComponent("evals/dialog")
+        .deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("packages/contracts/evals/dialog")
 
     func c(_ id: String) throws -> DialogCase { try #require(try DialogCase.load(dir: Self.dir).first { $0.id == id }) }
 
