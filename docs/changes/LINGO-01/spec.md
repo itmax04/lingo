@@ -8,7 +8,8 @@ Only this file sets requirements. plan.md and handoff.md only refer to the numbe
 
 Translated to English in LINGO-03 P-06 (MR-08); the Russian original is in the Git history of this file. Utterances and UI texts that the user speaks or reads in Russian
 are given in English and marked "(ru)"; the exact Russian phrase lists live in `packages/contracts/evals/commands/ru.yaml` and the dialog evals, and the Russian UI texts in
-`apps/mac/Resources/Localizable.xcstrings`.
+`apps/mac/Resources/Localizable.xcstrings`. UI labels in this translation follow the English catalog in spirit; the catalog wording is authoritative where they differ
+(for example "As we go", "Reply again", "I'm speaking Russian", "Sync now", "Offline").
 
 ## 1. Terms
 - **Study language** — `en` or `de`, set per session. **Explanation language** — `ru`.
@@ -66,8 +67,8 @@ All scenarios are implemented and checked in the Mac app (LINGO-01). The iPhone 
   The assistant does not switch to Russian. It gives a version in the study language and asks the user to repeat (R-18, A-2).
 - **S-11. "Let's continue".** The user says "weiter", "let's continue" or the Russian phrase for "let's continue" (ru).
   The assistant returns to practice: the next question or a remark on the topic (R-19).
-- **S-12. Mixed speech.** The user says (ru/de) "Dann musste, oh, no, no, from the very beginning. Dann muss ich zu Hause bleiben".
-  The transcript keeps both parts as the engine gave them. The self-correction "oh, no, from the very beginning" is not counted as a mistake.
+- **S-12. Mixed speech.** The user says "Dann musste, oi, ne, ne, s samogo nachala. Dann muss ich zu Hause bleiben" (the middle part is Russian, transliterated here: "oh, no, no, from the very beginning").
+  The transcript keeps both parts as the engine gave them. The self-correction "oi, ne, s samogo nachala" is not counted as a mistake.
   The assistant answers to the last finished thought (R-08, R-21).
   If the mixed phrase was recognised badly:
   - the button "I speak Russian" recognises the next utterance as Russian;
@@ -190,7 +191,7 @@ The check set is the `commands` eval.
 
 ### Error correction
 - **R-20. Correction modes** are chosen before the session (S-01) and changed in the session header. Any combinations are possible:
-  - **as you go** — no more than one main correction per turn, in the study language, on the pattern "More natural: „…“", then a request to repeat.
+  - **as you go** — no more than one main correction per turn, in the study language, on the pattern "Natürlicher: „…“" (de) / "More natural: “…”" (en), then a request to repeat.
     An answer that is right in meaning but not to the question asked is also marked (P5);
   - **after the conversation** — the assistant does not interrupt the practice with corrections. For each turn the model returns hidden `@fix` records (R-24).
     They accumulate in the journal and are shown in the recap R-23;
@@ -219,10 +220,11 @@ The check set is the `commands` eval.
   ```
   @say de: Fast perfekt! Natürlicher wäre: „Ich heiße Alex. Freut mich.“
   @say ru: (only on an explicit request) …
-  @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + place: "likes something in a city" (ru) — gefallen an
-  @hint de: Freut mich, Sie kennenzulernen. | Nice to meet you. (ru)
+  @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + place: "likes something in a city" — gefallen an
+  @hint de: Freut mich, Sie kennenzulernen. | Nice to meet you.
   @say de: Sag das bitte noch einmal.
   ```
+  (In the real protocol the rule text of `@fix` and the translation of `@hint` are in Russian; they are shown in English here.)
   - `@say` lines are spoken and shown.
   - `@fix` is shown in the "as you go" mode. In the other modes it is only stored.
   - `@hint` goes into the hints.
