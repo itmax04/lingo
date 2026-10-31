@@ -1,6 +1,8 @@
 # Lingo upgrade plan — evidence-based amendment
 
-Status: proposed for owner acceptance at H-U · Version 1 · Date: 2026-10-28 (Europe/Berlin)
+Status: accepted at H-U in DG-01 on 2026-10-29; documentary execution remains separately scoped · Version 1 · Source date: 2026-10-28 (Europe/Berlin)
+
+DG-02 accepts LINGO-03 documents at H-0. DG-03 A permits only a future checked own docs PR/merge; the current adoption build is local only. See the [active P-00 ledger](../changes/P-00/handoff.md). The original 80 implementation rows, dependencies and future product gates below are unchanged; no code completion is inferred.
 Scope: planning only; no application code, contracts, ADR decisions or issue states changed by this PR.
 
 This amends [LINGO-03 plan](../changes/LINGO-03/plan.md), preserving P-01…P-20, H-0…H-5 and the [ROADMAP](../ROADMAP.md). Letter suffixes split existing steps into one-session PRs; they do not introduce product goals. [Start prompts](../process/STAGE-PROMPTS.md) use this amendment after H-U. Requirements remain in [LINGO-03 spec][S03], [LINGO-01 spec][S01] and accepted ADRs. LINGO-04/05/06 implementation outlines are conditional on their own future specs and H-0 gates, not authorization to implement unaccepted requirements.
@@ -93,14 +95,15 @@ No product goal is removed. LINGO-07 stays before Stage 0 as in the current star
 
 ## 3. Execution contract for every row
 
-All rows inherit this section, their stage entry/exit gates and the verification profiles. **No row authorizes accounts, keys, secrets, console/system settings, force-push, branch deletion or merging by the executor.** `L` = owner's Mac only; `C` = cloud or local, mocks only; `L/O` = local preparation, owner performs live gate. Mixed Swift/TS changes are **L**. Image generation uses existing subscription only, within available allowance; 429 ends generation work, never paid fallback.
+All rows inherit this section, their stage entry/exit gates and the verification profiles. **No row authorizes accounts, keys, secrets, console/system settings, force-push or branch deletion. Current P-00 preparation is local files/patches only, without publication, live canonical edits or application changes.** Future separately scoped build work may push/open/merge ready PRs only after current checks, independent review and applicable H-x; no main push, force, history rewrite or bypass. Production and remote migrations remain owner-run. `L` = owner's Mac only; `C` = cloud or local, mocks only; `L/O` = local preparation, owner performs live gate. Mixed Swift/TS changes are **L**. Image generation uses existing subscription only, within available allowance; 429 ends generation work, never paid fallback.
 
 - Every step: one issue/sub-issue, isolated worktree, one session, one PR, handoff with tested SHA and PASS/FAIL/NOT RUN. No auto-spawned agents. Parallel rows mean eligibility for separately authorized sessions.
 - Size is **changed text lines including tests/docs**, target 150–450, ceiling about 600; pure renames measured with `git diff --numstat -M`. Binary assets get byte budgets separately. If the proposed patch exceeds 600, split the named row into suffixes with the same requirements and explicit predecessor; do not hide a second feature in a “test” follow-up.
 - Shared behaviour: fixtures/contracts first; update every **existing** Swift and TS implementation in the same PR. Stage 0 has no TS runtime yet: Swift + neutral fixtures are the reference consumed by P-07. Do not invent a second implementation just for the move.
 - No raw owner utterances/audio/keys in evidence. Synthetic fixture text is language data; operational logs contain safe metadata only. Live owner practice is distinct from automated evals.
 - Model evals/bulk calls: Berlin 23:00–08:00, recheck before **every** attempt/retry, stop at 08:00 or first exhausted cap. ≤15 provider attempts per batch, retries included; one model at a time; explicit request/token/audio/neuron caps and remaining reserve recorded. No `--allow-daytime`, no paid route, no “zero” unknown usage. Mock/offline tests can run anytime.
-- Owner reviews/merges in dependency order. While waiting, stack on the tested predecessor SHA and target that predecessor branch. After a squash merge, integrate main with a normal merge commit and verify the diff/base; never rebase/force-push. Shared handoff/catalog/manifest edits are integrated sequentially by the row owner.
+- D04-01 supersedes D01-02: R2/R3 implementation and review are AI-only, without a mandatory human reviewer. Actual AI session/role, reviewed SHA, checks and findings are required before dependent release. R1 local preparation uses author self-review.
+- Required acceptance remains the owner's decision; conditional future executor merges follow dependency order after checks/review/gates. Historical owner-merge wording names required merged predecessors, not current P-00 publication authority. While waiting, stack on the tested predecessor SHA and target that predecessor branch. After a squash merge, integrate main with a normal merge commit and verify the diff/base; never rebase/force-push. Shared handoff/catalog/manifest edits are integrated sequentially by the row owner.
 - ADR allow-lists only. Pin versions. FSRS/new code generator/new real-time infrastructure requires an accepted ADR before adding dependencies. No third-party framework is implied by a table path.
 
 ### Verification profiles (commands run from repository root)
@@ -137,7 +140,22 @@ For future LINGO-04/05/06 document rows: `test -s docs/changes/LINGO-NN/spec.md`
 
 ### P-00 — document and issue reconciliation (C, 200–450 lines)
 
-Goal: turn this amendment into accepted execution inputs. Requirements: [S03] and [intent O-01…O-22][INT], SDLC Definition of Ready. Files: LINGO-03 intent/spec/plan/handoff, ROADMAP status, AGENTS/process contradictions; issue bodies #2…#30/#32. Depends: H-U. Acceptance: record H-0/H-U evidence and Q1 resolution; spec/plan links point here, old parent IDs retained, child issues have acceptance checks and predecessor IDs; WS-09 is fixture replay unless owner changes offline scope; no future spec claimed accepted. Verify: D; `gh issue list --state open --limit 100`; `gh pr list --state open --limit 100`; manual crosswalk against §5. Risk: unauthorized scope change; do not resolve product alternatives by fiat. Owner only: acceptance and merges. This documentation step may precede redesign completion; Stage 0 code may not.
+Preparation detail: [P-00 delivery plan](../changes/P-00/plan.md), P00-D01…D05, refines this existing row without adding product goals or renumbering P-01…P-20. Accepted P00-SPEC-02 and the actual owner decision chain govern the preparation boundary. The amendment itself remains proposed until H-U.
+
+
+Goal: turn this amendment into accepted execution inputs. Requirements: [S03] and [intent O-01…O-22][INT], SDLC Definition of Ready. Files: LINGO-03 intent/spec/plan/handoff, ROADMAP status, AGENTS/process contradictions; issue bodies #2…#30/#32. Depends: H-U. Acceptance: record H-0/H-U evidence and Q1 resolution; spec/plan links point here, old parent IDs retained, child issues have acceptance checks and predecessor IDs; WS-09 is fixture replay unless owner changes offline scope; no future spec claimed accepted. Verify: D; `gh issue list --state open --limit 100`; `gh pr list --state open --limit 100`; manual crosswalk against §5. Risk: unauthorized scope change; do not resolve product alternatives by fiat. Owner only: acceptance. The current no-publication preparation may create reviewable drafts before H-U; formal canonical/issue adoption waits for H-U, actual H-0 evidence and separately authorized adoption/publication. Future executor merge authority is conditional under §3. This documentation step may precede redesign completion; Stage 0 code may not.
+
+### P-00 preparation slices (local only, before formal adoption)
+
+| Slice | Depends | Observable delivery | Boundary |
+|---|---|---|---|
+| P00-D01 | Accepted P-00 spec/plan; phase start/brainstorm | Pinned inputs, decision and parent-issue crosswalk | Read-only sources; no remote issues |
+| P00-D02 | D01 | Targeted AGENTS/process/roadmap/LINGO-03 amendments as proposals; source IDs and 80 rows retained | No adopted requirement changes |
+| P00-D03 | D02 | One English document candidate/patch at exact clean base, including prior preparation records | Local files, no live application/publication |
+| P00-D04 | D03 | AC-linked document/patch/privacy checks and reviewable H-U/H-0 dossier | Owner answers are not invented |
+| P00-D05 | D04 | Honest local implementation evidence and self-contained verification packet | Pending gates preserved, no PRs |
+
+The P00-D preparation chain is not formal P-00 reconciliation. H-U/H-0 and any adoption/publication permission remain separate human nodes after a reviewable dossier; they are not prerequisites for drafting that dossier. Q1 is decided in D01-01: Russian first-run with explicit Russian/English/System preferences preserved. Q3 remains read-only offline history with seeded queue fixtures. Neither decision claims a code fix or accepts all of H-U. Future Q2/Q4/Q5/Q6/Q7 stay at their own gates. A later folder called build does not change the P-00 scope.
 
 ## 5. Implementation steps and dependency table
 
@@ -294,7 +312,7 @@ Executor prepares a **Russian numbered checklist** with exact ready paths, URL, 
 
 | Gate | Ordered owner actions | Evidence supplied back (non-secret) |
 |---|---|---|
-| H-U / H-0 | Review this amendment; resolve Q1 at minimum; confirm spec precedence and H-0 acceptance; review #1, then retarget/merge #31 to main; this stacked docs PR is retargeted after its base lands. Confirm redesign continuation separately | Acceptance wording/date; PR URLs; Q1 choice |
+| H-U / H-0 | Review this exact amendment and recorded Q1/Q3 dispositions; separately confirm spec precedence and H-0 acceptance; review #1, then retarget/merge #31 to main; this stacked docs PR is retargeted after its base lands. Confirm redesign continuation separately | Acceptance wording/date; PR URLs; Q1 choice |
 | H-07a/b | Explicitly resume remaining STEP 3–5; if subscription unavailable leave blocked. At delivery review measured differences and outstanding FAILs; merge green redesign PRs in dependency order; squash #33 | Accepted screen table, merge SHAs; never infer completion from reset time |
 | H-1 | Merge Stage 0 PRs; run provided signed build; choose backup folder in app; export and restore to an isolated test location; grant microphone access yourself if needed; run 30-minute diagnostic and separate 30-minute live session; exercise repeat/slower/barge-in; confirm RU/EN | Counter-only diagnostics, turn count, median/p90, token totals, cutoffs/refusals, backup equality; no audio |
 | H-2a setup | From prepared `services/engine`, run pinned `npx wrangler login`; verify Free plan/no billing upgrade. Run `npx wrangler d1 create lingo`; provide non-secret database ID. Executor writes binding/config. Create prod/dev GitHub OAuth Apps, scope none, callbacks `https://<actual-worker>.workers.dev/auth/callback` and `http://localhost:8787/auth/callback`; provide client IDs only. Enter `GITHUB_CLIENT_SECRET`, `SESSION_PEPPER`, `GROQ_KEY_MAIN` with `npx wrangler secret put <NAME>` in correct environment; optional owner-risk pools only if chosen. Verify Groq ZDR for transcription and fallback policy. Report actual limits without keys | Worker name/URL, D1 ID, client IDs, numeric GitHub ID, Boolean setup/ZDR completion and safe limit table. Real dev credentials, if needed, entered only locally by owner; mock tests require none |
@@ -308,7 +326,9 @@ Executor prepares a **Russian numbered checklist** with exact ready paths, URL, 
 
 ## 8. Questions and separate proposals (not silently adopted)
 
-None prevents producing this plan. Q1 must be resolved at H-U before conflicting UI work; later questions belong to their indicated gates. If an owner chooses an alternative, update the relevant intent/spec/ADR **before implementation**, never weaken §6 rules.
+Current recorded dispositions (2026-10-29): Q1 is decided in D01-01; Q3 is a fixture clarification preserving WS-05 read-only behavior. Q2/Q4/Q5/Q6/Q7 remain deferred to their named gates. The table retains historical alternatives, not unresolved requests to re-ask Q1/Q3. [D04-01](../changes/P-00/review-policy-2026-10-29.md) replaces the prior human-review policy; H-U/H-0 remain pending.
+
+None prevents producing this plan. Q1 is resolved by D01-01: Russian first-run, retaining explicit Russian/English/System. Q3 preserves read-only offline history with seeded queue fixtures; later questions belong to their indicated gates. If an owner chooses an alternative, update the relevant intent/spec/ADR **before implementation**, never weaken §6 rules.
 
 | ID / when | Recommended option | Alternative and consequence |
 |---|---|---|
@@ -329,7 +349,7 @@ None prevents producing this plan. Q1 must be resolved at H-U before conflicting
 | O-03/06/10 | $0; 4×30 remains acceptance, not estimate; owner-risk pools labeled/disableable and not baseline capacity |
 | O-04/05/19 | Web → Mac account → all four teacher parts/scenarios → native; no earlier teacher runtime |
 | O-07/09/18 | Engine, OAuth allow-list, monorepo, contracts first; native token auth follows ADR-0003 |
-| O-12/13/14/15/16/21 | Codex executor, whole-stage autonomy via bounded sessions; local Mac, own worktrees; issues/milestones/PRs; owner merges; Russian summaries |
+| O-12/13/14/15/16/21 | Codex executor, whole-stage autonomy via bounded sessions; local Mac, own worktrees; issues/milestones/PRs; separately scoped executor merges after checks/AI review/H-x; Russian summaries |
 | O-17/20/22 | Stage 0 before web construction; approved redesign adaptation; no public/friends signup, isolation architecture retained |
 | ADR-0001…0005 and 0007 | Existing stack/allow-lists; no local Mac LLM revival; no new authentication/transport/library without accepted ADR; visual-only redesign |
 

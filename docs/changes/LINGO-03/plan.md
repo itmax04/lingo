@@ -1,15 +1,18 @@
 # LINGO-03: Plan
 
-ID: LINGO-03-plan · Status: **pending acceptance (H-0)** · Version: 2 · Date: 2026-10-26
+ID: LINGO-03-plan · Status: **accepted at H-0 in DG-02 on 2026-10-29** · Version: 2 · Date: 2026-10-26
 Links: [intent](intent.md) · [spec](spec.md) · [handoff](handoff.md) · [SDLC](../../process/SDLC.md) · [TESTING](../../process/TESTING.md) · [RELEASE](../../process/RELEASE.md)
 
 Every step is a GitHub issue titled `[LINGO-03 P-xx] …` in the milestone of its stage. Work per [SDLC](../../process/SDLC.md):
-branch → PR → green CI → owner merges; update `handoff.md` after each step.
+branch → PR → green checks → AI review and authorized merge; update `handoff.md` after each step.
 
 ## Owner checkpoints
+
+Execution amendment accepted in DG-01/DG-02: [upgrade plan](../../plans/UPGRADE-PLAN-2026-10-28.md), including H-2a setup after the mocked skeleton, H-2b owner spike deployment, H-4a full release and H-4b two-day trial. Legacy implementation rows/IDs below remain preserved for crosswalk. H-U/H-0 documents are accepted; product implementation still requires its separately launched scope and applicable gates. The completed [five preparation cards](../P-00/plan.md) are historical. DG-03 A covers only a future checked own docs PR/merge; the current adoption build is local only. See the [active ledger](../P-00/handoff.md). D04-01 retains AI-only R2/R3 review without a mandatory human.
+
 | H | When | What the owner does |
 |---|---|---|
-| H-0 | now | Accept intent/spec/plan/ADRs (or ask for changes) |
+| H-0 | documents accepted, DG-02 (2026-10-29) | LINGO-03 intent/spec/plan accepted; no implementation completion or new ADR change inferred |
 | H-1 | after P-02…P-05 | 30-minute Mac session (AC-17 protocol); reports cut-offs, refusals, voice; confirms Russian UI |
 | H-2 | before P-09 | Cloudflare + GitHub setup: `wrangler login`; create two GitHub OAuth Apps (prod + dev) and give the executor the **client ids** (not secrets); enter secrets with `wrangler secret put` (GitHub client secret, session pepper, Groq keys incl. optional extra accounts); tell the executor the GitHub numeric id is `itmax04`'s (the executor reads it from the public API) |
 | H-3 | after P-09 | Device spike: open the spike URL on iPhone Air, iPhone 11, iPad, Android, Windows; run the 10-attempt barge-in check and 10 voice turns each; report what works |

@@ -1,6 +1,6 @@
 # LINGO-03: Intent — Mac stabilisation, Lingo Engine and Lingo Web
 
-ID: LINGO-03-intent · Status: **accepted at H-0 pending** — written from three owner brainstorms of 2026-10-26 · Version: 2 · Date: 2026-10-26
+ID: LINGO-03-intent · Status: **accepted at H-0 in DG-02 on 2026-10-29** — written from three owner brainstorms of 2026-10-26 · Version: 2 · Date: 2026-10-26
 Owner: itmax04 · Links: [spec.md](spec.md) · [plan.md](plan.md) · [ARCHITECTURE](../../architecture/ARCHITECTURE.md) ·
 ADRs [0002](../../decisions/ADR-0002-web-stack.md), [0003](../../decisions/ADR-0003-authentication.md), [0004](../../decisions/ADR-0004-repository-layout.md), [0005](../../decisions/ADR-0005-model-routing-and-quota.md) ·
 Prior change: [LINGO-01](../LINGO-01/intent.md) (Mac MVP, frozen)
@@ -39,7 +39,7 @@ Not in LINGO-03 (next changes, see [ROADMAP](../../ROADMAP.md)):
 - **Quota protection:** bulk model calls (evals) only at night and budgeted.
 - **Repository language:** English; communication with the owner: Russian.
 - **Design:** DESIGN.md tokens adapted to phone widths; screenshots at acceptance.
-- **Git:** `main` is the default branch; work via issues → branches → PRs; the owner merges; no force-push or history rewrite.
+- **Git:** `main` is the default branch; work via issues → branches → PRs; future scoped executor merges require checks, AI review and H-x; current adoption build is local only; future own docs PR/merge authority is limited to DG-03 A; no force-push or history rewrite.
 - **Executors:** Claude Code (Opus 5.5) and Codex; autonomy = a whole stage, stopping at owner checkpoints and blockers.
 
 ## Owner decisions
@@ -59,7 +59,7 @@ History: W1–W5 (web, first brainstorm) and B-1…B-11 (audit brainstorm) are i
 | O-10 | Extra Groq accounts | Allowed as separate pools at the owner's own risk |
 | O-11 | Devices | iPhone Air, iPhone 11, iPad, Android phone, Windows PC, other people's computers |
 | O-12 | Executors | Claude Code (Opus 5.5) and Codex |
-| O-13 | Autonomy | A whole stage; stop at owner checkpoints and blockers; owner merges PRs |
+| O-13 | Autonomy | A whole stage within accepted scope; stop dependent work at gates/blockers; future authorized executor merges after checks/AI review/H-x |
 | O-14 | Branches | `main-en` merged into `main`; `main` is the default; feature branches + PRs |
 | O-15 | Location | Repository moved out of iCloud to `~/Developer/lingo` (done 2026-10-26) |
 | O-16 | GitHub | Issues + milestones + labels, CI + PR template |
@@ -71,6 +71,9 @@ History: W1–W5 (web, first brainstorm) and B-1…B-11 (audit brainstorm) are i
 | O-22 | Friends | Later; architecture supports several allow-listed accounts |
 
 ## Assumptions (correctable at acceptance)
+
+Preparation clarification (2026-10-29): D01-01 retains MR-03 Russian first-run and explicit Russian/English/System. Offline remains read-only; WS-09 uses synthetic seeded queues. [D04-01](../P-00/review-policy-2026-10-29.md) replaces human review with AI-only execution/review for R2/R3. DG-02 subsequently accepted these documents at H-0; no UI implementation or runtime acceptance is inferred. DG-03 A is limited to future checked own docs PR/merge; see the [active ledger](../P-00/handoff.md).
+
 - **C-1.** The site lives at a free `*.workers.dev` address; no custom domain.
 - **C-2.** Web UI language: Russian by default, English switchable.
 - **C-3.** The Mac keeps its own Groq usage until LINGO-04; the engine's day plan cannot see it, so the plan keeps headroom.

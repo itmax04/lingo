@@ -3,6 +3,8 @@
 This is the entry point for every AI agent (Claude Code, Codex, others) and every human working on **Lingo**.
 Claude Code loads it through `CLAUDE.md`; Codex reads it directly. Keep it short and current.
 
+Current owner decision D04-01 supersedes the historical human-review policy: AI-only implementation and review for R2/R3, with no mandatory human reviewer. See [current review policy](docs/changes/P-00/review-policy-2026-10-29.md). H-U and H-0 documents were accepted in DG-01/DG-02 on 2026-10-29. DG-03 A permits a future own docs PR and checked own merge; AI checks remain and owner manual review is not required. The current adoption build is local only, and existing PR chain merges are outside A. See [active P-00 decisions](docs/changes/P-00/handoff.md).
+
 ## 1. First 10 minutes
 1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
    [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
@@ -64,7 +66,7 @@ Always:
 
 ## 5. How to work
 - **Process:** [SDLC](docs/process/SDLC.md). One issue → one branch → one PR. Definition of Done in SDLC §6. Update `handoff.md` in the same PR.
-- **Branches:** `<type>/<issue>-<slug>` from `main`. **The owner merges PRs.** While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
+- **Branches:** `<type>/<issue>-<slug>` from `main`. Future explicitly scoped executors may merge ready PRs after checks, AI review and H-x; publication must stay within DG-03 A and its technical preconditions; the current adoption build remains local only. While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
 - **Parallel agents:** one git worktree per agent/issue: `git worktree add ../lingo-<issue> -b <branch> origin/main`. Never work in another agent's directory; never revert changes you did not make.
 - **Autonomy:** finish the whole current stage (milestone) without asking per step. Stop only at owner checkpoints `H-x`, at blockers that need the owner (accounts, keys, devices, money, scope conflicts), or when a requirement is wrong.
 - **Questions to the owner:** in Russian, few, multiple choice with a recommended option; record answers in `intent.md` (decisions) or `handoff.md` (executor decisions D-xx).
@@ -117,8 +119,7 @@ UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swif
 
 ## 10. Working from the cloud (Claude Code on the web, Codex cloud, the GitHub Action)
 - Cloud sessions run on Linux VMs (Ubuntu, Node 22 preinstalled) with **no Swift, Xcode or Apple frameworks**: the Mac app cannot be built,
-  tested or run there. For `area:mac` issues, make the change, push the branch, open the PR and rely on the `mac` CI workflow (macOS runner)
-  for `swift build` / `swift test`. Anything that needs the signed app, the Keychain, audio, `xcstringstool` or a live session is done in a
+  tested or run there. All Swift/Mac/native and mixed Swift/TS changes must be implemented and verified locally on the owner's Mac; cloud sessions prepare documentation or TS mocks within their accepted scope. Anything that needs the signed app, the Keychain, audio, `xcstringstool` or a live session is done in a
   local session on the owner's Mac — say so in the PR and in `handoff.md`.
 - `area:web`, `area:engine`, `area:contracts` and docs work fully in the cloud: `npm ci && npm test`, `npx wrangler dev` with a local D1, mocked providers.
 - **Never push to `main`** — always a branch and a PR. GitHub Free gives no branch protection for this private repo, so the rule is enforced
