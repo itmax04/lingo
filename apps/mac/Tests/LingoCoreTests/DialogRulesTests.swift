@@ -91,6 +91,19 @@ import Testing
         let loop = try c("en-loop-lived")
         #expect(DialogRules.check(loop, response: "@say en: Perfect! How do you like Hamburg?").rules["no_repeat_request"] == true)
         #expect(DialogRules.check(loop, response: "@say en: Good. Please say it again.").rules["no_repeat_request"] == false)
+        // Natural replies and next tasks are not repeat requests (review F1).
+        let seit = try c("de-loop-seit")
+        #expect(DialogRules.check(seit, response: "@say de: Super! Sag mal, was gefällt dir an Hamburg?").rules["no_repeat_request"] == true)
+        #expect(DialogRules.check(seit, response: "@say de: Sehr gut! Waren Sie noch einmal dort?").rules["no_repeat_request"] == true)
+        #expect(DialogRules.check(seit, response: "@say de: Gut. Sag das bitte noch einmal.").rules["no_repeat_request"] == false)
+        let next = try c("en-focus-next")
+        #expect(DialogRules.check(next, response: "@say en: Great! Can you say one sentence with “a piece of cake”?").rules["no_repeat_request"] == true)
+        // An item the learner just said is not counted (review F2).
+        let mistake = try c("de-focus-mistake")
+        #expect(!mistake.targets().contains { $0.text == "Feierabend" })
+        #expect(DialogRules.check(try c("en-open-films"), response: "@say en: Hi! How are you spending the weekend?").rules["concrete_opening"] == true)
+        #expect(DialogRules.check(try c("en-open-films"), response: "@say en: Hi! How’s it going?").rules["concrete_opening"] == false)
+        #expect(DialogRules.check(try c("en-assistant-last"), response: "@say en: Do you cook anything else besides pasta and soups?").rules["no_filler"] == true)
 
         let open = try c("en-open-films")
         #expect(open.messages().isEmpty && open.request().messages[0].text.contains("open the conversation now"))

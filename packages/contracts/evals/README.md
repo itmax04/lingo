@@ -66,10 +66,13 @@ Languages: en and de roughly equal.
 | `concrete_opening` | exactly one question and none of the generic greetings below | ≥ 90 % |
 | `no_filler` | none of the filler phrases below, and at least 5 target-language words | ≥ 90 % |
 
-Generic greetings (`concrete_opening`, lower case, substring): "how are you", "how's it going", "how is it going", "what's up",
+Generic greetings (`concrete_opening`, lower case, substring, ’ folded to '): "how are you?", "how are you doing", "how are you today", "how's it going", "how is it going", "what's up",
 "how was your day", "how are things", "wie geht es", "wie geht's", "wie gehts", "wie war dein tag", "wie war ihr tag", "alles gut bei".
-Filler (`no_filler`): "not much", "nothing much", "just chatting", "let's keep chatting", "let's keep talking", "anything else",
-"nicht viel", "nur plaudern", "einfach plaudern", "lass uns weiterplaudern", "sonst noch etwas", "was gibt's sonst".
+Filler (`no_filler`): "not much, just", "nothing much", "just chatting", "let's keep chatting", "let's keep talking", "what else is new",
+"nur plaudern", "einfach plaudern", "lass uns weiterplaudern", "was gibt's sonst", "was gibt es sonst neues".
+`no_repeat_request` uses its own narrow list of real repeat requests (`DialogRules.repeatRequests`: "say it again", "please repeat",
+"wiederholen", "sag das noch einmal", …), not the broad `asks_repeat` list. Items the learner just said are left out of `uses_target`
+and `no_target_list`.
 
 **LINGO-08 batch (PAC-03):** each new category ≥ 90 %, `no_pronunciation` 100 %, and the regression sample (one en and one de case per
 existing category, thresholds unchanged): `en-q-family, de-q-wohnort-start, en-free-city, de-free-wetter, en-custom-hotel,
