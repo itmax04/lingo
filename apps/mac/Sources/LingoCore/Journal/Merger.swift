@@ -53,6 +53,8 @@ public struct HistoryState: Sendable {
     public var vocabUsedInSession: [String: Set<String>] = [:]
     /// De-duplicated `vocab.used` events (canonical item ids), for statistics "before a session" (VR-06).
     public var vocabUses: [VocabUse] = []
+    /// Keys of the add-time texts of live items (duplicates included): an edited item still owns its original text (VR-02, VR-03).
+    public var vocabAddKeys: Set<String> = []
     public var profile = LearnerProfile()
     public var eventCount = 0
     public var maxLamport = 0
@@ -280,6 +282,7 @@ public enum Merger {
             let key = addKey(acc)
             if let r = removedBelow[key], Version(acc.event) < r { dead.insert(id); canonical[id] = id; continue }
             if let first = byKey[key] { canonical[id] = first } else { byKey[key] = id; canonical[id] = id }
+            st.vocabAddKeys.insert(key)
         }
         // Field updates are applied by version (order of arrival does not matter).
         for (v, u) in vocabUpdates {

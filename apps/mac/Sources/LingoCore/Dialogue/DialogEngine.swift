@@ -271,7 +271,8 @@ public actor DialogEngine {
     public func addVocabulary(lang: Lang, entries: [(text: String, translation: String)], source: VocabSource) async throws
         -> (added: Int, duplicates: Int, rejected: Int) {
         let st = await store.state
-        var keys = Set(st.vocabulary(lang: lang).map { VocabularyText.key(lang: $0.lang, text: $0.text) })
+        // A duplicate is the current text of an item or the original text of an edited one (that text still belongs to it, VR-02).
+        var keys = Set(st.vocabulary(lang: lang).map { VocabularyText.key(lang: $0.lang, text: $0.text) }).union(st.vocabAddKeys)
         var batch: [(type: String, session: String, payload: JSONValue)] = []
         var dup = 0, rejected = 0
         for e in entries {
