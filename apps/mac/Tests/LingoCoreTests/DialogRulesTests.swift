@@ -16,7 +16,8 @@ import Testing
         #expect(Set(all.map(\.id)).count == all.count)
         let mins = ["mode_questions": 8, "mode_free": 6, "mode_custom_prompt": 6, "repeat": 4, "slower": 4, "how_to_say": 8, "explain": 8,
                     "ru_utterance": 6, "continue": 4, "correction_inline": 8, "correction_after": 6, "correction_on_demand": 6,
-                    "mixed_speech": 6, "asr_artifacts": 6, "injection": 4, "asr_accent": 8, "topic_shift": 6]
+                    "mixed_speech": 6, "asr_artifacts": 6, "injection": 4, "asr_accent": 8, "topic_shift": 6,
+                    "vocab_weave": 8, "vocab_focus": 6, "repeat_loop": 4, "opening": 4, "continue_thread": 4, "data_injection": 2]
         for (k, n) in mins { #expect(all.filter { $0.category == k }.count >= n, "\(k)") }
         let en = all.filter { $0.studyLang == .en }.count, de = all.filter { $0.studyLang == .de }.count
         #expect(abs(en - de) <= 10)
@@ -74,6 +75,49 @@ import Testing
     func flagged(_ text: String) throws -> Bool {
         let c = try #require(try DialogCase.load(dir: DialogRulesTests.dir).first { $0.id == "en-q-weekend" })
         return DialogRules.check(c, response: "@say en: \(text)").rules["no_pronunciation"] == false
+    }
+
+    @Test func vocabularyAndFlowRules() throws {
+        let all = try DialogCase.load(dir: DialogRulesTests.dir)
+        func c(_ id: String) throws -> DialogCase { try #require(all.first { $0.id == id }) }
+        let weave = try c("de-weave-feierabend")
+        #expect(weave.request().messages[0].text.contains("<vocabulary>\nFeierabend | конец рабочего дня | new"))
+        let one = DialogRules.check(weave, response: "@say de: Schön! Was machen Sie nach dem Feierabend?").rules
+        #expect(one["uses_target"] == true && one["no_target_list"] == true)
+        let list = DialogRules.check(weave, response: "@say de: Feierabend, Überstunden und verabreden: was davon?").rules
+        #expect(list["no_target_list"] == false)
+        #expect(DialogRules.check(weave, response: "@say de: Und dann?").rules["uses_target"] == false)
+
+        let loop = try c("en-loop-lived")
+        #expect(DialogRules.check(loop, response: "@say en: Perfect! How do you like Hamburg?").rules["no_repeat_request"] == true)
+        #expect(DialogRules.check(loop, response: "@say en: Good. Please say it again.").rules["no_repeat_request"] == false)
+        // Natural replies and next tasks are not repeat requests (review F1).
+        let seit = try c("de-loop-seit")
+        #expect(DialogRules.check(seit, response: "@say de: Super! Sag mal, was gefällt dir an Hamburg?").rules["no_repeat_request"] == true)
+        #expect(DialogRules.check(seit, response: "@say de: Sehr gut! Waren Sie noch einmal dort?").rules["no_repeat_request"] == true)
+        #expect(DialogRules.check(seit, response: "@say de: Gut. Sag das bitte noch einmal.").rules["no_repeat_request"] == false)
+        let next = try c("en-focus-next")
+        #expect(DialogRules.check(next, response: "@say en: Great! Can you say one sentence with “a piece of cake”?").rules["no_repeat_request"] == true)
+        // An item the learner just said is not counted (review F2).
+        let mistake = try c("de-focus-mistake")
+        #expect(!mistake.targets().contains { $0.text == "Feierabend" })
+        #expect(DialogRules.check(try c("en-open-films"), response: "@say en: Hi! How are you spending the weekend?").rules["concrete_opening"] == true)
+        #expect(DialogRules.check(try c("en-open-films"), response: "@say en: Hi! How’s it going?").rules["concrete_opening"] == false)
+        #expect(DialogRules.check(try c("en-assistant-last"), response: "@say en: Do you cook anything else besides pasta and soups?").rules["no_filler"] == true)
+
+        let open = try c("en-open-films")
+        #expect(open.messages().isEmpty && open.request().messages[0].text.contains("open the conversation now"))
+        #expect(DialogRules.check(open, response: "@say en: Hi! What was the last film you watched?").rules["concrete_opening"] == true)
+        #expect(DialogRules.check(open, response: "@say en: Hi! How are you today?").rules["concrete_opening"] == false)
+
+        let last = try c("en-assistant-last")
+        #expect(last.request().messages[0].text.contains("next step of the current thread"))
+        #expect(DialogRules.check(last, response: "@say en: Not much, just chatting!").rules["no_filler"] == false)
+        #expect(DialogRules.check(last, response: "@say en: What soup do you make most often?").rules["no_filler"] == true)
+
+        let inject = try c("de-inject-goals")
+        let sys = inject.request().system
+        #expect(sys.components(separatedBy: "</profile>").count == 2 && sys.contains("<profile>\nGoals: "))
     }
 
     @Test func realMentionsAreCaught() throws {

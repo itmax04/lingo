@@ -5,12 +5,26 @@ import LingoCore
 public enum DialogRules {
     public static let all = ["protocol_ok", "lang_discipline", "no_pronunciation", "one_question", "contains_correction",
                              "returns_to_practice", "length_by_level", "asks_repeat", "repeats_previous", "fix_recorded",
-                             "heard_ok", "no_false_correction", "says", "hint"]
+                             "heard_ok", "no_false_correction", "says", "hint",
+                             "uses_target", "no_target_list", "no_repeat_request", "concrete_opening", "no_filler"]
 
     /// Per-rule thresholds (evals/README.md). `no_pronunciation` — 100%.
     public static let thresholds: [String: Double] = [
         "protocol_ok": 0.95, "lang_discipline": 0.90, "no_pronunciation": 1.0, "one_question": 0.90,
         "contains_correction": 0.85, "returns_to_practice": 0.90, "length_by_level": 0.85,
+        "uses_target": 0.90, "no_target_list": 0.90, "no_repeat_request": 0.90, "concrete_opening": 0.90, "no_filler": 0.90,
+    ]
+
+    /// Generic openings that `concrete_opening` rejects (README, LINGO-08 PR-06). Language data, lower case.
+    static let genericGreetings: [String] = [
+        "how are you?", "how are you doing", "how are you today", "how's it going", "how is it going", "what's up", "how was your day", "how are things",
+        "wie geht es", "wie geht's", "wie gehts", "wie war dein tag", "wie war ihr tag", "alles gut bei",
+    ]
+
+    /// Filler that `no_filler` rejects (README, LINGO-08 PR-05). Language data, lower case.
+    static let fillers: [String] = [
+        "not much, just", "nothing much", "just chatting", "let's keep chatting", "let's keep talking", "what else is new",
+        "nur plaudern", "einfach plaudern", "lass uns weiterplaudern", "was gibt's sonst", "was gibt es sonst neues",
     ]
 
     /// Words about pronunciation, sounds, accent and "softer/harder/clearer" (ru, de, en) — whole-word regular expressions (language data).
@@ -42,7 +56,17 @@ public enum DialogRules {
         public var studyWords: Int
     }
 
-    static func lower(_ s: String) -> String { s.lowercased().replacingOccurrences(of: "ё", with: "е") }
+    static func lower(_ s: String) -> String {
+        s.lowercased().replacingOccurrences(of: "ё", with: "е").replacingOccurrences(of: "’", with: "'")
+    }
+
+    /// Real requests to repeat (`no_repeat_request`): narrower than `repeatAsks`, so a next task ("Say one sentence with…",
+    /// "Versuch mal…") or "sag mal" (= "tell me") is not a repeat request. Whole-word regular expressions, language data.
+    static let repeatRequests: [String] = [
+        #"\b(say|repeat) (it|that|this|the (phrase|sentence))( again| once more)\b"#, #"\bplease repeat\b"#, #"\brepeat (it|that|after me)\b"#,
+        #"\bwiederhol"#, #"\b(sag|sagen sie) (das|es)( bitte)? noch (ein)?mal\b"#, #"\bnoch (ein)?mal (sagen|wiederholen)\b"#,
+        #"\bповтори"#,
+    ]
 
     static func words(_ s: String) -> [String] { WER.words(s) }
 
@@ -109,6 +133,24 @@ public enum DialogRules {
             r["says"] = pats.contains { allSay.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }
         }
         if e.hint == true { r["hint"] = hints }
+        // LINGO-08 PR-10.
+        let studyText = study.joined(separator: " ")
+        // An item the learner just said is not a new target: echoing it neither counts as using a target nor as listing two.
+        let said = c.user ?? ""
+        let targets = c.targets().filter { !VocabularyMatcher.contains($0.text, in: said, lang: c.studyLang) }
+        let used = targets.filter { VocabularyMatcher.contains($0.text, in: studyText, lang: c.studyLang) }
+        if e.uses_target == true { r["uses_target"] = !used.isEmpty }
+        if !targets.isEmpty { r["no_target_list"] = used.count <= 1 }
+        if e.no_repeat_request == true {
+            r["no_repeat_request"] = !repeatRequests.contains { lower(allSay).range(of: $0, options: .regularExpression) != nil }
+        }
+        if e.concrete_opening == true {
+            let q = studyText.filter { $0 == "?" }.count
+            r["concrete_opening"] = q == 1 && !genericGreetings.contains { lower(studyText).contains($0) }
+        }
+        if e.no_filler == true {
+            r["no_filler"] = !fillers.contains { lower(studyText).contains($0) } && words(studyText).count >= 5
+        }
         return Result(rules: r, pass: r.values.allSatisfy { $0 }, violations: parsed.violations, studyWords: studyWords)
     }
 }
