@@ -36,15 +36,14 @@ words, answers an empty "continue" with filler, and opens a free session with a 
 | Q-05 | Platforms of this stage | "macOS and the web version only; no iOS changes" (the stage brief) | iOS untouched |
 
 ## Assumptions (executor, R2: recorded, not blocking)
-- A-01: An item has a language (en/de), a text, an optional Russian translation, an optional note and an optional example; adding a pasted
-  list splits it by lines and by the first " — ", " - ", "–", ":" or tab into text and translation.
+- A-01: An item has a language (en/de), a text, an optional Russian translation, an optional note and an optional example; a pasted
+  list is split as in spec VR-03.
 - A-02: The ★ phrases (`phrase.starred`) are shown in the same list and selected for practice like the learner's own items; no migration.
-- A-03: "Used by the learner" is detected locally after each turn (normalised text match of the item in the learner's utterance); a turn
-  with an `@fix` on that phrase counts as a mistake. No model call is spent on detection.
-- A-04: 3 items per ordinary session and up to 6 in "My words"; the selection is deterministic so the web gives the same result.
+- A-03: "Used by the learner" is detected locally after each turn (spec VR-07, VR-07b); no model call is spent on detection.
+- A-04: 3 targets per ordinary session and 6 with the vocabulary focus; deterministic and stable within a session (spec VR-06).
 - A-05: The learner profile (goals, interests) is stored in the journal (`profile.updated`) so that it syncs with the web later.
-- A-06: The new mode `words` and the new event types are additive; an older Lingo build reading a newer journal ignores unknown types,
-  but a session in the new mode needs this build or later (only one device today).
+- A-06: Everything is additive: new event types and optional `SessionSettings` fields; "My words" is the "Questions" mode with a focus flag,
+  so an older build still shows such a session (as "Questions"). Rollback: the events stay in the journal and older builds ignore them.
 
 ## Definition of done
 All VAC/PAC criteria of [spec.md](spec.md) have evidence (PASS, or NOT RUN with a reason); `swift test`, `check-design`, `check-english`,
