@@ -27,7 +27,11 @@ public struct KeyRecord: Codable, Sendable, Hashable, Identifiable {
     }
 
     /// Normalised organization name used to group keys into pools: trimmed, case-insensitive; empty = unlabeled.
-    public var organizationName: String { (organization ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+    /// The word "main" is the unlabeled organization itself, so an explicit "main" never counts as an additional one.
+    public var organizationName: String {
+        let n = (organization ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return n == "main" ? "" : n
+    }
 
     public static func last4(of key: String) -> String {
         String(key.trimmingCharacters(in: .whitespacesAndNewlines).suffix(4))
@@ -125,7 +129,8 @@ public struct LLMSettings: Codable, Sendable, Hashable {
 
     public func keys(for p: ProviderID) -> [KeyRecord] { keys.filter { $0.provider == p } }
 
-    /// The main organization of a provider is the one of its first key; unlabeled keys all belong to it, so they never multiply a limit.
+    /// The main organization of a provider is the one of its first key in the list (validity does not matter; deleting that key moves it);
+    /// unlabeled keys all belong to it, so they never multiply a limit. Pooling applies to every hosted provider: their free limits are per account.
     public func mainOrganization(for p: ProviderID) -> String { keys(for: p).first?.organizationName ?? "" }
 
     /// Keys of one organization (per provider) are one pool = one rate-limit ceiling (ADR-0005 §1).
@@ -140,7 +145,13 @@ public struct LLMSettings: Codable, Sendable, Hashable {
         return !org.isEmpty && org != mainOrganization(for: key.provider)
     }
 
-    /// Usable keys of a provider, the main organization first, additional organizations after it (stable within each group).
+    /// All keys of a provider (validity is checked by the caller), the main organization first, additional organizations after it (stable within each group).
+    /// The chain step of a key for a model: carries the number shown in Settings and the key's pool, so health lookups match the chain.
+    public func stepInfo(provider: ProviderID, model: String, key: KeyRecord) -> StepInfo {
+        let index = (keys(for: provider).firstIndex(where: { $0.id == key.id }) ?? 0) + 1
+        return StepInfo(provider: provider, model: model, keyID: key.id, keyIndex: index, poolID: poolID(of: key))
+    }
+
     public func orderedKeys(for p: ProviderID) -> [KeyRecord] {
         let all = keys(for: p)
         return all.filter { !isOwnerRisk($0) } + all.filter { isOwnerRisk($0) }

@@ -173,6 +173,8 @@ public struct ProviderChain: Sendable {
                 for step in usable {
                     if Task.isCancelled { break }
                     if invalidKeys.contains(step.info.keyID) { continue }
+                    // An earlier key of the same organization just hit a limit: its pool is paused, a second key would only spend the same ceiling.
+                    if health.pause(for: step.info) != nil { continue }
                     continuation.yield(.attempt(step.info))
                     if attempted > 0 { continuation.yield(.restart(step.info)) }
                     attempted += 1
@@ -349,12 +351,10 @@ public enum ChainFactory {
             let model = entry.model.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !model.isEmpty else { continue }
             let prov = providers?[entry.provider] ?? provider(entry.provider, settings: settings, transport: transport)
-            let listed = settings.keys(for: entry.provider)
             for k in settings.orderedKeys(for: entry.provider) where !k.invalid {
-                let i = listed.firstIndex(where: { $0.id == k.id }) ?? 0  // the number shown in Settings, not the chain position
                 if values[k.id] == nil { values[k.id] = (try? secrets.get(k.id)) ?? "" }
                 guard let v = values[k.id], !v.isEmpty else { continue }
-                steps.append(.init(info: StepInfo(provider: entry.provider, model: model, keyID: k.id, keyIndex: i + 1, poolID: settings.poolID(of: k)),
+                steps.append(.init(info: settings.stepInfo(provider: entry.provider, model: model, key: k),
                                    provider: prov, key: v))
             }
         }

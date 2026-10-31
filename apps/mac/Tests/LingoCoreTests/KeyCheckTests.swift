@@ -92,7 +92,7 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
         let s = settings([key("a", org: "Main"), key("b", org: "main "), key("c", org: "Second"), key("d", org: "second"), key("e", org: nil)])
         #expect(s.poolID(of: s.keys[0]) == s.poolID(of: s.keys[1]))
         #expect(s.poolID(of: s.keys[2]) == s.poolID(of: s.keys[3]) && s.poolID(of: s.keys[2]) != s.poolID(of: s.keys[0]))
-        #expect(s.keys.map { s.isOwnerRisk($0) } == [false, false, true, true, false == (s.mainOrganization(for: .groq) == "") ? false : true])
+        #expect(s.keys.map { s.isOwnerRisk($0) } == [false, false, true, true, false])
         #expect(s.poolID(of: s.keys[4]) == s.poolID(of: s.keys[0]))  // unlabeled = main organization
     }
 
@@ -121,5 +121,42 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
         let json = #"{"id":"a","provider":"groq","last4":"1234","label":"","invalid":false,"addedAt":0}"#
         let k = try JSONDecoder().decode(KeyRecord.self, from: Data(json.utf8))
         #expect(k.organization == nil && k.organizationName == "")
+    }
+
+    @Test func explicitMainAndUnlabeledAreTheSameOrganization() {
+        let s = settings([key("a", org: nil), key("b", org: "Main")])
+        #expect(s.poolID(of: s.keys[0]) == s.poolID(of: s.keys[1]))
+        #expect(!s.isOwnerRisk(s.keys[1]))
+    }
+
+    @Test func mainOrganizationIsTheFirstKeyAndMovesWhenItIsDeleted() {
+        var s = settings([key("a", org: "alpha"), key("b", org: "beta"), key("c", org: nil)])
+        #expect(s.keys.map { s.isOwnerRisk($0) } == [false, true, false])   // unlabeled "c" joins the main organization "alpha"
+        s.keys.removeAll { $0.id == "a" }
+        #expect(s.mainOrganization(for: .groq) == "beta" && !s.isOwnerRisk(s.keys[0]))
+    }
+
+    @Test func differentProvidersNeverSharePools() {
+        var s = settings([key("a", org: nil)])
+        s.keys.append(KeyRecord(id: "m", provider: .mistral, last4: "0000"))
+        #expect(s.poolID(of: s.keys[0]) != s.poolID(of: s.keys[1]))
+    }
+
+    @Test func stepInfoCarriesTheSettingsNumberAndThePool() {
+        let s = settings([key("a", org: "main"), key("b", org: "second")])
+        let info = s.stepInfo(provider: .groq, model: "m", key: s.keys[1])
+        #expect(info.keyIndex == 2 && info.poolID == s.poolID(of: s.keys[1]))
+    }
+
+    /// A 429 on the first key of an organization must not be followed by a call with its sibling key; the other organization is tried.
+    @Test func chainSkipsTheSiblingKeyAfterARateLimitButTriesTheNextOrganization() async throws {
+        var s = settings([key("a", org: "main"), key("c", org: "main"), key("b", org: "second")])
+        s.chain = [ChainEntry(provider: .groq, model: "m")]
+        let store = InMemorySecretStore(["a": "va", "b": "vb", "c": "vc"])
+        let log = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, k in k == "vb" ? .text(["ok"]) : .fail(.http(status: 429, message: "limit")) }, calls: log)
+        let c = ChainFactory.chain(settings: s, secrets: store, health: ProviderHealth(), providers: [.groq: p])
+        _ = await collect(c.run(LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")], maxTokens: 10, purpose: .dialog)))
+        #expect(log.all == ["groq/m/va", "groq/m/vb"])
     }
 }

@@ -92,7 +92,8 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
 
     func chain(_ behavior: @escaping @Sendable (String, String) -> MockProvider.Behavior, keys: [String] = ["k1", "k2"],
                models: [String] = ["A", "B"], health: ProviderHealth = ProviderHealth(), log: CallLog = CallLog()) -> ProviderChain {
-        let recs = keys.map { KeyRecord(id: $0, provider: .groq, last4: "xxxx") }
+        // One organization per key: these tests are about key fallback; keys of one organization are one pool (see KeyPoolTests).
+        let recs = keys.map { KeyRecord(id: $0, provider: .groq, last4: "xxxx", organization: $0) }
         let secrets = InMemorySecretStore(Dictionary(uniqueKeysWithValues: keys.map { ($0, "v-\($0)") }))
         let p = MockProvider(id: .groq, behavior: behavior, calls: log)
         return ChainFactory.chain(settings: settings(keys: recs, chain: models.map { ChainEntry(provider: .groq, model: $0) }),

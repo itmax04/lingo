@@ -68,8 +68,8 @@ import LingoCore
         let health = ProviderHealth()
         let entries = [ChainEntry(id: "a", provider: .groq, model: "a"), ChainEntry(id: "b", provider: .groq, model: "b")]
         var settings = LLMSettings(keys: [KeyRecord(id: "fixture", provider: .groq, last4: "0000")], chain: entries)
-        let a = StepInfo(provider: .groq, model: "a", keyID: "fixture")
-        let b = StepInfo(provider: .groq, model: "b", keyID: "fixture")
+        let a = settings.stepInfo(provider: .groq, model: "a", key: settings.keys[0])
+        let b = settings.stepInfo(provider: .groq, model: "b", key: settings.keys[0])
         health.reportFailure(a, .http(status: 429, message: "limit", retryAfter: 30), now: now)
         #expect(!VoiceAvailability.quotaExhausted(settings: settings, health: health, now: now))
         health.reportFailure(b, .network("offline"), now: now)
