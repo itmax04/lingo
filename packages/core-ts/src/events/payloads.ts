@@ -18,7 +18,7 @@ function shape<T>(build: (o: Record<string, JSONValue>, p: string) => T): Decode
   return (v, p) => build(object(v, p), p);
 }
 /** Drops `undefined` values so optional fields are absent, as in a Swift struct encoded back to JSON. */
-function compact<T extends object>(o: T): T {
+function compact<T>(o: { [K in keyof T]-?: T[K] | undefined }): T {
   return Object.fromEntries(Object.entries(o).filter(([, x]) => x !== undefined)) as T;
 }
 

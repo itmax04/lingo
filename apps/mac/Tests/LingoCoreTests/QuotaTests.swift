@@ -149,7 +149,9 @@ import Testing
         let runner = DialogRunner(provider: p, model: "m", key: "k", maxRequests: 50, log: { _ in })
         let cs = try cases(5)
         let t = Task { await runner.run(cs) }
-        try await Task.sleep(for: .milliseconds(300))
+        // Wait for the first request (a fixed pause was too short on a loaded machine), then cancel during its 429 wait.
+        for _ in 0..<500 where log.all.isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        try await Task.sleep(for: .milliseconds(50))
         t.cancel()
         let r = await t.value
         #expect(log.all.count == 1, "no new requests after cancellation")

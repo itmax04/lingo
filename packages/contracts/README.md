@@ -11,6 +11,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/events/timestamps.jsonl` | Synthetic lines with odd milliseconds (`.001`, `.007`, `.999`, …) | round-trip tests in Swift (`TimestampContractTests`) and TS |
 | `fixtures/events/merge-two-devices.input.jsonl` | Two devices, interleaved order, one duplicate | merge parity |
 | `fixtures/events/merge-two-devices.expected.json` | Expected visible sessions, ordered messages (with `heard`, `interruptedAt`), starred keys | merge parity (Swift `Merger.build` produced it) |
+| `fixtures/events/sample-journal.state.json`, `merge-two-devices.state.json` | Full reducer state (sessions, messages with segments and `heard`, fixes, hints, ★, profile, counters) without the vocabulary, written by Swift `MergerContractTests` (`LINGO_RECORD_FIXTURES=1`) | Swift `MergerContractTests`, TS `packages/core-ts/test/merge.test.ts` |
 | `fixtures/vocab/text.json` | Normalisation, duplicate key and pasted-list parsing (LINGO-08 VR-03, VR-07a) | Swift `VocabularyTextTests`, the TS port |
 | `fixtures/vocab/selection.json` | Which vocabulary items the model practises next (LINGO-08 VR-06) | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07b), with negative cases and accepted misses | Swift `VocabularyContractTests`, the TS port |
