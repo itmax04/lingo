@@ -85,6 +85,27 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     /// The vocabulary is used: always with the focus, otherwise unless switched off (VR-08).
     public var vocabularyOn: Bool { isVocabularyFocus || useVocabulary != false }
 
+    /// "Practise" on an item (VR-11): a "My words" session in the item's language with the item first; the assistant opens.
+    public static func myWords(for item: VocabItem, corrections: Set<CorrectionMode>) -> SessionSettings {
+        SessionSettings(lang: item.lang, mode: .questions, corrections: corrections.isEmpty ? [.inline] : corrections,
+                        starter: .assistant, vocabularyFocus: true, pinnedVocab: item.id)
+    }
+
+    /// The "My words" checkbox of the new-session screen (VR-09): on forces Questions with the focus, off clears the focus.
+    public func withWordsMode(_ on: Bool) -> SessionSettings {
+        var s = self
+        if on { s.mode = .questions; s.vocabularyFocus = true } else { s.vocabularyFocus = nil }
+        return s
+    }
+
+    /// The per-session switch (VR-08): off stores `false`, on removes the field (missing = on). A "My words" session keeps it on.
+    public func togglingVocabulary() -> SessionSettings {
+        guard !isVocabularyFocus else { return self }
+        var s = self
+        s.useVocabulary = vocabularyOn ? false : nil
+        return s
+    }
+
     /// Default title: "<Mode>: <topic>" (R-01).
     public var defaultTitle: String {
         let t = topic.trimmingCharacters(in: .whitespacesAndNewlines)

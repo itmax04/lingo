@@ -15,7 +15,7 @@ struct VocabularyView: View {
 
     private var lang: Lang { model.vocabularyFilter ?? addLang }
 
-    var items: [VocabItem] {
+    private var items: [VocabItem] {
         let q = VocabularyText.normalize(model.vocabularySearch)
         return model.vocabulary
             .filter { model.vocabularyFilter == nil || $0.lang == model.vocabularyFilter }
@@ -24,26 +24,28 @@ struct VocabularyView: View {
     }
 
     var body: some View {
-        ScrollView {
+        let shown = items
+        return ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
                 Text("Vocabulary").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
                 HStack(spacing: Theme.S.s16) {
-                    VocabularyFilter(selection: $model.vocabularyFilter).frame(width: 360)
+                    VocabularyFilter(selection: $model.vocabularyFilter).frame(width: Theme.S.sidebarWidth + Theme.S.hintsWidth / 2)
                     Spacer()
-                    TextField("Search", text: $model.vocabularySearch).textFieldStyle(.roundedBorder).frame(width: 240)
+                    TextField("Search", text: $model.vocabularySearch).textFieldStyle(.roundedBorder).frame(width: Theme.S.sidebarWidth)
                 }
                 addCard
-                if items.isEmpty { emptyState } else {
-                    ForEach(items) { item in
+                if shown.isEmpty { emptyState } else {
+                    ForEach(shown) { item in
                         VocabularyCard(item: item, services: model.services,
                                        onEdit: { editing = item }, onRemove: { removing = item })
                     }
                 }
             }
             .padding(Theme.S.s32)
-            .frame(maxWidth: 960, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Theme.C.bgWindow)
+        .onAppear { model.vocabularyNote = nil }
         .environment(\.studyLanguage, lang)
         .sheet(item: $editing) { item in
             VocabularyEditView(item: item, onSave: { t, tr, n, ex in
@@ -51,9 +53,9 @@ struct VocabularyView: View {
             }, onCancel: { editing = nil })
         }
         .sheet(isPresented: $pasting) {
-            VocabularyPasteView(lang: lang, onAdd: { parsed in
+            VocabularyPasteView(lang: lang, askLanguage: model.vocabularyFilter == nil, onAdd: { target, parsed in
                 pasting = false
-                model.services?.addVocabulary(lang: lang, entries: parsed.entries, source: .list, rejected: parsed.rejected)
+                model.services?.addVocabulary(lang: target, entries: parsed.entries, source: .list, rejected: parsed.rejected)
             }, onCancel: { pasting = false })
         }
         .confirmationDialog(Text("Remove “\(removing?.text ?? "")”?"), isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } })) {
@@ -72,18 +74,20 @@ struct VocabularyView: View {
                 TextField("Translation (optional)", text: $translation).textFieldStyle(.roundedBorder)
                     .onSubmit(add)
                 if model.vocabularyFilter == nil {
-                    LanguageSegment(selection: $addLang).frame(width: 200)
+                    LanguageSegment(selection: $addLang).frame(width: Theme.S.sidebarWidth)
                 }
             }
             HStack(spacing: Theme.S.s12) {
                 Button("Add", action: add)
                     .buttonStyle(.borderedProminent).tint(Theme.accent(lang))
+                    .accessibilityLabel(model.vocabularyFilter == nil ? Text("Add to \(lang == .de ? String(localized: "German") : String(localized: "English"))") : Text("Add"))
                     .disabled(VocabularyText.normalize(text).isEmpty)
                 Button(translating ? "Translating…" : "Translate") {
                     let t = text, l = lang
                     translating = true
                     Task {
-                        if let r = await model.services?.translateDraft(t, from: l) { translation = r }
+                        // A late result does not overwrite a translation of another (or a cleared) text.
+                        if let r = await model.services?.translateDraft(t, from: l), text == t { translation = r }
                         translating = false
                     }
                 }
@@ -162,7 +166,7 @@ struct VocabularyCard: View {
         let accent = Theme.accent(item.lang)
         VStack(alignment: .leading, spacing: Theme.S.s16) {
             HStack(alignment: .top, spacing: Theme.S.s16) {
-                Image(systemName: "waveform").font(.system(size: 20, weight: .medium)).foregroundStyle(accent)
+                Image(systemName: "waveform").font(Theme.F.panelTitle).foregroundStyle(accent)
                     .frame(width: Theme.R.sendButton + Theme.S.s4, height: Theme.R.sendButton + Theme.S.s4)
                     .background(Theme.accentSurface(item.lang), in: RoundedRectangle(cornerRadius: Theme.R.button))
                     .accessibilityHidden(true)
@@ -170,6 +174,11 @@ struct VocabularyCard: View {
                     Text(item.text).font(Theme.F.panelTitle).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
                     Text("Offered \(item.offered) · used \(item.used) · mistakes \(item.mistakes)")
                         .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                    Group {
+                        if let d = item.lastPractised { Text("Last practised: \(d.formatted(date: .abbreviated, time: .omitted))") }
+                        else { Text("Not practised yet") }
+                    }
+                    .font(Theme.F.meta).foregroundStyle(Theme.C.textTertiary)
                     if !item.note.isEmpty { Text(item.note).font(Theme.F.meta).foregroundStyle(Theme.C.textTertiary) }
                 }
                 Spacer()
@@ -203,7 +212,7 @@ struct VocabularyCard: View {
 
     private func round(_ symbol: String, label: LocalizedStringKey, tint: Color = Theme.C.textSecondary, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).font(.system(size: 15, weight: .medium)).foregroundStyle(tint)
+            Image(systemName: symbol).font(Theme.F.hintPhrase).foregroundStyle(tint)
                 .frame(width: Theme.R.roundButton, height: Theme.R.roundButton)
                 .background(Theme.C.surfaceControl, in: Circle())
         }
@@ -235,7 +244,7 @@ struct VocabularyEditView: View {
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
                 Button("Save") { onSave(text, translation, note, example) }
-                    .keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent).tint(Theme.accent(item.lang))
                     .disabled(VocabularyText.normalize(text).isEmpty || text.count > 120)
             }
         }
@@ -250,18 +259,28 @@ struct VocabularyEditView: View {
 /// "Paste a list" (VR-03): one item per line, "word — translation"; a preview of what will be added.
 struct VocabularyPasteView: View {
     let lang: Lang
-    let onAdd: (VocabularyText.ParsedList) -> Void
+    /// With the filter on "All" the sheet asks for the language (VR-03).
+    var askLanguage = false
+    let onAdd: (Lang, VocabularyText.ParsedList) -> Void
     let onCancel: () -> Void
     @State private var pasted = ""
+    @State private var target: Lang?
 
     var body: some View {
         let parsed = VocabularyText.parseList(pasted)
-        VStack(alignment: .leading, spacing: Theme.S.s16) {
+        let chosen = target ?? lang
+        return VStack(alignment: .leading, spacing: Theme.S.s16) {
             Text("Paste a list").font(Theme.F.title).foregroundStyle(Theme.C.textPrimary)
-            Text("One item per line. A translation may follow after “ — ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item.")
+            if askLanguage {
+                LanguageSegment(selection: Binding(get: { chosen }, set: { target = $0 })).frame(width: Theme.S.sidebarWidth)
+            } else {
+                Text(chosen == .de ? "Language: German" : "Language: English").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+            }
+            Text("One item per line. A translation may follow after “ — ”, “ – ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item.")
                 .font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary).fixedSize(horizontal: false, vertical: true)
             TextEditor(text: $pasted)
-                .font(Theme.F.rowTitle).frame(minHeight: 220)
+                .accessibilityLabel("Paste a list")
+                .font(Theme.F.rowTitle).frame(minHeight: Theme.R.hintCardMinHeight * 2)
                 .scrollContentBackground(.hidden).padding(Theme.S.s4)
                 .background(Theme.C.surfaceInput, in: RoundedRectangle(cornerRadius: Theme.R.button))
                 .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.button))
@@ -269,15 +288,15 @@ struct VocabularyPasteView: View {
             HStack {
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
-                Button("Add") { onAdd(parsed) }
-                    .keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent).tint(Theme.accent(lang))
+                Button("Add") { onAdd(chosen, parsed) }
+                    .keyboardShortcut(.defaultAction).buttonStyle(.borderedProminent).tint(Theme.accent(chosen))
                     .disabled(parsed.entries.isEmpty)
             }
         }
         .padding(Theme.S.s24)
-        .frame(width: 560)
+        .frame(width: 520)
         .background(Theme.C.bgWindow)
         .modifier(InterfaceAppearance())
-        .environment(\.studyLanguage, lang)
+        .environment(\.studyLanguage, chosen)
     }
 }

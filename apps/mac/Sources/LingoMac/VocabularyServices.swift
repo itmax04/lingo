@@ -13,7 +13,7 @@ extension AppServices {
         }
     }
 
-    static func addNote(added: Int, duplicates: Int, rejected: Int) -> String {
+    nonisolated static func addNote(added: Int, duplicates: Int, rejected: Int) -> String {
         var parts = [String(localized: "Added: \(added)")]
         if duplicates > 0 { parts.append(String(localized: "already in the list: \(duplicates)")) }
         if rejected > 0 { parts.append(String(localized: "too long or over 200 lines: \(rejected)")) }
@@ -32,7 +32,12 @@ extension AppServices {
         }
     }
 
-    func removeVocabulary(_ item: VocabItem) { Task { try? await engine.removeVocabulary(item.id) } }
+    func removeVocabulary(_ item: VocabItem) {
+        Task {
+            do { try await engine.removeVocabulary(item.id) }
+            catch { model.banner = String(localized: "Could not remove: \(String(describing: error))") }
+        }
+    }
 
     /// "Translate" in the add form (VR-10): one `translate` request, only on the learner's click.
     func translateDraft(_ text: String, from lang: Lang) async -> String? {
@@ -45,22 +50,23 @@ extension AppServices {
 
     /// "Practise" (VR-11): a "My words" session in the item's language with this item as the first target; the assistant opens.
     func practise(_ item: VocabItem) {
-        let corrections = settings.lastCorrections.isEmpty ? [CorrectionMode.inline] : settings.lastCorrections
-        let s = SessionSettings(lang: item.lang, mode: .questions, corrections: corrections, starter: .assistant,
-                                vocabularyFocus: true, pinnedVocab: item.id)
         model.section = .conversations
-        createSession(s, title: nil)
+        createSession(.myWords(for: item, corrections: settings.lastCorrections), title: nil)
     }
 
     /// The session menu switch (VR-08).
     func toggleVocabulary() {
         guard let s = model.selectedSession, !s.settings.isVocabularyFocus else { return }
-        var st = s.settings
-        st.useVocabulary = st.vocabularyOn ? false : nil
-        Task { try? await engine.updateSettings(s.id, st) }
+        Task {
+            do { try await engine.updateSettings(s.id, s.settings.togglingVocabulary()) }
+            catch { model.banner = String(localized: "Could not save: \(String(describing: error))") }
+        }
     }
 
     func updateProfile(goals: String, interests: String) {
-        Task { try? await engine.updateProfile(goals: goals, interests: interests) }
+        Task {
+            do { try await engine.updateProfile(goals: goals, interests: interests) }
+            catch { model.banner = String(localized: "Could not save: \(String(describing: error))") }
+        }
     }
 }

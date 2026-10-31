@@ -7192,18 +7192,18 @@
       },
       "extractionState": "manual"
     },
-    "One item per line. A translation may follow after “ — ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item.": {
+    "One item per line. A translation may follow after “ — ”, “ – ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One item per line. A translation may follow after “ — ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item."
+            "value": "One item per line. A translation may follow after “ — ”, “ – ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "По одному в строке. Перевод можно указать после « — », « - », табуляции или «: »; маркеры и номера убираются. Не больше 200 строк и 120 символов в строке."
+            "value": "По одному в строке. Перевод можно указать после « — », « – », « - », табуляции или «: »; маркеры и номера убираются. Не больше 200 строк и 120 символов в строке."
           }
         }
       },
@@ -7561,6 +7561,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "слишком длинных или сверх 200 строк: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not remove: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not remove: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось удалить: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Add to %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить в %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Last practised: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last practised: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя тренировка: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not practised yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not practised yet"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ещё не тренировали"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language: German": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language: German"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык: немецкий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language: English": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language: English"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык: английский"
           }
         }
       },

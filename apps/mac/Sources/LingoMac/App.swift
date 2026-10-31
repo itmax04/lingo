@@ -320,7 +320,7 @@ enum UISnapshot {
             await capture("dictionary-all", MainView(model: model))
             model.vocabularyFilter = .de
             model.section = .conversations
-            await capture("vocabulary-paste", VocabularyPasteView(lang: .de, onAdd: { _ in }, onCancel: {}), NSSize(width: 560, height: 520))
+            await capture("vocabulary-paste", VocabularyPasteView(lang: .de, onAdd: { _, _ in }, onCancel: {}), NSSize(width: 520, height: 560))
             await capture("transcript-edit", EditMessageView(message: model.messages[1], onSave: { _ in }, onRegenerate: { _ in }, onCancel: {}))
             for step in 0..<3 {
                 await capture("onboarding-" + String(step), OnboardingView(services: services, keys: keys, initialStep: step, onDone: {}))

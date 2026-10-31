@@ -398,3 +398,24 @@ private func isoDate(_ s: String) -> Date {
         #expect(tail.count <= RecognitionContext.maxTargetChars && tail.split(separator: " ").allSatisfy { long.contains(String($0)) })
     }
 }
+
+@Suite struct VocabularySessionSettingsTests {
+    @Test func practiseBuildsAMyWordsSessionWithTheItemFirst() {
+        let item = VocabItem(id: "star:en:spot on", lang: .en, text: "spot on", source: .starred, createdAt: Date())
+        let s = SessionSettings.myWords(for: item, corrections: [])
+        #expect(s.lang == .en && s.mode == .questions && s.isVocabularyFocus && s.pinnedVocab == item.id && s.starter == .assistant)
+        #expect(s.corrections == [.inline])  // never an empty set (A-3)
+        #expect(SessionSettings.myWords(for: item, corrections: [.after]).corrections == [.after])
+    }
+
+    @Test func wordsModeAndTheSwitch() {
+        let free = SessionSettings(lang: .de, mode: .free, corrections: [.inline])
+        let words = free.withWordsMode(true)
+        #expect(words.mode == .questions && words.isVocabularyFocus)
+        #expect(!words.withWordsMode(false).isVocabularyFocus && words.withWordsMode(false).vocabularyFocus == nil)
+        let off = free.togglingVocabulary()
+        #expect(off.useVocabulary == false && !off.vocabularyOn)
+        #expect(off.togglingVocabulary().useVocabulary == nil && off.togglingVocabulary().vocabularyOn)  // missing = on
+        #expect(words.togglingVocabulary() == words)  // "My words" keeps the vocabulary on
+    }
+}

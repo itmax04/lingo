@@ -145,7 +145,7 @@ struct ProfileSettingsView: View {
                     editor("Interests", hint: "For example: hiking, cooking, jazz", text: $interests)
                     HStack {
                         Button("Save") { services.updateProfile(goals: goals, interests: interests) }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.borderedProminent).tint(Theme.accent(services.model.studyLanguage))
                             .disabled(goals == services.model.profile.goals && interests == services.model.profile.interests)
                         Spacer()
                     }
@@ -161,7 +161,8 @@ struct ProfileSettingsView: View {
             Text(title).font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
             ZStack(alignment: .topLeading) {
                 TextEditor(text: Binding(get: { text.wrappedValue }, set: { text.wrappedValue = String($0.prefix(300)) }))
-                    .font(Theme.F.rowTitle).frame(minHeight: 64)
+                    .accessibilityLabel(title).accessibilityHint(hint)
+                    .font(Theme.F.rowTitle).frame(minHeight: Theme.R.hintCardMinHeight)
                     .scrollContentBackground(.hidden).padding(Theme.S.s4)
                     .background(Theme.C.surfaceInput, in: RoundedRectangle(cornerRadius: Theme.R.button))
                     .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.button))

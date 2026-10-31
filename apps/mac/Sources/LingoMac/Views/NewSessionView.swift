@@ -22,9 +22,7 @@ struct NewSessionView: View {
     /// "My words" (VR-09): the Questions mode with the vocabulary focus, offered when the language has items.
     private var wordsMode: Binding<Bool> {
         Binding(get: { settings.isVocabularyFocus },
-                set: { on in
-                    if on { settings.mode = .questions; settings.vocabularyFocus = true } else { settings.vocabularyFocus = nil }
-                })
+                set: { settings = settings.withWordsMode($0) })
     }
 
     static let promptExample = String(localized: "For example: “You are my new neighbour. We met at the mailboxes. Speak simply, ask one question at a time and start first.”")
@@ -148,7 +146,7 @@ struct NewSessionView: View {
         .modifier(InterfaceAppearance())
         .environment(\.studyLanguage, settings.lang)
         .onChange(of: settings.lang) { _, l in
-            if settings.isVocabularyFocus && vocabularyCount(l) == 0 { settings.vocabularyFocus = nil }
+            if settings.isVocabularyFocus && vocabularyCount(l) == 0 { settings = settings.withWordsMode(false) }
         }
     }
 
