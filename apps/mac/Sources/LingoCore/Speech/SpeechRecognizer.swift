@@ -37,7 +37,10 @@ public extension SpeechRecognizer {
 /// Recognition hint from the conversation context (R-51). whisper uses up to ~224 prompt tokens,
 /// so it takes the last sentences of the assistant's line, the topic and a few hint phrases.
 public enum RecognitionContext {
-    /// `targets` (LINGO-08 VR-07c): the learner's own words of the session, at most 30 words; they are put last so that they survive the cut.
+    /// `targets` (LINGO-08 VR-07c): the learner's own words of the session, at most 30 words and `maxTargetChars` characters (whole words only);
+    /// they are put last so that they survive the cut, and the cap leaves room for the topic and the assistant's line.
+    public static let maxTargetChars = 160
+
     public static func make(lastAssistant: String?, topic: String, phrases: [String], targets: [String] = [], maxChars: Int = 360) -> String? {
         var parts: [String] = []
         let t = topic.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -46,7 +49,13 @@ public enum RecognitionContext {
         if let a = lastAssistant?.trimmingCharacters(in: .whitespacesAndNewlines), !a.isEmpty {
             parts.append(String(a.suffix(200)))
         }
-        let words = targets.flatMap { $0.split(separator: " ").map(String.init) }.prefix(30)
+        var words: [String] = []
+        var chars = 0
+        for w in targets.flatMap({ $0.split(separator: " ").map(String.init) }).prefix(30) {
+            guard chars + w.count + (words.isEmpty ? 0 : 1) <= maxTargetChars else { break }
+            chars += w.count + (words.isEmpty ? 0 : 1)
+            words.append(w)
+        }
         if !words.isEmpty { parts.append(words.joined(separator: " ") + ".") }
         guard !parts.isEmpty else { return nil }
         let joined = parts.joined(separator: " ")

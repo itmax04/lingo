@@ -143,15 +143,23 @@ public enum VocabularyMatcher {
 
     /// The utterance word indices that realise the item, or nil when the item does not occur. Backtracking search, so repeated
     /// words never hide a valid placement.
+    static let maxSteps = 20_000
+
     public static func match(_ itemText: String, in utterance: String, lang: Lang) -> [Int]? {
         let a = itemTokens(itemText, lang: lang), b = VocabularyText.tokens(utterance)
         guard !a.isEmpty, !b.isEmpty else { return nil }
+        // Cheap pre-check: every item token must occur somewhere, otherwise there is nothing to search.
+        for t in a where !b.indices.contains(where: { tokenAt(t, b, $0, lang: lang) != nil }) { return nil }
         if lang == .de {
-            // Any order within a window (word order changes in German clauses).
+            // Any order within a window (word order changes in German clauses). The step budget bounds a long item of common
+            // words against a long reply; running out counts as "not found" (an accepted miss).
             let width = a.count + maxGap * (a.count - 1)
+            var steps = 0
             func assign(_ k: Int, _ range: Range<Int>, _ used: Set<Int>) -> [Int]? {
                 if k == a.count { return [] }
                 for i in range where !used.contains(i) {
+                    steps += 1
+                    if steps > maxSteps { return nil }
                     guard let hit = tokenAt(a[k], b, i, lang: lang), used.isDisjoint(with: hit) else { continue }
                     if let rest = assign(k + 1, range, used.union(hit)) { return hit + rest }
                 }

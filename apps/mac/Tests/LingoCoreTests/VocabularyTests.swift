@@ -306,6 +306,18 @@ private func isoDate(_ s: String) -> Date {
         #expect(await uses(store).filter { $0.by == .learner }.isEmpty)
     }
 
+    @Test func aCommandAnsweredAgainIsStillNotCounted() async throws {
+        let (e, store, _) = try engine("vt-6") { .text(["@say de: Man sagt: Feierabend."]) }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        await run(e, sid, "Wie sagt man Feierabend?", command: .howToSay)
+        let learner = try #require(await store.state.messages[sid]?.first { $0.role == .user }?.id)
+        for await _ in e.respond(session: sid, replyTo: learner) {}  // "Reply again" does not carry the command
+        let u = await uses(store)
+        #expect(u.filter { $0.by == .learner }.isEmpty)
+        #expect(await store.state.vocabUsedInSession[sid] == nil)
+    }
+
     @Test func theLearnerUseCountsWhenNoModelAnswers() async throws {
         let (e, store, _) = try engine("vt-4") { .fail(.http(status: 503, message: "down")) }
         try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
@@ -344,5 +356,11 @@ private func isoDate(_ s: String) -> Date {
         let ctx = try #require(RecognitionContext.make(lastAssistant: String(repeating: "lang ", count: 80), topic: "Arbeit",
                                                       phrases: ["Wie geht's?"], targets: ["Feierabend", "eine Ausrede"], maxChars: 120))
         #expect(ctx.hasSuffix("Feierabend eine Ausrede."))
+        // Long targets are capped by characters (whole words only), so the topic and the assistant's line keep their room.
+        let long = (1...10).map { "Donaudampfschifffahrt\($0)" }
+        let capped = try #require(RecognitionContext.make(lastAssistant: "Was machst du heute?", topic: "Arbeit", phrases: [], targets: long))
+        #expect(capped.hasPrefix("Arbeit. Was machst du heute?"))
+        let tail = capped.dropFirst("Arbeit. Was machst du heute? ".count).dropLast()
+        #expect(tail.count <= RecognitionContext.maxTargetChars && tail.split(separator: " ").allSatisfy { long.contains(String($0)) })
     }
 }

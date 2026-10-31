@@ -139,7 +139,10 @@ public actor DialogEngine {
         var actualModel: String?
         var t0 = Date()
         for await e in chain.run(req) {
-            if Task.isCancelled { cont.yield(.cancelled); return }
+            if Task.isCancelled {
+                await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
+                cont.yield(.cancelled); return
+            }
             switch e {
             case .attempt(let info):
                 step = info
@@ -173,10 +176,16 @@ public actor DialogEngine {
                 break
             }
         }
-        if Task.isCancelled { cont.yield(.cancelled); return }
+        if Task.isCancelled {
+            await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
+            cont.yield(.cancelled); return
+        }
         for item in parser.finish() { if case .speak(let l, let x) = item { cont.yield(.speak(l, x)) } }
         let full = ReplyProtocol.parse(parser.text, studyLang: s.settings.lang)
-        guard let step else { cont.yield(.failed(reason: String(localized: "empty reply"), retryAfter: nil)); return }
+        guard let step else {
+            await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
+            cont.yield(.failed(reason: String(localized: "empty reply"), retryAfter: nil)); return
+        }
         let label = StepInfo(provider: step.provider, model: actualModel ?? step.model, keyID: step.keyID).label
         if full.violations > 0 {
             Log.metrics.notice("metric protocol_violation n=\(full.violations, privacy: .public) model=\(step.model, privacy: .public)")
@@ -206,6 +215,7 @@ public actor DialogEngine {
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: mid, segments: full.segments)
             cont.yield(.finished(messageID: mid, label: label, segments: full.segments, violations: full.violations))
         } catch {
+            await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
             cont.yield(.failed(reason: "\(error)", retryAfter: nil))
             return
         }
@@ -320,7 +330,9 @@ public actor DialogEngine {
     }
 
     /// Usage detection after a turn (VR-07): every item of the session language found in the learner's utterance (not a command, not
-    /// Russian) and in the assistant's `@say` lines gives one `vocab.used` event. No model call.
+    /// Russian) and in the assistant's `@say` lines gives one `vocab.used` event. No model call. The learner side is also written when the
+    /// reply failed or was cancelled; the merge de-duplicates per (item, by, message), so a later "Reply again" does not count it twice.
+    /// "Reply again" and merged utterances do not carry the detected command, so it is detected again from the stored text.
     func recordVocabularyUse(session: String, learnerMessage: String?, command: CommandKind?, reply: String?, segments: [ReplySegment]) async {
         let st = await store.state
         guard let s = st.sessions[session], s.settings.vocabularyOn else { return }
@@ -328,7 +340,8 @@ public actor DialogEngine {
         let items = st.vocabulary(lang: lang)
         guard !items.isEmpty else { return }
         var batch: [(type: String, session: String, payload: JSONValue)] = []
-        if command == nil, let mid = learnerMessage, let m = st.messages[session]?.first(where: { $0.id == mid }), m.role == .user, m.lang != .ru {
+        if command == nil, let mid = learnerMessage, let m = st.messages[session]?.first(where: { $0.id == mid }), m.role == .user, m.lang != .ru,
+           CommandDetector.detect(m.text) == nil {
             let fixes = segments.compactMap { seg -> Fix? in if case .fix(let f) = seg { return f }; return nil }
             for item in items where VocabularyMatcher.contains(item.text, in: m.text, lang: lang) {
                 if let p = try? JSONValue.from(Payload.VocabUsed(item: item.id, message: mid, by: .learner, outcome: VocabularyMatcher.outcome(item, fixes: fixes))) {
