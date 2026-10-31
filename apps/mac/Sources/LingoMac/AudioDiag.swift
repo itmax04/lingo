@@ -23,6 +23,13 @@ enum AudioDiag {
         voice.onRestart = { _, _ in counter.lock.withLock { counter.restarts += 1 } }
         voice.onCaptureFailure = { _ in counter.lock.withLock { counter.failures += 1 } }
         var passed = true
+        // Without the permission CoreAudio can still deliver silent buffers, so a run is only meaningful with a granted microphone.
+        if Permissions.microphone.rawValue != "granted" {
+            passed = false
+            lines.append("microphone permission is not granted: the result is not valid (run it from the signed app that has the permission)")
+        }
+        let partial = path + ".partial"
+        func progress() { try? (lines.joined(separator: "\n") + "\n").write(toFile: partial, atomically: true, encoding: .utf8) }
         do {
             try voice.start(voiceProcessing: true, output: true)
             // Let the I/O unit settle, processing configuration notifications and the same watchdog as the app.
@@ -48,6 +55,8 @@ enum AudioDiag {
                     let line = "minute=\((second + 59) / 60) samples=\(minuteSamples) min_per_second=\(minuteMin) failed_seconds=\(minuteFailures) capturing=\(voice.isCapturing) restarts=\(counter.lock.withLock { counter.restarts }) capture_failures=\(counter.lock.withLock { counter.failures })"
                     lines.append(line)
                     print(line)
+                    fflush(stdout)
+                    progress()  // a kill or a crash keeps everything up to the last minute in `<file>.partial`
                     minuteMin = Int.max; minuteSamples = 0; minuteFailures = 0
                 }
             }
@@ -66,6 +75,7 @@ enum AudioDiag {
         lines.append("stop stays stopped: \(!voice.running)")
         lines.append("audio-stability: \(passed ? "PASS" : "FAIL")")
         let text = lines.joined(separator: "\n") + "\n"
+        try? FileManager.default.removeItem(atPath: partial)
         do { try text.write(toFile: path, atomically: true, encoding: .utf8) }
         catch { print("cannot write diagnostics: \(error)"); return 1 }
         print(text)

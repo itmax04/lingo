@@ -117,8 +117,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.notice("launch")
         if let i = CommandLine.arguments.firstIndex(of: "--audio-stability"), i + 1 < CommandLine.arguments.count {
             var seconds = 20
-            if let d = CommandLine.arguments.firstIndex(of: "--duration"), d + 1 < CommandLine.arguments.count, let minutes = Double(CommandLine.arguments[d + 1]), minutes > 0 {
+            if let d = CommandLine.arguments.firstIndex(of: "--duration"), d + 1 < CommandLine.arguments.count, let minutes = Double(CommandLine.arguments[d + 1]), minutes.isFinite, minutes > 0, minutes <= 24 * 60 {
                 seconds = max(Int((minutes * 60).rounded()), 20)
+            } else if let d = CommandLine.arguments.firstIndex(of: "--duration") {
+                print("--duration needs a number of minutes between 0 and 1440 (got \(d + 1 < CommandLine.arguments.count ? CommandLine.arguments[d + 1] : "nothing")); using 20 seconds")
             }
             exit(AudioDiag.stability(to: CommandLine.arguments[i + 1], seconds: seconds))
         }
