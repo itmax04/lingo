@@ -1,6 +1,6 @@
 // Ported from Interview Copilot (`Sources/CopilotCore/LLM/ProviderChain.swift`, commit cf0e764) and adapted per R-29:
-// a step is a "provider + model + key" triple with any number of keys; an invalid key disables that key, not the provider;
-// a failed step pauses for `retry-after` or 300 s, per "key + model" pair; parallel hedging was not ported (D-10).
+// a step is a "provider + model + key" triple with any number of keys; an invalid key disables that key, not the provider; keys of one organization are one pool (MR-07);
+// a failed step pauses for `retry-after` or 300 s, per "pool + model" pair; parallel hedging was not ported (D-10).
 import Foundation
 
 /// A chain step without the key value — for labels, events and logs.
@@ -10,12 +10,15 @@ public struct StepInfo: Sendable, Hashable {
     public var keyID: String
     /// Index of the key within its provider (1, 2, …) — used in labels and logs instead of the value.
     public var keyIndex: Int
+    /// Rate-limit pool of the key (provider + organization); keys of one pool pause and count together. Defaults to the key itself.
+    public var poolID: String
 
-    public init(provider: ProviderID, model: String, keyID: String, keyIndex: Int = 1) {
+    public init(provider: ProviderID, model: String, keyID: String, keyIndex: Int = 1, poolID: String? = nil) {
         self.provider = provider
         self.model = model
         self.keyID = keyID
         self.keyIndex = keyIndex
+        self.poolID = poolID ?? keyID
     }
 
     /// "provider · model" label (R-29) — without the family prefix ("openai/").
@@ -55,7 +58,7 @@ public final class ProviderHealth: @unchecked Sendable {
 
     public init() {}
 
-    static func key(_ s: StepInfo) -> String { "\(s.keyID)|\(s.model)" }
+    static func key(_ s: StepInfo) -> String { "\(s.poolID)|\(s.model)" }
 
     public func pause(for s: StepInfo, now: Date = Date()) -> (until: Date, error: LLMError)? {
         lock.withLock {
@@ -346,11 +349,12 @@ public enum ChainFactory {
             let model = entry.model.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !model.isEmpty else { continue }
             let prov = providers?[entry.provider] ?? provider(entry.provider, settings: settings, transport: transport)
-            let keys = settings.keys(for: entry.provider)
-            for (i, k) in keys.enumerated() where !k.invalid {
+            let listed = settings.keys(for: entry.provider)
+            for k in settings.orderedKeys(for: entry.provider) where !k.invalid {
+                let i = listed.firstIndex(where: { $0.id == k.id }) ?? 0  // the number shown in Settings, not the chain position
                 if values[k.id] == nil { values[k.id] = (try? secrets.get(k.id)) ?? "" }
                 guard let v = values[k.id], !v.isEmpty else { continue }
-                steps.append(.init(info: StepInfo(provider: entry.provider, model: model, keyID: k.id, keyIndex: i + 1),
+                steps.append(.init(info: StepInfo(provider: entry.provider, model: model, keyID: k.id, keyIndex: i + 1, poolID: settings.poolID(of: k)),
                                    provider: prov, key: v))
             }
         }

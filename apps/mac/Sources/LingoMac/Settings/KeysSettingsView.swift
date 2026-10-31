@@ -79,6 +79,10 @@ struct ProviderKeysCard: View {
                         .monospacedDigit()
                     VStack(alignment: .leading, spacing: 0) {
                         if !k.label.isEmpty { Text(k.label).foregroundStyle(Theme.C.textSecondary) }
+                        if !k.organizationName.isEmpty { Text(String(localized: "Organization: \(k.organization ?? "")")).foregroundStyle(Theme.C.textSecondary) }
+                        if keys.settings.isOwnerRisk(k) {
+                            Text("Owner risk: an additional organization may violate the provider's terms").foregroundStyle(Theme.C.statusDanger)
+                        }
                         if k.invalid { Text(String(localized: "Invalid") + (k.invalidReason.map { " (\($0))" } ?? "")).foregroundStyle(Theme.C.statusDanger) }
                         if let c = keys.checks[k.id] { Text(c).foregroundStyle(Theme.C.textSecondary).lineLimit(2) }
                     }
@@ -89,6 +93,11 @@ struct ProviderKeysCard: View {
                             if let index = settings.keys.firstIndex(where: { $0.id == k.id }) { settings.keys[index].label = value }
                         }
                     })).frame(width: 120).textFieldStyle(.roundedBorder)
+                    TextField("Organization (empty = main)", text: Binding(get: { k.organization ?? "" }, set: { value in
+                        keys.update { settings in
+                            if let index = settings.keys.firstIndex(where: { $0.id == k.id }) { settings.keys[index].organization = value }
+                        }
+                    })).frame(width: 150).textFieldStyle(.roundedBorder)
                     Button("Check") { keys.verify(k.id) }.disabled(keys.busy.contains(k.id))
                     Button("Delete", role: .destructive) { keys.delete(k.id) }
                 }

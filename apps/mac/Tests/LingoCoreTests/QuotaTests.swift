@@ -67,7 +67,7 @@ import Testing
         let p = MockProvider(id: .groq, behavior: { _, _ in .text(["ok"]) }, calls: log)
         let s = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "A"), ChainEntry(provider: .groq, model: "B")])
         let c = ChainFactory.chain(settings: s, secrets: InMemorySecretStore(["k": "v"]), health: health, providers: [.groq: p])
-        health.report(StepInfo(provider: .groq, model: "A", keyID: "k"), snapshot: RateLimitSnapshot(remainingTokens: 1, limitTokens: 8000, resetTokensSeconds: 30))
+        health.report(StepInfo(provider: .groq, model: "A", keyID: "k", poolID: s.poolID(of: s.keys[0])), snapshot: RateLimitSnapshot(remainingTokens: 1, limitTokens: 8000, resetTokensSeconds: 30))
         _ = await collect(c.run(req))
         #expect(log.all == ["groq/B/v"], "A is skipped: 1 token left for this minute")
     }

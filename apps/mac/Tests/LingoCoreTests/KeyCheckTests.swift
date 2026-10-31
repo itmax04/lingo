@@ -71,3 +71,55 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
         #expect(t.requests.count == 1)
     }
 }
+
+@Suite struct KeyPoolTests {
+    private func key(_ id: String, org: String?, invalid: Bool = false) -> KeyRecord {
+        KeyRecord(id: id, provider: .groq, last4: "0000", invalid: invalid, organization: org)
+    }
+    private func settings(_ keys: [KeyRecord]) -> LLMSettings {
+        var s = LLMSettings()
+        s.keys = keys
+        return s
+    }
+
+    @Test func unlabeledKeysAndTheMainOrganizationAreOnePool() {
+        let s = settings([key("a", org: nil), key("b", org: ""), key("c", org: "  ")])
+        #expect(Set(s.keys.map { s.poolID(of: $0) }) == ["groq:main"])
+        #expect(s.keys.allSatisfy { !s.isOwnerRisk($0) })
+    }
+
+    @Test func labelsGroupCaseInsensitivelyAndExtraOrganizationsAreOwnerRisk() {
+        let s = settings([key("a", org: "Main"), key("b", org: "main "), key("c", org: "Second"), key("d", org: "second"), key("e", org: nil)])
+        #expect(s.poolID(of: s.keys[0]) == s.poolID(of: s.keys[1]))
+        #expect(s.poolID(of: s.keys[2]) == s.poolID(of: s.keys[3]) && s.poolID(of: s.keys[2]) != s.poolID(of: s.keys[0]))
+        #expect(s.keys.map { s.isOwnerRisk($0) } == [false, false, true, true, false == (s.mainOrganization(for: .groq) == "") ? false : true])
+        #expect(s.poolID(of: s.keys[4]) == s.poolID(of: s.keys[0]))  // unlabeled = main organization
+    }
+
+    @Test func chainOrdersMainFirstAndKeepsTheNumbersShownInSettings() throws {
+        var s = settings([key("a", org: "main"), key("b", org: "second"), key("c", org: "main")])
+        s.chain = [ChainEntry(provider: .groq, model: "m")]
+        let store = InMemorySecretStore()
+        for id in ["a", "b", "c"] { try store.set("v-\(id)", for: id, label: id) }
+        let chain = ChainFactory.chain(settings: s, secrets: store, health: ProviderHealth())
+        #expect(chain.steps.map(\.info.keyID) == ["a", "c", "b"])
+        #expect(chain.steps.map(\.info.keyIndex) == [1, 3, 2])
+        #expect(chain.steps[0].info.poolID == chain.steps[1].info.poolID && chain.steps[0].info.poolID != chain.steps[2].info.poolID)
+    }
+
+    @Test func aRateLimitPausesTheWholeOrganizationButNotAnotherOne() {
+        let health = ProviderHealth()
+        let a = StepInfo(provider: .groq, model: "m", keyID: "a", keyIndex: 1, poolID: "groq:main")
+        let c = StepInfo(provider: .groq, model: "m", keyID: "c", keyIndex: 3, poolID: "groq:main")
+        let b = StepInfo(provider: .groq, model: "m", keyID: "b", keyIndex: 2, poolID: "groq:second")
+        health.reportFailure(a, .http(status: 429, message: "limit"))
+        #expect(health.pause(for: c) != nil)   // same organization: no second key to multiply the limit
+        #expect(health.pause(for: b) == nil)   // another organization has its own ceiling (owner risk)
+    }
+
+    @Test func oldSettingsWithoutOrganizationStillDecode() throws {
+        let json = #"{"id":"a","provider":"groq","last4":"1234","label":"","invalid":false,"addedAt":0}"#
+        let k = try JSONDecoder().decode(KeyRecord.self, from: Data(json.utf8))
+        #expect(k.organization == nil && k.organizationName == "")
+    }
+}

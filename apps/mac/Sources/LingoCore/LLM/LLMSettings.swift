@@ -11,9 +11,11 @@ public struct KeyRecord: Codable, Sendable, Hashable, Identifiable {
     public var invalid: Bool
     public var invalidReason: String?
     public var addedAt: Date
+    /// Organization (account) the key belongs to; nil or empty means the main organization (MR-07, ADR-0005 §1). Keys of one organization share one limit.
+    public var organization: String?
 
     public init(id: String = UUID().uuidString, provider: ProviderID, last4: String, label: String = "",
-                invalid: Bool = false, invalidReason: String? = nil, addedAt: Date = Date()) {
+                invalid: Bool = false, invalidReason: String? = nil, addedAt: Date = Date(), organization: String? = nil) {
         self.id = id
         self.provider = provider
         self.last4 = last4
@@ -21,7 +23,11 @@ public struct KeyRecord: Codable, Sendable, Hashable, Identifiable {
         self.invalid = invalid
         self.invalidReason = invalidReason
         self.addedAt = addedAt
+        self.organization = organization
     }
+
+    /// Normalised organization name used to group keys into pools: trimmed, case-insensitive; empty = unlabeled.
+    public var organizationName: String { (organization ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
 
     public static func last4(of key: String) -> String {
         String(key.trimmingCharacters(in: .whitespacesAndNewlines).suffix(4))
@@ -118,6 +124,27 @@ public struct LLMSettings: Codable, Sendable, Hashable {
     }
 
     public func keys(for p: ProviderID) -> [KeyRecord] { keys.filter { $0.provider == p } }
+
+    /// The main organization of a provider is the one of its first key; unlabeled keys all belong to it, so they never multiply a limit.
+    public func mainOrganization(for p: ProviderID) -> String { keys(for: p).first?.organizationName ?? "" }
+
+    /// Keys of one organization (per provider) are one pool = one rate-limit ceiling (ADR-0005 §1).
+    public func poolID(of key: KeyRecord) -> String {
+        let org = key.organizationName.isEmpty ? mainOrganization(for: key.provider) : key.organizationName
+        return "\(key.provider.rawValue):\(org.isEmpty ? "main" : org)"
+    }
+
+    /// Additional organizations are an accepted owner risk (Groq's acceptable-use policy, ADR-0005 §3): flagged, and used after the main one.
+    public func isOwnerRisk(_ key: KeyRecord) -> Bool {
+        let org = key.organizationName
+        return !org.isEmpty && org != mainOrganization(for: key.provider)
+    }
+
+    /// Usable keys of a provider, the main organization first, additional organizations after it (stable within each group).
+    public func orderedKeys(for p: ProviderID) -> [KeyRecord] {
+        let all = keys(for: p)
+        return all.filter { !isOwnerRisk($0) } + all.filter { isOwnerRisk($0) }
+    }
 
     /// Whether there is at least one working key — otherwise voice is inactive (R-45).
     public var hasUsableKey: Bool {
