@@ -73,6 +73,15 @@ public struct HistoryState: Sendable {
         return out.sorted { Array($0.id.utf8).lexicographicallyPrecedes(Array($1.id.utf8)) }
     }
 
+    /// The session's targets (VR-06): 3, or 6 with the vocabulary focus; none when the vocabulary is off for the session.
+    public func vocabTargets(session: String) -> [VocabItem] {
+        guard let s = sessions[session], s.settings.vocabularyOn else { return [] }
+        return VocabularySelection.select(vocabulary(lang: s.settings.lang, before: session), lang: s.settings.lang,
+                                          usedInSession: vocabUsedInSession[session] ?? [],
+                                          count: s.settings.isVocabularyFocus ? VocabularySelection.wordsModeCount : VocabularySelection.ordinaryCount,
+                                          pinned: s.settings.pinnedVocab)
+    }
+
     /// Items with the statistics as they were before `session` (its own uses are left out), so the targets stay stable within it (VR-06).
     public func vocabulary(lang: Lang, before session: String) -> [VocabItem] {
         var base = Dictionary(uniqueKeysWithValues: vocabulary(lang: lang).map { item -> (String, VocabItem) in

@@ -58,8 +58,8 @@ Item texts, translations, goals and interests are learner data: they are never w
   - multi-token items: all tokens found in order with at most 3 other words between neighbours (any order for German);
   - accepted misses: vowel changes (`fahren` → `fährt`, `give` → `gave`), plurals with umlaut, irregular forms, English consonant
     doubling (`stop` → `stopped`) and y → i (`study` → `studied`); the learner can add the form they want to practise.
-- **VR-07c. Recognition hint.** The session's targets are put first into the speech-recognition context (at most 30 words of it), so
-  that rare own words are heard correctly.
+- **VR-07c. Recognition hint.** The session's targets are added to the speech-recognition context with priority (at most 30 words, at
+  the end, so that they survive when the context is cut to its limit), so that rare own words are heard correctly.
 - **VR-08. Per-session switch** `useVocabulary`, an optional field of `SessionSettings` (missing = on; old sessions decode unchanged),
   in the new-session screen and the session menu. Off: no vocabulary block, no `vocab.used` events for that session.
 - **VR-09. "My words"** is the "Questions" mode with the optional field `vocabularyFocus = true` (no new mode value: older builds still

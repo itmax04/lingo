@@ -55,7 +55,8 @@ extension AppServices {
             guard let s = m.selectedSession else { return nil }
             let msgs = m.messages
             return TurnController.Context(session: s, lastAssistant: msgs.last { $0.role == .assistant && $0.kind == .normal },
-                                          lastUser: msgs.last { $0.role == .user }, phrases: m.phrases.map(\.text))
+                                          lastUser: msgs.last { $0.role == .user }, phrases: m.phrases.map(\.text),
+                                          targets: m.history.vocabTargets(session: s.id).map(\.text))
         }
         tc.onState = { [weak tc] s in
             m.voiceState = s

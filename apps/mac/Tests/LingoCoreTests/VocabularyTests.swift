@@ -259,3 +259,90 @@ private func isoDate(_ s: String) -> Date {
         await #expect(throws: DialogEngine.VocabularyError.unknownItem) { try await e.updateVocabulary("nope", text: "y") }
     }
 }
+
+@Suite struct VocabularyTurnTests {
+    private func engine(_ name: String, reply: @escaping @Sendable () -> MockProvider.Behavior) throws -> (DialogEngine, JournalStore, CallLog) {
+        let store = try JournalStore(base: tempDir(name), deviceName: "Mac", deviceID: "mac-vt")
+        let log = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, _ in reply() }, calls: log)
+        let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 2)
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: InMemorySecretStore(["k": "synthetic"]), health: ProviderHealth(), providers: [.groq: p]) }
+        return (e, store, log)
+    }
+    private func run(_ e: DialogEngine, _ sid: String, _ text: String, lang: Lang = .de, command: CommandKind? = nil) async {
+        for await _ in e.send(session: sid, text: text, lang: lang, command: command) {}
+    }
+    private func uses(_ store: JournalStore) async -> [VocabUse] { await store.state.vocabUses }
+
+    @Test func aTurnCountsTheLearnerAndTheAssistantUse() async throws {
+        let (e, store, _) = try engine("vt-1") { .text(["@say de: Schön! Was machst du nach dem Feierabend?"]) }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", ""), ("eine Ausrede", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        await run(e, sid, "Ich habe um sechs Feierabend.")
+        let u = await uses(store)
+        #expect(u.map(\.by).sorted { $0.rawValue < $1.rawValue } == [.assistant, .learner])
+        #expect(u.allSatisfy { $0.outcome == .ok })
+        #expect(await store.state.vocabUsedInSession[sid]?.count == 1)
+    }
+
+    @Test func aFixOnTheItemIsAMistake() async throws {
+        let (e, store, _) = try engine("vt-2") { .text(["@say de: Fast! Natürlicher: „Ich wohne seit zwei Jahren hier.“\n@fix: Ich wohne seit zwei Jahre hier → Ich wohne seit zwei Jahren hier | Dativ\n"]) }
+        try await e.addVocabulary(lang: .de, entries: [("seit zwei Jahre", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        await run(e, sid, "Ich wohne seit zwei Jahre hier.")
+        let u = await uses(store)
+        #expect(u.filter { $0.by == .learner }.map(\.outcome) == [.mistake])
+        #expect(u.filter { $0.by == .assistant }.count == 1)  // the corrected phrase in @say counts as offered
+    }
+
+    @Test func commandsRussianAndASwitchedOffSessionAreNotCounted() async throws {
+        let (e, store, _) = try engine("vt-3") { .text(["@say de: Gut."]) }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        await run(e, sid, "Wie sagt man Feierabend?", command: .howToSay)
+        await run(e, sid, "Feierabend — это конец дня", lang: .ru)
+        let off = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline], useVocabulary: false))
+        await run(e, off, "Ich habe Feierabend.")
+        #expect(await uses(store).filter { $0.by == .learner }.isEmpty)
+    }
+
+    @Test func theLearnerUseCountsWhenNoModelAnswers() async throws {
+        let (e, store, _) = try engine("vt-4") { .fail(.http(status: 503, message: "down")) }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        await run(e, sid, "Ich habe Feierabend.")
+        #expect(await uses(store).map(\.by) == [.learner])
+    }
+
+    @Test func targetsStayStableAndMoveOnAfterUse() async throws {
+        let (e, store, _) = try engine("vt-5") { .text(["@say de: Hast du schon Feierabend?"]) }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", ""), ("eine Ausrede", ""), ("Fernweh", ""), ("die Regel", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        let first = await e.vocabularyTargets(session: sid).map(\.text)
+        #expect(first.count == 3)
+        await run(e, sid, "Ich weiß nicht.")                 // the assistant offers Feierabend in this session
+        #expect(await e.vocabularyTargets(session: sid).map(\.text) == first)  // stable: this session's uses are left out
+        await run(e, sid, "Ja, ich habe Feierabend.")         // the learner uses it
+        let after = await e.vocabularyTargets(session: sid).map(\.text)
+        #expect(!after.contains("Feierabend") && after.count == 3)
+        let focus = try await e.createSession(SessionSettings(lang: .de, mode: .questions, corrections: [.inline], vocabularyFocus: true, pinnedVocab: nil))
+        #expect(await e.vocabularyTargets(session: focus).count == 4)  // up to 6 with the focus; 4 items exist
+        let st = await store.state
+        #expect(st.sessions[focus]?.settings.defaultTitle == String(localized: "My words"))
+    }
+
+    @Test func oldSettingsDecodeAndNewFieldsAreOmittedWhenUnset() throws {
+        let old = #"{"lang":"de","mode":"free","topic":"","role":"","level":"","customPrompt":"","corrections":["inline"],"starter":"assistant"}"#
+        let s = try JSONDecoder().decode(SessionSettings.self, from: Data(old.utf8))
+        #expect(s.vocabularyOn && !s.isVocabularyFocus && s.useVocabulary == nil)
+        let enc = String(decoding: try JSONEncoder().encode(s), as: UTF8.self)
+        #expect(!enc.contains("useVocabulary") && !enc.contains("vocabularyFocus") && !enc.contains("pinnedVocab"))
+        #expect(!SessionSettings(lang: .de, mode: .free, vocabularyFocus: true).isVocabularyFocus)  // focus only with Questions
+    }
+
+    @Test func recognitionContextKeepsTheTargetsWhenCut() throws {
+        let ctx = try #require(RecognitionContext.make(lastAssistant: String(repeating: "lang ", count: 80), topic: "Arbeit",
+                                                      phrases: ["Wie geht's?"], targets: ["Feierabend", "eine Ausrede"], maxChars: 120))
+        #expect(ctx.hasSuffix("Feierabend eine Ausrede."))
+    }
+}

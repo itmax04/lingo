@@ -373,6 +373,18 @@
             "assistant",
             "user"
           ]
+        },
+        "useVocabulary": {
+          "type": "boolean",
+          "description": "LINGO-08 VR-08. Missing = on."
+        },
+        "vocabularyFocus": {
+          "type": "boolean",
+          "description": "LINGO-08 VR-09: \"My words\" (only with mode questions)."
+        },
+        "pinnedVocab": {
+          "type": "string",
+          "description": "LINGO-08 VR-11: the item chosen with Practise; the first target while it is a candidate."
         }
       },
       "additionalProperties": true

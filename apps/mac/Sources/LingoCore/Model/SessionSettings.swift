@@ -57,9 +57,16 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     public var customPrompt: String
     public var corrections: Set<CorrectionMode>
     public var starter: Starter
+    /// LINGO-08 VR-08: the learner's vocabulary is used in this session. Optional so that old sessions decode unchanged (missing = on).
+    public var useVocabulary: Bool?
+    /// LINGO-08 VR-09: "My words" — the Questions mode built around the vocabulary (6 targets, PR-03).
+    public var vocabularyFocus: Bool?
+    /// LINGO-08 VR-11: the item chosen with "Practise"; it is the first target while it is a candidate.
+    public var pinnedVocab: String?
 
     public init(lang: Lang, mode: SessionMode, topic: String = "", role: String = "", level: String = "",
-                customPrompt: String = "", corrections: Set<CorrectionMode> = [], starter: Starter = .assistant) {
+                customPrompt: String = "", corrections: Set<CorrectionMode> = [], starter: Starter = .assistant,
+                useVocabulary: Bool? = nil, vocabularyFocus: Bool? = nil, pinnedVocab: String? = nil) {
         self.lang = lang
         self.mode = mode
         self.topic = topic
@@ -68,12 +75,21 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         self.customPrompt = customPrompt
         self.corrections = corrections
         self.starter = starter
+        self.useVocabulary = useVocabulary
+        self.vocabularyFocus = vocabularyFocus
+        self.pinnedVocab = pinnedVocab
     }
+
+    /// "My words" (VR-09).
+    public var isVocabularyFocus: Bool { vocabularyFocus == true && mode == .questions }
+    /// The vocabulary is used: always with the focus, otherwise unless switched off (VR-08).
+    public var vocabularyOn: Bool { isVocabularyFocus || useVocabulary != false }
 
     /// Default title: "<Mode>: <topic>" (R-01).
     public var defaultTitle: String {
         let t = topic.trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? mode.title : "\(mode.title): \(t)"
+        let name = isVocabularyFocus ? String(localized: "My words") : mode.title
+        return t.isEmpty ? name : "\(name): \(t)"
     }
 
     /// "Start" is enabled only if at least one correction mode is selected (S-01, A-3),

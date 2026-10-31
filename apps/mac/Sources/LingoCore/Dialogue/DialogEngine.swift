@@ -165,6 +165,8 @@ public actor DialogEngine {
                         ?? String(localized: "The provider did not say when it will recover."))
                 _ = try? await store.append(EventType.messageCreated, session: session,
                                             Payload.MessageCreated(role: .assistant, text: text, lang: .ru, kind: .error, replyTo: replyTo))
+                // The learner's own use still counts when no model answered (VR-07).
+                await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
                 cont.yield(.failed(reason: reason, retryAfter: wait))
                 return
             case .stepFailed, .usage, .rateLimits:
@@ -201,6 +203,7 @@ public actor DialogEngine {
                 }
             }
             if !items.isEmpty { try await store.appendBatch(items) }
+            await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: mid, segments: full.segments)
             cont.yield(.finished(messageID: mid, label: label, segments: full.segments, violations: full.violations))
         } catch {
             cont.yield(.failed(reason: "\(error)", retryAfter: nil))
@@ -315,6 +318,37 @@ public actor DialogEngine {
         try await store.append(EventType.profileUpdated, session: "", Payload.ProfileUpdated(
             goals: goals.map { String($0.prefix(300)) }, interests: interests.map { String($0.prefix(300)) }))
     }
+
+    /// Usage detection after a turn (VR-07): every item of the session language found in the learner's utterance (not a command, not
+    /// Russian) and in the assistant's `@say` lines gives one `vocab.used` event. No model call.
+    func recordVocabularyUse(session: String, learnerMessage: String?, command: CommandKind?, reply: String?, segments: [ReplySegment]) async {
+        let st = await store.state
+        guard let s = st.sessions[session], s.settings.vocabularyOn else { return }
+        let lang = s.settings.lang
+        let items = st.vocabulary(lang: lang)
+        guard !items.isEmpty else { return }
+        var batch: [(type: String, session: String, payload: JSONValue)] = []
+        if command == nil, let mid = learnerMessage, let m = st.messages[session]?.first(where: { $0.id == mid }), m.role == .user, m.lang != .ru {
+            let fixes = segments.compactMap { seg -> Fix? in if case .fix(let f) = seg { return f }; return nil }
+            for item in items where VocabularyMatcher.contains(item.text, in: m.text, lang: lang) {
+                if let p = try? JSONValue.from(Payload.VocabUsed(item: item.id, message: mid, by: .learner, outcome: VocabularyMatcher.outcome(item, fixes: fixes))) {
+                    batch.append((EventType.vocabUsed, session, p))
+                }
+            }
+        }
+        if let rid = reply {
+            let said = segments.compactMap { seg -> String? in if case .say(let l, let t) = seg, l == lang { return t }; return nil }.joined(separator: " ")
+            for item in items where VocabularyMatcher.contains(item.text, in: said, lang: lang) {
+                if let p = try? JSONValue.from(Payload.VocabUsed(item: item.id, message: rid, by: .assistant, outcome: .ok)) {
+                    batch.append((EventType.vocabUsed, session, p))
+                }
+            }
+        }
+        if !batch.isEmpty { _ = try? await store.appendBatch(batch) }
+    }
+
+    /// The session's targets for the prompt and for speech recognition (VR-06, VR-07c).
+    public func vocabularyTargets(session: String) async -> [VocabItem] { await store.state.vocabTargets(session: session) }
 
     // MARK: Translation of one message (user action)
 
