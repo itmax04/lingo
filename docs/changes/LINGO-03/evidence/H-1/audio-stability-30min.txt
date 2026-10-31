@@ -1,0 +1,37 @@
+audio-stability 2026-10-31 10:54:17 +0000
+mic permission: granted
+minute=1 samples=959971 min_per_second=15781 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=2 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=3 samples=959976 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=4 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=5 samples=959976 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=6 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=7 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=8 samples=959976 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=9 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=10 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=11 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=12 samples=961341 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=13 samples=961608 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=14 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=15 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=16 samples=961608 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=17 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=18 samples=961608 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=19 samples=961608 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=20 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=21 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=22 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=23 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=24 samples=961608 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=25 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=26 samples=959976 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=27 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=28 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=29 samples=959976 min_per_second=15786 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+minute=30 samples=961608 min_per_second=14421 failed_seconds=0 capturing=true restarts=1 capture_failures=0
+worst_second_samples=14421 duration_seconds=1800
+input: 48000.0 Hz, 5 ch, 1, interleaved=false
+restarts=1 capture_failures=0 samples=28887695
+stop stays stopped: true
+audio-stability: PASS
