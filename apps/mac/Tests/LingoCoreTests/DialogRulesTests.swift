@@ -78,6 +78,8 @@ import Testing
     }
 
     @Test func vocabularyAndFlowRules() throws {
+        let all = try DialogCase.load(dir: DialogRulesTests.dir)
+        func c(_ id: String) throws -> DialogCase { try #require(all.first { $0.id == id }) }
         let weave = try c("de-weave-feierabend")
         #expect(weave.request().messages[0].text.contains("<vocabulary>\nFeierabend | конец рабочего дня | new"))
         let one = DialogRules.check(weave, response: "@say de: Schön! Was machen Sie nach dem Feierabend?").rules
