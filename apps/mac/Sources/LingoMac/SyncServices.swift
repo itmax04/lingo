@@ -60,16 +60,28 @@ extension AppServices {
         Task { await scheduler?.setFolder(nil) }
     }
 
-    /// History export (R-44 "Data"): a ZIP of this device's journals and the cache of other devices — `ditto -c -k`.
+    /// History export (R-44 "Data"): a ZIP with this device's journals and the cache of other devices (`HistoryBackup`).
     func exportHistory() {
         let p = NSSavePanel()
-        p.nameFieldStringValue = "Lingo-history-\(MetricsDay.today()).zip"
+        p.nameFieldStringValue = HistoryBackup.dailyName(for: MetricsDay.today())
         guard p.runModal() == .OK, let dest = p.url else { return }
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        task.arguments = ["-c", "-k", "--sequesterRsrc", "--keepParent", store.base.appendingPathComponent("devices").path, dest.path]
-        do { try task.run(); task.waitUntilExit() } catch { model.banner = String(localized: "Export: \(error.localizedDescription)") }
-        if task.terminationStatus == 0 { NSWorkspace.shared.activateFileViewerSelecting([dest]) }
+        do {
+            try HistoryBackup.export(base: store.base, to: dest)
+            NSWorkspace.shared.activateFileViewerSelecting([dest])
+        } catch { model.banner = String(localized: "Export: \(error.localizedDescription)") }
+    }
+
+    /// Restore from a ZIP made by `exportHistory`: merges journals, never overwrites a file (MR-04).
+    func restoreHistory() {
+        let p = NSOpenPanel()
+        p.allowedContentTypes = [.zip]
+        p.canChooseDirectories = false
+        guard p.runModal() == .OK, let zip = p.url else { return }
+        do {
+            let r = try HistoryBackup.restore(from: zip, into: store.base, ownDeviceID: store.deviceID)
+            Task { await store.reload() }
+            model.banner = String(localized: "Restored \(r.restored) files, \(r.skippedExisting) already here, \(r.rejected) skipped.")
+        } catch { model.banner = String(localized: "Restore: \(error.localizedDescription)") }
     }
 
     /// Deleting the local history (R-44): only the journals on this Mac; copies on other devices and in the sync folder remain.

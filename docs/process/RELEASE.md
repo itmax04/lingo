@@ -48,3 +48,12 @@ npx wrangler dev                         # from services/engine; local D1 + .dev
 - **Storage:** D1 ≤ 400 MB before archiving old events (export + compaction); D1 hard limit 500 MB per database.
 - **Incidents:** if a provider changes limits or removes a model, update the pool configuration (no code change) and note it in the current `handoff.md`.
 - **Data deletion:** Settings → "Delete my data" removes server events, attempts, budgets; local copies are cleared on each device when it next opens.
+
+## Mac history: backup and restore (MR-04)
+A backup is a ZIP with one folder `Lingo-history/` that holds only journals (`devices/<id>/journal-*.jsonl` of this Mac and `cache/<id>/journal-*.jsonl` copies of other devices). Keys, settings, device identity and sync state are never included.
+
+- **Back up:** Lingo → Settings → Data → "Export to ZIP…". The default name is `Lingo-history-<yyyy-mm-dd>.zip`.
+- **Restore:** Lingo → Settings → Data → "Restore from ZIP…" and pick the file. Journals of this Mac go back to `devices/<this device>`; journals of any other device become cache copies. Existing files are never overwritten, so restoring twice changes nothing. The banner reports restored, already-present and skipped files.
+- **New Mac or wiped history:** install Lingo, open it once (creates the device), restore the ZIP, then connect the sync folder. The old Mac's history appears as another device's cache and merges by event id.
+- **Test it without touching real data:** `swift test --package-path apps/mac --filter HistoryBackupTests` exports a store, restores it into a fresh base and compares the state.
+- **Daily automatic backup:** `HistoryBackup.dailyBackupIfDue` writes one ZIP per day and keeps the newest 14. It is not scheduled yet: the owner chooses the folder first (P-04b).

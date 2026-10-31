@@ -6426,6 +6426,74 @@
           }
         }
       }
+    },
+    "Restore from ZIP…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore from ZIP…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановить из ZIP…"
+          }
+        }
+      }
+    },
+    "Restore: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановление: %@"
+          }
+        }
+      }
+    },
+    "This ZIP is not a Lingo history backup.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ZIP is not a Lingo history backup."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот ZIP не является копией истории Lingo."
+          }
+        }
+      }
+    },
+    "Restored %lld files, %lld already here, %lld skipped.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restored %lld files, %lld already here, %lld skipped."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановлено файлов: %lld, уже были: %lld, пропущено: %lld."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

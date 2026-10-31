@@ -109,6 +109,7 @@ struct DataSettingsView: View {
                     HStack(spacing: Theme.S.s12) {
                         Button("Show in Finder") { services.revealJournal() }
                         Button("Export to ZIP…") { services.exportHistory() }
+                        Button("Restore from ZIP…") { services.restoreHistory() }
                         Button("Delete local history…", role: .destructive) { services.deleteLocalHistory() }
                     }
                 }
