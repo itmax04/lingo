@@ -39,6 +39,10 @@ extension AppServices {
         }
         prepareVoice()
         guard await voiceReady?.value == true, let w = whisper else { return nil }
+        // Finish may have run while the model was loading: a finished session must not get the microphone back.
+        guard !ending, model.selectedSession?.state != .ended else { return nil }
+        if let t = turn { return t }
+        plainSpeech.stopSpeaking(at: .immediate)  // its sound is unknown to echo cancellation; never let it overlap live voice
         let io = VoiceIO()
         do { try io.start(voiceProcessing: settings.voice.voiceProcessing, output: true) } catch {
             model.banner = String(localized: "Audio: \(error.localizedDescription)")
@@ -176,8 +180,9 @@ extension AppServices {
             await shutDownVoice()
             ending = false
             if model.banner == note { model.banner = nil }
-            if let c = pendingContinue { pendingContinue = nil; try? await engine.resume(c) }
+            // The recap and summary belong to the finished part, so they are written before a queued "Continue".
             if ended { await engine.finalizeEnded(sid) }
+            if let c = pendingContinue { pendingContinue = nil; try? await engine.resume(c) }
             await scheduler?.trigger(.sessionEnded)
         }
     }
@@ -187,6 +192,7 @@ extension AppServices {
         guard let sid = model.selectedSessionID else { return }
         // Pressed while the goodbye is still playing: continue as soon as finishing is done (no click is lost).
         if ending { pendingContinue = sid; return }
+        plainSpeech.stopSpeaking(at: .immediate)
         Task { try? await engine.resume(sid) }
     }
 
@@ -218,7 +224,7 @@ extension AppServices {
 
     func spaceDown() { guard !ending, model.selectedSession?.state != .ended else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown() } else { t.cancel() } } }
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
-    func escape() { turn?.cancel() }
+    func escape() { turn?.cancel(); plainSpeech.stopSpeaking(at: .immediate) }
     func toggleRussian() {
         model.russianOnce.toggle()
         turn?.forceRussianOnce = model.russianOnce
@@ -230,7 +236,12 @@ extension AppServices {
 
     /// ▶ on a hint phrase (R-27): the voice of the phrase's language, offline; the microphone does not listen; if the assistant is speaking — queued.
     func playPhrase(_ p: Phrase) {
-        if model.selectedSession?.state == .ended || voiceIO == nil && ending {
+        if let io = voiceIO, ending {
+            // The goodbye is still playing through the audio engine: queue behind it instead of a second synthesizer.
+            io.speak(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 50_000)
+            return
+        }
+        if model.selectedSession?.state == .ended || ending {
             speakWithoutMicrophone(p.text, lang: p.lang)
             return
         }
@@ -249,19 +260,27 @@ extension AppServices {
 
     /// Click on an assistant bubble — replay speech (R-41).
     func replay(_ m: ChatMessage) {
-        if model.selectedSession?.state == .ended {
+        if model.selectedSession?.state == .ended || ending {
             // A finished session must not switch the microphone back on just to replay a line.
-            for case .say(let l, let t) in m.segments.isEmpty ? [.say(m.lang, m.text)] : m.segments { speakWithoutMicrophone(t, lang: l) }
+            let parts: [(Lang, String)] = (m.segments.isEmpty ? [.say(m.lang, m.text)] : m.segments).compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
+            if let io = voiceIO {
+                // The goodbye is still playing through the audio engine: queue behind it.
+                for (l, t) in parts { io.speak(t, lang: l, voiceID: settings.voice.voiceIDs[l], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: model.slowPace ? 0.75 : 1), tag: 9_100) }
+            } else {
+                plainSpeech.stopSpeaking(at: .immediate)  // a new replay replaces the previous one, as in TurnController.replay
+                for (l, t) in parts { speakWithoutMicrophone(t, lang: l, stopPrevious: false) }
+            }
             return
         }
         Task { guard let t = await ensureVoice() else { return }; t.replay(m) }
     }
 
     /// Plays text through the system speech synthesizer only: no audio engine, no input tap, so the microphone stays off.
-    func speakWithoutMicrophone(_ text: String, lang: Lang) {
+    func speakWithoutMicrophone(_ text: String, lang: Lang, stopPrevious: Bool = true) {
+        if stopPrevious { plainSpeech.stopSpeaking(at: .immediate) }
         let u = AVSpeechUtterance(string: text)
         u.voice = Voices.voice(for: lang, preferred: settings.voice.voiceIDs[lang])
-        u.rate = SpeechPace(base: settings.voice.pace).rate(multiplier: 1)
+        u.rate = SpeechPace(base: settings.voice.pace).rate(multiplier: model.slowPace ? 0.75 : 1)
         plainSpeech.speak(u)
     }
 }
