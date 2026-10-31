@@ -261,28 +261,28 @@ extension TurnControllerTests {
 }
 
 @MainActor @Suite struct VoiceFinishTests {
-    /// "That's all" by voice: the model's goodbye is spoken first, then the app is asked to end the session.
-    @Test func finishCommandByVoiceEndsAfterTheGoodbyeIsSpoken() async throws {
+    /// "That's all" by voice (R-22): the line is saved, the model is NOT asked for a reply (the app says its own goodbye and ends the session).
+    @Test func finishCommandByVoiceSavesTheLineSkipsTheModelAndEndsTheSession() async throws {
         let h = TurnControllerTests()
-        let e = try await h.env(texts: ["That's all."], reply: { _ in .text(["@say de: Bis bald! Das war gut."]) })
-        var finished = false
-        e.tc.onFinishCommand = { finished = true }
+        let e = try await h.env(texts: ["That's all."], reply: { _ in .text(["@say de: this must never be requested"]) })
+        var endedSession: String?
+        e.tc.onFinishCommand = { endedSession = $0 }
         e.tc.pushDown()
         await e.feed(1200, speech: true)
         e.tc.pushUp()
         await e.settle()
-        #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Bis bald! Das war gut.")
-        #expect(!finished)  // still speaking
-        e.sink.finish()
-        await e.settle(0.3)
-        #expect(finished)
+        #expect(endedSession == e.sid)
+        #expect(e.log.all.isEmpty)           // no model call
+        #expect(e.sink.spoken.isEmpty)       // nothing spoken by the turn itself
+        let msgs = await e.store.state.messages[e.sid] ?? []
+        #expect(msgs.map(\.role) == [.user] && msgs[0].text == "That's all.")
     }
 
     @Test func anOrdinaryUtteranceDoesNotEndTheSession() async throws {
         let h = TurnControllerTests()
         let e = try await h.env(texts: ["Ich wohne in Hamburg."])
         var finished = false
-        e.tc.onFinishCommand = { finished = true }
+        e.tc.onFinishCommand = { _ in finished = true }
         e.tc.pushDown()
         await e.feed(1200, speech: true)
         e.tc.pushUp()

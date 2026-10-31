@@ -294,16 +294,14 @@ public actor DialogEngine {
     public func farewell(session: String) async -> (lang: Lang, text: String)? {
         let st = await store.state
         guard let s = st.sessions[session], s.state != .ended else { return nil }
-        let lang = s.settings.lang
-        let text: String
-        switch lang {
-        case .de: text = "Das war eine gute Übung. Bis zum nächsten Mal!"
-        case .en: text = "That was good practice. See you next time!"
-        case .ru: text = "Хорошая практика. До встречи!"
-        }
+        // The study language is en or de; Russian is never spoken without a request (R-26), so anything else gets the English line.
+        let lang: Lang = s.settings.lang == .de ? .de : .en
+        let text = lang == .de ? "Das war eine gute Übung. Bis zum nächsten Mal!" : "That was good practice. See you next time!"
         let seg = ReplySegment.say(lang, text)
-        _ = try? await store.append(EventType.messageCreated, session: session,
-                                    Payload.MessageCreated(role: .assistant, text: "@say \(lang.rawValue): \(text)", lang: lang, segments: [seg], source: "Lingo"))
+        do {
+            _ = try await store.append(EventType.messageCreated, session: session,
+                                       Payload.MessageCreated(role: .assistant, text: "@say \(lang.rawValue): \(text)", lang: lang, segments: [seg], source: "Lingo"))
+        } catch { return nil }  // a goodbye that is not in the journal is not spoken either
         return (lang, text)
     }
 

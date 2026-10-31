@@ -137,8 +137,15 @@ final class AppServices {
         model.draft = ""
         let lang = WhisperEngine.scriptLang(text, candidates: [s.settings.lang, .ru]) ?? s.settings.lang
         let cmd = CommandDetector.detect(text)?.kind
+        guard !ending else { model.draft = text; return }
         Task {
-            if s.state == .ended { try? await engine.resume(sid) }
+            if cmd == .finish {
+                // "that's all" typed behaves like the button and the voice command (R-22): save the line, say goodbye, end the session.
+                _ = try? await engine.recordUser(session: sid, text: text, lang: lang)
+                finishSession(sid)
+                return
+            }
+            try? await engine.resume(sid)
             run(engine.send(session: sid, text: text, lang: lang, command: cmd))
         }
     }

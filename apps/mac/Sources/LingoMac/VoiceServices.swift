@@ -62,7 +62,7 @@ extension AppServices {
             if m.levels.count > 160 { m.levels.removeFirst(m.levels.count - 160) }
         }
         tc.onNotice = { n in m.banner = n }
-        tc.onFinishCommand = { [weak self] in Task { @MainActor in self?.finishedByVoice() } }
+        tc.onFinishCommand = { [weak self] sid in Task { @MainActor in self?.finishSession(sid) } }
         tc.onTurn = { [weak self] e in self?.turnEvent(e) }
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
@@ -116,23 +116,23 @@ extension AppServices {
 
     /// Microphone button: push-to-talk — start/finish the utterance (S-02); in continuous mode — stop the speech (R-12).
     func micTapped() {
+        guard !ending else { return }
         Task {
-            await resumeIfEnded()
             guard let t = await ensureVoice() else { return }
             voiceIO?.checkHealth(stallSeconds: 0.5)
             if t.mode == .continuous {
                 if voiceIO?.isSpeaking == true { t.cancel() }
                 return
             }
-            if t.state == .recording { t.pushUp() } else { t.pushDown() }
+            if t.state == .recording { t.pushUp() } else { await resumeIfEnded(); t.pushDown() }
         }
     }
 
     func toggleContinuous() {
+        guard !ending else { return }
         Task {
-            await resumeIfEnded()
             guard let t = await ensureVoice() else { return }
-            if t.mode == .continuous { t.stopVoice() } else { t.startContinuous() }
+            if t.mode == .continuous { t.stopVoice() } else { await resumeIfEnded(); t.startContinuous() }
             model.continuous = t.mode == .continuous
         }
     }
@@ -142,7 +142,13 @@ extension AppServices {
     /// "Finish" (R-07, R-22): everything in flight stops, a fixed goodbye is spoken, the session ends, voice turns off.
     /// A second click (or a click on a finished session) does nothing.
     func endTapped() {
-        guard let sid = model.selectedSessionID, !ending, model.selectedSession?.state != .ended else { return }
+        guard let sid = model.selectedSessionID else { return }
+        finishSession(sid)
+    }
+
+    /// The one way to finish a session: the button, "that's all" by voice and "that's all" typed all end here.
+    func finishSession(_ sid: String) {
+        guard !ending else { return }
         ending = true
         // Nothing may go on generating or speaking after "Finish": cancel the voice turn and the text turn that are in flight.
         turn?.stopVoice(cancelTurn: true)
@@ -151,8 +157,14 @@ extension AppServices {
         model.continuous = false
         model.thinking = false
         model.streaming = nil
+        let note = String(localized: "Finishing the session…")
+        model.banner = note
         Task {
-            defer { ending = false }
+            defer {
+                ending = false
+                if model.banner == note { model.banner = nil }
+            }
+            // `farewell` is nil for a missing or already finished session: then nothing is added or spoken.
             if let bye = await engine.farewell(session: sid), let io = voiceIO {
                 io.speak(bye.text, lang: bye.lang, voiceID: settings.voice.voiceIDs[bye.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
             }
@@ -161,26 +173,14 @@ extension AppServices {
         }
     }
 
-    /// The learner said "that's all" by voice (R-22): the model's goodbye has been spoken; end the session like the button does, without a second goodbye.
-    func finishedByVoice() {
-        guard let sid = model.selectedSessionID, !ending, model.selectedSession?.state != .ended else { return }
-        ending = true
-        turn?.stopVoice()
-        model.continuous = false
-        Task {
-            defer { ending = false }
-            await engine.end(sid)
-            await scheduler?.trigger(.sessionEnded)
-        }
-    }
-
-    /// Speaking in a finished session continues it (R-01), like sending text does.
+    /// Speaking in a finished session continues it (R-01), like sending text does. `engine.resume` checks the journal itself,
+    /// so it is safe to call whenever the learner starts to talk (the window model may lag behind the journal).
     func resumeIfEnded() async {
-        guard let sid = model.selectedSessionID, model.selectedSession?.state == .ended else { return }
+        guard let sid = model.selectedSessionID else { return }
         try? await engine.resume(sid)
     }
 
-    func spaceDown() { Task { await resumeIfEnded(); guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown() } else { t.cancel() } } }
+    func spaceDown() { guard !ending else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { await resumeIfEnded(); t.pushDown() } else { t.cancel() } } }
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
     func escape() { turn?.cancel() }
     func toggleRussian() {
