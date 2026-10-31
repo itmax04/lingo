@@ -8,6 +8,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 |---|---|---|
 | `events/event.schema.json` | Journal event, schema v1 (JSON Schema 2020-12) | Swift journal, TS reducer, engine `/api/sync` validation |
 | `fixtures/events/sample-journal.jsonl` | One event of every type, written by the real Swift code (keys sorted) | round-trip tests: parse → serialize must give identical lines (Swift `JournalTests`, TS `packages/core-ts/test/events.test.ts`) |
+| `fixtures/events/timestamps.jsonl` | Synthetic lines with odd milliseconds (`.001`, `.007`, `.999`, …) | round-trip tests in Swift (`TimestampContractTests`) and TS |
 | `fixtures/events/merge-two-devices.input.jsonl` | Two devices, interleaved order, one duplicate | merge parity |
 | `fixtures/events/merge-two-devices.expected.json` | Expected visible sessions, ordered messages (with `heard`, `interruptedAt`), starred keys | merge parity (Swift `Merger.build` produced it) |
 | `fixtures/vocab/text.json` | Normalisation, duplicate key and pasted-list parsing (LINGO-08 VR-03, VR-07a) | Swift `VocabularyTextTests`, the TS port |

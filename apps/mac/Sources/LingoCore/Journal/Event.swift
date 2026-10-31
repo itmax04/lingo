@@ -66,8 +66,13 @@ extension Event {
     private static let known: Set<String> = ["v", "id", "device", "seq", "lamport", "ts", "type", "session", "payload"]
 
     /// Time — ISO 8601 UTC with milliseconds: "2026-10-25T13:01:02.123Z".
+    /// Formatted from the rounded milliseconds (`tsMillis`), so `.007` stays `.007`: formatting the `Double` directly truncated
+    /// values such as 0.006999… to `.006` (LINGO-03 P-07b review; fixture `fixtures/events/timestamps.jsonl`).
     public static func formatTS(_ d: Date) -> String {
-        d.formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: .gmt))
+        let ms = Int64((d.timeIntervalSince1970 * 1000).rounded())
+        let seconds = ms >= 0 ? ms / 1000 : (ms - 999) / 1000
+        let base = Date(timeIntervalSince1970: Double(seconds)).formatted(Date.ISO8601FormatStyle(timeZone: .gmt))
+        return String(base.dropLast()) + String(format: ".%03lld", ms - seconds * 1000) + "Z"
     }
 
     public static func parseTS(_ s: String) -> Date? {
