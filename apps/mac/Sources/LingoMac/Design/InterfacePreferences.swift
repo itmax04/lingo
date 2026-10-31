@@ -6,7 +6,8 @@ import SwiftUI
 enum InterfacePreferences {
     static let languageKey = "LingoInterfaceLanguage"
     static let appearanceKey = "LingoInterfaceAppearance"
-    static let defaultLanguage = "system"
+    /// First-run language is Russian (owner decision D01-01, MR-03); English and System stay explicit choices in Settings.
+    static let defaultLanguage = "ru"
     static var localeIdentifier: String {
         localeIdentifier(language: UserDefaults.standard.string(forKey: languageKey))
     }
