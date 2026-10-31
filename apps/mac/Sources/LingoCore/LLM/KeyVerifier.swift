@@ -42,7 +42,8 @@ public struct KeyVerifier: Sendable {
                 return .ok(models: Self.chatModels(provider, Self.parseModelIDs(data, json: true)))
             case 400, 401, 403:
                 return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
-            case 404, 405 where provider == .custom:
+            case 404 where provider == .custom, 405 where provider == .custom:
+                // Only the custom endpoint ever receives the probe; another provider's key must never be sent to the custom address.
                 return await probe(key: key, customBase: customBase, model: probeModel)
             case 429:
                 return .failed(message: String(localized: "rate limit (HTTP 429), try again later"))
@@ -58,7 +59,8 @@ public struct KeyVerifier: Sendable {
     }
 
     /// One-token chat request for endpoints without a model list. Only the status is used; the reply text is never read or stored.
-    func probe(key: String, customBase: URL?, model: String?) async -> KeyCheckResult {
+    func probe(key: String, customBase: URL?, model: String?, provider: ProviderID = .custom) async -> KeyCheckResult {
+        guard provider == .custom else { return .failed(message: "internal: probe is for the custom endpoint only") }
         guard let model = model?.trimmingCharacters(in: .whitespacesAndNewlines), !model.isEmpty else {
             return .failed(message: String(localized: "this endpoint has no model list; add a model to the custom chain step to check the key"))
         }
@@ -75,8 +77,17 @@ public struct KeyVerifier: Sendable {
         do {
             let (data, response) = try await transport.data(for: r)
             switch response.statusCode {
-            case 200..<300: return .okWithoutModelList(model: model)
-            case 400, 401, 403: return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
+            case 200..<300:
+                // A catch-all page that answers 200 is not a chat endpoint: require a chat-completion shaped body.
+                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["choices"] is [Any] else {
+                    return .failed(message: String(localized: "the endpoint answered, but not with a chat completion"))
+                }
+                return .okWithoutModelList(model: model)
+            case 401, 403: return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
+            case 400, 404, 422:
+                // Most likely a wrong model name or path: say so, but do not mark the key invalid.
+                let detail = Self.errorMessage(data, redacting: key)
+                return .failed(message: "HTTP \(response.statusCode)" + (detail.isEmpty ? "" : ": \(detail)") + " — " + String(localized: "check the model name of the custom chain step"))
             case 429: return .failed(message: String(localized: "rate limit (HTTP 429), try again later"))
             default:
                 let detail = Self.errorMessage(data, redacting: key)

@@ -21,9 +21,10 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
 
 @Suite struct KeyCheckTests {
     let base = URL(string: "https://example.test/v1")
+    static let completion = #"{"choices":[{"message":{"content":"p"}}]}"#
 
     @Test func customEndpointWithoutModelListIsVerifiedByAOneTokenRequest() async throws {
-        let t = ScriptedTransport(models: 404, chat: 200)
+        let t = ScriptedTransport(models: 404, chat: 200, chatBody: Self.completion)
         let r = await KeyVerifier(transport: t).verify(.custom, key: "k-secret", customBase: base, probeModel: "my-model")
         #expect(r == .okWithoutModelList(model: "my-model"))
         let probe = try #require(t.requests.last)
@@ -34,19 +35,33 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
     }
 
     @Test func status405IsTreatedLike404AndBadKeyIsInvalid() async {
-        #expect(await KeyVerifier(transport: ScriptedTransport(models: 405, chat: 200)).verify(.custom, key: "k", customBase: base, probeModel: "m") == .okWithoutModelList(model: "m"))
+        #expect(await KeyVerifier(transport: ScriptedTransport(models: 405, chat: 200, chatBody: Self.completion)).verify(.custom, key: "k", customBase: base, probeModel: "m") == .okWithoutModelList(model: "m"))
         let bad = await KeyVerifier(transport: ScriptedTransport(models: 404, chat: 401, chatBody: #"{"error":{"message":"bad key k-secret"}}"#))
             .verify(.custom, key: "k-secret", customBase: base, probeModel: "m")
         #expect(bad == .invalidKey(status: 401, message: "bad key [key]"))
     }
 
-    @Test func withoutAModelThereIsNothingToProbeAndOtherProvidersAreNotProbed() async {
+    @Test func withoutAModelThereIsNothingToProbe() async {
         let t = ScriptedTransport(models: 404, chat: 200)
         if case .failed = await KeyVerifier(transport: t).verify(.custom, key: "k", customBase: base, probeModel: nil) {} else { Issue.record("expected failed") }
         #expect(t.requests.count == 1)  // only GET /models, no chat request without a model
-        let groq = ScriptedTransport(models: 404, chat: 200)
-        if case .failed = await KeyVerifier(transport: groq).verify(.groq, key: "k", probeModel: "m") {} else { Issue.record("expected failed") }
-        #expect(groq.requests.count == 1)
+    }
+
+    /// A key of another provider must never be sent to the custom address, even when a custom address is configured.
+    @Test(arguments: [404, 405], [ProviderID.groq, .mistral, .openrouter])
+    func otherProvidersKeysAreNeverProbedAtTheCustomHost(status: Int, provider: ProviderID) async {
+        let t = ScriptedTransport(models: status, chat: 200, chatBody: Self.completion)
+        let r = await KeyVerifier(transport: t).verify(provider, key: "groq-secret", customBase: base, probeModel: "m")
+        if case .failed(let m) = r { #expect(m.hasPrefix("HTTP \(status)")) } else { Issue.record("expected failed, got \(r)") }
+        #expect(t.requests.count == 1)
+        #expect(t.requests.allSatisfy { $0.url?.host != "example.test" })
+    }
+
+    @Test func probeNeedsAChatCompletionAndAWrongModelDoesNotInvalidateTheKey() async {
+        let html = await KeyVerifier(transport: ScriptedTransport(models: 404, chat: 200, chatBody: "<html>ok</html>")).verify(.custom, key: "k", customBase: base, probeModel: "m")
+        if case .failed = html {} else { Issue.record("a catch-all 200 must not validate the key") }
+        let wrongModel = await KeyVerifier(transport: ScriptedTransport(models: 404, chat: 400, chatBody: #"{"error":{"message":"unknown model"}}"#)).verify(.custom, key: "k", customBase: base, probeModel: "m")
+        if case .failed(let m) = wrongModel { #expect(m.contains("unknown model")) } else { Issue.record("a 400 on the probe is not an invalid key") }
     }
 
     @Test func modelListStillWinsWhenTheEndpointHasOne() async {

@@ -6528,6 +6528,40 @@
           }
         }
       }
+    },
+    "the endpoint answered, but not with a chat completion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the endpoint answered, but not with a chat completion"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "адрес ответил, но не ответом чат-модели"
+          }
+        }
+      }
+    },
+    "check the model name of the custom chain step": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "check the model name of the custom chain step"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "проверьте название модели в шаге своей цепочки"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
