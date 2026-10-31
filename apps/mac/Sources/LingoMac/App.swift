@@ -116,7 +116,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.app.notice("launch")
         if let i = CommandLine.arguments.firstIndex(of: "--audio-stability"), i + 1 < CommandLine.arguments.count {
-            exit(AudioDiag.stability(to: CommandLine.arguments[i + 1]))
+            var seconds = 20
+            if let d = CommandLine.arguments.firstIndex(of: "--duration"), d + 1 < CommandLine.arguments.count, let minutes = Double(CommandLine.arguments[d + 1]), minutes > 0 {
+                seconds = max(Int((minutes * 60).rounded()), 20)
+            }
+            exit(AudioDiag.stability(to: CommandLine.arguments[i + 1], seconds: seconds))
         }
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count { AudioDiag.step(CommandLine.arguments[i + 1], "didFinishLaunching") }
         do {
