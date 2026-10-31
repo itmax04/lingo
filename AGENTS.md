@@ -48,7 +48,7 @@ Mac (the Swift package lives in `apps/mac` since P-01; `dist/` stays at the repo
 | `apps/mac/scripts/check-core-ios.sh` | LingoCore compiles for iOS |
 | `dist/Lingo.app/Contents/MacOS/Lingo --check-keys` | check stored keys and print the chain (values never printed) |
 | `… --eval-dialog <cases> <out> [--provider groq\|custom] [--models m] [--only ids] [--max-cases 10] [--budget 15]` | dialogue eval — night only (§6.5) |
-| `… --audio-diag <file>` · `--audio-stability <file>` · `--selftest <wav>` · `--ui-snapshot <png>` | diagnostics |
+| `… --audio-diag <file>` · `--audio-stability <file> [--duration <minutes>]` · `--selftest <wav>` · `--ui-snapshot <png>` | diagnostics |
 | `python3 apps/mac/scripts/metrics.py` | turn latency and memory from the Mac metrics log |
 
 Web and engine (from P-07/P-08 on):
