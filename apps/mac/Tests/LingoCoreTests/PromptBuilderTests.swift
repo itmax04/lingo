@@ -57,7 +57,7 @@ import Testing
         }
         // Without a level — not A2 and not silent: explicitly "not specified".
         let free = PromptBuilder.system(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
-        #expect(free.contains("Learner level: not specified"))
+        #expect(free.contains("level not specified"))
         #expect(PromptBuilder.wordLimit(level: "A1") == 25 && PromptBuilder.wordLimit(level: "c1") == 100)
     }
 
@@ -76,6 +76,6 @@ import Testing
         #expect(u.components(separatedBy: "</transcript>").count == 2) // the closing tag inside the utterance is cut out
         #expect(r.system.contains("Du bist Verkäufer"))
         let start = PromptBuilder.dialogRequest(settings: s, summary: "", messages: [])
-        #expect(start.messages[0].text.contains("start the conversation now"))
+        #expect(start.messages[0].text.contains("open the conversation now"))
     }
 }

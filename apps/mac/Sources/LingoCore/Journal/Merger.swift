@@ -56,6 +56,8 @@ public struct HistoryState: Sendable {
     /// Keys of the add-time texts of live items (duplicates included): an edited item still owns its original text (VR-02, VR-03).
     public var vocabAddKeys: Set<String> = []
     public var profile = LearnerProfile()
+    /// All `profile.updated` events with their versions, for the profile as it was before a session (PR-01).
+    public var profileUpdates: [ProfileUpdate] = []
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -235,6 +237,7 @@ public enum Merger {
                 guard let p = try? e.payload.decode(Payload.ProfileUpdated.self) else { st.unknownEvents += 1; continue }
                 if let g = p.goals { goals.apply(g, ver) }
                 if let i = p.interests { interests.apply(i, ver) }
+                st.profileUpdates.append(ProfileUpdate(ts: e.ts, version: ver, goals: p.goals, interests: p.interests))
             default:
                 st.unknownEvents += 1
             }

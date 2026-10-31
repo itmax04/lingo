@@ -29,6 +29,9 @@ public actor DialogEngine {
     /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
+    /// The learner profile of each session, computed at its first turn and kept while the app runs (PR-01: the system part stays
+    /// identical, cacheable); after a restart it is computed again from the journal as it was before the session started.
+    private var frozenProfiles: [String: PromptProfile] = [:]
     /// Usage log — for service requests too (passed into the chain from outside).
     public var usage: UsageRecorder?
 
@@ -132,7 +135,11 @@ public actor DialogEngine {
         var history = st.messages[session] ?? []
         // "Reply again": the context goes up to and including the user's utterance (the old reply is ignored).
         if let r = replyTo, let i = history.firstIndex(where: { $0.id == r }) { history = Array(history[...i]) }
-        let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy)
+        // The profile is frozen per session (PR-01); the targets use the statistics from before the session (VR-06).
+        let profile = frozenProfiles[session] ?? st.promptProfile(session: session)
+        frozenProfiles[session] = profile
+        let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
+                                              profile: profile, vocabulary: st.vocabTargets(session: session))
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?
