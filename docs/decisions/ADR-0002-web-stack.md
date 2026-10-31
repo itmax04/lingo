@@ -1,45 +1,49 @@
-# ADR-0002: Stack of Lingo Web (LINGO-03)
+# ADR-0002: Stack of Lingo Web and the Lingo Engine
 
-Status: **proposed** (accepted together with LINGO-03 plan) · Date: 2026-10-26 · Context: [LINGO-03 intent](../changes/LINGO-03/intent.md)
+Status: **accepted** (owner brainstorms 2026-10-26) · Version 2 (replaces the v1 draft of the same day) · Context: [ARCHITECTURE](../architecture/ARCHITECTURE.md), [LINGO-03](../changes/LINGO-03/intent.md)
 
 ## Context
-The owner wants Lingo on any device with an account and shared history (W1–W5), for free, for themselves and a few friends.
-The Mac app (ADR-0001) is Swift; its behaviour (prompts, protocol, commands, VAD, merge rules) must stay identical on the web.
+- The owner practises mostly on a phone (iPhone Air, iPhone 11), also on an iPad, an Android phone, a Windows PC and other people's computers; the Mac app stays standalone.
+- Budget $0 (no card anywhere). Native iOS needs re-signing every 7 days without a paid Apple account, so the first cross-device client is a website.
+- The owner's Cloudflare account exists (Workers AI already used by the Mac chain). Cloudflare Access is **not** used (ADR-0003).
+- Two independent reviews (2026-10-26) agreed on this stack.
 
 ## Decision
-1. **Hosting and backend — Cloudflare, free plan.** One Worker serves the static client (Workers static assets) and the API;
-   **D1** stores accounts, events, budgets and usage; **Access** (Zero Trust free plan, one-time PIN to email, allow-list) protects everything;
-   **Workers AI** is the last chain step through a binding (no token in code). The owner already has the account; wrangler 4.151 is installed.
-2. **Language — TypeScript everywhere** (client, Worker, shared core), strict mode, ES modules, npm workspaces:
-   `packages/core` (ports of the Swift core), `worker/`, `web/`.
-3. **Client — React + Vite**, PWA (manifest + service worker). React because the owner's component sources (21st.dev) are React and it is the most common stack for later contributors and agents. Styling from DESIGN.md tokens as CSS custom properties; no UI kit that brings its own design.
-4. **Speech recognition — Groq `whisper-large-v3-turbo`** through the Worker (W2), Workers AI Whisper as a fallback. No browser speech recognition (Chrome sends audio to Google; mixed ru/de quality is worse).
-5. **Speech synthesis — the browser's `speechSynthesis`** with device voices (Premium/Enhanced on Apple devices). Server-side TTS is out of scope (cost and quota).
-6. **Utterance detection — the Lingo energy VAD ported to TypeScript** (no ML VAD dependency), so the `turn` eval applies unchanged.
-7. **Local storage — IndexedDB** through a small wrapper (`idb`); the event format of LINGO-01 is reused unchanged.
-8. **Testing — Vitest** for `packages/core` and `web/`; `@cloudflare/vitest-pool-workers` for the Worker (runs tests inside the Workers runtime with D1).
+1. **Hosting and backend — Cloudflare free plan.** One Worker serves the static client (Workers Static Assets) and the API; **D1** stores accounts, events, attempts and budgets; **Workers AI** is a fallback model through the Worker binding; the address is a free `*.workers.dev` name.
+2. **Language — TypeScript, strict**, ES modules, npm workspaces (`apps/web`, `services/engine`, `packages/core-ts`); Node ≥ 22 (owner's Mac: Node 26, npm 11, wrangler 4.151).
+3. **Client — React + Vite**, installable PWA (manifest + service worker), styles from DESIGN.md tokens as CSS custom properties (no UI kit that brings its own design), i18n with Russian as the default UI language and English available.
+4. **Recognition — Groq `whisper-large-v3-turbo`** through the engine; Workers AI Whisper as fallback. No browser speech recognition (Chrome sends audio to Google; mixed ru/de is worse).
+5. **Synthesis — the browser's `speechSynthesis`** with device voices; best voice per language auto-selected (Premium/Enhanced on Apple), changeable in Settings.
+6. **Utterance detection — the Lingo energy VAD and segmenter ported to TypeScript** (no ML VAD), so the `turn` eval applies unchanged.
+7. **Local storage — IndexedDB** via `idb`; events in the shared schema v1 (packages/contracts).
+8. **Testing — Vitest** (`packages/core-ts`, `apps/web`), `@cloudflare/vitest-pool-workers` for the engine (real Workers runtime + D1), Playwright for a small set of browser flows (WebKit + Chromium) where possible.
+9. **Streaming — server-sent events** from `/api/turn` (works through Workers without WebSockets; WebSockets/Durable Objects only in LINGO-06 if real-time needs them).
 
-## Allowed dependencies (initial list; anything else needs an entry here)
+## Allowed dependencies (anything else needs an entry here first)
 | Package | Where | Why |
 |---|---|---|
 | `react`, `react-dom` | web | UI |
-| `vite`, `@vitejs/plugin-react`, `typescript` | build | build and types |
+| `vite`, `@vitejs/plugin-react`, `typescript` | build | build, types |
 | `vite-plugin-pwa` | web | manifest + service worker |
 | `idb` | web | IndexedDB wrapper |
-| `jose` | worker | Access JWT validation |
-| `wrangler`, `@cloudflare/workers-types`, `@cloudflare/vitest-pool-workers` | worker | deploy, types, tests |
+| `i18next`, `react-i18next` | web | ru/en UI strings |
+| `wrangler`, `@cloudflare/workers-types`, `@cloudflare/vitest-pool-workers` | engine | deploy, types, tests |
 | `vitest` | all | tests |
-| `yaml` | packages/core (tests) | read the shared eval YAML sets |
-Versions are pinned in `package-lock.json`; exact versions are chosen in P-00 from the npm registry (current stable, not from memory).
+| `@playwright/test` | web (dev) | browser flow tests |
+| `ajv` | core-ts, engine | validate events and requests against `packages/contracts` schemas |
+| `yaml` | core-ts (tests) | read shared eval YAML sets |
+
+No auth library is needed for GitHub OAuth (two HTTPS calls); no ORM (plain D1 prepared statements); no state-management library unless a measured need appears.
+Exact versions are chosen when the workspace is created (current stable from the npm registry, pinned in `package-lock.json`).
 
 ## Alternatives considered
-- **React Native / Expo** — still needs iOS signing (free Apple ID: 7-day re-signing, SideStore) and a rewrite of the core; no gain over a website for the owner's goal.
-- **Native SwiftUI for iOS (LINGO-02)** — best audio, but installation problems remain; parked.
-- **Supabase / Firebase** for auth and data — good free tiers, but a second vendor and account; Cloudflare is already used and Access removes auth code. Supabase free projects also pause after inactivity.
-- **Browser speech recognition** — free and simple, but worse with an accent and mixed speech, and Chrome sends audio to Google anyway.
-- **In-browser whisper (WASM/WebGPU)** — keeps audio on the device but is too heavy for phones with acceptable latency.
+- **React Native / Expo** — still needs iOS signing (7-day re-sign) and a rewrite; no gain for the goal.
+- **Native SwiftUI on iOS** — best audio and works with a locked screen; parked to LINGO-06 as a thin client of the same engine.
+- **Supabase / Firebase** — second vendor; Supabase free projects pause after inactivity; Cloudflare is already in use.
+- **In-browser whisper (WASM/WebGPU)** — keeps audio local but too slow and heavy for phones.
+- **Durable Objects from day one** — not needed for request/response + SSE; kept for real-time (LINGO-06).
 
 ## Consequences
-- Audio of web utterances goes to Groq (W2); the Mac app keeps on-device recognition.
-- One vendor (Cloudflare) for hosting, data, login and a fallback model; free-tier limits are tracked in the usage view.
-- The Swift and TypeScript cores must stay in sync: parity tests on shared fixtures fail when they diverge.
+- Web audio goes to Groq for recognition (owner decision W2); the Mac keeps on-device recognition.
+- One vendor (Cloudflare) for hosting, data and a fallback model; free-tier limits are tracked (ARCHITECTURE §6.2, §7).
+- Swift and TypeScript implement some behaviour twice; parity is enforced by `packages/contracts` fixtures (ADR-0004).

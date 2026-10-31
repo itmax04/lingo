@@ -1,0 +1,22 @@
+name: repo
+# Repository hygiene on every PR and push to main: language policy and secret scan (whole history).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: repo-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Language policy (AGENTS.md §7)
+        run: scripts/check-english.sh
+      - name: Secret scan (tree + index + history)
+        run: scripts/secret-scan.sh

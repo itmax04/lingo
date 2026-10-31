@@ -1,0 +1,43 @@
+name: mac
+# Swift build and tests. macOS minutes count ×10 against the free quota of a private repo,
+# so this runs only when Swift code, the Mac app or shared contracts change (or on demand).
+on:
+  pull_request:
+    paths:
+      - "Package.swift"
+      - "Package.resolved"
+      - "Sources/**"
+      - "Tests/**"
+      - "Resources/**"
+      - "apps/mac/**"
+      - "packages/contracts/**"
+      - ".github/workflows/ci-mac.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Package.swift"
+      - "Sources/**"
+      - "Tests/**"
+      - "apps/mac/**"
+      - "packages/contracts/**"
+  workflow_dispatch:
+concurrency:
+  group: mac-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  swift-test:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select the newest Xcode (Swift 6.2+ is required)
+        run: |
+          X=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+          swift --version
+      - name: Build and test
+        run: |
+          if [ -f apps/mac/Package.swift ]; then P="--package-path apps/mac"; else P=""; fi
+          swift build $P
+          swift test $P

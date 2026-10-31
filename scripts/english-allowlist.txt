@@ -1,0 +1,46 @@
+# Files allowed to contain Cyrillic (Russian) text. See AGENTS.md §7 (language policy).
+# One shell pattern per line (bash [[ == ]] matching; * also matches "/"). Lines starting with # are comments.
+
+# --- Language data: the app must understand or produce Russian/German text here ---
+Sources/LingoCore/Commands/CommandDetector.swift
+Sources/LingoCore/Dialogue/PromptBuilder.swift
+Sources/LingoCore/Dialogue/ReplyProtocol.swift
+Sources/LingoCore/Speech/WhisperEngine.swift
+Sources/LingoCore/Speech/Voices.swift
+Sources/LingoCore/Speech/WER.swift
+Sources/LingoCore/Model/Language.swift
+Sources/LingoCore/Audio/VoiceIO.swift
+Sources/LingoEvalKit/DialogRules.swift
+Sources/lingo-eval/TTSBench.swift
+Sources/LingoMac/Fixtures.swift
+Sources/LingoMac/Settings/OtherSettingsViews.swift
+apps/mac/Sources/*
+Resources/live-phrases.json
+apps/mac/Resources/*
+*.xcstrings
+apps/web/src/locales/ru/*
+packages/core-ts/src/*commands*
+packages/core-ts/src/*prompt*
+
+# --- Test and eval data, fixtures, recorded evidence ---
+Tests/*
+apps/mac/Tests/*
+evals/*.yaml
+evals/*/*.yaml
+packages/contracts/*
+docs/changes/*/evidence/*
+
+# --- Owner-facing Russian templates and file names quoted in docs ---
+docs/process/SDLC.md
+.github/pull_request_template.md
+docs/changes/LINGO-01/intent.md
+docs/changes/LINGO-03/handoff.md
+
+# --- Pending translation (LINGO-03 P-06 removes these lines) ---
+docs/changes/LINGO-01/executor-prompt.md
+docs/changes/LINGO-01/handoff.md
+docs/changes/LINGO-01/plan.md
+docs/changes/LINGO-01/spec.md
+docs/decisions/ADR-0001-stack.md
+docs/reference/*
+evals/live-script-mac.md
