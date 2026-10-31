@@ -5,6 +5,8 @@ import Foundation
 /// Result of "Check" (R-30, R-44). The key value never gets into the result.
 public enum KeyCheckResult: Equatable, Sendable {
     case ok(models: [String])
+    /// The custom endpoint has no `GET /models` (404/405), but a one-token chat request with `model` was accepted (MR-06).
+    case okWithoutModelList(model: String)
     /// 400/401/403 — "invalid" (R-29).
     case invalidKey(status: Int, message: String)
     case failed(message: String)
@@ -12,6 +14,7 @@ public enum KeyCheckResult: Equatable, Sendable {
     public var summary: String {
         switch self {
         case .ok(let models): String(localized: "Key works · models: \(models.count)")
+        case .okWithoutModelList(let model): String(localized: "Key works · no model list at this endpoint (checked with a one-token request to \(model))")
         case .invalidKey(let status, let message): String(localized: "Invalid key (HTTP \(status))") + (message.isEmpty ? "" : ": \(message)")
         case .failed(let message): String(localized: "Error: \(message)")
         }
@@ -25,7 +28,8 @@ public struct KeyVerifier: Sendable {
         self.transport = transport
     }
 
-    public func verify(_ provider: ProviderID, key: String, customBase: URL? = nil) async -> KeyCheckResult {
+    /// `probeModel` is the model of the custom endpoint's chain step; it is used only when `GET /models` answers 404/405.
+    public func verify(_ provider: ProviderID, key: String, customBase: URL? = nil, probeModel: String? = nil) async -> KeyCheckResult {
         let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { return .failed(message: String(localized: "no key")) }
         guard let request = ProviderEndpoints.listModels(provider, key: key, customBase: customBase) else {
@@ -38,8 +42,42 @@ public struct KeyVerifier: Sendable {
                 return .ok(models: Self.chatModels(provider, Self.parseModelIDs(data, json: true)))
             case 400, 401, 403:
                 return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
+            case 404, 405 where provider == .custom:
+                return await probe(key: key, customBase: customBase, model: probeModel)
             case 429:
                 return .failed(message: String(localized: "rate limit (HTTP 429), try again later"))
+            default:
+                let detail = Self.errorMessage(data, redacting: key)
+                return .failed(message: "HTTP \(response.statusCode)" + (detail.isEmpty ? "" : ": \(detail)"))
+            }
+        } catch let error as URLError {
+            return .failed(message: String(localized: "network: \(error.code == .timedOut ? String(localized: "timeout") : error.localizedDescription)"))
+        } catch {
+            return .failed(message: error.localizedDescription)
+        }
+    }
+
+    /// One-token chat request for endpoints without a model list. Only the status is used; the reply text is never read or stored.
+    func probe(key: String, customBase: URL?, model: String?) async -> KeyCheckResult {
+        guard let model = model?.trimmingCharacters(in: .whitespacesAndNewlines), !model.isEmpty else {
+            return .failed(message: String(localized: "this endpoint has no model list; add a model to the custom chain step to check the key"))
+        }
+        guard let base = ProviderEndpoints.base(.custom, customBase: customBase) else {
+            return .failed(message: String(localized: "API address is not set (https://…/v1)"))
+        }
+        var r = URLRequest(url: base.appendingPathComponent("chat/completions"))
+        r.httpMethod = "POST"
+        r.timeoutInterval = 20
+        r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        ProviderEndpoints.authorize(&r, key: key)
+        let body: [String: Any] = ["model": model, "messages": [["role": "user", "content": "ping"]], "max_tokens": 1, "stream": false]
+        r.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        do {
+            let (data, response) = try await transport.data(for: r)
+            switch response.statusCode {
+            case 200..<300: return .okWithoutModelList(model: model)
+            case 400, 401, 403: return .invalidKey(status: response.statusCode, message: Self.errorMessage(data, redacting: key))
+            case 429: return .failed(message: String(localized: "rate limit (HTTP 429), try again later"))
             default:
                 let detail = Self.errorMessage(data, redacting: key)
                 return .failed(message: "HTTP \(response.statusCode)" + (detail.isEmpty ? "" : ": \(detail)"))

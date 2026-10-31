@@ -63,10 +63,11 @@ final class KeysController {
         busy.insert(id)
         checks[id] = String(localized: "Checking…")
         let secrets = self.secrets, verifier = self.verifier, base = settings.customBase
+        let probe = settings.chain.first(where: { $0.provider == .custom })?.model
         Task {
             let result = await Task.detached { () -> KeyCheckResult in
                 guard let value = try? secrets.get(id), !value.isEmpty else { return .failed(message: String(localized: "key not found in the Keychain")) }
-                return await verifier.verify(rec.provider, key: value, customBase: base)
+                return await verifier.verify(rec.provider, key: value, customBase: base, probeModel: probe)
             }.value
             busy.remove(id)
             checks[id] = result.summary
@@ -78,6 +79,9 @@ final class KeysController {
                     s.keys[i].invalidReason = nil
                     s.knownModels[rec.provider] = models
                     s.knownModelsAt[rec.provider] = Date()
+                case .okWithoutModelList:
+                    s.keys[i].invalid = false
+                    s.keys[i].invalidReason = nil
                 case .invalidKey(let status, _):
                     s.keys[i].invalid = true
                     s.keys[i].invalidReason = "HTTP \(status)"

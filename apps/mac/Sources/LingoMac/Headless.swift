@@ -24,7 +24,7 @@ enum Headless {
                         print("\(p.displayName) key \(i + 1) ••••\(k.last4): no value in the Keychain")
                         continue
                     }
-                    let r = await verifier.verify(p, key: v, customBase: llm.customBase)
+                    let r = await verifier.verify(p, key: v, customBase: llm.customBase, probeModel: llm.chain.first(where: { $0.provider == .custom })?.model)
                     print("\(p.displayName) key \(i + 1) ••••\(k.last4): \(r.summary)")
                     guard let idx = llm.keys.firstIndex(where: { $0.id == k.id }) else { continue }
                     switch r {
@@ -34,6 +34,9 @@ enum Headless {
                         llm.knownModels[p] = models
                         llm.knownModelsAt[p] = Date()
                         if i == 0 || showAll { print("  models: " + models.joined(separator: ", ")) }
+                    case .okWithoutModelList:
+                        llm.keys[idx].invalid = false
+                        llm.keys[idx].invalidReason = nil
                     case .invalidKey(let s, _):
                         llm.keys[idx].invalid = true
                         llm.keys[idx].invalidReason = "HTTP \(s)"

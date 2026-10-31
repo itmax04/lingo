@@ -6494,6 +6494,40 @@
           }
         }
       }
+    },
+    "Key works · no model list at this endpoint (checked with a one-token request to %@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key works · no model list at this endpoint (checked with a one-token request to %@)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ работает · у этого адреса нет списка моделей (проверено запросом в один токен к %@)"
+          }
+        }
+      }
+    },
+    "this endpoint has no model list; add a model to the custom chain step to check the key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this endpoint has no model list; add a model to the custom chain step to check the key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "у этого адреса нет списка моделей; добавьте модель в шаг своей цепочки, чтобы проверить ключ"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
