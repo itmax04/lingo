@@ -4,6 +4,10 @@ import Foundation
 /// The user's custom prompt, the summary and the utterances are passed as marked-up data:
 /// `<session_prompt>`, `<summary>`, `<transcript>`. The wrapper takes precedence over the custom prompt (R-03).
 public enum PromptBuilder {
+    /// Output reserve of one dialog turn (MR-02). Measured on 41 live turns: median 70, maximum 204 tokens (reasoning included);
+    /// 300 leaves a margin, `finish_reason` is logged so a truncated reply (`length`) shows up in the usage log.
+    public static let dialogOutputReserve = 300
+
     /// Word limit for `@say` in the target language, by level (evals/README.md, `length_by_level`).
     public static func wordLimit(level: String) -> Int {
         switch level.trimmingCharacters(in: .whitespaces).uppercased() {
@@ -199,7 +203,7 @@ public enum PromptBuilder {
             u.append("Continue the practice following the rules and the output protocol.")
         }
         return LLMRequest(system: system(settings, policy: policy), messages: [LLMMessage(role: .user, text: u.joined(separator: "\n\n"))],
-                          maxTokens: 450, purpose: .dialog, temperature: 0.6)
+                          maxTokens: PromptBuilder.dialogOutputReserve, purpose: .dialog, temperature: 0.6)
     }
 
     /// Transcript line: role, language, text; an interrupted reply carries an `interrupted_at` mark (R-12).

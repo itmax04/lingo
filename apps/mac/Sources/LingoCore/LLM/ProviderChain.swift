@@ -246,7 +246,8 @@ public struct ProviderChain: Sendable {
                                  keyIndex: step.info.keyIndex, status: status, limitKind: error?.rateLimitKind, retryAfter: error?.retryAfterSeconds,
                                  inputTokens: stats.usage?.input, outputTokens: stats.usage?.output, cachedTokens: stats.usage?.cached,
                                  estimatedInput: TokenEstimate.input(request), remainingTokens: snap?.remainingTokens,
-                                 remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000)))
+                                 remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000),
+                                 finishReason: stats.stopReason))
     }
 
     /// One step; throws if a fallback is needed. The first-token timeout is a race against the clock.
@@ -275,7 +276,7 @@ public struct ProviderChain: Sendable {
                         stats.snapshot = snap
                         health?.report(step.info, snapshot: snap)
                         continuation.yield(.rateLimits(step.info, snap))
-                    case .done: break
+                    case .done(let reason): stats.stopReason = reason
                     }
                 }
                 if let usage { continuation.yield(.usage(step.info, usage)) }
@@ -306,8 +307,11 @@ final class StepStats: @unchecked Sendable {
     private let lock = NSLock()
     private var _usage: TokenUsage?
     private var _snapshot: RateLimitSnapshot?
+    private var _stopReason: String?
     var usage: TokenUsage? { get { lock.withLock { _usage } } set { lock.withLock { _usage = newValue } } }
     var snapshot: RateLimitSnapshot? { get { lock.withLock { _snapshot } } set { lock.withLock { _snapshot = newValue } } }
+    /// `finish_reason` of the last completed stream (`length` means the output reserve was too small).
+    var stopReason: String? { get { lock.withLock { _stopReason } } set { lock.withLock { _stopReason = newValue } } }
 }
 
 final class FirstTokenFlag: @unchecked Sendable {
