@@ -7,7 +7,9 @@ import LingoCore
 @MainActor
 enum AudioDiag {
     /// Real-device capture and restart check. Records counters only, never microphone audio or API calls.
-    static func stability(to path: String) -> Int32 {
+    /// `seconds` is the length of the run (20 by default, `--duration <minutes>` for the 30-minute run of H-1). Runs longer than a minute
+    /// write one summary line per minute plus every failing second instead of one line per second.
+    static func stability(to path: String, seconds total: Int = 20) -> Int32 {
         final class Counter: @unchecked Sendable {
             let lock = NSLock()
             var samples = 0
@@ -21,6 +23,13 @@ enum AudioDiag {
         voice.onRestart = { _, _ in counter.lock.withLock { counter.restarts += 1 } }
         voice.onCaptureFailure = { _ in counter.lock.withLock { counter.failures += 1 } }
         var passed = true
+        // Without the permission CoreAudio can still deliver silent buffers, so a run is only meaningful with a granted microphone.
+        if Permissions.microphone.rawValue != "granted" {
+            passed = false
+            lines.append("microphone permission is not granted: the result is not valid (run it from the signed app that has the permission)")
+        }
+        let partial = path + ".partial"
+        func progress() { try? (lines.joined(separator: "\n") + "\n").write(toFile: partial, atomically: true, encoding: .utf8) }
         do {
             try voice.start(voiceProcessing: true, output: true)
             // Let the I/O unit settle, processing configuration notifications and the same watchdog as the app.
@@ -28,7 +37,8 @@ enum AudioDiag {
                 RunLoop.main.run(until: Date().addingTimeInterval(0.5))
                 voice.checkHealth()
             }
-            for second in 1...20 {
+            var minuteMin = Int.max, minuteSamples = 0, minuteFailures = 0, worstMin = Int.max
+            for second in 1...max(total, 1) {
                 let before = counter.lock.withLock { counter.samples }
                 if second == 11 { voice.restart(reason: "stability test") }
                 RunLoop.main.run(until: Date().addingTimeInterval(1))
@@ -36,8 +46,21 @@ enum AudioDiag {
                 let delta = counter.lock.withLock { counter.samples - before }
                 let good = delta > 8_000 && voice.isCapturing
                 passed = passed && good
-                lines.append("second=\(second) samples=\(delta) capturing=\(voice.isCapturing) vp=\(voice.voiceProcessing) result=\(good ? "PASS" : "FAIL")")
+                if total <= 60 || !good {
+                    lines.append("second=\(second) samples=\(delta) capturing=\(voice.isCapturing) vp=\(voice.voiceProcessing) result=\(good ? "PASS" : "FAIL")")
+                }
+                minuteMin = min(minuteMin, delta); worstMin = min(worstMin, delta); minuteSamples += delta
+                if !good { minuteFailures += 1 }
+                if total > 60 && (second % 60 == 0 || second == total) {
+                    let line = "minute=\((second + 59) / 60) samples=\(minuteSamples) min_per_second=\(minuteMin) failed_seconds=\(minuteFailures) capturing=\(voice.isCapturing) restarts=\(counter.lock.withLock { counter.restarts }) capture_failures=\(counter.lock.withLock { counter.failures })"
+                    lines.append(line)
+                    print(line)
+                    fflush(stdout)
+                    progress()  // a kill or a crash keeps everything up to the last minute in `<file>.partial`
+                    minuteMin = Int.max; minuteSamples = 0; minuteFailures = 0
+                }
             }
+            if total > 60 { lines.append("worst_second_samples=\(worstMin) duration_seconds=\(total)") }
             lines.append("input: \(voice.inputFormatDescription)")
             lines.append(counter.lock.withLock { "restarts=\(counter.restarts) capture_failures=\(counter.failures) samples=\(counter.samples)" })
         } catch {
@@ -52,6 +75,7 @@ enum AudioDiag {
         lines.append("stop stays stopped: \(!voice.running)")
         lines.append("audio-stability: \(passed ? "PASS" : "FAIL")")
         let text = lines.joined(separator: "\n") + "\n"
+        try? FileManager.default.removeItem(atPath: partial)
         do { try text.write(toFile: path, atomically: true, encoding: .utf8) }
         catch { print("cannot write diagnostics: \(error)"); return 1 }
         print(text)
