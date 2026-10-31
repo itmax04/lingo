@@ -31,6 +31,12 @@ Status: **documents v2 accepted at H-0 in DG-02 on 2026-10-29; implementation no
 ## Executor decisions
 (none yet — record as D-01, D-02, … with the reason)
 
+## Owner acceptance H-1 (2026-10-31)
+The owner accepted Stage 0 in the LINGO-08 brainstorm ("Accept H-1 now", translated from Russian; LINGO-08 intent Q-04).
+Not done at acceptance: the 30-minute live session (AC-17), the backup/restore walk-through with the real buttons, the RU/EN check.
+Done: the 30-minute capture run (PASS); the owner's four findings (crackle, Finish, translation, topic changes) fixed in PRs #47–#49; the owner reported in chat that the crackle is gone and Finish works; the other live checks were not run.
+The prompt compaction P-02b moves into LINGO-08 step P-1. Next work: [LINGO-08](../LINGO-08/intent.md); Stage 1 of LINGO-03 waits.
+
 ## Next step
 
-2026-10-31: P-01..P-06 are merged or in their PRs (P-06c is the last translation). What is left of Stage 0 needs the owner or the night: the 30-minute `--audio-stability` run and a 30-minute real session (H-1), P-04b (schedule the daily backup after the owner picks a folder), P-02b (prompt compaction and the night `dialog` batch, 23:00-08:00 Berlin only), the live checks of P-03/P-05b. Then stop at H-1 with the Russian checklist; do not start Stage 1.
+2026-10-31: P-01..P-06 are merged or in their PRs (P-06c is the last translation). What is left of Stage 0 needs the owner or the night: the 30-minute `--audio-stability` run and a 30-minute real session (H-1), P-04b (schedule the daily backup after the owner picks a folder), P-02b (prompt compaction and the night `dialog` batch, 23:00-08:00 Berlin only), the live checks of P-03/P-05b. H-1 was accepted on 2026-10-31 (see below); P-02b moved into LINGO-08 P-1; Stage 1 waits until after LINGO-08.

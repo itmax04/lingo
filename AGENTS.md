@@ -9,7 +9,7 @@ Current owner decision D04-01 supersedes the historical human-review policy: AI-
 1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
    [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
    and [`docs/process/SDLC.md`](docs/process/SDLC.md). Before changing anything structural read [`docs/process/EVOLVING.md`](docs/process/EVOLVING.md).
-2. Open the current change: [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) — `intent.md` (why, decisions O-01…O-22), `spec.md` (requirements, acceptance), `plan.md` (steps P-01…P-20, owner checkpoints H-0…H-5), `handoff.md` (what is done, what is next).
+2. Open the current change: [`docs/changes/LINGO-08/`](docs/changes/LINGO-08/) — my vocabulary used by the model and prompting v2 (`intent.md`, `spec.md`, `plan.md`, `handoff.md`). The larger roadmap change is [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) (Stage 0 accepted at H-1 on 2026-10-31; Stage 1 waits until LINGO-08 is done).
 3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-03 · Stage 0 — Stabilise"`), take the lowest-numbered unblocked step.
 4. Make sure you are in your own worktree and branch (§5), the tree is clean, and `main` is up to date.
 5. Read `handoff.md` → "Next step" before touching code.
@@ -33,7 +33,7 @@ a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](d
 | `docs/architecture/` | ARCHITECTURE (system), MAC (Mac app), WEB (web + engine), CODEBASE (repository map) | current |
 | `design/` | redesign inputs; `design/redesign-2026/` reference images for every platform (LINGO-07, PR #33) | current |
 | `docs/decisions/` | ADRs 0001 (Mac stack, Russian — translation pending), 0002 web stack, 0003 sign-in, 0004 repo layout, 0005 routing & quota | current |
-| `docs/changes/` | SDLC folders per change; LINGO-01 frozen (partly Russian), LINGO-03 current | current |
+| `docs/changes/` | SDLC folders per change; LINGO-01 frozen, LINGO-03 (Stage 0 accepted), LINGO-08 current | current |
 | `docs/process/` | SDLC, EVOLVING (how to change things), TESTING, RELEASE, STAGE-PROMPTS | current |
 | `DESIGN.md` | design tokens (dark theme) — the only source of colours, type, spacing, radii | current |
 | `.github/` | CI workflow, PR template | current |
