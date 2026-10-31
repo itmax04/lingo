@@ -1,480 +1,485 @@
-# LINGO-01: Спецификация v2 — MVP для Mac
+# LINGO-01: Specification v2 — MVP for the Mac
 
-ID: LINGO-01-spec · Статус: **accepted** (2026-10-25) · Версия: 2.2 · Дата: 2026-10-25 (2.1: R-24 `@heard`, R-51 — Q28; 2.2: R-04, R-52, AC-17 — Q29) · Владелец: itmax04
-Связи: [intent.md](intent.md) (цель, границы, решения Q1–Q27, допущения A-1…A-9) · [ADR-0001](../../decisions/ADR-0001-stack.md) (стек) ·
-[plan.md](plan.md) (реализация) · [evals/README.md](../../../evals/README.md) (наборы и пороги) · [DESIGN.md](../../../DESIGN.md) (токены) ·
-[pdf-patterns.md](../../reference/pdf-patterns.md) (паттерны P1–P16)
-Требования задаёт только этот файл. В plan.md и handoff.md — только ссылки на номера R-, F-, AC-.
+ID: LINGO-01-spec · Status: **accepted** (2026-10-25) · Version: 2.2 · Date: 2026-10-25 (2.1: R-24 `@heard`, R-51 — Q28; 2.2: R-04, R-52, AC-17 — Q29) · Owner: itmax04
+Links: [intent.md](intent.md) (goal, boundaries, decisions Q1–Q27, assumptions A-1…A-9) · [ADR-0001](../../decisions/ADR-0001-stack.md) (stack) ·
+[plan.md](plan.md) (implementation) · [evals/README.md](../../../evals/README.md) (sets and thresholds) · [DESIGN.md](../../../DESIGN.md) (tokens) ·
+[pdf-patterns.md](../../reference/pdf-patterns.md) (patterns P1–P16)
+Only this file sets requirements. plan.md and handoff.md only refer to the numbers R-, F-, AC-.
 
-## 1. Термины
-- **Изучаемый язык** — `en` или `de`, задаётся на сессию. **Язык объяснений** — `ru`.
-- **Сессия** — разговор с настройками (R-02). Её можно продолжить в любое время на любом устройстве.
-- **Реплика** — непрерывная речь пользователя до паузы, или одно текстовое сообщение.
-- **Ход** — реплика, отправленная модели, вместе с ответом помощника.
-- **Режим сессии** — «Вопросы», «Свободный разговор» или «Свой промпт» (R-03).
-- **Режимы исправления** — любое непустое сочетание: «по ходу», «после разговора», «по запросу» (R-20).
-- **Команда** — фраза управления: повтори, медленнее, как сказать, объясни, продолжим, были ошибки, завершить (R-14…R-22).
-- **Цепочка** — упорядоченный список шагов «провайдер + модель + ключ» с автопереходом (R-29).
-- **Журнал устройства** — файл событий, в который пишет только одно устройство (R-34…R-37).
-- **Папка синхронизации** — папка в iCloud Drive, которую выбрал пользователь (R-36).
-- **Служебное приложение** — iOS-приложение для замеров на iPhone (R-46). Делается в LINGO-02, это не MVP.
+Translated to English in LINGO-03 P-06 (MR-08); the Russian original is in the Git history of this file. Utterances and UI texts that the user speaks or reads in Russian
+are given in English and marked "(ru)"; the exact Russian phrase lists live in `packages/contracts/evals/commands/ru.yaml` and the dialog evals, and the Russian UI texts in
+`apps/mac/Resources/Localizable.xcstrings`. UI labels in this translation follow the English catalog in spirit; the catalog wording is authoritative where they differ
+(for example "As we go", "Reply again", "I'm speaking Russian", "Sync now", "Offline").
 
-## 2. Сценарии
-Все сценарии реализуются и проверяются в Mac-приложении (LINGO-01). Значения для iPhone указаны на будущее (LINGO-02).
+## 1. Terms
+- **Study language** — `en` or `de`, set per session. **Explanation language** — `ru`.
+- **Session** — a conversation with settings (R-02). It can be continued at any time on any device.
+- **Utterance** — the user's continuous speech up to a pause, or one text message.
+- **Turn** — an utterance sent to the model, together with the assistant's answer.
+- **Session mode** — "Questions", "Free conversation" or "Custom prompt" (R-03).
+- **Correction modes** — any non-empty combination: "as you go", "after the conversation", "on request" (R-20).
+- **Command** — a control phrase: repeat, slower, how to say, explain, let's continue, were there mistakes, finish (R-14…R-22).
+- **Chain** — an ordered list of "provider + model + key" steps with automatic fallback (R-29).
+- **Device journal** — an event file that only one device writes to (R-34…R-37).
+- **Sync folder** — a folder in iCloud Drive chosen by the user (R-36).
+- **Utility app** — an iOS app for measurements on the iPhone (R-46). Built in LINGO-02, it is not the MVP.
 
-- **S-01. Новая сессия.**
-  Когда: пользователь нажимает «Новая сессия».
-  Тогда открывается экран настройки:
-  - язык (English/Deutsch, по умолчанию выбран в сайдбаре);
-  - режим;
-  - тема, роль собеседника, уровень;
-  - свой промпт (для режима «Свой промпт»);
-  - режимы исправления (можно выбрать несколько; A-3);
-  - кто начинает.
+## 2. Scenarios
+All scenarios are implemented and checked in the Mac app (LINGO-01). The iPhone values are given for the future (LINGO-02).
 
-  «Начать» неактивна, пока не выбран хотя бы один режим исправления. После «Начать» сессия появляется в списке.
-  Если первым говорит помощник, он произносит первую реплику голосом.
-- **S-02. Голос по кнопке.** Пользователь удерживает пробел (фокус не в поле ввода) или нажимает кнопку микрофона и говорит.
-  Когда отпускает (или нажимает второй раз), реплика расшифровывается и появляется справа в синем пузыре. Под ней — язык и время.
-  Затем приходит ответ помощника: текст слева, озвучка голосом нужного языка.
-- **S-03. Непрерывный диалог.** Пользователь включает непрерывный режим. Панель показывает «Слушаю», волну и кнопки «Пауза» и «Завершить».
-  Реплика отправляется после паузы T (ползунок, R-10). Затем «Думаю…», ответ озвучивается, и прослушивание возобновляется само.
-- **S-04. Перебить помощника.** Помощник говорит, пользователь начинает говорить. Озвучка останавливается
-  не позже чем через 0,5 с на Mac и 0,7 с на iPhone. Непроизнесённая часть ответа помечается в тексте как «прервано».
-  Новая реплика становится следующим ходом. Звук самого помощника перебиванием не считается (R-12).
-- **S-05. Добавка к фразе.** Пользователь сказал «Am Wochenende gehe», замолчал, через секунду добавил «spazieren».
-  Помощник ещё не начал говорить, поэтому реплики склеиваются в одну, а незавершённый запрос к модели отменяется (R-11).
-- **S-06. «Повтори».** Пользователь говорит «nochmal, bitte», «повтори» или «again». Последний ответ помощника звучит снова
-  не позже чем через 0,3 с, модель не вызывается (R-14).
-- **S-07. «Медленнее».** Пользователь говорит «медленнее», «langsamer» или «slower». Последний ответ повторяется в темпе ×0,75
-  с паузами между частями фразы. Повторная просьба замедляет до ×0,6 (R-15).
-- **S-08. «Как сказать».** Пользователь говорит «Как сказать „у меня сейчас каникулы“?».
-  Помощник отвечает:
-  - вариантом на изучаемом языке, например «Zurzeit habe ich Ferien»;
-  - коротким переводом;
-  - просьбой повторить.
+- **S-01. New session.**
+  When: the user presses "New session".
+  Then the setup screen opens:
+  - language (English/Deutsch, preselected from the sidebar);
+  - mode;
+  - topic, the partner's role, level;
+  - a custom prompt (for the "Custom prompt" mode);
+  - correction modes (several can be chosen; A-3);
+  - who starts.
 
-  Фраза попадает в подсказки, в раздел «Как сказать» (R-16, R-27).
-- **S-09. Объяснение по-русски.** Пользователь говорит «объясни по-русски» или «что ты спросил?».
-  Помощник коротко объясняет по-русски и даёт пример на изучаемом языке. Затем возвращается к практике
-  и повторяет последний вопрос на изучаемом языке (R-17).
-- **S-10. Русская реплика без просьбы.** Пользователь говорит «Нет, я хочу сказать, что у меня каникулы».
-  Помощник не переходит на русский. Он даёт вариант на изучаемом языке и просит повторить (R-18, A-2).
-- **S-11. «Продолжим».** Пользователь говорит «продолжим», «weiter» или «let's continue».
-  Помощник возвращается к практике: следующий вопрос или реплика по теме (R-19).
-- **S-12. Смешанная речь.** Пользователь говорит «Dann musste, ой, не, не, с самого начала. Dann muss ich zu Hause bleiben».
-  Расшифровка сохраняет обе части в том виде, как её дал движок. Самоисправление «ой, не, с самого начала» ошибкой не считается.
-  Помощник отвечает по последней законченной мысли (R-08, R-21).
-  Если смешанная фраза распознана плохо:
-  - кнопка «Говорю по-русски» распознаёт следующую реплику как русскую;
-  - клик по пузырю открывает правку текста;
-  - «Ответить заново» пересчитывает ответ (R-09).
-- **S-13. Исправление по ходу.** Включён режим «по ходу». Пользователь говорит «Mir gefällt in Rostock, dass Meer hier hast».
-  Помощник даёт естественный вариант «Mir gefällt an Rostock, dass es hier das Meer gibt» и просит повторить.
-  Исправление выделено в пузыре и попадает в подсказки, в раздел «Исправления» (R-20).
-- **S-14. Исправление после разговора.** Включён только режим «после». Помощник не перебивает исправлениями.
-  По «Завершить» или «на этом всё» выводится по-русски итог: 3–5 главных ошибок с исправленными вариантами и коротким правилом (R-20, R-23).
-- **S-15. Исправление по запросу.** Включён режим «по запросу». Пользователь спрашивает «были ошибки?», «korrigiere mich» или «any mistakes?».
-  Помощник разбирает последние реплики пользователя. Без запроса исправлений нет (R-20).
-- **S-16. Продолжение сессии.** Пользователь открывает сессию «В кафе» от 12 мая. Видна вся история.
-  Помощник продолжает с учётом краткого содержания и последних реплик. В шапке подсказка: «Помощник помнит краткое содержание и последние N реплик» (R-04).
-- **S-17. Нет интернета на Mac.** Пользователь открывает приложение без сети. История, подсказки, словарь и прослушивание фраз работают.
-  Голос и ввод текста неактивны, рядом объяснение «Нет сети: ответы модели недоступны» (R-33).
-- **S-18. Все ключи исчерпаны.** Вся цепочка вернула 429 или ошибки.
-  Помощник пишет: «Модели недоступны: <причины>. Повторите через N мин». Реплика пользователя сохранена.
-  «Ответить заново» доступна (R-29).
-- **S-19. Две правки одновременно.** На двух устройствах без сети в одну сессию добавлено по 25 сообщений.
-  В LINGO-01 второе устройство — `lingo-eval sync-write` с другим `deviceId`, в LINGO-02 — iPhone.
-  После появления сети и синхронизации iCloud оба устройства показывают все 50 сообщений в одном порядке, без дублей и потерь (R-37).
-- **S-20. Папка недоступна.** Папка синхронизации удалена, переименована или не выдан доступ. Работа продолжается локально.
-  Статус «Папка синхронизации недоступна — выбрать снова». Локальная история не теряется (R-34, R-38).
+  "Start" is inactive until at least one correction mode is chosen. After "Start" the session appears in the list.
+  If the assistant speaks first, it says its first utterance aloud.
+- **S-02. Voice with a button.** The user holds the space bar (focus is not in an input field) or presses the microphone button and speaks.
+  When they release (or press a second time), the utterance is transcribed and appears on the right in a blue bubble. Below it are the language and the time.
+  Then the assistant's answer arrives: text on the left, spoken in the voice of the right language.
+- **S-03. Continuous dialogue.** The user switches on continuous mode. The panel shows "Listening", the wave and the buttons "Pause" and "Finish".
+  The utterance is sent after a pause T (a slider, R-10). Then "Thinking…", the answer is spoken, and listening resumes by itself.
+- **S-04. Interrupting the assistant.** The assistant is speaking and the user starts to speak. The speech stops
+  within 0.5 s at the latest on the Mac and 0.7 s on the iPhone. The unspoken part of the answer is marked "interrupted" in the text.
+  The new utterance becomes the next turn. The assistant's own sound does not count as an interruption (R-12).
+- **S-05. Adding to a phrase.** The user said "Am Wochenende gehe", fell silent, and after a second added "spazieren".
+  The assistant has not started to speak yet, so the utterances are merged into one, and the unfinished request to the model is cancelled (R-11).
+- **S-06. "Repeat".** The user says "nochmal, bitte", "again" or the Russian word for "repeat" (ru). The assistant's last answer is spoken again
+  within 0.3 s at the latest, the model is not called (R-14).
+- **S-07. "Slower".** The user says "langsamer", "slower" or the Russian word for "slower" (ru). The last answer is repeated at a pace of ×0.75
+  with pauses between the parts of the phrase. A repeated request slows it down to ×0.6 (R-15).
+- **S-08. "How to say".** The user says (ru) "How do I say 'I am on vacation right now'?".
+  The assistant answers with:
+  - a version in the study language, for example "Zurzeit habe ich Ferien";
+  - a short translation;
+  - a request to repeat.
 
-## 3. Требования
+  The phrase goes into the hints, into the "How to say" section (R-16, R-27).
+- **S-09. Explanation in Russian.** The user says (ru) "explain in Russian" or "what did you ask?".
+  The assistant briefly explains in Russian and gives an example in the study language. Then it returns to practice
+  and repeats the last question in the study language (R-17).
+- **S-10. A Russian utterance without a request.** The user says (ru) "No, I want to say that I am on vacation".
+  The assistant does not switch to Russian. It gives a version in the study language and asks the user to repeat (R-18, A-2).
+- **S-11. "Let's continue".** The user says "weiter", "let's continue" or the Russian phrase for "let's continue" (ru).
+  The assistant returns to practice: the next question or a remark on the topic (R-19).
+- **S-12. Mixed speech.** The user says "Dann musste, oi, ne, ne, s samogo nachala. Dann muss ich zu Hause bleiben" (the middle part is Russian, transliterated here: "oh, no, no, from the very beginning").
+  The transcript keeps both parts as the engine gave them. The self-correction "oi, ne, s samogo nachala" is not counted as a mistake.
+  The assistant answers to the last finished thought (R-08, R-21).
+  If the mixed phrase was recognised badly:
+  - the button "I speak Russian" recognises the next utterance as Russian;
+  - a click on the bubble opens text editing;
+  - "Answer again" recomputes the answer (R-09).
+- **S-13. Correction as you go.** The "as you go" mode is on. The user says "Mir gefällt in Rostock, dass Meer hier hast".
+  The assistant gives the natural version "Mir gefällt an Rostock, dass es hier das Meer gibt" and asks to repeat.
+  The correction is highlighted in the bubble and goes into the hints, into the "Corrections" section (R-20).
+- **S-14. Correction after the conversation.** Only the "after" mode is on. The assistant does not interrupt with corrections.
+  On "Finish" or "that is all" a recap in Russian is shown: the 3–5 main mistakes with corrected versions and a short rule (R-20, R-23).
+- **S-15. Correction on request.** The "on request" mode is on. The user asks "were there mistakes?", "korrigiere mich" or "any mistakes?".
+  The assistant reviews the user's last utterances. Without a request there are no corrections (R-20).
+- **S-16. Continuing a session.** The user opens the session "At the cafe" from 12 May. The whole history is visible.
+  The assistant continues with the summary and the last utterances in mind. The header carries the hint: "The assistant remembers the summary and the last N utterances" (R-04).
+- **S-17. No internet on the Mac.** The user opens the app without a network. The history, the hints, the vocabulary and listening to phrases work.
+  Voice and text input are inactive, with the explanation "No network: model replies are unavailable" next to them (R-33).
+- **S-18. All keys exhausted.** The whole chain returned 429 or errors.
+  The assistant writes: "Models are unavailable: <reasons>. Try again in N min". The user's utterance is saved.
+  "Answer again" is available (R-29).
+- **S-19. Two edits at once.** On two devices without a network, 25 messages each are added to one session.
+  In LINGO-01 the second device is `lingo-eval sync-write` with a different `deviceId`, in LINGO-02 it is the iPhone.
+  After the network returns and iCloud syncs, both devices show all 50 messages in the same order, without duplicates and losses (R-37).
+- **S-20. Folder unavailable.** The sync folder is deleted, renamed or access is not granted. Work continues locally.
+  The status "Sync folder unavailable — choose again". The local history is not lost (R-34, R-38).
 
-### Сессии и режимы
-- **R-01. Сессия.** Поля:
-  - id, изучаемый язык, название (по умолчанию «<Режим>: <тема>», можно переименовать);
-  - режим, тема, роль собеседника, уровень (A1, A2, B1, B2, C1, C2 или свой текст);
-  - свой промпт, режимы исправления, кто начинает;
-  - даты создания и последней активности, состояние: активна или завершена.
+## 3. Requirements
 
-  Завершённую сессию можно продолжить, тогда она снова становится активной.
-- **R-02. Настройка новой сессии** — по S-01. Свободный разговор возможен и без темы и роли.
-  Пример промпта из PDF (P1) доступен как подсказка-плейсхолдер. Ничего не подставляется молча.
-- **R-03. Режимы:**
-  - **Вопросы.** Помощник задаёт по одному вопросу по теме, ждёт ответа и реагирует на него, затем задаёт следующий вопрос.
-    Длинные фразы строит шагами (P15).
-  - **Свободный разговор.** Естественный диалог по теме или без неё. Помощник поддерживает разговор и задаёт встречные вопросы.
-  - **Свой промпт.** Текст пользователя — инструкции этой сессии, например роль, ситуация и правила, как в P1.
-    Он встраивается в системную обёртку R-25. Обёртка сохраняет протокол ответа R-24, язык R-26 и запрет оценки произношения R-21.
-    Если промпт пользователя противоречит обёртке, побеждает обёртка; это видно на экране настройки.
+### Sessions and modes
+- **R-01. Session.** Fields:
+  - id, study language, title (by default "<Mode>: <topic>", can be renamed);
+  - mode, topic, the partner's role, level (A1, A2, B1, B2, C1, C2 or free text);
+  - custom prompt, correction modes, who starts;
+  - creation and last-activity dates, state: active or finished.
 
-  Во всех режимах сложность и длина фраз помощника соответствуют уровню сессии.
-- **R-04. Контекст модели.** В запрос уходят:
-  - системная обёртка;
-  - краткое содержание сессии;
-  - последние N ходов (N = 8, настраивается от 6 до 40; Q29), но не больше бюджета ≈ 1800 токенов на историю.
+  A finished session can be continued, then it becomes active again.
+- **R-02. Setting up a new session** — per S-01. Free conversation is possible without a topic and a role.
+  The example prompt from the PDF (P1) is available as a placeholder hint. Nothing is substituted silently.
+- **R-03. Modes:**
+  - **Questions.** The assistant asks one question on the topic at a time, waits for the answer and reacts to it, then asks the next question.
+    It builds long phrases in steps (P15).
+  - **Free conversation.** A natural dialogue on a topic or without one. The assistant keeps the conversation going and asks counter-questions.
+  - **Custom prompt.** The user's text is the instructions of this session, for example the role, the situation and the rules, as in P1.
+    It is embedded in the system wrapper R-25. The wrapper keeps the reply protocol R-24, the language R-26 and the ban on assessing pronunciation R-21.
+    If the user's prompt contradicts the wrapper, the wrapper wins; this is visible on the setup screen.
+  In all modes the complexity and length of the assistant's phrases match the level of the session.
+- **R-04. Model context.** The request carries:
+  - the system wrapper;
+  - the session summary;
+  - the last N turns (N = 8, configurable from 6 to 40; Q29), but no more than a budget of ≈ 1800 tokens for history.
 
-  Краткое содержание обновляется отдельным запросом каждые 10 ходов и при завершении сессии. Оно хранится как событие журнала.
-  Интерфейс не обещает, что модель помнит всё.
-- **R-05. Список сессий.**
-  - Сортировка по последней активности.
-  - Фильтр English/Deutsch — сегмент в сайдбаре.
-  - В меню «…»: переименовать, удалить (с подтверждением; удаление — событие-«надгробие», синхронизируется), показать в журнале.
-  - Строка сессии: иконка, название, дата и время по макету.
+  The summary is updated by a separate request every 10 turns and when the session ends. It is stored as a journal event.
+  The interface does not promise that the model remembers everything.
+- **R-05. Session list.**
+  - Sorted by last activity.
+  - The English/Deutsch filter is a segment in the sidebar.
+  - The "…" menu: rename, delete (with confirmation; deletion is a tombstone event and is synced), show in the journal.
+  - A session row: icon, title, date and time as in the mockup.
 
-### Голос: ввод
-- **R-06. Голос по кнопке.** Кнопка микрофона, а также удержание пробела, когда фокус не в текстовом поле.
-  Пока идёт запись, показываются волна и таймер. Esc отменяет реплику.
-- **R-07. Непрерывный режим.** Состояния «Слушаю», «Думаю…», «Говорю», «Пауза».
-  - «Пауза» приостанавливает прослушивание и озвучку.
-  - «Завершить» заканчивает голосовой режим и сессию по R-22.
+### Voice: input
+- **R-06. Voice with a button.** The microphone button, and also holding the space bar when focus is not in a text field.
+  While recording, the wave and a timer are shown. Esc cancels the utterance.
+- **R-07. Continuous mode.** The states "Listening", "Thinking…", "Speaking", "Pause".
+  - "Pause" suspends listening and speech.
+  - "Finish" ends the voice mode and the session per R-22.
 
-  Визуально — голосовая панель макета.
-- **R-08. Распознавание.** Локально, движок по ADR-0001.
-  - Язык определяется для каждой реплики среди {изучаемый, ru}.
-  - Определённый язык показывается меткой у пузыря.
-  - Если движок поддерживает смешанную речь, сохраняется текст как есть.
-  - Аудио на диск не пишется. Буфер в памяти не больше 60 с.
-- **R-09. Смешанная речь, запасные пути:**
-  - кнопка «Говорю по-русски» (переключатель на одну реплику; ⌥R на Mac);
-  - правка расшифровки кликом по пузырю (событие `message.edited`);
-  - «Ответить заново» пересчитывает ответ по исправленному тексту.
-- **R-10. Конец реплики в непрерывном режиме.**
-  - Тишина не короче T: по умолчанию 1,5 с, ползунок от 0,6 до 3,0 с с шагом 0,1.
-  - Речь не короче 0,3 с.
-  - Порог проверяется eval `turn` (evals/README.md).
-- **R-11. Склейка.** Новая реплика начинается не позже чем через G после конца предыдущей (G = 2,0 с, настраивается от 0 до 4).
-  Если помощник ещё не начал говорить, незавершённый запрос отменяется, тексты склеиваются через пробел, и уходит один новый запрос.
-  Если помощник уже говорит, действует R-12.
+  Visually it is the voice panel of the mockup.
+- **R-08. Recognition.** Local, the engine per ADR-0001.
+  - The language is determined for each utterance among {study language, ru}.
+  - The detected language is shown as a label by the bubble.
+  - If the engine supports mixed speech, the text is kept as is.
+  - Audio is not written to disk. The in-memory buffer is at most 60 s.
+- **R-09. Mixed speech, fallback paths:**
+  - the button "I speak Russian" (a switch for one utterance; ⌥R on the Mac);
+  - editing the transcript by clicking the bubble (the event `message.edited`);
+  - "Answer again" recomputes the answer from the corrected text.
+- **R-10. End of an utterance in continuous mode.**
+  - Silence of at least T: 1.5 s by default, a slider from 0.6 to 3.0 s in steps of 0.1.
+  - Speech of at least 0.3 s.
+  - The threshold is checked by the `turn` eval (evals/README.md).
+- **R-11. Merging.** A new utterance begins no later than G after the end of the previous one (G = 2.0 s, configurable from 0 to 4).
+  If the assistant has not started to speak yet, the unfinished request is cancelled, the texts are joined with a space, and one new request is sent.
+  If the assistant is already speaking, R-12 applies.
 
-### Голос: вывод и перебивание
-- **R-12. Перебивание.**
-  - Речь пользователя во время озвучки останавливает её: на Mac не позже 0,5 с, на iPhone не позже 0,7 с.
-  - Эхо собственной озвучки подавляется системной обработкой голоса (voice processing) и не считается перебиванием.
-  - Клик по панели, пробел и Esc тоже останавливают озвучку.
-  - В тексте ответа непроизнесённая часть приглушена с меткой «прервано».
-  - Следующий запрос к модели получает отметку `interrupted_at` (позиция в ответе).
-- **R-13. Озвучивание.**
-  - Сегменты ответа (R-24) озвучиваются голосом своего языка.
-  - Голос для каждого языка и базовый темп выбираются в настройках; по умолчанию — лучший установленный голос (premium, затем enhanced, затем default).
-  - Текст появляется по мере генерации, озвучка начинается с первого законченного предложения.
-  - Если установлен только голос плохого качества, настройки предлагают скачать улучшенный голос, с инструкцией.
+### Voice: output and barge-in
+- **R-12. Barge-in.**
+  - The user's speech during playback stops it: on the Mac within 0.5 s at the latest, on the iPhone within 0.7 s.
+  - The echo of its own speech is suppressed by the system voice processing and does not count as barge-in.
+  - A click on the panel, the space bar and Esc also stop the speech.
+  - In the answer text the unspoken part is dimmed with the label "interrupted".
+  - The next request to the model gets the mark `interrupted_at` (the position in the answer).
+- **R-13. Speech synthesis.**
+  - The answer segments (R-24) are spoken in the voice of their language.
+  - The voice for each language and the base pace are chosen in the settings; by default the best installed voice (premium, then enhanced, then default).
+  - The text appears as it is generated; speech starts with the first finished sentence.
+  - If only a poor-quality voice is installed, the settings offer to download an enhanced voice, with instructions.
 
-### Команды
-Команды сначала распознаёт локальный детектор: правила и словари для ru, de и en с допуском на ошибки расшифровки.
-Если детектор не уверен, реплика идёт модели как обычная. Модель тоже знает команды из обёртки R-25.
-Набор для проверки — eval `commands`.
-- **R-14. «Повтори».** Примеры: «повтори», «ещё раз», «nochmal», «noch einmal», «wiederhol», «again», «repeat», «say it again».
-  Последний ответ помощника озвучивается снова, без модели. Звук начинается не позже 0,3 с после конца реплики.
-- **R-15. «Медленнее».** Примеры: «медленнее», «помедленнее», «langsamer», «langsam bitte», «slower», «more slowly».
-  Повтор последнего ответа в темпе ×0,75 от базового. Фраза делится на части по знакам препинания и смысловым группам, между частями пауза 0,6 с.
-  Повторная просьба — ×0,6, это минимум. Темп следующих ответов не меняется, пока пользователь не включит «Медленный темп» в шапке сессии.
-- **R-16. «Как сказать».** Примеры: «как сказать …», «как будет …», «как ещё можно сказать …», «wie sagt man …», «how do I say …».
-  Помощник отвечает:
-  - 1–2 вариантами на изучаемом языке с переводом;
-  - просьбой повторить один из них.
+### Commands
+Commands are recognised first by a local detector: rules and dictionaries for ru, de and en with tolerance to transcription errors.
+If the detector is not sure, the utterance goes to the model as an ordinary one. The model also knows the commands from the wrapper R-25.
+The check set is the `commands` eval.
+- **R-14. "Repeat".** Examples: the Russian words for "repeat" and "once more" (ru), "nochmal", "noch einmal", "wiederhol", "again", "repeat", "say it again".
+  The assistant's last answer is spoken again, without the model. Sound starts within 0.3 s at the latest after the end of the utterance.
+- **R-15. "Slower".** Examples: the Russian words for "slower" and "a bit slower" (ru), "langsamer", "langsam bitte", "slower", "more slowly".
+  The last answer is repeated at ×0.75 of the base pace. The phrase is split by punctuation and semantic groups, with a pause of 0.6 s between the parts.
+  A repeated request — ×0.6, which is the minimum. The pace of the following answers does not change until the user switches on "Slow pace" in the session header.
+- **R-16. "How to say".** Examples: the Russian phrases for "how to say …", "how will it be …", "how else can one say …" (ru), "wie sagt man …", "how do I say …".
+  The assistant answers with:
+  - 1–2 versions in the study language with a translation;
+  - a request to repeat one of them.
 
-  Варианты попадают в подсказки, в раздел «Как сказать».
-- **R-17. «Объясни» и явная просьба на русском.** Примеры: «объясни», «по-русски», «что ты спросил», «что значит …», «почему так», «переведи»,
-  «erklär mal», «explain». Ответ:
-  - объяснение по-русски, не длиннее 120 слов;
-  - пример на изучаемом языке;
-  - возврат к практике: повтор последнего вопроса или задания на изучаемом языке.
-- **R-18. Русская реплика без явной просьбы** — по A-2 и S-10.
-- **R-19. «Продолжим».** Примеры: «продолжим», «дальше», «давай продолжаем», «готов», «weiter», «machen wir weiter», «let's continue», «go on».
-  Возврат к практике по режиму сессии.
+  The versions go into the hints, into the "How to say" section.
+- **R-17. "Explain" and an explicit request in Russian.** Examples: the Russian words for "explain", "in Russian", "what did you ask", "what does … mean", "why so", "translate" (ru),
+  "erklär mal", "explain". The answer:
+  - an explanation in Russian, no longer than 120 words;
+  - an example in the study language;
+  - a return to practice: a repeat of the last question or task in the study language.
+- **R-18. A Russian utterance without an explicit request** — per A-2 and S-10.
+- **R-19. "Let's continue".** Examples: the Russian phrases for "let's continue", "next", "let's go on", "ready" (ru), "weiter", "machen wir weiter", "let's continue", "go on".
+  A return to practice according to the session mode.
 
-### Исправление ошибок
-- **R-20. Режимы исправления** выбираются перед сессией (S-01) и меняются в шапке сессии. Возможны любые сочетания:
-  - **по ходу** — не больше одного главного исправления за ход, на изучаемом языке, по образцу «Natürlicher: „…“», затем просьба повторить.
-    Ответ по смыслу, но не на заданный вопрос, тоже отмечается (P5);
-  - **после разговора** — помощник не прерывает практику исправлениями. Для каждого хода модель возвращает скрытые записи `@fix` (R-24).
-    Они копятся в журнале и выводятся в итоге R-23;
-  - **по запросу** — команды «были ошибки?», «проверь меня», «korrigiere mich», «any mistakes?» запускают разбор последних 10 реплик пользователя
-    (3–5 пунктов на изучаемом языке; по явной просьбе — по-русски).
+### Error correction
+- **R-20. Correction modes** are chosen before the session (S-01) and changed in the session header. Any combinations are possible:
+  - **as you go** — no more than one main correction per turn, in the study language, on the pattern "Natürlicher: „…“" (de) / "More natural: “…”" (en), then a request to repeat.
+    An answer that is right in meaning but not to the question asked is also marked (P5);
+  - **after the conversation** — the assistant does not interrupt the practice with corrections. For each turn the model returns hidden `@fix` records (R-24).
+    They accumulate in the journal and are shown in the recap R-23;
+  - **on request** — the commands "were there mistakes?", "check me" (ru), "korrigiere mich", "any mistakes?" start a review of the user's last 10 utterances
+    (3–5 items in the study language; on an explicit request, in Russian).
 
-  Без «по ходу» помощник не исправляет в обычных ответах. Исключение — непонимание: тогда он переспрашивает.
-- **R-21. Чего помощник не делает:**
-  - не комментирует и не оценивает произношение, ни прямо, ни намёками («мягче S», «ясное ck»);
-  - не считает ошибками артефакты расшифровки: разрывы слов, дубли, обрывки, самоисправления;
-  - если расшифровка неразборчива, переспрашивает, а не «исправляет».
+  Without "as you go" the assistant does not correct in ordinary answers. The exception is not understanding: then it asks again.
+- **R-21. What the assistant does not do:**
+  - it does not comment on or assess pronunciation, neither directly nor by hints ("softer S", "a clear ck");
+  - it does not count transcription artifacts as mistakes: broken words, duplicates, fragments, self-corrections;
+  - if the transcript is unintelligible, it asks again instead of "correcting".
 
-  Проверяется eval `dialog`: правило `no_pronunciation` должно выполняться в 100% случаев.
-- **R-22. Завершение.** Кнопка «Завершить» или фразы «на этом всё», «закончим», «das war's», «that's all».
-  Помощник коротко прощается на изучаемом языке, сессия переходит в состояние «завершена».
-  Если включён режим «после», выводится итог R-23. Голосовой режим выключается.
-- **R-23. Итог сессии.** Выводится по-русски, так как владелец заказал его выбором режима:
-  - 3–5 главных ошибок: «было → правильно → почему» (одна строка);
-  - 3 фразы для повторения;
-  - предложение продолжить сложнее.
+  Checked by the `dialog` eval: the rule `no_pronunciation` must hold in 100% of cases.
+- **R-22. Ending.** The "Finish" button or the phrases "that is all", "let's finish" (ru), "das war's", "that's all".
+  The assistant briefly says goodbye in the study language, and the session moves to the "finished" state.
+  If the "after" mode is on, the recap R-23 is shown. The voice mode is switched off.
+- **R-23. Session recap.** Shown in Russian, since the owner ordered it by choosing the mode:
+  - the 3–5 main mistakes: "was → correct → why" (one line);
+  - 3 phrases to repeat;
+  - an offer to continue with something harder.
 
-  Итог сохраняется событием и показывается карточкой в конце сессии.
+  The recap is stored as an event and shown as a card at the end of the session.
 
-### Ответ модели
-- **R-24. Протокол ответа** — построчный, чтобы его можно было разбирать по мере поступления:
+### Model reply
+- **R-24. Reply protocol** — line by line, so that it can be parsed as it arrives:
   ```
   @say de: Fast perfekt! Natürlicher wäre: „Ich heiße Alex. Freut mich.“
-  @say ru: (только при явной просьбе) …
-  @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + Ort: «нравится что-то в городе» — gefallen an
-  @hint de: Freut mich, Sie kennenzulernen. | Приятно познакомиться.
+  @say ru: (only on an explicit request) …
+  @fix: Mir gefällt in Rostock → Mir gefällt an Rostock | an + place: "likes something in a city" — gefallen an
+  @hint de: Freut mich, Sie kennenzulernen. | Nice to meet you.
   @say de: Sag das bitte noch einmal.
   ```
-  - Строки `@say` озвучиваются и показываются.
-  - `@fix` показывается в режиме «по ходу». В остальных режимах он только сохраняется.
-  - `@hint` идёт в подсказки.
-  - `@heard: <фраза>` (добавлено 2026-10-25, Q28) — как помощник понял реплику пользователя с учётом контекста: исправлены только вероятные
-    ошибки распознавания (похожие по звучанию слова), грамматика пользователя сохраняется. Показывается мелко под пузырём пользователя
-    («понято как: …»), не озвучивается. Строка не нужна, если расшифровка и так верна.
+  (In the real protocol the rule text of `@fix` and the translation of `@hint` are in Russian; they are shown in English here.)
+  - `@say` lines are spoken and shown.
+  - `@fix` is shown in the "as you go" mode. In the other modes it is only stored.
+  - `@hint` goes into the hints.
+  - `@heard: <phrase>` (added 2026-10-25, Q28) — how the assistant understood the user's utterance given the context: only likely
+    recognition errors (words that sound alike) are corrected, the user's grammar is kept. It is shown small under the user's bubble
+    ("understood as: …"), and is not spoken. The line is not needed if the transcript is right as it is.
 
-  Если строка без тега, она считается `@say` на изучаемом языке. Ошибки разбора не ломают ход и логируются как метрика `protocol_violation`.
-- **R-25. Системная обёртка** (`PromptBuilder`) содержит:
-  - роль преподавателя-собеседника, изучаемый язык, уровень, режим, режимы исправления, кто начинает;
-  - правила: один вопрос за ход, короткие фразы по уровню, русский только по R-17, R-21, протокол R-24;
-  - описание команд.
+  A line without a tag is treated as `@say` in the study language. Parsing errors do not break the turn and are logged as the metric `protocol_violation`.
+- **R-25. System wrapper** (`PromptBuilder`) contains:
+  - the role of a teacher-conversation partner, the study language, the level, the mode, the correction modes, who starts;
+  - the rules: one question per turn, short phrases for the level, Russian only per R-17, R-21, the protocol R-24;
+  - a description of the commands.
 
-  Свой промпт пользователя, краткое содержание и реплики передаются в разметке данных (`<session_prompt>`, `<summary>`, `<transcript>`).
-- **R-26. Языковая дисциплина.** Без явной просьбы сегменты `@say ru` не допускаются (eval-правило `lang_discipline`).
-  Если модель нарушила правило, ответ всё равно показывается и озвучивается, нарушение считается в метриках.
+  The user's custom prompt, the summary and the utterances are passed in data markup (`<session_prompt>`, `<summary>`, `<transcript>`).
+- **R-26. Language discipline.** Without an explicit request `@say ru` segments are not allowed (the eval rule `lang_discipline`).
+  If the model broke the rule, the answer is still shown and spoken, and the violation is counted in the metrics.
 
-- **R-51. Понимание с учётом контекста** (добавлено 2026-10-25, Q28).
-  - Распознавание получает подсказку из контекста: последняя реплика помощника, тема сессии, фразы подсказок (вместе с двуязычной затравкой).
-  - Обёртка R-25 сообщает модели, что расшифровка сделана с акцентом и может содержать неверно услышанные слова: модель отвечает на то,
-    что пользователь хотел сказать, при сомнении коротко переспрашивает на изучаемом языке, похожие по звучанию слова ошибками не считает (R-21).
-  - Произношение по-прежнему не комментируется (R-21, Q7). Проверяется кейсами `asr_accent` eval `dialog`.
+- **R-51. Understanding with context** (added 2026-10-25, Q28).
+  - Recognition gets a hint from the context: the assistant's last utterance, the session topic, the hint phrases (together with a bilingual seed).
+  - The wrapper R-25 tells the model that the transcript was made with an accent and may contain wrongly heard words: the model answers what
+    the user meant to say, when in doubt briefly asks again in the study language, and does not count words that sound alike as mistakes (R-21).
+  - Pronunciation is still not commented on (R-21, Q7). Checked by the `asr_accent` cases of the `dialog` eval.
 
-- **R-52. Лимиты и расход** (Q29, внешнее ревью 2026-10-25).
-  - Каждый запрос к модели пишет безопасную запись расхода: время, назначение (диалог, фразы, краткое содержание, итог, eval), провайдер, модель,
-    статус, вид лимита (RPM/RPD/TPM/TPD), `retry-after`, входные/выходные/кэшированные токены и остатки из заголовков — если провайдер их дал;
-    отсутствующие значения остаются пустыми. Текст реплик и ключи не пишутся.
-  - Сообщение об отказе называет вид лимита и время повтора по данным провайдера; если данных нет — так и говорит.
-  - Цепочка заранее пропускает шаг, у которого остаток токенов на минуту меньше оценки запроса.
-  - Диспетчер: ответ на реплику пользователя — всегда первым; фразы темы, краткое содержание и итог ждут конца хода и запускаются,
-    только если квоты достаточно.
-  - Evals: бюджет на прогон (по умолчанию 10 кейсов одной модели), остановка при `retry-after` > 60 с с частичным отчётом, корректная отмена;
-    массовые прогоны — только ночью (Q29).
-### Подсказки и словарь
-- **R-27. Панель «Подсказки»** (правая колонка макета). Четыре раздела:
-  - «Фразы темы» — 6–8 фраз с переводом. Генерируются отдельным фоновым запросом при старте сессии и не задерживают первый ход;
-  - «Исправления» — из `@fix`;
-  - «Как сказать» — из R-16;
-  - «Словарь ★» — фразы, отмеченные звёздочкой во всех сессиях.
+- **R-52. Limits and usage** (Q29, external review 2026-10-25).
+  - Each request to a model writes a safe usage record: time, purpose (dialog, phrases, summary, recap, eval), provider, model,
+    status, the kind of limit (RPM/RPD/TPM/TPD), `retry-after`, input/output/cached tokens and the remainders from the headers — if the provider gave them;
+    missing values stay empty. The text of the utterances and the keys are not written.
+  - A refusal message names the kind of limit and the retry time from the provider's data; if there is no data, it says so.
+  - The chain skips in advance a step whose remaining tokens per minute are less than the estimate of the request.
+  - The dispatcher: the answer to the user's utterance always goes first; topic phrases, the summary and the recap wait for the end of the turn and start
+    only if the quota is sufficient.
+  - Evals: a budget per run (by default 10 cases of one model), a stop at `retry-after` > 60 s with a partial report, a correct cancel;
+    mass runs only at night (Q29).
+### Hints and vocabulary
+- **R-27. The "Hints" panel** (the right column of the mockup). Four sections:
+  - "Topic phrases" — 6–8 phrases with a translation. Generated by a separate background request at the start of the session and do not delay the first turn;
+  - "Corrections" — from `@fix`;
+  - "How to say" — from R-16;
+  - "Vocabulary ★" — phrases marked with a star in all sessions.
 
-  У каждой фразы три действия:
-  - ▶ прослушать: голос языка фразы, работает без сети;
-  - перевод: показан под фразой;
-  - ★ сохранить или убрать из словаря.
+  Each phrase has three actions:
+  - ▶ listen: the voice of the phrase's language, works without a network;
+  - translation: shown under the phrase;
+  - ★ save to or remove from the vocabulary.
 
-  Прослушивание не ломает разговор: во время прослушивания микрофон временно не слушает, а если помощник говорит, фраза ставится в очередь.
-  Панель сворачивается кнопкой с иконкой книги.
-- **R-28. Словарь.** Общий для всех сессий, с фильтром по языку. Синхронизируется событиями `phrase.starred` и `phrase.unstarred`.
+  Listening does not break the conversation: while listening, the microphone temporarily does not listen, and if the assistant is speaking, the phrase is queued.
+  The panel is collapsed with a button with a book icon.
+- **R-28. Vocabulary.** Shared by all sessions, with a language filter. Synced by the events `phrase.starred` and `phrase.unstarred`.
 
-### Модели и цепочка
-- **R-29. Цепочка** — перенос `ProviderChain` из Interview Copilot со следующими отличиями:
-  - шаг — тройка «провайдер + модель + ключ». У провайдера **неограниченное число ключей** (Q13), шаги строятся по порядку: провайдер → модель → ключ;
-  - переход к следующему шагу: 429, 5xx, сетевая ошибка, отказ модели, первый токен не пришёл за 6 с (настраивается от 2 до 15);
-  - неверный ключ (400, 401, 403) выключает **этот ключ**, а не провайдера. Ключ помечается в настройках «недействителен»;
-  - пауза для отказавших шагов: на `retry-after`, если заголовок есть, иначе на 300 с. Считается по паре «ключ + модель»;
-  - параллельный запуск (hedge) по умолчанию выключен.
+### Models and the chain
+- **R-29. The chain** — a port of `ProviderChain` from Interview Copilot with the following differences:
+  - a step is a "provider + model + key" triple. A provider has an **unlimited number of keys** (Q13); the steps are built in order: provider → model → key;
+  - the move to the next step: 429, 5xx, a network error, a model refusal, no first token within 6 s (configurable from 2 to 15);
+  - an invalid key (400, 401, 403) disables **this key**, not the provider. The key is marked "invalid" in the settings;
+  - a pause for failed steps: for `retry-after` if the header is present, otherwise for 300 s. Counted per "key + model" pair;
+  - parallel launch (hedge) is off by default.
 
-  Если цепочка исчерпана — S-18. На каждом ответе мелкая метка «провайдер · модель».
-- **R-30. Провайдеры** — только бесплатные, через OpenAI-совместимый API:
-  - **Groq** — основной;
-  - **Mistral** (бесплатный тариф) и **OpenRouter** (модели `:free`) — запасные;
-  - **«Свой OpenAI-совместимый адрес»**.
+  If the chain is exhausted — S-18. Each answer carries a small "provider · model" label.
+- **R-30. Providers** — only free ones, through an OpenAI-compatible API:
+  - **Groq** — main;
+  - **Mistral** (free tier) and **OpenRouter** (`:free` models) — fallback;
+  - **"Custom OpenAI-compatible address"**.
 
-  Gemini не используется (ЕС). Провайдеры с обязательной картой не используются.
-  Список моделей запрашивается у провайдера (`GET /models`), а не берётся по памяти. Ключ проверяется кнопкой «Проверить».
-- **R-31. Локальная модель (только iPhone, LINGO-02).**
-  - Последний шаг цепочки. Вызывается, когда облако недоступно, или вручную через переключатель источника «На устройстве».
-  - Формат GGUF через llama.cpp. Конкретная модель выбирается по F-04 и F-07.
-  - Модель загружается внутри приложения по Wi-Fi с проверкой SHA256, в IPA не встраивается.
-  - KV-кэш системной обёртки переиспользуется между ходами. Контекст не больше 4096 токенов.
-- **R-32. Индикатор источника** (плашка «На устройстве ▾» на макете). Значения:
-  - «Groq · <модель>»;
-  - «На устройстве · <модель>» (только iPhone);
-  - «Нет сети».
+  Gemini is not used (EU). Providers that require a card are not used.
+  The model list is requested from the provider (`GET /models`), not taken from memory. The key is checked with the "Check" button.
+- **R-31. Local model (iPhone only, LINGO-02).**
+  - The last step of the chain. Called when the cloud is unavailable, or manually through the source switch "On device".
+  - GGUF format through llama.cpp. The concrete model is chosen by F-04 and F-07.
+  - The model is downloaded inside the app over Wi-Fi with a SHA256 check, not embedded in the IPA.
+  - The KV cache of the system wrapper is reused between turns. The context is at most 4096 tokens.
+- **R-32. Source indicator** (the "On device ▾" badge on the mockup). Values:
+  - "Groq · <model>";
+  - "On device · <model>" (iPhone only);
+  - "No network".
 
-  По клику — выбор: «Авто (цепочка)» или конкретный шаг.
-- **R-33. Mac без сети** — S-17. Локальной модели на Mac нет (Q19, подтверждено в Q29).
+  On click — a choice: "Auto (chain)" or a concrete step.
+- **R-33. The Mac without a network** — S-17. There is no local model on the Mac (Q19, confirmed in Q29).
 
-### Хранение и синхронизация
-- **R-34. Локальное хранение.**
-  - Источник истины на устройстве — его собственный журнал (JSON Lines, только дописывание) в Application Support.
-  - Плюс локальный кэш журналов других устройств.
-  - Запись: сразу после события, с `fsync`.
-  - Индекс сессий строится из журналов при старте.
+### Storage and sync
+- **R-34. Local storage.**
+  - The source of truth on a device is its own journal (JSON Lines, append only) in Application Support.
+  - Plus a local cache of the journals of other devices.
+  - Writing: right after the event, with `fsync`.
+  - The session index is built from the journals at start.
 
-  Работа приложения не зависит от доступности папки синхронизации.
-- **R-35. Событие.** Поля:
-  - `v` — версия схемы;
-  - `id` — ULID;
-  - `device`, `seq` (растёт на устройстве), `lamport`, `ts` (UTC);
+  The app does not depend on the availability of the sync folder.
+- **R-35. Event.** Fields:
+  - `v` — the schema version;
+  - `id` — a ULID;
+  - `device`, `seq` (grows on the device), `lamport`, `ts` (UTC);
   - `type`, `session`, `payload`.
 
-  Типы:
+  Types:
   - `session.created`, `session.updated`, `session.deleted`;
   - `message.created`, `message.edited`, `message.interrupted`;
   - `summary.updated`, `fix.recorded`, `hint.added`;
   - `phrase.starred`, `phrase.unstarred`;
   - `session.ended`, `session.resumed`.
 
-  Неизвестные типы и поля сохраняются и игнорируются.
-- **R-36. Папка синхронизации.**
-  - Пользователь выбирает папку через системный выбор файлов: на iOS `UIDocumentPicker`, на Mac `NSOpenPanel`.
-  - Доступ хранится как security-scoped bookmark. Платные возможности разработчика (iCloud entitlements, CloudKit) не используются.
-  - Структура: `Lingo/v1/devices/<deviceId>/journal-<yyyy-mm>.jsonl` и `device.json` (имя устройства, версия).
-  - Каждое устройство пишет **только** в свою папку. Чужие журналы читаются через `NSFileCoordinator`,
-    недогруженные файлы iCloud запрашиваются на загрузку.
-- **R-37. Слияние.**
-  - Объединение по `id` события.
-  - Порядок сообщений: (`ts`, `device`, `seq`).
-  - Изменяемые поля сессии (название, настройки, удаление): побеждает событие с большим `lamport`, при равенстве — с большим `device`.
-  - `message.edited` применяется к своему сообщению по тому же правилу.
+  Unknown types and fields are kept and ignored.
+- **R-36. Sync folder.**
+  - The user chooses the folder through the system file picker: `UIDocumentPicker` on iOS, `NSOpenPanel` on the Mac.
+  - Access is stored as a security-scoped bookmark. Paid developer features (iCloud entitlements, CloudKit) are not used.
+  - Structure: `Lingo/v1/devices/<deviceId>/journal-<yyyy-mm>.jsonl` and `device.json` (the device name, the version).
+  - Each device writes **only** to its own folder. Other journals are read through `NSFileCoordinator`,
+    files not yet downloaded from iCloud are requested for download.
+- **R-37. Merge.**
+  - A union by the event `id`.
+  - The order of messages: (`ts`, `device`, `seq`).
+  - Changeable session fields (title, settings, deletion): the event with the larger `lamport` wins, on a tie the one with the larger `device`.
+  - `message.edited` is applied to its message by the same rule.
 
-  Сообщения никогда не перезаписываются и не теряются. Дубли исключены за счёт уникального `id`.
-- **R-38. Когда синхронизировать.** При запуске, при возврате в активное состояние, раз в 60 с, пока приложение активно,
-  после завершения сессии и по кнопке «Синхронизировать».
-  - Статус в сайдбаре: «Синхронизировано в HH:MM», «Ожидает iCloud», «Папка недоступна», «Не настроена».
-  - У своих сообщений ✓ — сохранено локально, ✓✓ — записано в папку синхронизации (галочки на макете).
-  - Синхронизация никогда не блокирует разговор.
-  - Задержка между устройствами определяется iCloud. Интерфейс не обещает мгновенности.
-- **R-39. Устойчивость.** Оборванная последняя строка журнала игнорируется и дописывается заново при следующей записи.
-  Повреждённая строка пропускается с метрикой. Журнал старшей версии схемы читается в режиме «только чтение» с предупреждением.
+  Messages are never overwritten and never lost. Duplicates are excluded by the unique `id`.
+- **R-38. When to sync.** At launch, on returning to the active state, every 60 s while the app is active,
+  after a session ends and on the "Sync" button.
+  - The status in the sidebar: "Synced at HH:MM", "Waiting for iCloud", "Folder unavailable", "Not set up".
+  - On own messages ✓ means saved locally, ✓✓ means written to the sync folder (the check marks of the mockup).
+  - Sync never blocks the conversation.
+  - The latency between devices is determined by iCloud. The interface does not promise instant delivery.
+- **R-39. Resilience.** A truncated last line of a journal is ignored and rewritten at the next write.
+  A corrupted line is skipped with a metric. A journal of a newer schema version is read in "read only" mode with a warning.
 
-### Интерфейс Mac (дизайн: [lingo-mac.webp](../../design/lingo-mac.webp) + [DESIGN.md](../../../DESIGN.md))
-- **R-40. Окно из трёх колонок.**
-  - **Левая:** логотип Lingo, «+ Новая сессия», сегмент English/Deutsch, «Мои сессии», статус синхронизации внизу.
-  - **Центральная:**
-    - шапка: название, подзаголовок «<режим> на <языке>», плашка источника R-32, шестерёнка настроек сессии;
-    - лента сообщений;
-    - голосовая панель;
-    - поле ввода с кнопкой отправки.
-  - **Правая:** «Подсказки» (R-27).
+### The Mac interface (design: [lingo-mac.webp](../../design/lingo-mac.webp) + [DESIGN.md](../../../DESIGN.md))
+- **R-40. A three-column window.**
+  - **Left:** the Lingo logo, "+ New session", the English/Deutsch segment, "My sessions", the sync status at the bottom.
+  - **Center:**
+    - the header: the title, the subtitle "<mode> in <language>", the source badge R-32, the gear of the session settings;
+    - the message feed;
+    - the voice panel;
+    - the input field with a send button.
+  - **Right:** "Hints" (R-27).
 
-  Минимальный размер окна 1100×700. При ширине меньше 1280 правая колонка сворачивается в выдвижную. Цвета, шрифты, отступы и радиусы — только из DESIGN.md.
-- **R-41. Лента.**
-  - Пользователь — справа: синий пузырь, время, ✓/✓✓, метка языка, аватар.
-  - Помощник — слева: тёмный пузырь, аватар-робот, время, метка «провайдер · модель».
-  - Исправление `@fix` в ответе — выделенный блок внутри пузыря.
-  - Русские сегменты (R-17) отмечены приглушённым фоном.
-  - По клику на пузырь помощника — повтор озвучки, по клику на пузырь пользователя — правка (R-09).
-- **R-42. Голосовая панель.**
-  - Состояния R-07: иконка микрофона, подпись «Слушаю» и т. д., волна по уровню звука.
-  - Кнопки: «Пауза» (круглая серая), «Завершить» (круглая красная), «Говорю по-русски», «Медленный темп».
-  - Ползунок паузы R-10 — в настройках сессии, а не на панели.
-- **R-43. Ввод текстом.** Альтернатива голосу. Enter отправляет, ⇧Enter — перенос строки. Команды работают и текстом.
-- **R-44. Настройки приложения:**
-  - **Ключи и модели:** провайдеры, неограниченный список ключей у каждого (добавить, проверить, удалить), порядок цепочки, модели из `GET /models`, таймаут первого токена;
-  - **Голос:** голос и темп для en, de, ru; пауза T; склейка G; движок распознавания, если их несколько;
-  - **Синхронизация:** папка, статус, «Синхронизировать сейчас»;
-  - **Данные:** путь к локальному журналу, экспорт в ZIP, удаление локальной истории (с подтверждением и пояснением, что копии на других устройствах останутся).
-- **R-45. Первый запуск.** Мастер из трёх шагов:
-  1. разрешения на микрофон и распознавание речи;
-  2. ключ Groq (можно пропустить, тогда голос неактивен);
-  3. папка синхронизации (можно пропустить).
+  The minimum window size is 1100×700. Below a width of 1280 the right column collapses into a slide-over one. Colours, fonts, spacing and radii — only from DESIGN.md.
+- **R-41. The feed.**
+  - The user — on the right: a blue bubble, the time, ✓/✓✓, a language label, an avatar.
+  - The assistant — on the left: a dark bubble, a robot avatar, the time, the label "provider · model".
+  - A `@fix` correction in an answer — a highlighted block inside the bubble.
+  - Russian segments (R-17) are marked with a dimmed background.
+  - A click on the assistant's bubble repeats the speech, a click on the user's bubble edits it (R-09).
+- **R-42. The voice panel.**
+  - The states of R-07: a microphone icon, a caption "Listening" etc., a wave following the sound level.
+  - The buttons: "Pause" (round grey), "Finish" (round red), "I speak Russian", "Slow pace".
+  - The pause slider R-10 is in the session settings, not on the panel.
+- **R-43. Text input.** An alternative to voice. Enter sends, ⇧Enter inserts a line break. Commands work by text too.
+- **R-44. App settings:**
+  - **Keys and models:** providers, an unlimited list of keys for each (add, check, delete), the chain order, models from `GET /models`, the first-token timeout;
+  - **Voice:** the voice and pace for en, de, ru; the pause T; the merge G; the recognition engine, if there are several;
+  - **Sync:** the folder, the status, "Sync now";
+  - **Data:** the path to the local journal, export to ZIP, deleting the local history (with a confirmation and an explanation that copies on other devices remain).
+- **R-45. First launch.** A wizard of three steps:
+  1. permissions for the microphone and speech recognition;
+  2. a Groq key (can be skipped, then voice is inactive);
+  3. the sync folder (can be skipped).
 
-### Служебное iOS-приложение (LINGO-02, черновик)
-В LINGO-01 не делается. Из R-47 в LINGO-01 используются только отметки хода — для AC-02 на Mac.
-- **R-46. Экран замеров** (не MVP: без сессий и подсказок из R-27). Состав:
-  - выбор движка распознавания и источника ответа (цепочка или локальный кандидат);
-  - язык и голос;
-  - кнопка «Говорить» и непрерывный режим с перебиванием (R-10…R-12);
-  - лента последних ходов;
-  - метрики в реальном времени;
-  - прогон по набору аудиофайлов (soak);
-  - выбор папки iCloud и просмотр журнала: число сессий и сообщений, контрольная сумма;
-  - сведения о сборке: версия, номер сборки, bundle ID, дата истечения подписи, если её можно прочитать.
+### The iOS utility app (LINGO-02, draft)
+Not built in LINGO-01. Of R-47, LINGO-01 uses only the turn marks — for AC-02 on the Mac.
+- **R-46. The measurement screen** (not the MVP: without sessions and the hints of R-27). Contents:
+  - a choice of the recognition engine and the answer source (the chain or a local candidate);
+  - the language and the voice;
+  - a "Speak" button and a continuous mode with barge-in (R-10…R-12);
+  - a feed of the latest turns;
+  - real-time metrics;
+  - a run over a set of audio files (soak);
+  - a choice of the iCloud folder and a view of the journal: the number of sessions and messages, a checksum;
+  - build information: the version, the build number, the bundle ID, the signature expiry date if it can be read.
 
-  Использует то же ядро и формат журнала (R-34…R-39), что и Mac.
-- **R-47. Метрики** (JSON Lines, экспорт в папку синхронизации и через «Поделиться»):
-  - отметки хода: `speech_end`, `stt_final`, `llm_first_token`, `first_audio`, `reply_end`;
-  - память: `phys_footprint` и `os_proc_available_memory` раз в секунду;
+  It uses the same core and journal format (R-34…R-39) as the Mac.
+- **R-47. Metrics** (JSON Lines, exported to the sync folder and through "Share"):
+  - turn marks: `speech_end`, `stt_final`, `llm_first_token`, `first_audio`, `reply_end`;
+  - memory: `phys_footprint` and `os_proc_available_memory` once a second;
   - `thermalState`;
-  - причины завершения из MetricKit (`MXAppExitMetric`) и флаг «прошлый запуск завершился некорректно».
+  - exit reasons from MetricKit (`MXAppExitMetric`) and a flag "the previous launch ended abnormally".
 
-  Текст реплик в метрики не пишется, только длины и языки.
+  The text of utterances is not written to the metrics, only lengths and languages.
 
-### Безопасность и эксплуатация
-- **R-48. Ключи** хранятся только в Keychain. Они не логируются, не показываются после сохранения (только последние 4 символа) и передаются только в заголовке HTTPS.
-- **R-49. Логи** — `os_log` (subsystem `com.itmax04.lingo`). Текст реплик и ответов в логи не пишется, метрики и идентификаторы пишутся.
-- **R-50. Ресурсы Mac.** Во время 20-минутной голосовой сессии всё приложение занимает не больше 1,2 ГБ памяти.
+### Security and operation
+- **R-48. Keys** are stored only in the Keychain. They are not logged, not shown after saving (only the last 4 characters) and are passed only in an HTTPS header.
+- **R-49. Logs** — `os_log` (subsystem `com.itmax04.lingo`). The text of utterances and answers is not written to the logs, metrics and identifiers are.
+- **R-50. Mac resources.** During a 20-minute voice session the whole app takes no more than 1.2 GB of memory.
 
-### Мини-модель угроз
-| Актив | Угроза | Мера |
+### A mini threat model
+| Asset | Threat | Measure |
 |---|---|---|
-| Ключи API | Утечка в Git, логи, чат, журнал синхронизации | Keychain (R-48), ключи никогда не пишутся в журнал, `scripts/secret-scan.sh` (AC-13), правило в CLAUDE.md |
-| История диалогов | Передача третьим лицам | Принято владельцем для бесплатных провайдеров (Q11); аудио не покидает устройство (R-08) |
-| Журналы в iCloud | Конфликт, повреждение, потеря | Один писатель на файл (R-36), слияние без перезаписи (R-37), локальный источник истины (R-34), устойчивость (R-39) |
-| Модели GGUF | Подмена при загрузке | SHA256 из репозитория, только HTTPS и официальные репозитории (R-31) |
-| Поведение модели | Свой промпт или реплика «игнорируй инструкции» | Модель без инструментов, ответ только показывается и озвучивается; промпт и реплики размечены как данные (R-25) |
-| Подпись iOS | Истёк срок 7 дней, приложение не запускается | Продление в SideStore (F-02); данные остаются в контейнере (F-03) |
-| Аккаунты Groq | Блокировка за обход лимитов | Решение и ответственность владельца (A-4); при блокировке цепочка переходит к другим провайдерам |
+| API keys | A leak into Git, logs, chat, the sync journal | Keychain (R-48), keys are never written to the journal, `scripts/secret-scan.sh` (AC-13), a rule in CLAUDE.md |
+| The dialogue history | Passing to third parties | Accepted by the owner for the free providers (Q11); audio does not leave the device (R-08) |
+| Journals in iCloud | A conflict, corruption, loss | One writer per file (R-36), a merge without overwriting (R-37), a local source of truth (R-34), resilience (R-39) |
+| GGUF models | Substitution on download | SHA256 from the repository, only HTTPS and official repositories (R-31) |
+| Model behaviour | A custom prompt or the utterance "ignore the instructions" | The model has no tools, the answer is only shown and spoken; the prompt and utterances are marked as data (R-25) |
+| iOS signing | The 7-day period expired, the app does not start | Renewal in SideStore (F-02); the data stays in the container (F-03) |
+| Groq accounts | A block for bypassing limits | The owner's decision and responsibility (A-4); on a block the chain moves on to other providers |
 
-## 4. Проверки на iPhone — черновик для LINGO-02
-**В LINGO-01 не выполняются (Q27).** Таблица сохраняется как черновик требований ТЗ к iPhone. Целевой iPhone выбирается в LINGO-02. Номера P- и H- в таблице взяты из плана v1 (коммит `9e8daa0`), в LINGO-02 их назначат заново.
-Проводятся только на физическом iPhone с приложением, установленным через SideStore. Симулятор и одиночный запуск интерфейса свидетельством не считаются.
-Каждая проверка: команда или способ → числа → свидетельство (скриншот, файл метрик) в `docs/changes/LINGO-02/evidence/`.
-**Обязательные** проверки взяты из ТЗ. Если обязательная проверка не пройдена, работа LINGO-02 останавливается, и владельцу предлагаются варианты (раздел 6).
+## 4. iPhone checks — a draft for LINGO-02
+**Not executed in LINGO-01 (Q27).** The table is kept as a draft of the brief's requirements for the iPhone. The target iPhone is chosen in LINGO-02. The numbers P- and H- in the table are taken from plan v1 (commit `9e8daa0`); LINGO-02 will assign them anew.
+They are carried out only on a physical iPhone with the app installed through SideStore. The simulator and a single run of the interface do not count as evidence.
+Each check: a command or method → numbers → evidence (a screenshot, a metrics file) in `docs/changes/LINGO-02/evidence/`.
+The **mandatory** checks are taken from the brief. If a mandatory check fails, the work of LINGO-02 stops and options are offered to the owner (section 6).
 
-| F | Обяз. | Проверка | Порог PASS | Способ |
+| F | Mand. | Check | PASS threshold | Method |
 |---|---|---|---|---|
-| F-01 | да | Установка через SideStore | Служебное приложение установлено из IPA через SideStore на iPhone Air и запускается | H-1, H-3; скриншоты SideStore и приложения, версия SideStore и iOS |
-| F-02 | да | Продление подписи без Mac | «Refresh» в SideStore при выключенном Mac проходит, срок подписи сдвигается на 7 дней, приложение запускается | H-5; скриншоты сроков до и после |
-| F-03 | да | Сохранность истории | После перезапуска, перезагрузки iPhone, установки новой сборки поверх и продления подписи: число сессий, сообщений и контрольная сумма журнала совпадают; доступ к папке восстанавливается сам или по одному повторному выбору (зафиксировать, как именно) | H-5; экран журнала R-46 до и после |
-| F-04 | да | Полный локальный цикл (режим полёта) | Для выбранной модели 3 прогона × 50 ходов (en, de, ru, смешанные) с контекстом ≈2000 токенов: 0 падений и 0 завершений системой; от `speech_end` до `first_audio` медиана ≤ 8 с, p90 ≤ 10 с; минимум `os_proc_available_memory` ≥ 150 МБ | P-08 soak + H-4; `scripts/metrics.py` |
-| F-05 | нет | Облачный цикл на iPhone | Медиана ≤ 8 с, p90 ≤ 10 с; при принудительных 429 и неверном ключе ответ приходит со следующего шага цепочки | P-08 + H-4 |
-| F-06 | да | Распознавание en, de, ru и смешанной речи | Живые фразы (H-4, `evals/live-script-ios.md`): 20 на каждый язык и 15 смешанных. Фраза понятна, если WER ≤ 25% или владелец её принял. Порог: ≥ 80% понятных фраз на каждом языке. Смешанные: ≥ 60% в авто-режиме и ≥ 80% с кнопкой «Говорю по-русски». Язык чистых фраз определён верно в ≥ 90% | P-04 синтетика + H-4 живьём |
-| F-07 | да | Качество ответов | eval `dialog`: правила выполнены в ≥ 90% для цепочки и в ≥ 70% для выбранной локальной модели; `no_pronunciation` — 100%. Слепая оценка владельцем 20 ответов: «приемлемо» ≥ 80% для облака и ≥ 60% для локальной модели | P-07 + H-6 |
-| F-08 | да | История через папку iCloud Drive | Папка выбрана без платных entitlements; запись с iPhone видна на Mac и обратно; медиана задержки появления зафиксирована (без порога); S-19: 0 потерь и 0 дублей | H-3, P-08; `scripts/sync-check.py` |
-| F-09 | нет | Перебивание | Через динамик и через AirPods: озвучка останавливается ≤ 0,7 с в ≥ 9 из 10 попыток; ложные остановки от своей озвучки ≤ 1 на 10 ответов | H-4 |
-| F-10 | нет | Заблокированный экран | Облачный непрерывный диалог работает 5 мин с заблокированным экраном. Локальная модель в фоне — замер (ожидается работа без GPU), с порогом F-04 по задержке как ориентиром | H-4 |
+| F-01 | yes | Installation through SideStore | The utility app is installed from the IPA through SideStore on the iPhone Air and starts | H-1, H-3; screenshots of SideStore and the app, the SideStore and iOS versions |
+| F-02 | yes | Renewing the signature without the Mac | "Refresh" in SideStore with the Mac switched off succeeds, the signature period moves by 7 days, the app starts | H-5; screenshots of the periods before and after |
+| F-03 | yes | History survival | After a restart, an iPhone reboot, installing a new build over the old one and renewing the signature: the number of sessions, messages and the journal checksum match; access to the folder is restored by itself or by one repeated choice (record exactly how) | H-5; the journal screen R-46 before and after |
+| F-04 | yes | The full local loop (airplane mode) | For the chosen model 3 runs × 50 turns (en, de, ru, mixed) with a context of ≈2000 tokens: 0 crashes and 0 terminations by the system; from `speech_end` to `first_audio` the median ≤ 8 s, p90 ≤ 10 s; the minimum of `os_proc_available_memory` ≥ 150 MB | P-08 soak + H-4; `scripts/metrics.py` |
+| F-05 | no | The cloud loop on the iPhone | Median ≤ 8 s, p90 ≤ 10 s; with forced 429s and a wrong key the answer comes from the next step of the chain | P-08 + H-4 |
+| F-06 | yes | Recognition of en, de, ru and mixed speech | Live phrases (H-4, `evals/live-script-ios.md`): 20 per language and 15 mixed. A phrase is understood if WER ≤ 25% or the owner accepted it. Threshold: ≥ 80% understood phrases in each language. Mixed: ≥ 60% in auto mode and ≥ 80% with the "I speak Russian" button. The language of pure phrases is detected correctly in ≥ 90% | P-04 synthetic + H-4 live |
+| F-07 | yes | Answer quality | The `dialog` eval: the rules are met in ≥ 90% for the chain and in ≥ 70% for the chosen local model; `no_pronunciation` — 100%. The owner's blind assessment of 20 answers: "acceptable" ≥ 80% for the cloud and ≥ 60% for the local model | P-07 + H-6 |
+| F-08 | yes | History through an iCloud Drive folder | The folder is chosen without paid entitlements; a write from the iPhone is visible on the Mac and back; the median appearance delay is recorded (no threshold); S-19: 0 losses and 0 duplicates | H-3, P-08; `scripts/sync-check.py` |
+| F-09 | no | Barge-in | Through the speaker and through AirPods: the speech stops ≤ 0.7 s in ≥ 9 of 10 attempts; false stops from its own speech ≤ 1 per 10 answers | H-4 |
+| F-10 | no | Locked screen | A cloud continuous dialogue works for 5 min with a locked screen. A local model in the background is a measurement (work without the GPU is expected), with the F-04 latency threshold as a guide | H-4 |
 
-**Выбор локальной модели.** Кандидаты из ADR-0001 сравниваются по F-04 (задержка, память, стабильность) и F-07 (качество).
-Выбор, таблица замеров и причины записываются в ADR-0001 и `feasibility-report.md`.
-Для каждого кандидата отчёт отдельно показывает пик памяти и скорость. По ним видно, какие кандидаты могут подойти для iPhone 11 позже (A-9).
-Цифры с iPhone Air не считаются доказательством работы на iPhone 11.
-Если ни один кандидат не проходит F-04 и F-07 одновременно, это провал обязательного требования, и действует раздел 6.
+**Choosing the local model.** The candidates from ADR-0001 are compared by F-04 (latency, memory, stability) and F-07 (quality).
+The choice, the table of measurements and the reasons are recorded in ADR-0001 and `feasibility-report.md`.
+For each candidate the report shows the memory peak and the speed separately. They show which candidates may suit the iPhone 11 later (A-9).
+Figures from the iPhone Air are not evidence that it works on the iPhone 11.
+If no candidate passes F-04 and F-07 at the same time, that is a failure of a mandatory requirement, and section 6 applies.
 
-## 5. Критерии приёмки MVP для Mac
-| AC | Критерий | Способ проверки |
+## 5. Acceptance criteria of the MVP for the Mac
+| AC | Criterion | How to check |
 |---|---|---|
-| AC-01 | Три режима и настройка сессии работают по S-01, R-02, R-03; никаких умолчаний «Thomas/A2» | Юнит-тесты `PromptBuilder` и экрана настройки + живая сессия H-4 в каждом режиме |
-| AC-02 | Голос по кнопке и непрерывный режим: от `speech_end` до `first_audio` медиана ≤ 8 с, p90 ≤ 10 с (по цепочке Groq), фактические числа в отчёте | H-4 по `evals/live-script-mac.md`, `scripts/metrics.py` |
-| AC-03 | Перебивание на Mac: остановка ≤ 0,5 с в ≥ 9 из 10; склейка по S-05 | H-4 + юнит-тесты `TurnController` |
-| AC-04 | Команды: детектор ≥ 95% верных на eval `commands` (≥ 90 фраз ru, de, en, включая отрицательные примеры); «повтори» начинает звучать ≤ 0,3 с | `scripts/run-evals.sh commands` + H-4 |
-| AC-05 | Русский только по явной просьбе, с возвратом к практике: случаи `explain`, `ru_utterance`, `lang_discipline` в eval `dialog` ≥ 90% | `scripts/run-evals.sh dialog` |
-| AC-06 | Режимы исправления и их сочетания по S-13…S-15; итог R-23 содержит 3–5 пунктов | Юнит-тесты агрегатора `@fix` + eval `dialog` (кейсы `correction_*`) + H-4 |
-| AC-07 | Сессии сохраняются, продолжаются с политикой контекста R-04, переживают перезапуск | Юнит-тесты хранилища + ручной перезапуск |
-| AC-08 | Синхронизация двух писателей в одной папке iCloud (Lingo + `lingo-eval sync-write` как второе устройство): S-19 — 0 потерь и 0 дублей; статусы R-38; S-20 без потери локальной истории. Проверка с реальным iPhone — LINGO-02 | `scripts/sync-check.py` + P-10 |
-| AC-09 | Цепочка: 429, неверный ключ и таймаут ведут к следующему ключу или модели с меткой; неограниченное число ключей; S-18 | Юнит-тесты с mock-провайдером + ручная проверка с заведомо неверным ключом |
-| AC-10 | Подсказки: четыре раздела, прослушать, перевод, ★; прослушивание не ломает голосовой ход | H-4 + юнит-тесты разбора `@hint` |
-| AC-11 | Интерфейс соответствует макету и DESIGN.md | Скриншот окна рядом с `lingo-mac.webp` в report.md, оценка владельца в H-4 |
-| AC-12 | Mac без сети: S-17 | Ручная проверка с отключённым Wi-Fi |
-| AC-13 | В репозитории нет ключей и личных данных (`private/` в .gitignore) | `scripts/secret-scan.sh` = 0 находок |
-| AC-14 | Сборка воспроизводима: `swift build`, `swift test`, `scripts/build-app.sh`, `scripts/check-core-ios.sh` (ядро собирается для iOS) на чистом клоне | Команды в report.md с выводом |
-| AC-15 | Память Mac ≤ 1,2 ГБ за 20-минутную голосовую сессию (R-50) | `footprint` раз в минуту, максимум в report.md |
-| AC-17 | Контрольная 30-минутная сессия (Q29, протокол внешнего ревью): разговор идёт 30 минут без отказа из-за исчерпанной квоты; число ходов, задержка, расход токенов и фоновые запросы записаны; `retry-after` соблюдается, отмена останавливает новые обращения | H-4, журнал расхода R-52, `scripts/metrics.py` |
-| AC-16 | Распознавание на Mac: 20 живых фраз на каждый язык en, de, ru и 15 смешанных. Фраза понятна, если WER ≤ 25% или владелец её принял. Порог: ≥ 80% понятных на каждом языке; смешанные — ≥ 60% в авто-режиме и ≥ 80% с кнопкой «Говорю по-русски»; язык чистых фраз определён верно в ≥ 90% | H-2 и H-4 по `evals/live-script-mac.md` |
+| AC-01 | The three modes and the session setup work per S-01, R-02, R-03; no "Thomas/A2" defaults | Unit tests of `PromptBuilder` and the setup screen + a live session H-4 in each mode |
+| AC-02 | Voice by button and continuous mode: from `speech_end` to `first_audio` the median ≤ 8 s, p90 ≤ 10 s (on the Groq chain), the actual figures in the report | H-4 from `evals/live-script-mac.md`, `scripts/metrics.py` |
+| AC-03 | Barge-in on the Mac: a stop ≤ 0.5 s in ≥ 9 of 10; merging per S-05 | H-4 + unit tests of `TurnController` |
+| AC-04 | Commands: the detector ≥ 95% correct on the `commands` eval (≥ 90 phrases ru, de, en, including negative examples); "repeat" starts to sound ≤ 0.3 s | `scripts/run-evals.sh commands` + H-4 |
+| AC-05 | Russian only on an explicit request, with a return to practice: the cases `explain`, `ru_utterance`, `lang_discipline` in the `dialog` eval ≥ 90% | `scripts/run-evals.sh dialog` |
+| AC-06 | Correction modes and their combinations per S-13…S-15; the recap R-23 contains 3–5 items | Unit tests of the `@fix` aggregator + the `dialog` eval (the `correction_*` cases) + H-4 |
+| AC-07 | Sessions are saved, continue with the context policy R-04, survive a restart | Unit tests of the storage + a manual restart |
+| AC-08 | Sync of two writers in one iCloud folder (Lingo + `lingo-eval sync-write` as the second device): S-19 — 0 losses and 0 duplicates; the statuses R-38; S-20 without loss of the local history. A check with a real iPhone belongs to LINGO-02 | `scripts/sync-check.py` + P-10 |
+| AC-09 | The chain: 429, a wrong key and a timeout lead to the next key or model with a label; an unlimited number of keys; S-18 | Unit tests with a mock provider + a manual check with a deliberately wrong key |
+| AC-10 | Hints: four sections, listen, translation, ★; listening does not break the voice turn | H-4 + unit tests of the `@hint` parsing |
+| AC-11 | The interface matches the mockup and DESIGN.md | A window screenshot next to `lingo-mac.webp` in report.md, the owner's assessment in H-4 |
+| AC-12 | The Mac without a network: S-17 | A manual check with Wi-Fi switched off |
+| AC-13 | The repository has no keys and personal data (`private/` in .gitignore) | `scripts/secret-scan.sh` = 0 findings |
+| AC-14 | The build is reproducible: `swift build`, `swift test`, `scripts/build-app.sh`, `scripts/check-core-ios.sh` (the core builds for iOS) on a clean clone | The commands in report.md with their output |
+| AC-15 | The Mac memory ≤ 1.2 GB over a 20-minute voice session (R-50) | `footprint` once a minute, the maximum in report.md |
+| AC-17 | A control 30-minute session (Q29, the external review protocol): the conversation goes on for 30 minutes without a refusal from an exhausted quota; the number of turns, the latency, the token usage and the background requests are recorded; `retry-after` is respected, a cancel stops new calls | H-4, the usage log R-52, `scripts/metrics.py` |
+| AC-16 | Recognition on the Mac: 20 live phrases for each of en, de, ru and 15 mixed. A phrase is understood if WER ≤ 25% or the owner accepted it. Threshold: ≥ 80% understood in each language; mixed — ≥ 60% in auto mode and ≥ 80% with the "I speak Russian" button; the language of pure phrases is detected correctly in ≥ 90% | H-2 and H-4 from `evals/live-script-mac.md` |
 
-## 6. Если обязательная проверка не пройдена
-Относится к LINGO-02. В LINGO-01 так же действуют строки F-06 (для AC-16) и F-08 (для AC-08).
-Исполнитель останавливается и показывает конкретные числа и свидетельства. Затем предлагает варианты из таблицы ниже или свои, с плюсами и минусами.
-Платные сервисы, замена iPhone клиентом Mac и выдача служебного приложения за MVP вариантами **не считаются**.
+## 6. If a mandatory check fails
+Relates to LINGO-02. In LINGO-01 the rows F-06 (for AC-16) and F-08 (for AC-08) apply in the same way.
+The executor stops and shows concrete figures and evidence. Then it offers options from the table below or its own, with pros and cons.
+Paid services, replacing the iPhone with a Mac client and passing the utility app off as the MVP **do not count** as options.
 
-| Провал | Возможные варианты (решает владелец) |
+| Failure | Possible options (the owner decides) |
 |---|---|
-| F-01/F-02: SideStore не работает на установленной iOS | Дождаться исправления SideStore (выпуск отслеживается); другой бесплатный способ установки с продлением на устройстве, если он есть на момент проверки; бесплатная подпись из Xcode на 7 дней — **нарушает независимость от Mac** и предлагается только как временная мера |
-| F-03: история теряется при обновлении или продлении | Перенос локального хранения в папку синхронизации как основного места с локальным кэшем; восстановление из папки при старте |
-| F-04: локальный цикл не укладывается в память или задержку | Модель меньше с худшим качеством; локальный режим только для коротких упражнений; локальная модель только как запасной путь без сети с явной пометкой; отказ от локального цикла (нужно решение владельца: это меняет ТЗ) |
-| F-06: смешанная речь | Только явное переключение языка кнопкой; распознавание русских и иноязычных частей разными движками по сегментам (если позволяет память) |
-| F-07: качество локальной модели | То же, что для F-04; облако — основной путь, локальная модель — аварийный |
-| F-08: папка iCloud недоступна без платных функций | Ручной экспорт и импорт журнала через «Файлы»; синхронизация по локальной сети Wi-Fi между устройствами (Bonjour); иная бесплатная папка в «Файлах» |
+| F-01/F-02: SideStore does not work on the installed iOS | Wait for a SideStore fix (the release is tracked); another free installation method with renewal on the device, if there is one at the time of the check; a free signature from Xcode for 7 days — **breaks the independence from the Mac** and is offered only as a temporary measure |
+| F-03: the history is lost on an update or a renewal | Move the local storage into the sync folder as the main place with a local cache; restore from the folder at start |
+| F-04: the local loop does not fit the memory or the latency | A smaller model with worse quality; local mode only for short exercises; the local model only as a fallback path without a network with an explicit label; dropping the local loop (the owner's decision is needed: this changes the brief) |
+| F-06: mixed speech | Only an explicit language switch with a button; recognising the Russian and foreign-language parts with different engines by segments (if the memory allows) |
+| F-07: the quality of the local model | The same as for F-04; the cloud is the main path, the local model is the emergency one |
+| F-08: the iCloud folder is unavailable without paid features | A manual export and import of the journal through "Files"; sync over the local Wi-Fi network between the devices (Bonjour); another free folder in "Files" |
 
-## 7. Решения и допущения
-- **Факты:**
-  - среда: M1 8 ГБ, macOS 15.7.2, Xcode 26.3, ≈14 ГБ свободно, есть ffmpeg и gh (аккаунт itmax04) — проверено 2026-10-25;
-  - iPhone — в LINGO-02 (Q27). iPhone Air (iPhone18,4) на iOS 27.0 сопряжён с Mac, «Режим разработчика» выключен — проверено `devicectl` 2026-10-25;
-  - сведения о SideStore на iOS 27 и бесплатных тарифах Groq, Gemini, Cerebras, OpenRouter — сторонние источники на 2026-10-25, их перепроверяет P-00.
-- **Решения владельца:** Q1–Q27 (intent.md).
-- **Допущения:** A-1…A-9 (intent.md). Решения исполнителя по ходу работы записываются в handoff.md.
+## 7. Decisions and assumptions
+- **Facts:**
+  - environment: M1 8 GB, macOS 15.7.2, Xcode 26.3, ≈14 GB free, ffmpeg and gh are present (account itmax04) — checked 2026-10-25;
+  - the iPhone belongs to LINGO-02 (Q27). The iPhone Air (iPhone18,4) on iOS 27.0 is paired with the Mac, "Developer Mode" is off — checked with `devicectl` on 2026-10-25;
+  - the information on SideStore on iOS 27 and on the free tiers of Groq, Gemini, Cerebras, OpenRouter comes from third-party sources as of 2026-10-25, and P-00 re-checks it.
+- **Owner decisions:** Q1–Q27 (intent.md).
+- **Assumptions:** A-1…A-9 (intent.md). The executor's decisions made along the way are recorded in handoff.md.
