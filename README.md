@@ -7,15 +7,15 @@ and any browser, entirely on free tiers.
 
 | Part | Where | Status |
 |---|---|---|
-| Lingo for Mac (Swift, on-device recognition) | repo root today → `apps/mac` | MVP working (LINGO-01) |
+| Lingo for Mac (Swift, on-device recognition) | `apps/mac` | MVP working (LINGO-01) |
 | Lingo Engine (Cloudflare Worker + D1) | `services/engine` | LINGO-03 Stage 1–2 |
 | Lingo Web (PWA) | `apps/web` | LINGO-03 Stage 2 |
 | Shared contracts (schemas, fixtures) | `packages/contracts` | started |
 
 ## Quick start (Mac)
 ```bash
-swift build && swift test        # build and test
-scripts/build-app.sh             # build and sign dist/Lingo.app
+swift build --package-path apps/mac && swift test --package-path apps/mac  # build and test
+apps/mac/scripts/build-app.sh    # build and sign dist/Lingo.app
 open dist/Lingo.app              # run
 ```
 

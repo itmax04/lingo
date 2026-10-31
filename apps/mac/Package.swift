@@ -36,6 +36,6 @@ let package = Package(
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path"])]
         ),
         .testTarget(name: "LingoMacTests", dependencies: ["LingoMac", "LingoCore"]),
-        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore", "LingoEvalKit"], exclude: ["Snapshots"]),
+        .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore", "LingoEvalKit"], exclude: []),
     ]
 )

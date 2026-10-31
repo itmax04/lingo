@@ -8,8 +8,8 @@ import LingoEvalKit
 //       without --offline it first reads the folder (session, lamport), and after writing copies its journal to the folder.
 //   sync-now --device <id> --folder <dir> [--base <dir>]       write and read the folder (network comes back)
 //   sync-view --base <dir>                                      messages per session in R-37 order (JSON)
-//   commands [--set evals/commands]                             command detector (AC-04)
-//   turn [--set evals/turn]                                     end of utterance and merging (R-10, R-11)
+//   commands [--set packages/contracts/evals/commands]                             command detector (AC-04)
+//   turn [--set packages/contracts/evals/turn]                                     end of utterance and merging (R-10, R-11)
 //   stt --engine whisper:<model>|apple --set evals/audio        recognition: WER, language, latency, memory
 
 func usage() -> Never {
@@ -18,9 +18,9 @@ func usage() -> Never {
       sync-write --device <id> --session <id> --count N [--folder <dir>] [--offline] [--base <dir>]
       sync-now   --device <id> --folder <dir> [--base <dir>]
       sync-view  --base <dir>
-      commands   [--set evals/commands]
-      turn       [--set evals/turn]
-      stt        --engine whisper:<model.bin>|apple [--set evals/audio] [--forced]
+      commands   [--set packages/contracts/evals/commands]
+      turn       [--set packages/contracts/evals/turn]
+      stt        --engine whisper:<model.bin>|apple [--set packages/contracts/evals/audio] [--forced]
     """)
     exit(2)
 }
@@ -110,12 +110,12 @@ case "tts-bench":
     exit(TTSBench.run())
 case "blind":
     let from = (a.values["--from"] ?? "").split(separator: ",").map(String.init)
-    exit(try BlindReview.run(from: from, cases: a.values["--cases"] ?? "evals/dialog", n: Int(a.values["--n"] ?? "20") ?? 20,
+    exit(try BlindReview.run(from: from, cases: a.values["--cases"] ?? "packages/contracts/evals/dialog", n: Int(a.values["--n"] ?? "20") ?? 20,
                              seed: UInt64(a.values["--seed"] ?? "2026") ?? 2026))
 case "dialog-recheck":
     // Recompute rules from saved replies (offline): lingo-eval dialog-recheck --from run1/dialog-x.json[,…]
     let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
-    let cases = Dictionary(uniqueKeysWithValues: try DialogCase.load(dir: URL(fileURLWithPath: a.values["--cases"] ?? "evals/dialog")).map { ($0.id, $0) })
+    let cases = Dictionary(uniqueKeysWithValues: try DialogCase.load(dir: URL(fileURLWithPath: a.values["--cases"] ?? "packages/contracts/evals/dialog")).map { ($0.id, $0) })
     for p in (a.values["--from"] ?? "").split(separator: ",") {
         var r = try dec.decode(DialogRunner.Report.self, from: Data(contentsOf: URL(fileURLWithPath: String(p))))
         r.rows = r.rows.map { row in
@@ -136,11 +136,11 @@ case "dialog-report":
         print("  categories: " + r.categoryRates.sorted { $0.key < $1.key }.map { "\($0.key) \(Int(($0.value * 100).rounded()))%" }.joined(separator: ", "))
     }
 case "commands":
-    exit(try CommandsEval.run(set: a.values["--set"] ?? "evals/commands"))
+    exit(try CommandsEval.run(set: a.values["--set"] ?? "packages/contracts/evals/commands"))
 case "turn":
-    exit(try TurnEval.run(set: a.values["--set"] ?? "evals/turn"))
+    exit(try TurnEval.run(set: a.values["--set"] ?? "packages/contracts/evals/turn"))
 case "stt":
-    exit(try await STTEval.run(engine: a.req("--engine"), set: a.values["--set"] ?? "evals/audio", forcedMixed: a.flags.contains("--forced")))
+    exit(try await STTEval.run(engine: a.req("--engine"), set: a.values["--set"] ?? "packages/contracts/evals/audio", forcedMixed: a.flags.contains("--forced")))
 default:
     usage()
 }

@@ -281,7 +281,7 @@ Details and the owner's decision on multiple Groq accounts: [ADR-0005](../decisi
 
 | Environment | What | How |
 |---|---|---|
-| Local Mac app | `apps/mac` | `swift build && swift test`; `scripts/build-app.sh` signs `dist/Lingo.app` with the local self-signed certificate |
+| Local Mac app | `apps/mac` | `swift build --package-path apps/mac && swift test --package-path apps/mac`; `apps/mac/scripts/build-app.sh` signs `dist/Lingo.app` with the local self-signed certificate |
 | Local web + engine | `apps/web`, `services/engine` | `npm run dev` (Vite) + `wrangler dev` with a local D1 and test secrets |
 | Production | one Worker with static assets on `*.workers.dev` + one D1 database | `wrangler d1 migrations apply --remote`, `wrangler deploy`; the owner runs `wrangler login` once and enters secrets |
 

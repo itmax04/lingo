@@ -17,7 +17,9 @@ import Testing
                         corrections: Set(c), starter: mode == .free ? .user : .assistant)
     }
 
-    static let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Snapshots")
+    static let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("packages/contracts/prompts")
 
     @Test(arguments: SessionMode.allCases)
     func snapshots(mode: SessionMode) throws {

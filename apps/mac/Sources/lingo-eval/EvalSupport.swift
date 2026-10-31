@@ -15,7 +15,7 @@ enum EvalIO {
 
     /// Run results — `evals/out/` (in .gitignore).
     static func writeOut<T: Encodable>(_ name: String, _ value: T) throws -> String {
-        let dir = URL(fileURLWithPath: "evals/out", isDirectory: true)
+        let dir = URL(fileURLWithPath: "packages/contracts/evals/out", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let enc = JSONEncoder()
         enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]

@@ -25,7 +25,7 @@ a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](d
 ## 3. Repository map
 | Path | What | Status |
 |---|---|---|
-| `Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/` (Mac parts), `evals/` | Swift package of the Mac app (to move to `apps/mac`, `packages/contracts` in **P-01**) | working |
+| `apps/mac/` (`Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/`) | Swift package of the Mac app (moved in P-01); eval sets and prompt snapshots live in `packages/contracts/` | working |
 | `apps/web/` | React + Vite PWA | created in P-15 |
 | `services/engine/` | Cloudflare Worker + D1 | created in P-08 |
 | `packages/core-ts/` | TypeScript ports shared by web and engine | created in P-07 |
@@ -39,17 +39,17 @@ a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](d
 | `.github/` | CI workflow, PR template | current |
 
 ## 4. Commands
-Mac (until P-01 at the repo root; after P-01 add `--package-path apps/mac` and use `apps/mac/scripts/…`):
+Mac (the Swift package lives in `apps/mac` since P-01; `dist/` stays at the repository root):
 | Command | What |
 |---|---|
-| `swift build && swift test` | build and run the Swift tests (96 at hand-over) |
-| `scripts/build-app.sh` | build and sign `dist/Lingo.app` (self-signed "Lingo Dev" or "InterviewCopilot") |
+| `swift build --package-path apps/mac && swift test --package-path apps/mac` | build and run the Swift tests (96 at hand-over) |
+| `apps/mac/scripts/build-app.sh` | build and sign `dist/Lingo.app` (self-signed "Lingo Dev" or "InterviewCopilot") |
 | `open dist/Lingo.app` | run the app |
-| `scripts/check-core-ios.sh` | LingoCore compiles for iOS |
+| `apps/mac/scripts/check-core-ios.sh` | LingoCore compiles for iOS |
 | `dist/Lingo.app/Contents/MacOS/Lingo --check-keys` | check stored keys and print the chain (values never printed) |
 | `… --eval-dialog <cases> <out> [--provider groq\|custom] [--models m] [--only ids] [--max-cases 10] [--budget 15]` | dialogue eval — night only (§6.5) |
 | `… --audio-diag <file>` · `--audio-stability <file>` · `--selftest <wav>` · `--ui-snapshot <png>` | diagnostics |
-| `python3 scripts/metrics.py` | turn latency and memory from the Mac metrics log |
+| `python3 apps/mac/scripts/metrics.py` | turn latency and memory from the Mac metrics log |
 
 Web and engine (from P-07/P-08 on):
 | Command | What |

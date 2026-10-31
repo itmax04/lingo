@@ -4,20 +4,12 @@ name: mac
 on:
   pull_request:
     paths:
-      - "Package.swift"
-      - "Package.resolved"
-      - "Sources/**"
-      - "Tests/**"
-      - "Resources/**"
       - "apps/mac/**"
       - "packages/contracts/**"
       - ".github/workflows/ci-mac.yml"
   push:
     branches: [main]
     paths:
-      - "Package.swift"
-      - "Sources/**"
-      - "Tests/**"
       - "apps/mac/**"
       - "packages/contracts/**"
   workflow_dispatch:

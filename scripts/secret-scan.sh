@@ -21,12 +21,12 @@ KEY_PATTERNS=(
   '(mistral|MISTRAL)[A-Za-z_]*[[:space:]]*[:=][[:space:]]*["'"'"']?[A-Za-z0-9]{32}'   # Mistral: a key without a prefix — searched next to the name
   'Bearer [A-Za-z0-9_-]{24,}'                    # a header with a key in logs and fixtures
 )
-# Personal data: emails and phone numbers. Excluded: evals/ (synthetic) and this script.
+# Personal data: emails and phone numbers. Excluded: packages/contracts/evals/ (synthetic) and this script.
 EMAIL_PATTERN='[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
 PHONE_PATTERN='(\+[0-9]{1,3}[ -]?\(?[0-9]{2,4}\)?[ -]?[0-9]{3}[ -]?[0-9]{2}[ -]?[0-9]{2})|(\(?[0-9]{3}\)?[ -][0-9]{3}[ -][0-9]{2}[ -][0-9]{2})'
 # Safe addresses (documentation, examples, commit attribution).
 EMAIL_ALLOW='@(example\.(com|org|net)|users\.noreply\.github\.com|anthropic\.com)$'
-PII_EXCLUDE=(':(exclude)evals/**' ':(exclude)scripts/secret-scan.sh')
+PII_EXCLUDE=(':(exclude)packages/contracts/evals/**' ':(exclude)scripts/secret-scan.sh')
 
 findings=0
 mask() { sed -E -e 's/(gsk_|sk-or-|sk-|AIza|Bearer )[A-Za-z0-9_-]{4}[A-Za-z0-9_-]*/\1****[masked]/g' \
@@ -70,8 +70,8 @@ scan_tree index
 
 # Files that should be ignored but got into the index.
 report "ignored-but-tracked" < <(git ls-files -ci --exclude-standard)
-# Forbidden directories and file types in the index regardless of .gitignore: private/ (the original PDF), models, logs, evals/out.
-report "forbidden-path" < <(git ls-files | grep -E '(^|/)(private|profile|models|logs)/|^evals/out/|\.(gguf|bin|p12|cer|key|log|pdf|mlmodelc)$|(^|/)\.env' || true)
+# Forbidden directories and file types in the index regardless of .gitignore: private/ (the original PDF), models, logs, packages/contracts/evals/out.
+report "forbidden-path" < <(git ls-files | grep -E '(^|/)(private|profile|models|logs)/|^packages/contracts/evals/out/|\.(gguf|bin|p12|cer|key|log|pdf|mlmodelc)$|(^|/)\.env' || true)
 # The original PDF and everything from private/ must not be in any commit.
 if [ "$HISTORY" = 1 ]; then
   report "forbidden-history" < <(git log --all --name-only --format= | sort -u | grep -E '^private/|\.pdf$' || true)

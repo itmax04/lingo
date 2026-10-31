@@ -5,8 +5,9 @@
 # ("iOS 26.2 is not installed", Xcode → Settings → Components), but the iphoneos SDK is present. SwiftPM builds with it directly
 # (decision D-03 in handoff.md). If the platform is installed, xcodebuild is run as well.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+MAC="$ROOT/apps/mac"
+cd "$MAC"
 SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
 SCRATCH="$HOME/Library/Caches/com.itmax04.lingo/ios-build"
 echo "==> swift build --target LingoCore --triple arm64-apple-ios17.0 (SDK $(xcrun --sdk iphoneos --show-sdk-version))"

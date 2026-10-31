@@ -5,7 +5,7 @@ Part of the documentation set: [ARCHITECTURE.md](ARCHITECTURE.md) (whole system,
 [WEB.md](WEB.md) (Lingo Web + Engine, all other devices) · [CODEBASE.md](CODEBASE.md) (repository map) ·
 [EVOLVING.md](../process/EVOLVING.md) (how to change things).
 
-Read this file before touching anything under `Package.swift`, `Sources/`, `Tests/`, `Resources/` (after LINGO-03 P-01: `apps/mac/`).
+Read this file before touching anything under `apps/mac/` (`Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/`).
 When you add, move or delete a Mac module, update this file in the same PR.
 
 ---
@@ -51,7 +51,7 @@ flowchart LR
 
 | Rule | Why | Enforced by |
 |---|---|---|
-| `LingoCore` imports only Foundation, Speech, Security, CryptoKit, Network, os, Darwin and `whisper` — **no AppKit, SwiftUI, LingoEvalKit** | it must build for iOS (LINGO-06) | `scripts/check-core-ios.sh` |
+| `LingoCore` imports only Foundation, Speech, Security, CryptoKit, Network, os, Darwin and `whisper` — **no AppKit, SwiftUI, LingoEvalKit** | it must build for iOS (LINGO-06) | `apps/mac/scripts/check-core-ios.sh` |
 | UI and AppKit live only in `LingoMac` | keeps the core portable and testable | review |
 | `Yams` only in `LingoEvalKit` / `lingo-eval` | the app core never parses YAML | `Package.swift` |
 | New dependencies only from the ADR-0001 allow-list | supply chain, size, $0 | ADR first |
@@ -99,7 +99,7 @@ and `Tests/LingoMacTests/`. Update this table when it is merged.
 |---|---|
 | `Sources/LingoEvalKit/DialogCase.swift`, `DialogRules.swift`, `DialogRunner.swift` | YAML case format, automatic rules (protocol, language discipline, no pronunciation, one question, corrections, length), runner with 429 waits and budgets |
 | `Sources/lingo-eval/` | `main` (arguments) · `CommandsEval` · `TurnEval` · `STTEval` · `STTBench` · `TTSBench` · `BlindReview` · `EvalSupport` |
-| `evals/` | Data sets and the live script; thresholds in `evals/README.md`. Moves to `packages/contracts/evals/` in P-01 |
+| `packages/contracts/evals/` | Data sets and the live script; thresholds in `packages/contracts/evals/README.md` (moved from `evals/` in P-01) |
 
 ## 3. One voice turn through the files
 
@@ -133,7 +133,7 @@ Local commands ("repeat", "slower") never call a model (target ≤ 0.3 s until a
 |---|---|
 | `~/Library/Application Support/Lingo/devices/<device-id>/journal-YYYY-MM.jsonl` | this device's events (source of truth on the device) |
 | `~/Library/Application Support/Lingo/cache/` | copies of other devices' journals |
-| `~/Library/Application Support/Lingo/metrics/*.jsonl` | turn metrics (read by `scripts/metrics.py`) |
+| `~/Library/Application Support/Lingo/metrics/*.jsonl` | turn metrics (read by `apps/mac/scripts/metrics.py`) |
 | `~/Library/Application Support/Lingo/` (other files) | settings, usage log |
 | Keychain, service `com.itmax04.lingo` | API keys only |
 | Sync folder chosen by the user: `Lingo/v1/devices/<device-id>/journal-*.jsonl` | one folder per device; each device writes only its own (checked by `scripts/sync-check.py`) |
@@ -145,10 +145,10 @@ Local commands ("repeat", "slower") never call a model (target ≤ 0.3 s until a
 | Command | What |
 |---|---|
 | `swift build && swift test` | build and run the Swift tests (after P-01: `--package-path apps/mac`) |
-| `scripts/build-app.sh` | build and sign `dist/Lingo.app` with the local self-signed certificate |
+| `apps/mac/scripts/build-app.sh` | build and sign `dist/Lingo.app` with the local self-signed certificate |
 | `open dist/Lingo.app` | run |
-| `scripts/check-core-ios.sh` | `LingoCore` compiles for iOS |
-| `scripts/run-evals.sh commands\|turn\|audio\|dialog\|all` | evals; `dialog` only at night (23:00–08:00 Berlin), budgeted |
+| `apps/mac/scripts/check-core-ios.sh` | `LingoCore` compiles for iOS |
+| `apps/mac/scripts/run-evals.sh commands\|turn\|audio\|dialog\|all` | evals; `dialog` only at night (23:00–08:00 Berlin), budgeted |
 | `python3 scripts/metrics.py` | latency and memory of recent turns |
 
 Command-line modes of `dist/Lingo.app/Contents/MacOS/Lingo`: `--check-keys` ·
@@ -161,7 +161,7 @@ Command-line modes of `dist/Lingo.app/Contents/MacOS/Lingo`: `--check-keys` ·
 | `JournalTests`, `SyncTests` | ULID, event codec, merge rules, two writers, folder sync |
 | `ChainTests`, `QuotaTests` | chain steps and fallback, rate-limit parsing, usage |
 | `DialogEngineTests`, `TurnControllerTests` | one turn writes user/assistant/fix/hint; push-to-talk, barge-in, states |
-| `PromptBuilderTests` (+ `Snapshots/`) | system wrapper rules; byte-exact prompt snapshots |
+| `PromptBuilderTests` (+ `packages/contracts/prompts/`) | system wrapper rules; byte-exact prompt snapshots |
 | `ReplyProtocolTests` | all reply tags, streaming parse |
 | `SessionSettingsTests`, `SpeechTests`, `DialogRulesTests`, `AudioRecoveryTests` | start conditions, segmenter, eval rules, restart limiter |
 
@@ -173,15 +173,15 @@ CI: `.github/workflows/ci-mac.yml` (macOS runner, path-filtered — minutes coun
 - macOS stops the audio engine on configuration changes; `VoiceIO` restarts it, limited by `AudioRestartLimiter`.
 - Do not reduce whisper `audio_ctx` below 512 frames; the language label comes from the script of the result.
 - Keys are readable without prompts only by the signed app — run key checks through `dist/Lingo.app`.
-- Never build inside an iCloud-synced folder (`scripts/ensure-build-dir.sh`); work in `~/Developer/lingo`.
+- Never build inside an iCloud-synced folder (`apps/mac/scripts/ensure-build-dir.sh`); work in `~/Developer/lingo`.
 
 ## 7. Where to change what (Mac)
 
 | I want to … | Change | Also update |
 |---|---|---|
 | fix a bug in the voice loop | `LingoCore/Audio`, `Speech`, `Dialogue/TurnController` | a regression test in `TurnControllerTests` / `SpeechTests` |
-| add or change a voice command | `Commands/CommandKind`, `CommandDetector` | `evals/commands`, contracts fixtures, the TS port (WEB.md), spec requirement |
-| change model instructions | `Dialogue/PromptBuilder`, `ContextPolicy` | re-record `Tests/LingoCoreTests/Snapshots`, night `dialog` eval, the engine prompt builder (byte-identical) |
+| add or change a voice command | `Commands/CommandKind`, `CommandDetector` | `packages/contracts/evals/commands`, contracts fixtures, the TS port (WEB.md), spec requirement |
+| change model instructions | `Dialogue/PromptBuilder`, `ContextPolicy` | re-record `packages/contracts/prompts`, night `dialog` eval, the engine prompt builder (byte-identical) |
 | change the reply protocol | `Dialogue/ReplyProtocol` | contracts first, both parsers, `ReplyProtocolTests` |
 | add an event type or field | `packages/contracts/events/event.schema.json` → `Journal/Event`, `Payloads`, `Merger` | fixtures, `JournalTests`, ARCHITECTURE §6.1, the TS reducer |
 | add a provider or model | `LLM/ProviderID`, `ProviderEndpoints`, chain defaults | ADR-0005 if routing policy changes, `ChainTests` |
@@ -191,4 +191,4 @@ CI: `.github/workflows/ci-mac.yml` (macOS runner, path-filtered — minutes coun
 | change a colour, size or font | `DESIGN.md` first → `Design/Theme.swift` | design check script (PR #33), snapshots |
 | add or change a screen | `LingoMac/Views/*` using `Theme` only | `Fixtures`, `--ui-snapshot`, the reference in `design/redesign-2026/04-mac` |
 | add a dependency | ADR-0001 allow-list first | `Package.swift` |
-| share code with the iPhone app | put it in `LingoCore` (no AppKit/SwiftUI) | `scripts/check-core-ios.sh` |
+| share code with the iPhone app | put it in `LingoCore` (no AppKit/SwiftUI) | `apps/mac/scripts/check-core-ios.sh` |
