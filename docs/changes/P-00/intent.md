@@ -14,7 +14,7 @@ the DG-01/02/03 acceptance and the AI-only review policy (D04-01). No product co
 | G-CHAIN | 2026-10-31 | "I accept" (Russian, translated; recommended option: merge #1 → #31 → #34 in order after green CI and AI review, then the own docs PR) | Resolves the base blocker in handoff.md; applies only to #1/#31/#34, not #33 |
 
 ## Scope
-- In: the 15 reviewed Markdown paths plus this intent (record of the G-CHAIN decision; no requirement text).
+- In: the 15 reviewed Markdown paths plus this intent and the aligned wording in `docs/changes/LINGO-03/executor-prompt.md` (record of the G-CHAIN decision; no requirement text).
 - Out: product code; LINGO-07 and LINGO-03 work; #33; any merge outside the G-CHAIN order and checks.
 
 ## Definition of done

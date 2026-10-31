@@ -66,7 +66,7 @@ Always:
 
 ## 5. How to work
 - **Process:** [SDLC](docs/process/SDLC.md). One issue → one branch → one PR. Definition of Done in SDLC §6. Update `handoff.md` in the same PR.
-- **Branches:** `<type>/<issue>-<slug>` from `main`. Future explicitly scoped executors may merge ready PRs after checks, AI review and H-x; DG-03 A authorises only the own P-00 docs PR, product-PR merges need separate explicit authority, and the chain #1 → #31 → #34 is merged only under G-CHAIN (accepted 2026-10-31); the current adoption build remains local only. While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
+- **Branches:** `<type>/<issue>-<slug>` from `main`. Future explicitly scoped executors may merge ready PRs after checks, AI review and H-x; DG-03 A authorises only the own P-00 docs PR, product-PR merges need separate explicit authority, and the chain #1 → #31 → #34 is merged only under G-CHAIN (accepted 2026-10-31); the P-00 adoption was prepared locally and published as PR #35. While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
 - **Parallel agents:** one git worktree per agent/issue: `git worktree add ../lingo-<issue> -b <branch> origin/main`. Never work in another agent's directory; never revert changes you did not make.
 - **Autonomy:** finish the whole current stage (milestone) without asking per step. Stop only at owner checkpoints `H-x`, at blockers that need the owner (accounts, keys, devices, money, scope conflicts), or when a requirement is wrong.
 - **Questions to the owner:** in Russian, few, multiple choice with a recommended option; record answers in `intent.md` (decisions) or `handoff.md` (executor decisions D-xx).

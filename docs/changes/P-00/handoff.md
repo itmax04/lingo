@@ -6,13 +6,14 @@ Date: 2026-10-29 (Europe/Berlin). Status at this build: adoption delta committed
 
 | Decision | Date | Accepted scope |
 |---|---|---|
+| G-CHAIN | 2026-10-31 | Merge #1 → #31 → #34 in order after green CI and AI review; excludes #33 |
 | DG-01 / H-U | 2026-10-29 | Upgrade amendment v1, reviewed P-00 annotations, stage prompts and source precedence; document acceptance only. |
 | DG-02 / H-0 | 2026-10-29 | LINGO-03 intent/spec/plan v2 with reconciliation/execution annotations; requirements and plan acceptance, not runtime or device results. |
 | DG-03 / A | 2026-10-29 | P00-GATES v1 intent/contract/risk/DoD and future own docs PR plus checked own merge. The owner clarified that AI checks remain and owner manual review is not required. |
 
 Source: actual direct owner replies preserved in the self-contained SDLC packet. Receipt SHA-256: `aceeda3a5b925f126f4aef8e35593ec2bd30a5fe8b799e8e09fe199d3dfc9164`. Approved reference base: `22ec44de924f79eaa867c816c08276bb5c88484f`; patch SHA-256: `03906ce2571ad2f30c37460b18b36b1c32812fb6369ad4cd5a585fc292508ab6`; reference tree fingerprint: `5715153dbdaa728734ac5be1aebcc962cbf68dc18631ef2c16bad8d339b620ba`. These identify the accepted reference; acceptance-status edits create a separately hashed candidate and do not reuse reference hashes as new-result proof.
 
-Current bounded execution plan: P00-ADOPTION-PLAN-03 v1, SHA-256 `c3cb420c5635f59554178d089f126c136cea8c21829a00dab2da1b771ae08428`; observable specification P00-ADOPTION-SPEC-02 v1, SHA-256 `3bef66fdd2ea23287cc8b9705d362a11620b6b5639520d546d624e3a97bacdeb`. Only the local adoption tasks (ADA-T01/T02/T03/T04/T07, defined in the STAGE-PROMPTS Prompt 0 entry) execute in this build. The packet carries exact patches/manifests and actual check/review/recovery evidence; this ledger does not pre-assert their results.
+Current bounded execution plan: P00-ADOPTION-PLAN-03 v1, SHA-256 `c3cb420c5635f59554178d089f126c136cea8c21829a00dab2da1b771ae08428`; observable specification P00-ADOPTION-SPEC-02 v1, SHA-256 `3bef66fdd2ea23287cc8b9705d362a11620b6b5639520d546d624e3a97bacdeb`. Only the local adoption tasks (ADA-T01/T02/T03/T04/T07, named in the STAGE-PROMPTS Prompt 0 entry) execute in this build. The packet carries exact patches/manifests and actual check/review/recovery evidence; this ledger does not pre-assert their results.
 
 ## Authority and remaining boundaries
 
