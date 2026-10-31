@@ -75,3 +75,18 @@ Phone uses one column with bottom navigation Today / Conversations / Vocabulary 
 Generated gradients, blurred edges, inconsistent marks, text shaping and variable canvas dimensions are not executable specifications. Replace them with flat token colors, native SF typography and the vector LingoGlyph. The permitted app-icon bitmap is a separate asset; generated screenshots are never embedded in UI.
 
 Preserve original ImageGen outputs and exact prompts. Normalize comparison canvases with recorded scaling only; do not claim pixel agreement from resampling. Every Mac screen requires reference | implementation evidence in both themes. The ±4 pt acceptance criterion remains unpassed until measured; all larger differences stay listed in the report. Autonomous choice is not owner approval of a deviation.
+
+## 9. Web adaptation (carried over from main)
+
+> Status: written against the v1 dark tokens before DESIGN.md v2. Section 7 and the v2 token tables above win on any difference; rebase this section on v2 in LINGO-03 P-15 (Web UI).
+
+- **Tokens → CSS custom properties** with the same names (`--bg-window`, `--surface-card`, `--type-bubble-size`, …). 1 pt in this file = **1 CSS px**.
+- **Font stack:** `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` — Cyrillic and Latin in every member; system fonts only, no web-font downloads.
+- **Wide layout (≥ 1100 px):** the three columns of the mockup with the widths of §3; the hints column becomes a slide-over below 1280 px (as R-40).
+- **Narrow layout (< 1100 px; phones, iPad portrait):** one column — header (session title, source badge, menu), feed, voice panel, input. The session list and the hints open as full-height slide-over panels from the left and the right. (added, LINGO-03)
+- **Touch:** interactive targets ≥ **44 px**; the voice panel and the input stay above the on-screen keyboard and inside safe areas (`env(safe-area-inset-*)`). (added, LINGO-03)
+- **Phone voice panel:** the microphone circle grows to **64 px** for one-handed use; Pause/Finish stay 44 px. (added, LINGO-03 — proposal, confirm at acceptance)
+- **Motion:** CSS transitions 200 ms ease-in-out only; `prefers-reduced-motion: reduce` disables them and replaces the waveform with a static level bar.
+- **Focus:** a visible 2 px `accent.primary` ring for keyboard navigation (`:focus-visible`).
+- **Icons:** simple inline SVGs in regular weight matching SF Symbols; a third-party icon set only after it is added to the ADR-0002 allow-list.
+- **PWA colours:** theme colour `bg.titlebar` (`#1B2125`), background `bg.window`.

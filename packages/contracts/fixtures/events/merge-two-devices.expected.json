@@ -1,0 +1,54 @@
+{
+  "messages" : {
+    "s-fixture-de-1" : [
+      {
+        "id" : "01M5VJ1KYWJNDCGPHJDDR20GRF",
+        "lang" : "de",
+        "role" : "user",
+        "text" : "web utterance 1"
+      },
+      {
+        "id" : "01M5VJ1MEG1MQNH92WYDSWAE42",
+        "lang" : "de",
+        "role" : "assistant",
+        "text" : "@say de: Hallo! Wo wohnen Sie?"
+      },
+      {
+        "id" : "01M5VJ1MY4H7RM8KFQQA0M0DB9",
+        "lang" : "de",
+        "role" : "user",
+        "text" : "web utterance 2"
+      },
+      {
+        "heard" : "Ich wohne in Hamburg seit zwei Jahre",
+        "id" : "01M5VJ1NDRW63GXX0W8598FSC9",
+        "lang" : "de",
+        "role" : "user",
+        "text" : "Ich wohne seit zwei Jahren in Hamburg"
+      },
+      {
+        "id" : "01M5VJ1NXCV4HF27VB2CMGHME9",
+        "lang" : "de",
+        "role" : "user",
+        "text" : "web utterance 3"
+      },
+      {
+        "id" : "01M5VJ1PD0YTJDV9DHH675JSKQ",
+        "interruptedAt" : 7,
+        "lang" : "de",
+        "role" : "assistant",
+        "text" : "@say de: Fast perfekt!\n@fix: Ich wohne in Hamburg seit zwei Jahre → Ich wohne seit zwei Jahren in Hamburg | seit + Dativ\n@hint de: Ich wohne seit zwei Jahren hier. | Я живу здесь два года.\n@heard: Ich wohne in Hamburg seit zwei Jahre"
+      }
+    ]
+  },
+  "starred" : [
+    "de:ich wohne seit zwei jahren hier"
+  ],
+  "visibleSessions" : [
+    {
+      "id" : "s-fixture-de-1",
+      "lang" : "de",
+      "title" : "Hamburg"
+    }
+  ]
+}

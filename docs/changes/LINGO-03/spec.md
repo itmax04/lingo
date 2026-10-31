@@ -1,108 +1,104 @@
-# LINGO-03: Specification — Lingo Web with accounts
+# LINGO-03: Specification — Mac stabilisation, Lingo Engine and Lingo Web
 
-ID: LINGO-03-spec · Status: **draft** · Version: 1 · Date: 2026-10-26 · Owner: itmax04
-Links: [intent.md](intent.md) (goal, scope, decisions W1–W5, assumptions B-1…B-6) · [plan.md](plan.md) · [ADR-0002](../../decisions/ADR-0002-web-stack.md) ·
-[LINGO-01 spec](../LINGO-01/spec.md) (behaviour reused by reference) · [DESIGN.md](../../../DESIGN.md)
+P-00 decision record (2026-10-29): DG-02 accepts these LINGO-03 documents at H-0; runtime/product completion is not asserted. MR-03 is unchanged: D01-01 confirms Russian first-run with explicit Russian/English/System. The draft redesign still defaults to System; no code correction is claimed. Process review follows [D04-01](../P-00/review-policy-2026-10-29.md).
 
-IDs in this change use a `W` prefix (`WS-`, `WR-`, `WAC-`) so they never clash with LINGO-01 IDs.
-Where behaviour is the same as on the Mac, the requirement says "as R-nn" and LINGO-01 spec is the source of truth for the details.
+ID: LINGO-03-spec · Status: **accepted at H-0 in DG-02 on 2026-10-29** · Version: 2 · Date: 2026-10-26 · Owner: itmax04
+Links: [intent.md](intent.md) (decisions O-01…O-22) · [plan.md](plan.md) · [ARCHITECTURE](../../architecture/ARCHITECTURE.md) · [contracts](../../../packages/contracts/README.md) ·
+[LINGO-01 spec](../LINGO-01/spec.md) (conversation behaviour R-01…R-52 reused by reference; translation to English pending)
 
-## 1. Terms
-- **Account** — one person allowed by the owner; identified by the email that Cloudflare Access verified.
-- **Device** — one browser profile (or, later, the Mac app) with its own `deviceId` and its own event stream.
-- **Server** — the Lingo Worker on Cloudflare: static site + API + D1 database.
-- **Budget** — the per-account daily allowance of chat turns and recognized audio seconds.
-- Everything else as in LINGO-01 spec §1 (session, utterance, turn, command, chain, reply protocol).
+IDs: `MR-` Mac requirements, `WR-` web/engine requirements, `WS-` scenarios, `WAC-` acceptance criteria. Conversation behaviour that is the same
+as on the Mac is referenced as "as R-nn" (LINGO-01 spec is the source of truth for those details).
 
-## 2. Scenarios
-- **WS-01. First login.** The owner opens the site on an iPhone. Cloudflare Access asks for an email and sends a one-time code.
-  After the code the app opens; on the first visit a short wizard asks for microphone access and explains what is stored (privacy note, WR-24).
-- **WS-02. Same history everywhere.** The owner creates a session on the Mac browser, says three utterances, then opens the site on the iPad.
-  Within 10 s of opening (or of pressing "Sync") the session and all its messages are there, in the same order.
-- **WS-03. Voice turn on a phone.** The owner taps the microphone, speaks a German sentence, taps again (or pauses for T in continuous mode).
-  The utterance appears as a bubble with its language; the reply appears as it streams and is spoken by the German device voice.
-- **WS-04. Barge-in on a phone.** While the assistant speaks, the owner starts talking. Speech stops (target ≤ 0.7 s, measured in P-01/H-1; if the browser cannot do it, a tap on the panel stops speech and this is documented).
-- **WS-05. Offline reading.** Without a network the site opens from the cache, shows the history, hints and vocabulary; voice and input are disabled with the reason.
-- **WS-06. A friend.** The owner adds a friend's email to the allow-list. The friend logs in and sees an empty Lingo; the friend cannot see the owner's sessions, and the owner's account does not show the friend's.
-- **WS-07. Budget reached.** A friend has used the daily budget. The next turn is not sent; the app says "Daily limit reached, resets at 00:00 UTC". The owner's account is not affected.
-- **WS-08. Provider limits.** All Groq steps return 429. The server falls back to Workers AI; if that fails too, the reply says which limit was hit and when to retry (as S-18 and R-52).
-- **WS-09. Two devices offline.** Two browsers add 25 messages each to the same session while offline; after both reconnect and sync, both show all 50 messages in the same order, with no duplicates or losses (as S-19).
-- **WS-10. Delete my data.** In Settings → Data an account deletes all its data; the server removes its events and usage records and the browser clears its local copy.
-- All conversation scenarios of LINGO-01 (S-01, S-05…S-16) apply unchanged to the web client.
+## 1. Scenarios
+- **WS-01 First sign-in.** On an iPhone the owner opens the site, taps "Sign in with GitHub", approves, and lands in Lingo. A first-run screen explains what is stored and sent (WR-24), checks the microphone and plays a test voice.
+- **WS-02 Same history on web devices.** A session started on the iPad appears on the iPhone within 10 s of opening it (or pressing "Sync"), in the same order.
+- **WS-03 Voice turn on a phone.** Push-to-talk or continuous mode; the utterance becomes a bubble with its language; the reply streams and is spoken by the device voice; median `speech_end → audible_start` ≤ 4 s.
+- **WS-04 Barge-in on a phone.** The owner talks over the assistant; speech stops (target ≤ 0.7 s); the next utterance continues the same context; late fragments of the old reply never play.
+- **WS-05 Offline open.** Without a network the PWA opens from cache and shows history, hints and vocabulary; voice and input explain why they are disabled.
+- **WS-06 Foreign computer.** On a Windows PC the owner signs in with GitHub, practises, then signs out; nothing stays except what the browser keeps until sign-out clears it.
+- **WS-07 Limits.** When every allowed route is exhausted, the reply is not faked: the app saves everything, names the limit, and shows the recovery time only if a provider reported it.
+- **WS-08 Two devices at once.** A turn running on the iPad blocks a parallel turn in the same session on the phone; the phone offers "take over".
+- **WS-09 Two devices offline.** A test harness seeds each of two browsers with 25 synthetic queued messages for one session while offline; after reconnecting both show all 50 in the same order, no duplicates or losses. This is a sync fixture, not a user-facing offline composer; WS-05 remains read-only.
+- **WS-10 Delete my data.** Settings → Delete my data removes server events, attempts and budgets of the account; local copies are cleared.
+- **WS-11 Full day.** 2 German + 2 English sessions of 30 minutes in one day, on the phone and the Mac, without a quota refusal; repeated on a second day.
+- All conversation scenarios of LINGO-01 (S-01, S-05…S-16) apply to the web client unchanged.
 
-## 3. Requirements
+## 2. Requirements
 
-### Accounts and access
-- **WR-01. Login.** The whole site, including the API, is behind Cloudflare Access (one-time PIN to email, allow-list of emails). No request reaches the Worker without a valid Access identity, except the device-token API of WR-05.
-- **WR-02. Identity.** The Worker validates the `Cf-Access-Jwt-Assertion` JWT (signature against the team's public keys, audience = the Access application) and maps the verified email to an account id. Headers that only *claim* an identity are never trusted.
-- **WR-03. Isolation.** Every database query is scoped by account id. Tests prove that one account can neither read nor write another account's events.
-- **WR-04. Allow-list.** Only the owner manages who can log in (in the Cloudflare dashboard). The app lists the accounts that exist and their budgets for the owner only.
-- **WR-05. Device tokens (for the Mac app, optional in this change).** A logged-in account can create a long random device token in Settings; it is shown once, stored on the server only as a hash, can be revoked, and authorizes only the sync API of that account.
+### Stage 0 — Mac and repository
+- **MR-01 Monorepo.** The Swift package moves to `apps/mac`; prompt snapshots and eval sets move to `packages/contracts`; scripts and docs updated; no behaviour change; `swift test` and `build-app.sh` pass (ADR-0004).
+- **MR-02 Token economy.** Output reserve per purpose from the measured distribution (dialog ≈ 300 instead of 962), `finish_reason=length` logged; compact system instructions (target ≤ 900 tokens) without losing the rules' effect; total input budget for instructions + summary + transcript. Prompt snapshots re-recorded; a night `dialog` eval batch shows thresholds held (all rules ≥ 90 %, `no_pronunciation` 100 %).
+- **MR-03 Russian UI.** String Catalog with Russian translations for every UI string, compiled into the app; an in-app "Interface language" setting (Russian default, English, System) that works although macOS prefers en-US; a check that fails on missing translations.
+- **MR-04 History safety.** Export of the Mac history (ZIP) on demand and a daily automatic export to a user-chosen folder; restore documented.
+- **MR-05 Voice stability.** `--audio-stability` accepts a duration; a 30-minute run and a 30-minute live session (AC-17 of LINGO-01) pass without capture loss.
+- **MR-06 Key check.** A custom endpoint that has no `GET /models` (HTTP 404/405) is reported as "key works, no model list", verified by a one-token test request.
+- **MR-07 Key pools on the Mac.** Keys show their organization label; keys of one organization are one pool; extra organizations are marked "owner risk" (ADR-0005).
+- **MR-08 English repository.** Remaining Russian documents translated (LINGO-01 docs, ADR-0001, DESIGN.md if still Russian, evals descriptions, references); `scripts/check-english.sh` in CI with an allow-list for language data.
+
+### Accounts and access (engine)
+- **WR-01 Sign-in.** GitHub OAuth (ADR-0003): `/auth/login`, `/auth/callback`, `/auth/logout`; signed `state`; allow-list by numeric GitHub id; 403 for others with no account created.
+- **WR-02 Sessions.** 256-bit token, stored hashed with a pepper; cookie `HttpOnly; Secure; SameSite=Lax`; 30-day sliding expiry; "Sign out" and "Sign out everywhere".
+- **WR-03 Isolation.** Every query is scoped by account id; tests prove no cross-account read or write.
+- **WR-04 Origin check.** State-changing requests require `Origin` = the site origin; size and rate limits per OpenAPI.
 
 ### Sync and storage
-- **WR-06. Event format.** Exactly the LINGO-01 event format (R-35): `v`, `id` (ULID), `device`, `seq`, `lamport`, `ts`, `type`, `session`, `payload`; unknown types and fields are preserved.
-- **WR-07. Server store.** D1 table of events per account with a unique `(account, id)`; a per-account monotonic server cursor. Writes are idempotent (re-sending the same events changes nothing).
-- **WR-08. Sync API.** `POST /api/sync` with the device's new events and its last cursor → stores them and returns the events of other devices after that cursor plus the new cursor. Batches ≤ 500 events; payload size limited.
-- **WR-09. Merge.** The client builds state with the LINGO-01 merge rules (R-37), ported to TypeScript and checked by the same property tests (commutative, idempotent).
-- **WR-10. Local store.** The browser keeps its own events and a cache of the others in IndexedDB; the UI renders from local state and never waits for the network to show history.
-- **WR-11. When to sync.** On open, when the tab becomes visible, every 30 s while visible, after each turn, and with a "Sync" button. Status in the sidebar: "Synced at HH:MM", "Offline", "Sync error — retrying".
+- **WR-05 Event format.** Schema v1 of `packages/contracts/events/event.schema.json`; unknown types and fields preserved; validated on the engine.
+- **WR-06 Server store.** D1 `events` with a unique (account, id) and a per-account `server_seq` cursor; idempotent writes.
+- **WR-07 Sync API.** `POST /api/sync` per OpenAPI; batches ≤ 500; returns other devices' events after the cursor.
+- **WR-08 Merge.** The TypeScript reducer reproduces `packages/contracts/fixtures/events/merge-two-devices.expected.json` and passes commutativity/idempotency property tests.
+- **WR-09 Local store.** IndexedDB copy of events + sync queue; UI renders from local state; sync on open, on visibility, after a turn, every 30 s while visible, and on "Sync".
+- **WR-10 Storage hygiene.** Archive (export + compaction) before D1 reaches 400 MB; `navigator.storage.persist()` requested; export available in Settings.
 
-### Model chain and speech recognition (server)
-- **WR-12. Chain.** The Worker runs the LINGO-01 chain logic (R-29, R-52) in TypeScript: steps "provider + model + key", fallback on 429/5xx/network/refusal/first-token timeout, honest limit messages, usage records. Default order: Groq `openai/gpt-oss-120b` → Groq `openai/gpt-oss-20b` → Groq `qwen/qwen3.8-27b` → Workers AI `@cf/openai/gpt-oss-120b` (through the Workers AI binding, no token).
-- **WR-13. Prompts on the server.** The client sends a structured turn (session settings, summary, the context window, the detected command); the server builds the prompt with the ported `PromptBuilder` (R-25). The API does not accept free-form system prompts, so the owner's keys cannot be used as a general-purpose chatbot.
-- **WR-14. Streaming.** The reply streams to the client (server-sent events) so that text appears as it is generated and speech starts with the first finished sentence (R-13).
-- **WR-15. Recognition.** `POST /api/transcribe` with one utterance (≤ 60 s, ≤ 4 MB, `audio/webm` or `audio/mp4`) → Groq `whisper-large-v3-turbo` with the bilingual prompt and the conversation context (R-51); fallback to Workers AI Whisper. The language label follows the script of the result (Cyrillic → ru), as on the Mac. Audio is forwarded and discarded: never stored, never logged.
-- **WR-16. Budgets.** Per account per UTC day: chat turns and recognized audio seconds (counted as Groq counts them, ≥ 10 s per clip). Defaults: owner — unlimited within provider limits; friends — 60 turns and 1800 s. Checked before calling a provider.
-- **WR-17. Usage log.** One D1 row per provider call: account, purpose, provider, model, status, limit kind, retry-after, tokens or audio seconds, latency. No utterance text, no audio, no keys.
-- **WR-18. Keys.** Groq keys are Worker secrets (`GROQ_KEY_1…N`). They never appear in responses, logs, the client bundle or the repository; a check scans the built client for key patterns.
+### Turns, models and quota (engine)
+- **WR-11 Turn API.** `POST /api/turn` per OpenAPI: structured input only (no free-form system prompt), server-side prompt from the TS port of `PromptBuilder` (snapshots byte-identical), SSE stream with `meta / delta / sentence / segment / usage / done / error`.
+- **WR-12 Idempotency and states.** `turn_id` + `attempt_id`; attempt states `reserved → in_flight → completed | failed | cancelled | uncertain`; `GET /api/turn/{id}` reconciles; unknown usage never recorded as zero; cancel endpoint.
+- **WR-13 Lease.** One active turn per session across devices (60 s lease, take-over).
+- **WR-14 Routing.** Pools and per-purpose routes per ADR-0005, including owner-risk pools after the main organization; fallback on 429/5xx/network/refusal/first-token timeout; `retry-after` honoured.
+- **WR-15 Day plan and budgets.** Reservation before each call, settlement after; per-pool daily usage; `/api/budget`; honest exhaustion messages (WS-07).
+- **WR-16 Token economy.** Same rules as MR-02 on the engine.
+- **WR-17 Transcription.** `POST /api/transcribe` per OpenAPI: Groq whisper-large-v3-turbo with bilingual prompt + context hint, Workers AI fallback, ≤ 4 MB / ≤ 60 s, language label by script, audio never stored or logged; audio seconds counted conservatively (≥ 10 s per clip).
+- **WR-18 Secrets.** Keys only as Worker secrets; a CI step scans the built client and the repository for key patterns.
 
 ### Web client
-- **WR-19. Layout.** DESIGN.md tokens only. ≥ 1100 px wide: the three columns of the Mac mockup (sidebar | feed + voice panel + input | hints). Narrower: one column with the sidebar and the hints as slide-over panels. Touch targets ≥ 44 pt on touch devices.
-- **WR-20. Voice in the browser.**
-  - Microphone with `echoCancellation`, `noiseSuppression`, `autoGainControl` on.
-  - Utterance detection: the LINGO-01 energy VAD and segmenter (pause T, merge G, R-10/R-11) ported to TypeScript and checked on the same `turn` eval timelines.
-  - Push-to-talk (button, space on keyboards, Esc cancels) and continuous mode (R-06, R-07).
-  - Barge-in while speaking (R-12) with a raised VAD threshold; target ≤ 0.7 s on phones, ≤ 0.5 s on the Mac.
-  - Speech synthesis with the device voices (`speechSynthesis`); the best voice per language is chosen automatically (names containing "Premium", then "Enhanced"), changeable in Settings.
-- **WR-21. Commands, corrections, hints, vocabulary, recap.** As R-14…R-23 and R-27…R-28. The local command detector is the ported `CommandDetector`, checked on the same `commands` eval (≥ 95%).
-- **WR-22. PWA.** Web app manifest and a service worker: "Add to Home Screen" on iOS opens full-screen; the app shell and the history work offline.
-- **WR-23. Interface language.** Russian by default, English available; all UI strings in a translation catalog.
-- **WR-24. Privacy note and data deletion.** First-run note: what is stored (text of the dialogues, settings), what is sent to providers (utterance audio to Groq for recognition, text to the model providers), and how to delete everything (WS-10).
-- **WR-25. Settings.** Voice per language and rate; pause T and merge G; interface language; sync status; device tokens (WR-05); "Delete my data"; the owner sees accounts, budgets and today's usage.
+- **WR-19 Layout.** DESIGN.md tokens; ≥ 1100 px: three columns (sidebar | feed + voice panel + input | hints); narrower: one column with slide-over panels; touch targets ≥ 44 px; respects safe areas and the on-screen keyboard.
+- **WR-20 Voice.** `getUserMedia` with echo cancellation, noise suppression, auto gain; visible input level; push-to-talk (button, space, Esc) and continuous mode; the TS port of `EnergyVAD` + `TurnSegmenter` (pause T, merge G) passing the `turn` eval; MediaRecorder per utterance with MIME chosen by support; barge-in with a raised threshold while speaking; `speechSynthesis` sentence by sentence; Wake Lock during a session; honest states: mic not allowed / ready / hearing sound / recording / uploading / recognising / preparing reply / speaking / paused / error.
+- **WR-21 Behaviour.** Commands (TS port of `CommandDetector`, ≥ 95 % on the `commands` eval), correction modes, recap, `@heard`, four hint sections, vocabulary ★ — as R-14…R-28 and R-51.
+- **WR-22 PWA.** Manifest, icons, service worker; installs to the home screen on iOS and Android; app shell and history work offline.
+- **WR-23 Languages.** UI in Russian (default) and English.
+- **WR-24 Privacy note and deletion.** First-run note (what is stored; audio → Groq for recognition; text → model providers incl. fallback), Delete my data (WS-10), export.
+- **WR-25 Settings.** Voices per language and rate, pause T and merge G, mic mode, UI language, sign-out, sessions list of signed-in devices, Resources (today's usage per pool).
+- **WR-26 Metrics.** Stage timings per turn (ARCHITECTURE §5.3) and a post-session comfort note (cut-offs, false barge-ins, too-long replies); exportable without utterance text.
 
-### Operations and security
-- **WR-26. Deployment.** One Worker serves the static client and the API (`wrangler deploy`); D1 migrations are versioned in the repository; the deploy is reproducible from a clean clone.
-- **WR-27. Logs.** Worker logs contain request ids, statuses, latencies and account ids, never utterance text, audio or keys.
-- **WR-28. Abuse limits.** Request size limits (WR-08, WR-15), per-account rate limit (≤ 30 API calls per minute), only known purposes accepted by the chat endpoint.
+### Operations
+- **WR-27 Deployment.** One Worker (static assets + API) and one D1 database; migrations versioned; deploy reproducible from a clean clone (RELEASE.md).
+- **WR-28 Logs.** Request id, status, latency, pool, model, account id; never utterance text, audio or keys.
+- **WR-29 CI.** GitHub Actions: Swift tests (macOS, path-filtered), TS tests (Linux), secret scan, language check, bundle scan; PR template.
 
-### Threat model (short)
+## 3. Threat model
 | Asset | Threat | Measure |
 |---|---|---|
-| Groq keys | Leak through the client, logs, repo | Worker secrets only (WR-18), bundle scan, secret-scan in CI-style checks |
-| Owner's quota | A friend or a leaked session burns it | Access allow-list (WR-01), per-account budgets (WR-16), rate limit (WR-28), structured prompts only (WR-13) |
-| Dialogue history | Another account reads it | JWT validation (WR-02), account-scoped queries + isolation tests (WR-03) |
-| Audio | Stored or logged | Forwarded to Groq and discarded (WR-15); W2 documents that it leaves the device |
-| Sync data | Duplicates, losses, conflicts | Idempotent writes (WR-07), LINGO-01 merge rules (WR-09), WS-09 test |
-| Device tokens | Theft | Hash only on the server, revocable, sync-only scope (WR-05) |
+| Groq keys | leak via client, logs, repo, chat | Worker secrets (WR-18), bundle scan, secret-scan, rules in AGENTS.md |
+| Owner's quota | burnt by a stolen session or a bug loop | allow-list (WR-01), sessions revocable (WR-02), rate limits (WR-04), structured turns only (WR-11), budgets (WR-15) |
+| History | another account reads it | account-scoped queries + tests (WR-03) |
+| Session cookie | theft on a foreign computer | HttpOnly/Secure/SameSite, sign-out clears local data, "sign out everywhere" |
+| Audio | stored or logged | in-memory only, never logged (WR-17) |
+| Sync data | duplicates, losses, conflicts | idempotent writes (WR-06), shared merge rules (WR-08), WS-09 test |
+| Extra Groq accounts | suspension under Groq's AUP | owner-risk pools can be switched off; main org + Workers AI keep working (ADR-0005) |
 
 ## 4. Acceptance criteria
-| AC | Criterion | How it is checked |
+| AC | Criterion | Evidence |
 |---|---|---|
-| WAC-01 | Login works only for allow-listed emails; without Access the API answers 401/403; a forged identity header is rejected | Worker tests with signed/unsigned/forged JWTs + a manual login on the deployed site (H-2) |
-| WAC-02 | Account isolation: no cross-account reads or writes | Worker integration tests (two accounts) |
-| WAC-03 | Sync: WS-02 within 10 s; WS-09 — 0 losses, 0 duplicates, same order on both devices | TS property tests + a scripted two-device run against the deployed API + manual WS-02 (H-2) |
-| WAC-04 | Voice on iPhone Safari, iPad Safari and Mac Chrome/Safari: push-to-talk and continuous mode work; `speech_end → first_audio` median ≤ 8 s, p90 ≤ 10 s | H-1 (spike) and H-2 live session with the client's metrics export |
-| WAC-05 | Barge-in: phone ≤ 0.7 s in ≥ 8 of 10 attempts, Mac ≤ 0.5 s in ≥ 9 of 10; if a browser cannot, the limitation and the fallback (tap to stop) are documented | H-1, H-2 |
-| WAC-06 | Behaviour parity with the Mac: prompt snapshots identical to `Tests/LingoCoreTests/Snapshots`; `commands` eval ≥ 95%; `turn` eval thresholds of LINGO-01 met; reply-protocol tests ported | `npm test` in the repository |
-| WAC-07 | Dialogue quality: the `dialog` eval through the server endpoint meets the LINGO-01 thresholds (all rules ≥ 90%, `no_pronunciation` 100%) — run at night in small batches | eval runner against the deployed API |
-| WAC-08 | Budgets and limits: WS-07 and WS-08 behave as specified; usage rows are written for every provider call without text or audio | Worker tests with mocked providers + the usage view |
-| WAC-09 | No secrets: no key patterns in the client bundle, repository, history or Worker logs; `scripts/secret-scan.sh` = 0 findings | scan of `web/dist` + secret-scan |
-| WAC-10 | PWA: installs to the iOS home screen; offline the history, hints and vocabulary open (WS-05) | H-2 |
-| WAC-11 | UI follows DESIGN.md at desktop and phone widths; Russian and English interface | screenshots at 1280×800 and 390×844 next to the mockup in report.md; owner's verdict at H-2 |
-| WAC-12 | Data deletion: WS-10 removes server events and usage rows of that account only | Worker test + manual check |
-| WAC-13 | Reproducible: clean clone → `npm ci && npm test && npm run build` passes; `wrangler deploy` with documented secrets and migrations | commands with output in report.md |
-
-## 5. Decisions and assumptions
-- Owner decisions: W1–W5 (intent.md). LINGO-01 decisions Q1–Q30 stay valid unless W1–W5 change them (R-08 changes for the web client only, W2).
-- Assumptions: B-1…B-6 (intent.md). Executor decisions go to `handoff.md`.
-- Facts to verify in P-00 (third-party sources as of 2026-10-26): Groq Whisper free limits (20 RPM, 2000 RPD, 7200 audio s/hour, 28,800 audio s/day, ≥ 10 s billed per clip, 25 MB per file); Cloudflare Zero Trust free plan (≤ 50 users, one-time PIN); D1 free (5 GB, 5 M rows read and 100 K rows written per day, reset 00:00 UTC, enforced since 2026-09-01); Workers free request and CPU limits.
+| WAC-01 | Stage 0: MR-01…MR-08 done; Mac 30-minute session without quota refusal or capture loss; UI Russian | tests + owner checkpoint report |
+| WAC-02 | Sign-in only for the allow-listed GitHub id; forged cookie, missing state, wrong origin, foreign id rejected | engine tests + manual sign-in on two devices |
+| WAC-03 | Isolation: no cross-account access | engine integration tests |
+| WAC-04 | Sync: WS-02 within 10 s; WS-09 zero losses/duplicates; merge parity fixtures pass in TS | tests + two-browser run |
+| WAC-05 | Voice on iPhone Air, iPhone 11, iPad, Android, Windows: push-to-talk and continuous work; median `speech_end → audible_start` ≤ 4 s (ceiling p90 10 s) | device checkpoint with exported metrics |
+| WAC-06 | Barge-in: phones ≤ 0.7 s in ≥ 8/10; Mac browser ≤ 0.5 s in ≥ 9/10; otherwise the limitation and fallback documented | device checkpoint |
+| WAC-07 | Parity: prompt snapshots byte-identical; `commands` ≥ 95 %; `turn` thresholds; reply-protocol tests ported | `npm test`, `swift test` |
+| WAC-08 | Quality: `dialog` eval via the engine: all rules ≥ 90 %, `no_pronunciation` 100 %; language set (20 EN + 20 DE + 20 RU switches) reviewed | night eval report |
+| WAC-09 | Full day (WS-11): 4 × 30 min on two different days without refusal; ledger shows every attempt; headroom after the 4th session documented | ledger export + owner report |
+| WAC-10 | No secrets in bundle, repo, history, logs; secret-scan 0 findings | CI |
+| WAC-11 | PWA installs on iOS and Android; offline open works (WS-05) | device checkpoint |
+| WAC-12 | UI follows DESIGN.md at 1280×800 and 390×844; Russian and English | screenshots in report.md |
+| WAC-13 | Deletion (WS-10) removes only that account's server data | engine test + manual |
+| WAC-14 | Reproducible: clean clone → `npm ci && npm test && npm run build`, `swift test --package-path apps/mac`, deploy per RELEASE.md | report.md |

@@ -1,0 +1,588 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/itmax04/lingo/packages/contracts/events/event.schema.json",
+  "title": "Lingo journal event, schema v1",
+  "description": "One line of a Lingo journal (JSON Lines). Produced by Swift `Event.line()` (keys sorted) and by the TypeScript port. Unknown top-level fields and unknown payload fields MUST be preserved by every reader and writer. Golden examples: ../fixtures/events/sample-journal.jsonl.",
+  "type": "object",
+  "required": [
+    "v",
+    "id",
+    "device",
+    "seq",
+    "lamport",
+    "ts",
+    "type",
+    "session",
+    "payload"
+  ],
+  "properties": {
+    "v": {
+      "const": 1,
+      "description": "Schema version. A client that reads a higher version opens the journal read-only (R-39)."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID (Crockford Base32). Globally unique; the union key for merging."
+    },
+    "device": {
+      "type": "string",
+      "pattern": "^(mac|web|ios)-[0-9A-Za-z]{4,}$",
+      "description": "Writer device id. Each device writes only its own events."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Per-device sequence, strictly increasing by 1."
+    },
+    "lamport": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Lamport clock: max(seen) + 1 at write time. Used for last-writer-wins."
+    },
+    "ts": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$",
+      "description": "UTC, ISO 8601 with milliseconds. Ordering unit: the millisecond."
+    },
+    "type": {
+      "type": "string",
+      "description": "Known types are listed; unknown types must be stored and ignored by the reducer.",
+      "examples": [
+        "session.created",
+        "session.updated",
+        "session.deleted",
+        "session.ended",
+        "session.resumed",
+        "message.created",
+        "message.edited",
+        "message.interrupted",
+        "summary.updated",
+        "fix.recorded",
+        "hint.added",
+        "phrase.starred",
+        "phrase.unstarred"
+      ]
+    },
+    "session": {
+      "type": "string",
+      "description": "Session id; empty string for account-wide events (phrase.starred / phrase.unstarred)."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific body, see $defs and the allOf rules."
+    }
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "session.created"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/SessionCreated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "session.updated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/SessionUpdated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "message.created"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MessageCreated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "message.edited"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MessageEdited"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "message.interrupted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MessageInterrupted"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "summary.updated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/SummaryUpdated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fix.recorded"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/FixRecorded"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hint.added"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/PhrasePayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "phrase.starred",
+              "phrase.unstarred"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/PhrasePayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Lang": {
+      "enum": [
+        "en",
+        "de",
+        "ru"
+      ]
+    },
+    "SessionSettings": {
+      "type": "object",
+      "required": [
+        "lang",
+        "mode",
+        "topic",
+        "role",
+        "level",
+        "customPrompt",
+        "corrections",
+        "starter"
+      ],
+      "properties": {
+        "lang": {
+          "enum": [
+            "en",
+            "de"
+          ],
+          "description": "Target language of the session."
+        },
+        "mode": {
+          "enum": [
+            "questions",
+            "free",
+            "custom"
+          ]
+        },
+        "topic": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "description": "A1…C2 or free text; empty = not set."
+        },
+        "customPrompt": {
+          "type": "string"
+        },
+        "corrections": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "inline",
+              "after",
+              "on_demand"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "starter": {
+          "enum": [
+            "assistant",
+            "user"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "SessionCreated": {
+      "type": "object",
+      "required": [
+        "title",
+        "settings"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/SessionSettings"
+        }
+      },
+      "additionalProperties": true
+    },
+    "SessionUpdated": {
+      "type": "object",
+      "description": "A missing field means unchanged.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/SessionSettings"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Fix": {
+      "type": "object",
+      "required": [
+        "original",
+        "corrected",
+        "rule"
+      ],
+      "properties": {
+        "original": {
+          "type": "string"
+        },
+        "corrected": {
+          "type": "string"
+        },
+        "rule": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Phrase": {
+      "type": "object",
+      "required": [
+        "lang",
+        "text",
+        "translation",
+        "source"
+      ],
+      "properties": {
+        "lang": {
+          "$ref": "#/$defs/Lang"
+        },
+        "text": {
+          "type": "string"
+        },
+        "translation": {
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "topic",
+            "correction",
+            "how_to_say",
+            "hint"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "ReplySegment": {
+      "description": "Swift's synthesized Codable encoding of `enum ReplySegment` (kept for compatibility): exactly one key. say → {\"say\":{\"_0\":lang,\"_1\":text}}, fix → {\"fix\":{\"_0\":Fix}}, hint → {\"hint\":{\"_0\":Phrase}}, heard → {\"heard\":{\"_0\":text}}.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "say"
+          ],
+          "properties": {
+            "say": {
+              "type": "object",
+              "required": [
+                "_0",
+                "_1"
+              ],
+              "properties": {
+                "_0": {
+                  "$ref": "#/$defs/Lang"
+                },
+                "_1": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "fix"
+          ],
+          "properties": {
+            "fix": {
+              "type": "object",
+              "required": [
+                "_0"
+              ],
+              "properties": {
+                "_0": {
+                  "$ref": "#/$defs/Fix"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "hint"
+          ],
+          "properties": {
+            "hint": {
+              "type": "object",
+              "required": [
+                "_0"
+              ],
+              "properties": {
+                "_0": {
+                  "$ref": "#/$defs/Phrase"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "heard"
+          ],
+          "properties": {
+            "heard": {
+              "type": "object",
+              "required": [
+                "_0"
+              ],
+              "properties": {
+                "_0": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "MessageCreated": {
+      "type": "object",
+      "required": [
+        "role",
+        "text",
+        "lang"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "user",
+            "assistant"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "description": "User: the transcript. Assistant: the raw protocol reply (@say/@fix/@hint/@heard lines)."
+        },
+        "lang": {
+          "$ref": "#/$defs/Lang"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReplySegment"
+          }
+        },
+        "source": {
+          "type": "string",
+          "description": "\"provider · model\" label of the reply."
+        },
+        "kind": {
+          "enum": [
+            "normal",
+            "summary",
+            "error"
+          ],
+          "description": "Missing = normal."
+        },
+        "replyTo": {
+          "type": "string",
+          "description": "Event id of the user message this reply answers."
+        }
+      },
+      "additionalProperties": true
+    },
+    "MessageEdited": {
+      "type": "object",
+      "required": [
+        "message",
+        "text"
+      ],
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Event id of the edited message.created."
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "MessageInterrupted": {
+      "type": "object",
+      "required": [
+        "message",
+        "at"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "at": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Character position in the spoken @say text."
+        }
+      },
+      "additionalProperties": true
+    },
+    "SummaryUpdated": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "through": {
+          "type": "string",
+          "description": "Last message id included."
+        }
+      },
+      "additionalProperties": true
+    },
+    "FixRecorded": {
+      "type": "object",
+      "required": [
+        "message",
+        "fix"
+      ],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "fix": {
+          "$ref": "#/$defs/Fix"
+        }
+      },
+      "additionalProperties": true
+    },
+    "PhrasePayload": {
+      "type": "object",
+      "required": [
+        "phrase"
+      ],
+      "properties": {
+        "phrase": {
+          "$ref": "#/$defs/Phrase"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

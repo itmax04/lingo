@@ -1,168 +1,129 @@
-# AGENTS.md — guide for AI agents (and humans) working on Lingo
+# AGENTS.md — start here
 
-Read this file first. It is the single entry point for anyone who continues, improves or reviews Lingo.
-`CLAUDE.md` only imports this file and `DESIGN.md`.
+This is the entry point for every AI agent (Claude Code, Codex, others) and every human working on **Lingo**.
+Claude Code loads it through `CLAUDE.md`; Codex reads it directly. Keep it short and current.
 
-## 1. What Lingo is
+Current owner decision D04-01 supersedes the historical human-review policy: AI-only implementation and review for R2/R3, with no mandatory human reviewer. See [current review policy](docs/changes/P-00/review-policy-2026-10-29.md). H-U and H-0 documents were accepted in DG-01/DG-02 on 2026-10-29. DG-03 A permits a future own docs PR and checked own merge; AI checks remain and owner manual review is not required. The current adoption build is local only, and existing PR chain merges are outside A. See [active P-00 decisions](docs/changes/P-00/handoff.md).
 
-Lingo is a personal macOS app (an iOS app follows in LINGO-02) for **voice conversation practice in English and German**.
-The learner is a native Russian speaker; explanations in Russian are given **only on an explicit request**.
+## 1. First 10 minutes
+1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
+   [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
+   and [`docs/process/SDLC.md`](docs/process/SDLC.md). Before changing anything structural read [`docs/process/EVOLVING.md`](docs/process/EVOLVING.md).
+2. Open the current change: [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) — `intent.md` (why, decisions O-01…O-22), `spec.md` (requirements, acceptance), `plan.md` (steps P-01…P-20, owner checkpoints H-0…H-5), `handoff.md` (what is done, what is next).
+3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-03 · Stage 0 — Stabilise"`), take the lowest-numbered unblocked step.
+4. Make sure you are in your own worktree and branch (§5), the tree is clean, and `main` is up to date.
+5. Read `handoff.md` → "Next step" before touching code.
 
-The voice loop is a pipeline, all free of charge:
+## 2. Lingo in one paragraph
+A personal voice tutor for spoken **English and German**, explanations in **Russian only on request**, for one owner (GitHub `itmax04`),
+**4 × 30 minutes a day** on a phone (iPhone Air, iPhone 11), iPad, Android, Windows, other computers and a Mac — **all on free tiers**.
+Two clients — **Lingo for Mac** (Swift, standalone, on-device speech recognition) and **Lingo Web** (PWA) — and the **Lingo Engine**
+(Cloudflare Worker + D1) that signs the owner in with GitHub, stores the shared history, builds prompts, routes model calls within the
+free quota and proxies speech recognition to Groq Whisper. Later: the Mac joins the account (LINGO-04), a teacher layer (LINGO-05),
+a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-```
-microphone ─► VAD + utterance segmentation ─► whisper.cpp (on device) ─► LLM chain (free cloud APIs) ─► reply protocol ─► AVSpeechSynthesizer (on device)
-```
+## 3. Repository map
+| Path | What | Status |
+|---|---|---|
+| `Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/` (Mac parts), `evals/` | Swift package of the Mac app (to move to `apps/mac`, `packages/contracts` in **P-01**) | working |
+| `apps/web/` | React + Vite PWA | created in P-15 |
+| `services/engine/` | Cloudflare Worker + D1 | created in P-08 |
+| `packages/core-ts/` | TypeScript ports shared by web and engine | created in P-07 |
+| `packages/contracts/` | event schema v1, OpenAPI, golden fixtures (later prompts and evals) | started |
+| `docs/architecture/` | ARCHITECTURE (system), MAC (Mac app), WEB (web + engine), CODEBASE (repository map) | current |
+| `design/` | redesign inputs; `design/redesign-2026/` reference images for every platform (LINGO-07, PR #33) | current |
+| `docs/decisions/` | ADRs 0001 (Mac stack, Russian — translation pending), 0002 web stack, 0003 sign-in, 0004 repo layout, 0005 routing & quota | current |
+| `docs/changes/` | SDLC folders per change; LINGO-01 frozen (partly Russian), LINGO-03 current | current |
+| `docs/process/` | SDLC, EVOLVING (how to change things), TESTING, RELEASE, STAGE-PROMPTS | current |
+| `DESIGN.md` | design tokens (dark theme) — the only source of colours, type, spacing, radii | current |
+| `.github/` | CI workflow, PR template | current |
 
-- Audio never leaves the Mac and is never written to disk.
-- Only text goes to the model provider.
-- History is an append-only event journal per device, synced through a user-chosen iCloud Drive folder.
-
-Owner: GitHub `itmax04`. The repository is private.
-
-## 2. Current override (2026-10-27)
-
-The owner's current priority is **LINGO-07 Mac redesign**, issue #32, branch `feat/redesign`, PR to `main` (owner merges). Use the root Swift package. LINGO-03 and issues #3–#30 are paused: no monorepo/server/web implementation. Future platforms and teacher functions are visual concepts only. The owner authorized autonomous design choices without phase approval. All core behavior, prompts and journal formats remain unchanged. See `docs/changes/LINGO-07-redesign/` and DESIGN.md v2.
-
-The historical status below is retained for context; the override above controls current work.
-
-## 2a. Historical status (2026-10-26)
-
-| Item | State |
+## 4. Commands
+Mac (until P-01 at the repo root; after P-01 add `--package-path apps/mac` and use `apps/mac/scripts/…`):
+| Command | What |
 |---|---|
-| Current change | **LINGO-03 — Lingo Web with accounts** (`docs/changes/LINGO-03/`): documents drafted, awaiting the owner's acceptance; then H-0 → P-00 → P-01 device spike |
-| LINGO-01 — Mac MVP | **frozen** by owner decision W3 (2026-10-26): P-00…P-10 implemented, H-0…H-2 passed; AC-17, H-3…H-5 postponed |
-| Working branch | **`main-en`** (English repository). `feat/lingo-01` is the older Russian branch, kept as history. `main` holds only the first commit. Never merge into `main` without the owner. |
-| Open in LINGO-01 (frozen) | AC-17 control 30-minute session · H-3 iCloud sync folder (S-19 on a real folder) · H-4 live scenario part 2 · nightly evals in small batches · blind review · P-11 · P-12 (report.md, code review, README/ADR, H-5 acceptance) |
-| Latest fix | microphone capture recovery (`VoiceIO` restart limiter, capture watchdog, `--audio-stability`) — see the last sections of `handoff.md` |
-| Providers | Groq (main, free tier) → Cloudflare Workers AI as a "Custom endpoint" chain step (`@cf/openai/gpt-oss-120b`), configured in the owner's settings, not in the repo |
-| English migration | **in progress** — see §8 |
+| `swift build && swift test` | build and run the Swift tests (96 at hand-over) |
+| `scripts/build-app.sh` | build and sign `dist/Lingo.app` (self-signed "Lingo Dev" or "InterviewCopilot") |
+| `open dist/Lingo.app` | run the app |
+| `scripts/check-core-ios.sh` | LingoCore compiles for iOS |
+| `dist/Lingo.app/Contents/MacOS/Lingo --check-keys` | check stored keys and print the chain (values never printed) |
+| `… --eval-dialog <cases> <out> [--provider groq\|custom] [--models m] [--only ids] [--max-cases 10] [--budget 15]` | dialogue eval — night only (§6.5) |
+| `… --audio-diag <file>` · `--audio-stability <file>` · `--selftest <wav>` · `--ui-snapshot <png>` | diagnostics |
+| `python3 scripts/metrics.py` | turn latency and memory from the Mac metrics log |
 
-The detailed log of what was done, with commit references and check results, is `docs/changes/LINGO-01/handoff.md`.
-
-## 3. Documents — where the truth lives
-
-| What | Where |
+Web and engine (from P-07/P-08 on):
+| Command | What |
 |---|---|
-| Goal, scope, owner decisions Q1–Q30, assumptions A-1…A-9 | `docs/changes/LINGO-01/intent.md` |
-| Requirements R-01…R-52, scenarios S-01…S-20, acceptance criteria AC-01…AC-17 | `docs/changes/LINGO-01/spec.md` (the **only** place requirements are defined) |
-| Steps P-00…P-12, owner checkpoints H-0…H-5 | `docs/changes/LINGO-01/plan.md` |
-| Progress log, executor decisions D-01…D-21, next step | `docs/changes/LINGO-01/handoff.md` |
-| Stack and allowed dependencies | `docs/decisions/ADR-0001-stack.md` |
-| Design tokens (colors, type, spacing, radii) | `DESIGN.md`, mockup `docs/design/lingo-mac.webp` |
-| Eval sets, rules, thresholds | `evals/README.md` |
-| The owner's original brief and PDF patterns | `docs/reference/` |
+| `npm ci && npm test` | all TypeScript workspaces |
+| `npm run dev -w apps/web` + `npx wrangler dev` (in `services/engine`) | local site + engine with local D1 |
+| `npx wrangler d1 migrations apply lingo --remote && npx wrangler deploy` | production deploy — see [RELEASE](docs/process/RELEASE.md) |
 
-Process: SDLC documents (intent → spec → plan → handoff). A new piece of work gets its own folder `docs/changes/LINGO-NN/`.
-Code and docs refer to requirement IDs (`R-29`, `AC-15`, …); keep doing that.
-
-## 4. Repository layout
-
-```
-Package.swift                 SwiftPM: LingoCore, LingoEvalKit, LingoMac (product "Lingo"), lingo-eval, LingoCoreTests
-Sources/LingoCore/            platform-neutral core, must also build for iOS (scripts/check-core-ios.sh)
-  Audio/                      VoiceIO (one AVAudioEngine: voice-processing input + speech output), EnergyVAD, PCMConverter, AudioRestartLimiter
-  Speech/                     WhisperEngine (whisper.cpp), AppleSpeechEngine, TurnSegmenter (pause T / merge G), Voices, ModelStore (SHA256), WER
-  Dialogue/                   DialogEngine (actor: turns, recap, summary, topic phrases), TurnController (@MainActor voice loop),
-                              PromptBuilder (system wrapper, R-25), ReplyProtocol (@say/@fix/@hint/@heard parser, R-24), ContextPolicy (R-04)
-  LLM/                        ProviderChain (fallback chain, R-29), OpenAICompatibleProvider, SSEClient, KeyVerifier, RateLimits (usage log, R-52), LLMSettings
-  Journal/                    Event, JournalIO, JournalStore (actor), Merger (LWW, R-37), SyncFolder (NSFileCoordinator), SyncScheduler, ULID
-  Commands/                   CommandDetector (local "repeat"/"slower"/… detector, ru/de/en)
-  Model/ Settings/ Secrets/ Metrics/ Logging/
-Sources/LingoEvalKit/         dialog eval cases, rules, runner (shared by lingo-eval and Lingo.app --eval-dialog)
-Sources/LingoMac/             the macOS app (SwiftUI + AppKit): AppModel, AppServices, VoiceServices, SyncServices, Views/, Settings/, STTCheck/,
-                              service modes (Headless, SelfTest, AudioDiag, UIClickTest)
-Sources/lingo-eval/           CLI for evals and sync experiments
-Tests/LingoCoreTests/         swift-testing; Snapshots/ = system-prompt snapshots
-scripts/                      build-app.sh, check-core-ios.sh, secret-scan.sh, run-evals.sh, metrics.py, sync-check.py, make-audio-fixtures.sh, ensure-build-dir.sh
-evals/                        commands, turn, audio, dialog sets; live-script-mac.md; out/ (git-ignored)
-Resources/                    Info.plist, live-phrases.json (phrases for the live recognition check)
-docs/                         SDLC documents, ADRs, design mockup, references
-private/                      the owner's original PDF — git-ignored, never commit
-```
-
-Key design facts:
-- **Event sourcing.** Every change is a journal event (JSON Lines, append-only, fsync). State (`HistoryState`) is a pure function of the event set; merging is commutative and idempotent (`Merger`, property-tested). Each device writes only its own journal file; unknown event types and fields are preserved.
-- **LLM chain.** A step is "provider + model + key"; any number of keys per provider. Fallback on 429/5xx/network/refusal/first-token timeout; invalid keys are disabled per key. Remaining quota from response headers is tracked, and a usage record is written per attempt (`~/Library/Application Support/Lingo/usage/`). A dispatcher runs background requests (topic phrases, summary) only after the user's turn and only with spare quota.
-- **Reply protocol.** The model answers line by line with tags (`@say <lang>:`, `@fix:`, `@hint <lang>:`, `@heard:`). It is parsed while streaming so speech starts with the first finished sentence.
-- **Keys** live only in the Keychain (`com.itmax04.lingo`). Only the signed `.app` reads them without a prompt, so key-dependent checks run through `dist/Lingo.app/Contents/MacOS/Lingo --…`.
-
-## 5. Commands
-
-| Command | What it does |
+Always:
+| Command | What |
 |---|---|
-| `swift build && swift test` | Quick check (96 tests at the time of writing) |
-| `scripts/build-app.sh` | Builds and signs `dist/Lingo.app` (self-signed cert "Lingo Dev" or "InterviewCopilot"; build number = commit count) |
-| `open dist/Lingo.app` | Run the app |
-| `scripts/check-core-ios.sh` | `LingoCore` builds for iOS (arm64-apple-ios17.0) |
-| `scripts/secret-scan.sh` | Keys and personal data in tree, index and the whole history — **run before every push**, must report 0 findings |
-| `scripts/run-evals.sh commands\|turn\|audio` | Offline evals (no API quota) |
-| `dist/Lingo.app/Contents/MacOS/Lingo --check-keys` | Checks every stored key and prints the chain (key values are never printed) |
-| `dist/Lingo.app/Contents/MacOS/Lingo --eval-dialog <cases> <out> [--provider groq\|custom] [--models m] [--only ids] [--max-cases 10] [--budget 15] [--allow-daytime]` | Dialogue eval against a real provider — see the quota rule in §6 |
-| `… --audio-diag <file>` / `… --audio-stability <file>` | Audio configuration diagnostics / 20 s capture stability with a forced restart (counters only, no audio saved) |
-| `… --selftest <wav>` | End-to-end voice turn on real components without the microphone |
-| `… --ui-snapshot <png>` / `… --ui-click-test` | Window snapshot on fixtures / synthetic clicks on the voice panel |
-| `open dist/Lingo.app --args --stt-check part1` | Live speech-recognition check window (owner checkpoints H-2/H-4) |
-| `python3 scripts/metrics.py` | Turn latency (median/p90) and memory from the metrics log |
-| `/usr/bin/log show --last 10m --predicate 'subsystem == "com.itmax04.lingo"'` | App logs (utterance text is never logged) |
+| `scripts/secret-scan.sh` | keys/personal data in tree + history → must be 0 findings before every push |
+| `scripts/check-english.sh` | repository language policy (§7) |
 
-`.build` is a symlink into `~/Library/Caches` (`scripts/ensure-build-dir.sh`) because the repository lives on the iCloud-synced Desktop.
+## 5. How to work
+- **Process:** [SDLC](docs/process/SDLC.md). One issue → one branch → one PR. Definition of Done in SDLC §6. Update `handoff.md` in the same PR.
+- **Branches:** `<type>/<issue>-<slug>` from `main`. Future explicitly scoped executors may merge ready PRs after checks, AI review and H-x; DG-03 A authorises only the own P-00 docs PR, product-PR merges need separate explicit authority, and the chain #1 → #31 → #34 is merged only under G-CHAIN (accepted 2026-10-31); the P-00 adoption was prepared locally and published as PR #35. While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
+- **Parallel agents:** one git worktree per agent/issue: `git worktree add ../lingo-<issue> -b <branch> origin/main`. Never work in another agent's directory; never revert changes you did not make.
+- **Autonomy:** finish the whole current stage (milestone) without asking per step. Stop only at owner checkpoints `H-x`, at blockers that need the owner (accounts, keys, devices, money, scope conflicts), or when a requirement is wrong.
+- **Questions to the owner:** in Russian, few, multiple choice with a recommended option; record answers in `intent.md` (decisions) or `handoff.md` (executor decisions D-xx).
+- **Reporting:** at the end of a stage, a short Russian summary in the format of SDLC §10 plus PR links.
 
-## 6. Rules (non-negotiable)
+## 6. Rules (never relaxed)
+1. **$0** — nothing that costs money or needs a card.
+2. **Secrets** never in code, logs, tests, commits, issues, PRs or chat; never ask the owner to paste one into chat. The owner enters keys in the Mac app, the Keychain or `wrangler secret put`.
+3. **Owner's systems are off-limits:** macOS settings, TCC, Keychain trust, GitHub/Cloudflare/Groq consoles — give exact steps instead.
+4. **No account creation** (no Groq/Cloudflare/GitHub accounts, keys or OAuth apps) by agents.
+5. **Quota:** dialogue evals and bulk model calls only at night (23:00–08:00 Europe/Berlin), budgeted; daytime only single requests.
+6. **Truthful checks:** PASS / FAIL / NOT RUN with real output.
+7. **No pronunciation assessment** in any form (product rule; `no_pronunciation` eval = 100 %).
+8. **Dependencies** only from the ADR allow-lists (ADR-0001 Mac, ADR-0002 web/engine); anything else needs an ADR entry first.
+9. **Contracts first** for behaviour shared by Swift and TypeScript (ADR-0004): update `packages/contracts` and both implementations in one PR.
+10. **Privacy:** audio is never stored or logged; logs never contain utterance text or keys.
 
-1. **Free only.** No paid APIs, subscriptions, providers that require a card, or a paid Apple developer account.
-2. **No secrets anywhere.** API keys, Apple ID, passwords and personal data never go into code, logs, tests, commits, journals or chat. Test data is synthetic. Never ask the owner to paste a key into chat; keys are entered only in the app's settings.
-3. **Git safety.** For LINGO-07, work on `feat/redesign` and open a PR to `main`; the owner merges. Commit after each step and push. Forbidden: force-push, `reset --hard`, deleting branches, rewriting history, merging into `main` without the owner. Never commit `private/`, models, logs or `evals/out/`.
-4. **System settings are the owner's.** Do not change TCC permissions, Keychain trust or macOS settings; give the owner step-by-step instructions instead (voices, microphone access, iCloud).
-5. **Models** are downloaded only from official repositories over HTTPS with a SHA256 check (`ModelStore`). Disk is tight (≈14 GB free): delete models that are not used.
-6. **Dependencies** only from ADR-0001 §11. Anything else needs an ADR entry and the owner's decision.
-7. **API quota is shared with the owner's practice.** The free Groq limits are per organization and per model (≈30 RPM, 1K RPD, 8K TPM, 200K TPD). Dialogue evals run **only at night (23:00–08:00) in small batches** with a budget; in the daytime only single requests. Never burn the quota with test runs.
-8. **Never claim a result you did not get.** Checks are PASS / FAIL / NOT RUN with the real output. A simulator or a single UI launch is not evidence for device requirements.
-9. **Owner checkpoints.** Ask the owner only at H-0…H-5 (plan.md) or when blocked on something only they can decide; record other decisions in `handoff.md` ("Executor decisions", D-nn).
-10. **Update `handoff.md`** after each step: what was done, commit, checks, next step.
-11. **The owner communicates in Russian.** Answer the owner in Russian; everything in the repository is in English (§7).
-12. **Do not comment on pronunciation** — a product rule (R-21) enforced by the prompt and by the `no_pronunciation` eval rule (100%).
+## 7. Language policy
+Everything in the repository is **English**. Russian/German text is allowed only as **language data**: the Russian UI translations
+(String Catalog / i18n files), utterances and vocabularies the app must understand or produce (command words, prompt examples, Russian output
+headings, whisper prompt), eval and test fixtures, recorded evidence. The owner is addressed **in Russian** in chat.
+UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swift; i18n keys in the web), Russian in the catalog.
 
-## 7. Language policy for the repository
+## 8. Known pitfalls
+- **Free quota is the scarcest resource.** Measure before spending; the usage log/ledger shows every call. A dialog turn currently costs ≈ 2 k tokens; the 962-token output reserve is the first thing P-02 fixes.
+- **Groq headers:** remaining-tokens is per minute, remaining-requests is per day; daily tokens come from our ledger.
+- **Extra Groq accounts** are an owner-accepted risk (ADR-0005) — keep them as separate, switchable pools; never present them as free quota.
+- **Safari/iOS audio:** playback needs a user gesture; mic + synthesis share one session; storage can be evicted; voices vary — test on devices (TESTING.md).
+- **Mac audio:** voice processing gives 48 kHz × 5 channels — take channel 0; connect mixer → output in the output node's format; macOS stops the engine on configuration changes (VoiceIO restarts it, limited).
+- **whisper.cpp** (`large-v3-turbo` q5_0, ≈ 760 MB RAM): do not reduce `audio_ctx` below 512 frames; language label comes from the script of the result.
+- **Mac memory budget** 1.2 GB; Premium voices add 140–180 MB.
+- **Keys on the Mac** are readable without prompts only by the signed app; run key-dependent checks through `dist/Lingo.app/Contents/MacOS/Lingo`.
+- **The old iCloud copy** `~/Desktop/1/lingo` is obsolete; work only in `~/Developer/lingo` (and worktrees next to it).
 
-Everything in the repository is **English**: code, identifiers, comments, docs, scripts, test names, commit messages.
-Russian (and German) text is allowed only where it is **language data**:
-- the Russian translation of the UI in the String Catalog (`ru` values);
-- utterances the app must understand or produce: command vocabularies (`CommandDetector`), the whisper bilingual prompt, example phrases and Russian output headings in `PromptBuilder`, voice warm-up phrases, conjunction lists in `Voices`;
-- eval cases and fixtures (`evals/**`, test inputs, `Fixtures.swift` utterances and translations, `Tests/LingoCoreTests/Snapshots/`);
-- recorded evidence (`docs/changes/*/evidence/`), which must not be altered.
+## 9. Where to find things
+| Need | Go to |
+|---|---|
+| Why a decision was made | `docs/decisions/` and the change's `intent.md` |
+| What exactly to build | the change's `spec.md` |
+| What to do next | the change's `handoff.md` → "Next step", then GitHub issues |
+| How a part works | `docs/architecture/ARCHITECTURE.md`, then `MAC.md` or `WEB.md`, then the code |
+| Where a file or module is | `docs/architecture/CODEBASE.md` |
+| How to make a kind of change | `docs/process/EVOLVING.md` |
+| All documents | `docs/README.md` |
+| Data formats / API | `packages/contracts/` |
+| How to test / release | `docs/process/TESTING.md`, `docs/process/RELEASE.md` |
+| Start prompt for each stage | `docs/process/STAGE-PROMPTS.md` |
+| Terms | `docs/GLOSSARY.md` |
+| Design | `DESIGN.md`, `docs/design/lingo-mac.webp` |
 
-UI strings: write English literals; SwiftUI `Text("…")`, `Button("…")`, `.help("…")` etc. localize automatically; anything typed as `String` must use `String(localized: "…")`. Custom components take `LocalizedStringKey` (e.g. `SettingsCard(title:)`). The interface follows the system language by default; Russian and English remain explicit in-app choices.
-
-## 8. English migration — what is done and what is left
-
-Done on `main-en` (2026-10-26):
-- all Swift sources, tests, scripts and `.gitignore`: comments, logs, CLI output and UI strings are in English; user-visible strings go through `String(localized:)` / `LocalizedStringKey`;
-- `Language.russianPrepositional` → `inLanguagePhrase`; `SettingsTab` raw values are no longer display strings; `VoiceIO.onRestart` reports `(reason, ok)`; session dates use the UI locale (`SessionDateFormat.locale`);
-- the LLM prompts were already English and are unchanged (prompt snapshots are byte-identical), so model behaviour did not change;
-- `intent.md` (also adds Q30 — this migration), `AGENTS.md`, `README.md`, `CLAUDE.md`.
-
-**Left to do** (in this order):
-1. **String Catalog** — create `Resources/Localizable.xcstrings` (source language `en`, `ru` translations). Extract the exact keys with
-   `swift build -Xswiftc -emit-localized-strings -Xswiftc -emit-localized-strings-path -Xswiftc <dir>` and
-   `xcrun xcstringstool sync Resources/Localizable.xcstrings --stringsdata <dir>/*.stringsdata`; the Russian texts are the previous literals in `git show feat/lingo-01:<file>`.
-   Compile it in `scripts/build-app.sh` (`xcrun xcstringstool compile … --output-directory "$APP/Contents/Resources"`), set `CFBundleDevelopmentRegion=en` and `CFBundleLocalizations=[en, ru]`, and localize the two usage descriptions in `Info.plist` (`InfoPlist.xcstrings`).
-   **Until this is done the app UI shows English** although the owner expects Russian.
-2. **Interface language** — the owner's macOS prefers `en-US`, so set the app's own `AppleLanguages` from an in-app setting (default System; options Russian / English / System) before the UI starts.
-3. A `scripts/check-english.sh` that fails on Cyrillic outside the allowed places of §7, and a check that every `ru` catalog entry exists.
-4. Translate the remaining documents: `spec.md`, `plan.md`, `handoff.md`, `executor-prompt.md`, `ADR-0001-stack.md`, `DESIGN.md`, `evals/README.md`, `evals/live-script-mac.md`, `docs/reference/*`, descriptions in `evals/**/*.yaml` (keep the utterances).
-5. `KeyVerifier`: treat HTTP 404/405 on `GET /models` of a custom endpoint (Cloudflare has no model list there) as "key works, no model list" instead of an error.
-
-## 9. Known pitfalls
-
-- **iCloud Desktop.** The repo is on the iCloud-synced Desktop. File Provider has twice left `.git/index` missing with a stale `.git/index.lock`. If `git status` fails that way and **no other git process is running**, restore with `mv .git/index.lock .git/index` (keep a copy first). Moving `.git` out of iCloud is an open owner decision.
-- **Shared working tree.** Several agents (Claude Code sessions, other tools) have worked in the same folder. Check `git status` before starting; never overwrite or revert changes you did not make — ask the owner.
-- **codesign** fails on files with iCloud extended attributes ("detritus not allowed"); `build-app.sh` builds in a temp folder outside iCloud — keep it that way.
-- **Voice processing on macOS** delivers 48 kHz with 5 channels; take channel 0. With voice processing on, connect mixer → output in the output node's format (otherwise CoreAudio −10875). macOS stops the engine on configuration changes — `VoiceIO` restarts it (limited, only accepted attempts count).
-- **whisper.cpp** (`large-v3-turbo` q5_0, ≈760 MB RAM): do not reduce `audio_ctx` below 512 frames (garbage and loops, D-13); language label comes from the script of the final text (Cyrillic → ru).
-- **Memory budget** AC-15: the whole app ≤ 1.2 GB during a 20-minute session. Premium TTS voices add 140–180 MB each.
-- **Groq quota**: see §6 rule 7. The usage log and the "Quota" settings tab show what was spent.
-
-## 10. Definition of done for LINGO-01
-
-AC-01…AC-17 confirmed with evidence in `docs/changes/LINGO-01/report.md`, everything unverified listed explicitly, and the owner accepted the result at H-5.
+## 10. Working from the cloud (Claude Code on the web, Codex cloud, the GitHub Action)
+- Cloud sessions run on Linux VMs (Ubuntu, Node 22 preinstalled) with **no Swift, Xcode or Apple frameworks**: the Mac app cannot be built,
+  tested or run there. All Swift/Mac/native and mixed Swift/TS changes must be implemented and verified locally on the owner's Mac; cloud sessions prepare documentation or TS mocks within their accepted scope. Anything that needs the signed app, the Keychain, audio, `xcstringstool` or a live session is done in a
+  local session on the owner's Mac — say so in the PR and in `handoff.md`.
+- `area:web`, `area:engine`, `area:contracts` and docs work fully in the cloud: `npm ci && npm test`, `npx wrangler dev` with a local D1, mocked providers.
+- **Never push to `main`** — always a branch and a PR. GitHub Free gives no branch protection for this private repo, so the rule is enforced
+  only by you and by `.claude/settings.json` (loaded in cloud sessions together with `CLAUDE.md` → `AGENTS.md`).
+- Secrets are never put into a cloud environment's env vars (anyone using the environment can read them). Tests use mocks; real provider calls,
+  `wrangler secret`, migrations on the remote D1 and deploys happen at owner checkpoints from the owner's Mac.
+- macOS CI minutes count ×10 against the 2,000 free Actions minutes per month: batch Swift changes and do not re-run the `mac` workflow without a reason.
