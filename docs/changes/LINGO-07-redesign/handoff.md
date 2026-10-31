@@ -2,7 +2,9 @@
 
 ## Status
 
-**STEP 1–2 COMPLETE / WAITING FOR OWNER.** Final visual acceptance remains partial. Worktree `/Users/macbook/Developer/lingo-redesign`, branch `feat/redesign`, base `1e254e7`, issue https://github.com/itmax04/lingo/issues/32. The owner merges. LINGO-03 and issues #3–#30 remain untouched.
+**ACCEPTED BY THE OWNER 2026-10-31 (H-07a, H-07b); merged after independent AI review (approve-with-notes, no P0/P1).** Worktree `/Users/macbook/Developer/lingo-redesign`, branch `feat/redesign`, issue https://github.com/itmax04/lingo/issues/32. The final run is 112 tests in 30 suites.
+
+Known deviations accepted with the gates: the +/-4 pt geometry acceptance is not passed; the ten ImageGen consistency repairs and 37 geometry-lock prompts were never executed (one lettering defect in `mac-settings-keys-light-1536x1024`); the real launch opens on the "Today" placeholder, one click away from Conversations (review note F1, follow-up); `08-design-system/` duplicates and is staler than `design-system/` (review note F2).
 
 ## Completed
 
