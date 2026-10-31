@@ -1,6 +1,8 @@
 # LINGO-03: Specification — Mac stabilisation, Lingo Engine and Lingo Web
 
-ID: LINGO-03-spec · Status: **pending acceptance (H-0)** · Version: 2 · Date: 2026-10-26 · Owner: itmax04
+P-00 decision record (2026-10-29): DG-02 accepts these LINGO-03 documents at H-0; runtime/product completion is not asserted. MR-03 is unchanged: D01-01 confirms Russian first-run with explicit Russian/English/System. The draft redesign still defaults to System; no code correction is claimed. Process review follows [D04-01](../P-00/review-policy-2026-10-29.md).
+
+ID: LINGO-03-spec · Status: **accepted at H-0 in DG-02 on 2026-10-29** · Version: 2 · Date: 2026-10-26 · Owner: itmax04
 Links: [intent.md](intent.md) (decisions O-01…O-22) · [plan.md](plan.md) · [ARCHITECTURE](../../architecture/ARCHITECTURE.md) · [contracts](../../../packages/contracts/README.md) ·
 [LINGO-01 spec](../LINGO-01/spec.md) (conversation behaviour R-01…R-52 reused by reference; translation to English pending)
 
@@ -16,7 +18,7 @@ as on the Mac is referenced as "as R-nn" (LINGO-01 spec is the source of truth f
 - **WS-06 Foreign computer.** On a Windows PC the owner signs in with GitHub, practises, then signs out; nothing stays except what the browser keeps until sign-out clears it.
 - **WS-07 Limits.** When every allowed route is exhausted, the reply is not faked: the app saves everything, names the limit, and shows the recovery time only if a provider reported it.
 - **WS-08 Two devices at once.** A turn running on the iPad blocks a parallel turn in the same session on the phone; the phone offers "take over".
-- **WS-09 Two devices offline.** Two browsers add 25 messages each to one session offline; after reconnecting both show all 50 in the same order, no duplicates or losses.
+- **WS-09 Two devices offline.** A test harness seeds each of two browsers with 25 synthetic queued messages for one session while offline; after reconnecting both show all 50 in the same order, no duplicates or losses. This is a sync fixture, not a user-facing offline composer; WS-05 remains read-only.
 - **WS-10 Delete my data.** Settings → Delete my data removes server events, attempts and budgets of the account; local copies are cleared.
 - **WS-11 Full day.** 2 German + 2 English sessions of 30 minutes in one day, on the phone and the Mac, without a quota refusal; repeated on a second day.
 - All conversation scenarios of LINGO-01 (S-01, S-05…S-16) apply to the web client unchanged.

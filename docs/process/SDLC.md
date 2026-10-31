@@ -3,13 +3,15 @@
 How work moves from an idea to an accepted result. Applies to every agent (Claude Code, Codex, others) and every human contributor.
 The owner is **itmax04**; the executor is whoever implements a change.
 
+Current P-00 decisions: DG-01/DG-02 accept H-U/H-0 documents, and DG-03 A permits a future own docs PR and checked own merge in its bounded 15-document scope. AI checks remain; manual owner document review is not required. The current adoption build is local only and cannot merge or import the existing PR chain. See the [active ledger](../changes/P-00/handoff.md). [D04-01](../changes/P-00/review-policy-2026-10-29.md) requires AI-only R2/R3 review without a mandatory human. Future merges still require actual checks, review, compatible base, verified $0 and gates; production/migrations remain owner-run.
+
 ## 1. Roles
 
 | Role | Who | Decides | Does not |
 |---|---|---|---|
-| **Owner** | itmax04 | goals, scope, priorities, acceptance, merging pull requests into `main`, anything involving accounts, keys, money, devices, system settings | write code |
-| **Executor** | an AI agent or a human | how to implement within the accepted spec; records "executor decisions" in `handoff.md` | change scope or rules on its own; merge into `main` without the owner; enter credentials; spend money |
-| **Reviewer** | CI + the owner (optionally a second agent) | whether a PR meets the Definition of Done | — |
+| **Owner** | itmax04 | goals, scope, priorities, acceptance, anything involving accounts, keys, money, devices, system settings | write code |
+| **Executor** | an AI agent or a human | how to implement within the accepted spec; records "executor decisions" in `handoff.md` | change scope or rules on its own; publish outside agreed scope or before review/gates; enter credentials; spend money |
+| **Reviewer** | AI review plus actual checks; R1 author self-review | whether a PR meets the Definition of Done | — |
 
 Communication with the owner is **in Russian**, short: what was done, what the owner must check, what comes next. Everything in the repository is **in English**.
 
@@ -40,7 +42,7 @@ flowchart LR
   E --> F[Implement step<br/>branch + PR]
   F --> G[CI green +<br/>DoD checklist]
   G -- red --> F
-  G -- green --> H[Owner reviews<br/>and merges]
+  G -- green --> H[AI review and<br/>authorized merge]
   H --> I{Owner checkpoint<br/>in plan?}
   I -- yes --> J[Owner verifies<br/>on devices]
   I -- no --> K[Next step]
@@ -56,14 +58,14 @@ flowchart LR
 3. **Acceptance of documents (H-0).** No code before the owner accepts.
 4. **Issues.** Each plan step becomes a GitHub issue with the step id in the title (`[LINGO-03 P-05] …`), the milestone of its stage, area labels, requirement ids and a Definition of Done checklist.
 5. **Implementation.** One issue → one branch → one PR (small steps may be grouped if they touch the same files).
-6. **Verification.** CI must be green and the DoD checklist complete. The owner reviews and merges. Owner checkpoints happen where the plan says.
+6. **Verification.** CI must be green and the DoD checklist complete. AI reviews the exact change; an authorized executor may merge only after checks and gates. Owner checkpoints happen where the plan says.
 7. **Report and acceptance.** `report.md` with evidence for every acceptance criterion; the owner accepts or returns.
 
 ## 4. Autonomy within a stage
 
 The owner chose **"a whole stage at a time"** (2026-10-26):
 - The executor works through the issues of the current milestone without asking for permission per step: branches, commits, tests, pull requests, `handoff.md` updates.
-- **Merging into `main` is the owner's action.** While a PR waits, the executor may continue with the next issue on a branch based on the previous one (stacked PRs) and rebase after the merge. The executor merges only if the owner explicitly says so in the conversation for that PR or stage.
+- **Future merging requires explicit scoped authority, checks, AI review and H-x.** Current P-00 has no publication authority. Stack only on a tested predecessor; after squash merge, integrate main with a normal merge commit. Never rebase or force-push.
 - The executor stops and asks the owner at **owner checkpoints** (`H-x` in the plan), on a **blocker** only the owner can resolve (accounts, keys, money, devices, a scope conflict), or when a requirement turns out to be wrong.
 - At the end of a stage: a short Russian summary (format in §10) with links to the PRs.
 - Never: force-push, history rewrite, deleting branches, merging a red PR.
@@ -90,7 +92,7 @@ The owner chose **"a whole stage at a time"** (2026-10-26):
 - `main` is the default and always-green branch. Work happens on `<type>/<issue>-<slug>` branches, e.g. `feat/12-engine-sync`, `fix/30-voice-restart`, `docs/5-adr-auth`.
 - Several agents in parallel: each uses its own **git worktree** (`git worktree add ../lingo-<issue> -b <branch>`), never the same working directory.
 - Commits: imperative English subject ≤ 72 chars, body with the why; reference the issue (`Refs #12`; `Closes #12` in the PR).
-- PRs: one concern, ≤ ~600 changed lines where possible, template filled, linked issue, green CI. The owner squash-merges.
+- PRs: one concern, ≤ ~600 changed lines where possible, template filled, linked issue, green CI. An authorized executor may squash-merge after checks, AI review and gates; no publication during P-00.
 - Labels: `area:mac`, `area:web`, `area:engine`, `area:contracts`, `area:docs`, `area:ci`; `type:feature`, `type:bug`, `type:chore`, `type:test`, `type:docs`; `owner-checkpoint`, `blocked`.
 - Milestones = stages of the current change (e.g. "LINGO-03 · Stage 0 — Stabilise").
 
@@ -111,7 +113,7 @@ The owner chose **"a whole stage at a time"** (2026-10-26):
 | Accounts and secrets | `wrangler login`, GitHub OAuth App, `wrangler secret put GROQ_KEY_…` |
 | Devices | voice tests on iPhone Air / iPhone 11 / iPad / Android / Windows |
 | Live use | 30-minute session, full day 4 × 30 |
-| Merges | reviewing and merging PRs into `main` |
+| Merges | scoped publication authority, actual checks/AI review/H-x; no current P-00 publication |
 | Acceptance of the change | report review |
 
 ## 10. Reporting format (to the owner, in Russian)

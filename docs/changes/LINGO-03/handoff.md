@@ -1,6 +1,6 @@
 # LINGO-03: Handoff
 
-Status: **documents v2 ready; waiting for H-0 (owner acceptance)** · Default branch: `main` · Date: 2026-10-26
+Status: **documents v2 accepted at H-0 in DG-02 on 2026-10-29; implementation not started** · Default branch: `main` · Date: 2026-10-26
 
 ## State at hand-over (2026-10-26)
 - Repository moved to `~/Developer/lingo` (fresh clone; the old iCloud copy `~/Desktop/1/lingo` is not used any more — the owner may delete it).
@@ -19,5 +19,9 @@ Status: **documents v2 ready; waiting for H-0 (owner acceptance)** · Default br
 (none yet — record as D-01, D-02, … with the reason)
 
 ## Next step
-1. Owner: H-0 — accept the documents.
-2. Executor: Stage 0 starting with P-01 (issue `[LINGO-03 P-01]`).
+
+2026-10-29 local documentary update: [P-00 handoff](../P-00/handoff.md) records preparation only. No LINGO-03 code step is completed; historical tests above were not rerun. [D04-01](../P-00/review-policy-2026-10-29.md) supersedes prior mandatory-human review wording.
+
+1. H-U and H-0 document acceptance are recorded in DG-01/DG-02; do not request them again.
+2. Current P-00: verify the separate local adoption candidate. DG-03 A permits only a future own docs PR and checked own merge; current main compatibility remains blocked and no existing PR chain merge is authorized.
+3. Future product implementation remains separately scoped: accepted LINGO-07 completion precedes Stage 0 P-01. See the accepted upgrade amendment and [active P-00 ledger](../P-00/handoff.md).

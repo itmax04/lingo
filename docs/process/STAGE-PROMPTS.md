@@ -1,36 +1,40 @@
 # Stage start prompts
 
-Status: proposed with upgrade amendment · Version 2 · Date: 2026-10-28
+Status: accepted with the upgrade amendment in DG-01 on 2026-10-29 · Version 2 · Source date: 2026-10-28
 Links: [upgrade plan](../plans/UPGRADE-PLAN-2026-10-28.md), [SDLC](SDLC.md), [ROADMAP](../ROADMAP.md), [original LINGO-03 plan](../changes/LINGO-03/plan.md).
 
 ## Use and authority
 
 Paste one fenced block into a new executor session. **One step = one session = one PR**, normally 150–450 changed text lines and at most about 600 including tests/docs. Reuse the same stage prompt for the next ready step; handoff/issue state supplies the cursor. Do not ask permission between ready steps; end the session with the next cursor and continue under the owner's stage authorization. Stop dependent work only at H-x or an actual blocker. Do not automatically create chats, agents or scheduled jobs.
 
-These prompts are execution instructions only **after H-U accepts the upgrade plan**. This planning request does not resume PR #33 STEP 3–5. Record the owner's acceptance; never infer it from this document's existence. Before that, only Prompt 0 may prepare the reconciliation draft. Specs/ADRs remain authoritative. Question Q1 (Russian vs System default) must be recorded before changing the conflicting UI. No silent auth/voice/scope substitutions.
+DG-01 records H-U acceptance of the upgrade plan and these prompts; DG-02 accepts the LINGO-03 documents at H-0. These decisions do not resume PR #33 STEP 3–5 or start product implementation. Carry actual acceptance from the [active ledger](../changes/P-00/handoff.md); do not replay the completed preparation or infer further scope from this document's existence. Specs/ADRs remain authoritative. Q1 is decided in D01-01: Russian first-run, retaining explicit Russian/English/System. The redesign code gap remains open. No silent auth/voice/scope substitutions.
 
-Order retained: reconciliation → LINGO-07 completion → owner merges → LINGO-03 Stage 0 → H-1 → Stage 1 (H-2a/H-2b/H-3) → Stage 2 (H-4a/H-4b/H-5) → LINGO-04 → LINGO-05 → LINGO-06. Each later change has its own H-0. Audit is a separate fresh session at any stage boundary.
+Order retained: reconciliation → LINGO-07 completion → reviewed/gated merges → LINGO-03 Stage 0 → H-1 → Stage 1 (H-2a/H-2b/H-3) → Stage 2 (H-4a/H-4b/H-5) → LINGO-04 → LINGO-05 → LINGO-06. Each later change has its own H-0. Audit is a separate fresh session at any stage boundary.
 
-Every prompt incorporates the upgrade plan §3: $0/no card; no secrets in code/logs/chat; no audio retained; no pronunciation assessment; ADR allow-lists; contracts first with both existing implementations updated in one PR. Owner alone creates accounts/keys/OAuth apps, enters secrets/device tokens, changes settings, deploys remote changes and merges PRs. No force-push/rebase/history rewrite. Swift/Mac/native iPhone work is **local on the owner's Mac**, never cloud; cloud uses TS/docs and mocks only. ImageGen uses only the existing subscription and stops on 429. Bulk model calls/evals are Berlin 23:00–08:00 with explicit request/token/audio/neuron caps, time checked before each attempt, ≤15 attempts per batch including retries; no daytime override. Do not confuse synthetic fixtures with live device evidence.
+Every prompt incorporates the upgrade plan §3: $0/no card; no secrets in code/logs/chat; no audio retained; no pronunciation assessment; ADR allow-lists; contracts first with both existing implementations updated in one PR. Owner alone creates accounts/keys/OAuth apps, enters secrets/device tokens, changes settings and deploys remote changes. DG-03 A permits only a future own docs PR/checked own merge after scoped technical preconditions; the current adoption build remains local, and no existing PR chain mutation is authorized. Later product work requires its own accepted scope and gates. D04-01 supersedes D01-02: R2/R3 implementation and review are AI-only; no mandatory human reviewer. Record actual AI review and the reviewed SHA before release. No force-push/rebase/history rewrite. Swift/Mac/native iPhone work is **local on the owner's Mac**, never cloud; cloud uses TS/docs and mocks only. ImageGen uses only the existing subscription and stops on 429. Bulk model calls/evals are Berlin 23:00–08:00 with explicit request/token/audio/neuron caps, time checked before each attempt, ≤15 attempts per batch including retries; no daytime override. Do not confuse synthetic fixtures with live device evidence.
 
-## Prompt 0 — Reconcile the plan and gates
+## Prompt 0 — Carry accepted decisions and finish scoped document adoption
 
-Owner input: approval of the upgrade amendment (H-U), Q1 choice, and evidence of existing H-0 if already accepted. No secrets.
+H-U and H-0 documents are already accepted in DG-01/DG-02; DG-03 A retains AI checks without manual owner review. The completed preparation P00-D01 through D05 must not be replayed. Read the [active ledger](../changes/P-00/handoff.md) and actual incoming plan/state for the remaining bounded action.
 
 ```text
-You are the documentation executor for itmax04/lingo, ~/Developer/lingo. Execute P-00 of
- docs/plans/UPGRADE-PLAN-2026-10-28.md; no application code.
-Read AGENTS.md, docs/README.md, architecture guides, process/EVOLVING.md and SDLC.md, ADRs,
-ROADMAP, LINGO-03 intent/spec/plan/handoff, the upgrade plan and current issues/PRs.
-Apply the execution contract in upgrade plan §3 and STAGE-PROMPTS.md “Use and authority”.
-Verify H-U/H-0 from actual owner evidence. If H-U is absent, prepare the reconciliation draft
-and stop at H-U without changing accepted decisions or claiming acceptance.
-Record Q1 explicitly. Preserve MR-03 Russian default unless the owner accepts its amendment.
-Map split suffixes to existing P-01…P-20 and parent issues; prepare bounded child checklists,
-correct dependencies/status, record WS-09 fixture interpretation, update plan/handoff links.
-Use your own worktree and branch; one documentation PR, D checks. Do not close #2 without
-recorded acceptance. Do not merge. Report in Russian: decisions recorded, PR, unresolved gate,
-and exact next session cursor. Do not resume redesign or implementation from this prompt.
+You are the scoped P-00 document adoption executor for itmax04/lingo; no application changes.
+Verify actual DG receipts, reference hashes, current source/base and the separately launched scope.
+For the local adoption build, execute only ADA-T01/T02/T03/T04/T07 from the incoming bounded
+P00-ADOPTION-PLAN-03: separate 15-document candidate, status overlay/combined patch, exact
+manifest/modes, actual local checks/reconstruction, R1 author review and safe next handoff.
+Do not repeat the completed preparation, ask H-U/H-0 again or start all 80 product steps.
+H-U/H-0 acceptance is documentary; the redesign System-default code gap is not fixed here.
+Retain Russian first-run and Russian/English/System choices, read-only offline seeded fixtures,
+D04-01 AI-only R2/R3 review, privacy, $0/no card and owner-run production/migrations.
+Current local build forbids live edits, push/PR/merge/issue mutation/new CI, provider/ImageGen,
+installs, accounts/secrets/settings/device/production actions. No automatic next phase or agents.
+Future own docs PR/merge is limited to DG-03 A after compatible main, own bounded aggregate
+diff, actual checks/AI review/full publication-history scan/CI/workflow and verified $0 evidence.
+Existing PR chain merges, retargeting or baseline imports are outside A; retain the base blocker.
+Preserve historical artifacts, source rows and executable modes; do not reset/clean/force/rewrite.
+Report actual local status, exact new hashes/checks, remaining blockers and the next packet.
+Do not claim product readiness, main adoption or independent review from local artifact PASS.
 ```
 
 ## Prompt 1 — Complete remaining LINGO-07 work locally
@@ -54,8 +58,8 @@ Preserve completed regression evidence; unit-test success is not reference match
 Run root Mac build/test, signature, synthetic snapshots/clicks, design, English and secret checks.
 Keep references within 30 MB in Git; full originals only in the existing authorized delivery folder;
 keep signed app in dist. Do not mark #33 ready until all required residual work is actually done.
-Stop at H-07b for owner's visual acceptance/merges. Russian report: PR, checks, unresolved
-visual failures, subscription blocker if any, and next bounded step. No merging by executor.
+Stop at H-07b for owner visual acceptance and gated merges. Russian report: PR, checks, unresolved
+visual failures, subscription blocker if any, and next bounded step. Merge only under a separately authorized scope after checks, AI review and gates.
 ```
 
 ## Prompt 2 — LINGO-03 Stage 0: safe, stable Mac
@@ -76,7 +80,7 @@ P-03 reuses existing catalogs and checks the H-U-approved language default, neve
 P-04 fixes export coverage/restore before scheduling backup; the owner chooses the folder.
 P-05 separates duration harness, custom-key probe, organization pools and UI/purpose routing.
 P-06 translations preserve original decisions/utterance fixtures. No code dependency additions.
-Use M/B/V/D and N only where the row calls for them. No keys/system changes by you. Do not merge;
+Use M/B/V/D and N only where the row calls for them. No keys/system changes by you. Merge only after authorized scope, checks/review/gates;
 stack pending PRs with explicit predecessor bases. Do not parallelize shared chain/catalog files.
 After all Stage 0 rows, stop at H-1 with a Russian checklist: backup/restore in an isolated folder,
 30-minute diagnostic plus 30-minute real session, RU/EN, latency/tokens/capture/refusal counters.
@@ -107,7 +111,7 @@ until owner accepts a spec amendment; do not silently drop it.
 P-10a builds dataset/runner, P-10b runs bounded night batches with global caps and resume cursor;
 P-11 waits for H-1, H-3 and model evidence and includes all client/service/STT/global-neuron costs.
 No paid route or guaranteed capacity from extra accounts. Follow row checks, update handoff,
-open PR, do not merge. Russian report: result, checks, next cursor/gate. Do not start Stage 2.
+open PR; merge only under authorized scope after checks/review/gates. Russian report: result, checks, next cursor/gate. Do not start Stage 2.
 ```
 
 ## Prompt 4 — Stage 2: complete PWA and engine
@@ -133,7 +137,7 @@ P-19a CI may proceed early; P-19b release waits for every P-12…P-18 suffix and
 Stop at H-4a with Russian backup/migration/deploy/rollback instructions for the owner.
 After owner deploy, stop at H-4b: two days 4×30 phone+standalone Mac, both usage ledgers,
 PWA, foreign-computer sign-out, devices/latency, sync and deletion tests. Then P-20 report maps
-all WAC-01…14 to evidence, and stop H-5. Never merge or report NOT RUN as PASS.
+all WAC-01…14 to evidence, and stop H-5. Never bypass merge gates or report NOT RUN as PASS.
 Russian final: PR, acceptance gaps, next cursor/checkpoint. LINGO-04 starts only after H-5.
 ```
 
@@ -155,7 +159,7 @@ Backup before idempotent import; explicitly handle historical cached writers wit
 server device ownership. Offline/standalone Mac and on-device STT remain operational.
 Reconcile uncertain engine turns before local fallback to avoid duplicate generation/charges.
 Stop H-04-1 for token/import/offline/revoke tests on Mac+phone and H-04-2 for final acceptance.
-Run row commands, update handoff, open PR, never merge. Report in Russian with next cursor.
+Run row commands, update handoff, open PR; any merge waits for authorized scope and checks/review/gates. Report in Russian with next cursor.
 ```
 
 ## Prompt 6 — LINGO-05: all four teacher areas
@@ -177,7 +181,7 @@ Mac/mixed changes local, TS-only mocks cloud allowed. No libraries outside accep
 Prompts change with fixtures/evals, night only within caps. Preserve RU-on-request rules and
 explicit recap-mode semantics. No personal memory in screenshots/logs.
 Stop H-05-1 for owner review/edit/delete of memory and H-05-2 for week-long teacher evidence
-and acceptance. Use row checks, handoff and PRs, no merge. Russian report with next cursor.
+and acceptance. Use row checks, handoff and PRs; merge only after authorized checks/review/gates. Russian report with next cursor.
 ```
 
 ## Prompt 7 — LINGO-06: native phone, locked screen and speed
@@ -199,7 +203,7 @@ no speculative history commits, parity fixtures and an honest turn-based fallbac
 New transport/infrastructure/dependencies need accepted ADR before implementation.
 Prepare exact Russian install/re-sign instructions; never enter Apple credentials/change settings.
 H-06-2 includes both devices, memory/latency, lock-screen/route changes, update and 7-day re-sign
-history survival. Run row checks; H-06-3 final acceptance. No paid fallback, merges or force-push.
+history survival. Run row checks; H-06-3 final acceptance. No paid fallback, unauthorized merges or force-push.
 Russian report: PR, PASS/FAIL/NOT RUN, remaining capability blockers, next cursor/checkpoint.
 ```
 
@@ -219,7 +223,7 @@ After the audit, fix one accepted-scope finding per bounded session/PR with a re
 prioritize P0/P1, then local low-risk P2/P3. Shared fixtures and both existing implementations
 change together. New decision/product behaviour requires an owner gate, not silent repair.
 Swift/Mac fixes are local only; cloud may inspect but cannot implement a Mac step. No live bulk
-calls outside Berlin night/caps. No owner-system/account/secret/deploy/merge actions.
+calls outside Berlin night/caps. No owner-system/account/secret/deploy actions; any merge requires authorized scope/checks/review/gates.
 Update evidence to fixed / pending / needs owner. Do not repeat all tests without a relevant
 change; run row-appropriate checks. Russian final: top findings, PRs, limits of verification,
 owner action and next bounded cursor. No automatic new product scope or paid tools.
