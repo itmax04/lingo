@@ -5,18 +5,22 @@ import LingoCore
 @testable import LingoMac
 
 @Suite(.serialized) @MainActor struct PresentationRegressionTests {
-    @Test func freshInstallUsesSystemLanguageWithoutPersistingAnOverride() throws {
+    @Test func freshInstallUsesRussianAndKeepsSystemAndEnglishAsExplicitChoices() throws {
         let suite = "lingo-language-test-" + UUID().uuidString
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         InterfacePreferences.prepare(arguments: [], defaults: defaults, preferred: ["de-DE", "en-US"])
         let process = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
-        #expect(InterfacePreferences.defaultLanguage == "system")
+        #expect(InterfacePreferences.defaultLanguage == "ru")
         #expect(process[InterfacePreferences.languageKey] == nil)
-        #expect(process["AppleLanguages"] as? [String] == ["de-DE", "en-US"])
+        #expect(process["AppleLanguages"] as? [String] == ["ru"])
         #expect(defaults.persistentDomain(forName: suite)?[InterfacePreferences.languageKey] == nil)
-        #expect(InterfacePreferences.localeIdentifier(language: nil, preferred: ["de-DE"]) == "de-DE")
+        #expect(InterfacePreferences.localeIdentifier(language: nil, preferred: ["de-DE"]) == "ru")
+        #expect(InterfacePreferences.localeIdentifier(language: "system", preferred: ["de-DE"]) == "de-DE")
         #expect(InterfacePreferences.localeIdentifier(language: "system", preferred: []) == "en")
+        defaults.set("system", forKey: InterfacePreferences.languageKey)
+        InterfacePreferences.prepare(arguments: [], defaults: defaults, preferred: ["de-DE", "en-US"])
+        #expect(defaults.volatileDomain(forName: UserDefaults.argumentDomain)["AppleLanguages"] as? [String] == ["de-DE", "en-US"])
         defaults.set("ru", forKey: InterfacePreferences.languageKey)
         InterfacePreferences.prepare(arguments: [], defaults: defaults, preferred: ["de-DE"])
         #expect(defaults.volatileDomain(forName: UserDefaults.argumentDomain)["AppleLanguages"] as? [String] == ["ru"])
