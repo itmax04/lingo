@@ -65,7 +65,11 @@ export function parseTS(s: string): number | null {
   const m = TS.exec(s);
   if (!m) return null;
   const n = (i: number): number => Number(m[i] ?? 0);
-  const t = Date.UTC(n(1), n(2) - 1, n(3), n(4), n(5), n(6), n(7));
+  // `Date.UTC` reads years 0–99 as 19xx, so the year is set separately.
+  const d = new Date(0);
+  d.setUTCFullYear(n(1), n(2) - 1, n(3));
+  d.setUTCHours(n(4), n(5), n(6), n(7));
+  const t = d.getTime();
   // Date.UTC rolls over invalid parts (month 13, day 32); a valid timestamp formats back to the same fields.
   return formatTS(t).slice(0, 19) === s.slice(0, 19) ? t : null;
 }
