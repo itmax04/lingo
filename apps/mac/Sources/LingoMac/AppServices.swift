@@ -12,7 +12,9 @@ final class AppServices {
     var settings: AppSettings
     let secrets: SecretStore
     private var observer: UUID?
-    private var turnTask: Task<Void, Never>?
+    var turnTask: Task<Void, Never>?
+    /// True while "Finish" is being processed, so a second click does not start a second goodbye.
+    var ending = false
     var whisper: WhisperEngine?
     var voiceReady: Task<Bool, Never>?
     var voiceIO: VoiceIO?
@@ -147,8 +149,38 @@ final class AppServices {
         run(engine.respond(session: sid, replyTo: userMessageID))
     }
 
+    /// "Translate to Russian" (the button under a message): one small model request, shown under the message. Not saved in the journal.
+    func translate(_ m: ChatMessage) {
+        if case .loading = model.translations[m.id] { return }
+        let text = m.spokenText
+        model.translations[m.id] = .loading
+        let lang = m.lang
+        Task {
+            do {
+                let t = try await engine.translate(text, from: lang)
+                model.translations[m.id] = .done(t)
+            } catch {
+                let reason: String
+                switch error {
+                case DialogEngine.TranslationError.unavailable(let r): reason = r
+                case DialogEngine.TranslationError.empty: reason = String(localized: "empty answer")
+                default: reason = error.localizedDescription
+                }
+                model.translations[m.id] = .failed(reason)
+            }
+        }
+    }
+
+    func hideTranslation(_ id: String) { model.translations[id] = nil }
+
+    func copyToPasteboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
     func editMessage(_ id: String, text: String) {
         guard let sid = model.selectedSessionID else { return }
+        model.translations[id] = nil  // the old translation no longer matches the text
         Task { try? await engine.edit(id, session: sid, text: text) }
     }
 

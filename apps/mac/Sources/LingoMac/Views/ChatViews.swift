@@ -125,8 +125,15 @@ struct MessageBubble: View {
     var fallbackCorrections: [Fix] = []
     var onTap: () -> Void = {}
     var onStar: (Phrase) -> Void = { _ in }
+    /// State of "Translate to Russian" for this message and its actions.
+    var translation: MessageTranslation?
+    var onTranslate: () -> Void = {}
+    var onHideTranslation: () -> Void = {}
+    var onCopy: (String) -> Void = { _ in }
     @State private var showCorrection = false
     private var isUser: Bool { message.role == .user }
+    /// Messages in Russian need no translation into Russian; recaps and errors are not dialogue lines.
+    private var canTranslate: Bool { message.kind == .normal && message.lang != .ru && !message.spokenText.isEmpty }
     var body: some View {
         HStack(alignment: .top, spacing: Theme.S.avatarGap) {
             if isUser { Spacer(minLength: 32) }
@@ -150,6 +157,7 @@ struct MessageBubble: View {
                     if message.interruptedAt != nil {
                         Label("Interrupted", systemImage: "pause.circle").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                     }
+                    if canTranslate { translationRow }
                     meta
                 }
                 .padding(16)
@@ -193,6 +201,41 @@ struct MessageBubble: View {
                                     spokenLimit: remainingSpokenCharacters(before: index))
                     }
                 }
+            }
+        }
+    }
+    /// "Copy | Translate to Russian", and the translation card under it (the same flow as selecting text in a chat app).
+    @ViewBuilder private var translationRow: some View {
+        VStack(alignment: .leading, spacing: Theme.S.s8) {
+            HStack(spacing: Theme.S.s12) {
+                Button { onCopy(message.spokenText) } label: { Label("Copy", systemImage: "doc.on.doc") }
+                    .buttonStyle(LingoButtonStyle())
+                Divider().frame(height: 14)
+                Button {
+                    if translation == nil { onTranslate() } else if translation != .loading { onHideTranslation() }
+                } label: {
+                    Label(translation == nil ? "Translate to Russian" : "Hide translation", systemImage: "translate")
+                }
+                .buttonStyle(LingoButtonStyle())
+                .disabled(translation == .loading)
+                .accessibilityLabel(translation == nil ? "Translate to Russian" : "Hide translation")
+                if translation == .loading { ProgressView().controlSize(.mini).accessibilityLabel("Translating…") }
+            }
+            .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+            switch translation {
+            case .done(let text):
+                HStack(alignment: .top, spacing: Theme.S.s8) {
+                    Image(systemName: "translate").foregroundStyle(Theme.C.textSecondary).accessibilityHidden(true)
+                    Text(text).font(Theme.F.bubble).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
+                    Spacer(minLength: 0)
+                    Button { onCopy(text) } label: { Image(systemName: "doc.on.doc") }
+                        .buttonStyle(LingoButtonStyle()).accessibilityLabel("Copy translation")
+                }
+                .padding(12)
+                .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+            case .failed(let reason):
+                Text("Translation unavailable: \(reason)").font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger).lineLimit(3)
+            default: EmptyView()
             }
         }
     }
@@ -243,6 +286,10 @@ struct MessageList: View {
     var studyLanguage: Lang?
     var onTap: (ChatMessage) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
+    var translations: [String: MessageTranslation] = [:]
+    var onTranslate: (ChatMessage) -> Void = { _ in }
+    var onHideTranslation: (String) -> Void = { _ in }
+    var onCopy: (String) -> Void = { _ in }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var corrections = MessageCorrections()
     var body: some View {
@@ -256,7 +303,11 @@ struct MessageList: View {
                                           studyLanguage: studyLanguage,
                                           speaking: isSpeaking && message.id == messages.last?.id,
                                           fallbackCorrections: corrections.fallback[message.id] ?? [],
-                                          onTap: { onTap(message) }, onStar: onStar).id(message.id)
+                                          onTap: { onTap(message) }, onStar: onStar,
+                                          translation: translations[message.id],
+                                          onTranslate: { onTranslate(message) },
+                                          onHideTranslation: { onHideTranslation(message.id) },
+                                          onCopy: onCopy).id(message.id)
                         }
                     }.padding(24)
                 }

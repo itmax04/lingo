@@ -102,11 +102,20 @@ public final class TurnController {
         if state == .idle || state == .paused { state = .listening }
     }
 
-    public func stopVoice() {
+    /// `cancelTurn` (the "Finish" button, R-22): also cancel the turn that is still being recognised or generated, so that no
+    /// further reply is produced or spoken after the owner ended the conversation. Turning continuous mode off keeps the running turn.
+    public func stopVoice(cancelTurn: Bool = false) {
         mode = .pushToTalk
         recording = false
         paused = false
         interrupt(reason: "stop")
+        if cancelTurn {
+            turnTask?.cancel()
+            turnTask = nil
+            speakingTurn = nil
+            currentTurnID = ""
+            answerStarted = false
+        }
         state = .idle
     }
 
@@ -243,6 +252,7 @@ public final class TurnController {
             do {
                 tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
             } catch {
+                if Task.isCancelled { return }  // "Finish" or a merge cancelled the turn: not an error
                 self.onNotice?(String(localized: "Speech recognition: \(String(describing: error))"))
                 self.state = self.mode == .continuous ? .listening : .idle
                 return
@@ -329,7 +339,8 @@ public final class TurnController {
     }
 
     private func waitSpeechEnd() async {
-        while sink.isSpeaking { try? await Task.sleep(for: .milliseconds(50)) }
+        // A cancelled task must not spin here: Task.sleep throws at once on cancellation.
+        while sink.isSpeaking, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(50)) }
     }
 
     /// First audio of a reply part (from `VoiceIO.onPlaybackStarted`) — the `first_audio` metric.

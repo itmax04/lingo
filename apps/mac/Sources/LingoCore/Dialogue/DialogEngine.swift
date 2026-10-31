@@ -263,6 +263,29 @@ public actor DialogEngine {
         try await store.append(on ? EventType.phraseStarred : EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
     }
 
+    // MARK: Translation of one message (user action)
+
+    public enum TranslationError: Error, Equatable { case unavailable(String), empty }
+
+    /// Translates `text` into Russian with the model chain. Not stored in the journal. Throws when no model answers.
+    public func translate(_ text: String, from lang: Lang) async throws -> String {
+        let source = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !source.isEmpty else { throw TranslationError.empty }
+        var out = ""
+        for await e in await makeChain().run(PromptBuilder.translateRequest(text: source, from: lang)) {
+            switch e {
+            case .text(let t): out += t
+            case .restart: out = ""
+            case .exhausted(let reason, _): throw TranslationError.unavailable(reason)
+            default: break
+            }
+        }
+        if Task.isCancelled { throw CancellationError() }
+        let clean = ReplyProtocol.stripThinking(out).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !clean.isEmpty else { throw TranslationError.empty }
+        return clean
+    }
+
     // MARK: Finishing (R-22, R-23)
 
     /// "Finish" or "that's all": a goodbye in the target language (already in the reply to the finish command), a recap in Russian
