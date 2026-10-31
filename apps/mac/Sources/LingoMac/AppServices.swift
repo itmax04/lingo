@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Foundation
 import LingoCore
 
@@ -15,6 +16,10 @@ final class AppServices {
     var turnTask: Task<Void, Never>?
     /// True while "Finish" is being processed, so a second click does not start a second goodbye.
     var ending = false
+    /// "Continue session" pressed while finishing: resumed right after it.
+    var pendingContinue: String?
+    /// Speech without the audio engine (replay in a finished session): the microphone stays off.
+    let plainSpeech = AVSpeechSynthesizer()
     var whisper: WhisperEngine?
     var voiceReady: Task<Bool, Never>?
     var voiceIO: VoiceIO?
@@ -145,7 +150,8 @@ final class AppServices {
                 finishSession(sid)
                 return
             }
-            try? await engine.resume(sid)
+            // A finished session is continued only with "Continue session"; the input is disabled there anyway.
+            guard s.state != .ended else { model.draft = text; return }
             run(engine.send(session: sid, text: text, lang: lang, command: cmd))
         }
     }
@@ -153,6 +159,7 @@ final class AppServices {
     /// "Reply again" (R-09): a new reply to the user's utterance.
     func regenerate(userMessageID: String) {
         guard let sid = model.selectedSessionID else { return }
+        guard model.selectedSession?.state != .ended else { model.banner = String(localized: "The session is finished"); return }
         run(engine.respond(session: sid, replyTo: userMessageID))
     }
 

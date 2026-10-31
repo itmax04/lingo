@@ -1,3 +1,4 @@
+import AVFoundation
 import AppKit
 import Foundation
 import LingoCore
@@ -63,6 +64,7 @@ extension AppServices {
         }
         tc.onNotice = { n in m.banner = n }
         tc.onFinishCommand = { [weak self] sid in Task { @MainActor in self?.finishSession(sid) } }
+        tc.onEndedSession = { [weak self] in Task { @MainActor in await self?.shutDownVoice() } }
         tc.onTurn = { [weak self] e in self?.turnEvent(e) }
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
@@ -168,12 +170,13 @@ extension AppServices {
             if let bye = await engine.farewell(session: sid), let io = voiceIO {
                 io.speak(bye.text, lang: bye.lang, voiceID: settings.voice.voiceIDs[bye.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
             }
-            // The finished state is written first and input is accepted again at once; the recap and the summary (model calls,
-            // they can take a while on a degraded chain) follow in the background.
+            // The finished state is written first; once the goodbye has played the microphone is switched off and the app is free again.
+            // The recap and the summary (model calls, they can take a while on a degraded chain) follow without blocking anything.
             let ended = await engine.markEnded(sid)
             await shutDownVoice()
             ending = false
             if model.banner == note { model.banner = nil }
+            if let c = pendingContinue { pendingContinue = nil; try? await engine.resume(c) }
             if ended { await engine.finalizeEnded(sid) }
             await scheduler?.trigger(.sessionEnded)
         }
@@ -181,7 +184,9 @@ extension AppServices {
 
     /// "Continue session" on the "Session finished" card (R-01): the only way back into a finished session.
     func continueSession() {
-        guard let sid = model.selectedSessionID, !ending else { return }
+        guard let sid = model.selectedSessionID else { return }
+        // Pressed while the goodbye is still playing: continue as soon as finishing is done (no click is lost).
+        if ending { pendingContinue = sid; return }
         Task { try? await engine.resume(sid) }
     }
 
@@ -192,7 +197,17 @@ extension AppServices {
             let deadline = Date().addingTimeInterval(8)
             while io.isSpeaking, Date() < deadline { try? await Task.sleep(for: .milliseconds(100)) }
             io.stop()
+            // Release everything that keeps the old audio and loop alive (they are rebuilt by the next voice action).
+            io.onSamples = nil
+            io.onPlaybackStarted = nil
+            io.onIdle = nil
+            io.onRestart = nil
+            io.onCaptureFailure = nil
         }
+        healthTimer?.cancel()
+        healthTimer = nil
+        memoryTimer?.cancel()
+        memoryTimer = nil
         turn?.stopVoice(cancelTurn: true)
         turn = nil
         voiceIO = nil
@@ -215,6 +230,10 @@ extension AppServices {
 
     /// ▶ on a hint phrase (R-27): the voice of the phrase's language, offline; the microphone does not listen; if the assistant is speaking — queued.
     func playPhrase(_ p: Phrase) {
+        if model.selectedSession?.state == .ended || voiceIO == nil && ending {
+            speakWithoutMicrophone(p.text, lang: p.lang)
+            return
+        }
         Task {
             if voiceIO == nil { _ = await ensureVoice() }
             guard let io = voiceIO else { return }
@@ -230,6 +249,19 @@ extension AppServices {
 
     /// Click on an assistant bubble — replay speech (R-41).
     func replay(_ m: ChatMessage) {
+        if model.selectedSession?.state == .ended {
+            // A finished session must not switch the microphone back on just to replay a line.
+            for case .say(let l, let t) in m.segments.isEmpty ? [.say(m.lang, m.text)] : m.segments { speakWithoutMicrophone(t, lang: l) }
+            return
+        }
         Task { guard let t = await ensureVoice() else { return }; t.replay(m) }
+    }
+
+    /// Plays text through the system speech synthesizer only: no audio engine, no input tap, so the microphone stays off.
+    func speakWithoutMicrophone(_ text: String, lang: Lang) {
+        let u = AVSpeechUtterance(string: text)
+        u.voice = Voices.voice(for: lang, preferred: settings.voice.voiceIDs[lang])
+        u.rate = SpeechPace(base: settings.voice.pace).rate(multiplier: 1)
+        plainSpeech.speak(u)
     }
 }
