@@ -29,7 +29,8 @@ public actor DialogEngine {
     /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
-    /// The learner profile of each session, computed at its first turn and kept (PR-01: the system part stays identical, cacheable).
+    /// The learner profile of each session, computed at its first turn and kept while the app runs (PR-01: the system part stays
+    /// identical, cacheable); after a restart it is computed again from the journal as it was before the session started.
     private var frozenProfiles: [String: PromptProfile] = [:]
     /// Usage log — for service requests too (passed into the chain from outside).
     public var usage: UsageRecorder?

@@ -65,8 +65,8 @@ public extension HistoryState {
             guard let other = sessions[sid], !other.deleted, other.settings.lang == s.settings.lang else { continue }
             for f in list where f.ts < start && f.ts >= start.addingTimeInterval(-PromptProfile.window) { picked.append((sid, f)) }
         }
-        // A fixed order (time, session, message), so the rule spelling shown for a group never depends on dictionary order.
-        picked.sort { ($0.f.ts, $0.sid, $0.f.message) < ($1.f.ts, $1.sid, $1.f.message) }
+        // A fixed order (time, session, message, rule, original), so the rule spelling shown for a group never depends on dictionary order.
+        picked.sort { ($0.f.ts, $0.sid, $0.f.message, $0.f.fix.rule, $0.f.fix.original) < ($1.f.ts, $1.sid, $1.f.message, $1.f.fix.rule, $1.f.fix.original) }
         for (_, f) in picked {
             let key = VocabularyText.normalize(f.fix.rule)
             guard !key.isEmpty else { continue }

@@ -148,7 +148,7 @@ public enum PromptBuilder {
     /// Compact command fallback for the system part (LINGO-01 R-25): the model must also handle a command the local detector missed.
     static func commandsText(_ lang: Lang) -> String {
         let n = langName(lang), L = lang.rawValue
-        return "explain → briefly in @say ru (≤ 120 words), one \(n) example, last @say \(L) line repeats your question; how to say → 1–2 variants, each in @say \(L) and as @hint with Russian, then ask to repeat one; mistakes → review the last 10 utterances, 3–5 points, each also an @fix; continue → the next step of the thread; finish → a short goodbye."
+        return "explain → briefly in @say ru (≤ 120 words), one \(n) example, last @say \(L) line repeats your question; how to say → 1–2 variants, each in @say \(L) and as @hint with Russian, then ask to repeat one; mistakes → review the last 10 utterances, 3–5 points, each also an @fix; continue → the next step of the thread; finish → a short goodbye; repeat → your previous reply again; slower → it in short chunks."
     }
 
     /// A misrecognition example in the study language (PR-07 keeps the LINGO-03 examples next to the new one).
@@ -304,7 +304,7 @@ public enum PromptBuilder {
     static func stripTags(_ s: String) -> String {
         var out = s
         while true {
-            let next = out.replacingOccurrences(of: #"<\s*/?\s*(session_prompt|profile|summary|transcript|vocabulary)\b[^>]*>"#, with: "",
+            let next = out.replacingOccurrences(of: #"<\s*/?\s*(session_prompt|profile|summary|transcript|vocabulary)\b[^<>]*>"#, with: "",
                                                 options: [.regularExpression, .caseInsensitive])
             if next == out { return out }
             out = next

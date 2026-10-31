@@ -1,5 +1,5 @@
 {
-  "rule": "PR-02 of docs/changes/LINGO-08/spec.md: lines `text | translation | status`; text and translation cut to 60 Unicode scalars (code points) and trimmed; empty translation `—`; status `needs work` (mistakes > used), `new` (used 0), `practising (used once)` / `practising (used n times)`; opening and closing data tags (session_prompt, profile, summary, transcript, vocabulary) and line breaks removed; targets dropped from the end until the whole block, tags and line breaks included, is at most 420 code points; null when no line remains.",
+  "rule": "PR-02 of docs/changes/LINGO-08/spec.md: lines `text | translation | status`; text and translation cut to 60 Unicode scalars (code points) and trimmed; empty translation `—`; status `needs work` (mistakes > used), `new` (used 0), `practising (used once)` / `practising (used n times)`; `|` inside a field becomes `/`; every line break (incl. U+2028, U+2029, U+0085) becomes a space; opening and closing data tags (session_prompt, profile, summary, transcript, vocabulary) and line breaks removed; targets dropped from the end until the whole block, tags and line breaks included, is at most 420 code points; null when no line remains.",
   "cases": [
     {
       "name": "three statuses",
@@ -107,6 +107,18 @@
       "name": "no items",
       "items": [],
       "expected": null
+    },
+    {
+      "name": "field separator `|` becomes `/`, other line breaks become spaces",
+      "items": [
+        {
+          "text": "a | b",
+          "translation": "x y|z",
+          "used": 0,
+          "mistakes": 0
+        }
+      ],
+      "expected": "<vocabulary>\na / b | x y/z | new\n</vocabulary>"
     }
   ]
 }

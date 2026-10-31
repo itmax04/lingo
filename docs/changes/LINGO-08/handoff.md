@@ -22,7 +22,7 @@ Status: documents (#50), V-1 core (#51) and V-2 engine (#52) merged; P-1 prompti
 - D-06 (PR-09): the full instructions for a locally detected command are sent in the turn's task line; the system part keeps a compact
   fallback in rule 8 (explain, how to say, mistakes, continue, finish), because LINGO-01 R-25 requires the model to handle a command the
   detector missed (review F1). The trigger word lists left the system part.
-- D-07 (PR-02): block lengths are counted in Unicode scalars (code points), so Swift and TypeScript count the same; an empty translation is `—`.
+- D-07 (PR-02): block lengths are counted in Unicode scalars (code points), so Swift and TypeScript count the same; an empty translation is `—`; `|` inside a text or translation becomes `/` (it separates the fields) and every line break becomes a space (fixture case).
 - D-08 (PR-09, estimate before measurement): by the usage-log ratio (provider ≈ 0.865 × chars / 3.5), the system part after the review
   fixes is about 1 000–1 050 tokens with an empty transcript and no profile, and about 1 300 with a maximal profile (600 characters of
   goals and interests, 3 mistakes) — above the 900 target. Before cutting rules further, the night batch measures the real number and the effect;
