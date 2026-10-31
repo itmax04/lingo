@@ -85,11 +85,13 @@ public struct DialogRunner: Sendable {
             var text = ""
             var u: TokenUsage?
             var snap: RateLimitSnapshot?
+            var finish: String?
             func record(_ status: String, _ e: LLMError?) {
                 usage?.record(UsageRecord(ts: Date(), purpose: "eval", provider: provider.id.rawValue, model: model, keyIndex: 1, status: status,
                                           limitKind: e?.rateLimitKind, retryAfter: e?.retryAfterSeconds, inputTokens: u?.input, outputTokens: u?.output,
                                           cachedTokens: u?.cached, estimatedInput: TokenEstimate.input(req), remainingTokens: snap?.remainingTokens,
-                                          remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000)))
+                                          remainingRequests: snap?.remainingRequests, ms: Int(Date().timeIntervalSince(t0) * 1000),
+                                          finishReason: finish))
             }
             do {
                 for try await e in provider.stream(req, model: model, key: key) {
@@ -97,6 +99,7 @@ public struct DialogRunner: Sendable {
                     case .text(let t): text += t
                     case .usage(let x): u = x
                     case .rateLimits(let x): snap = x
+                    case .done(let reason): finish = reason
                     default: break
                     }
                 }

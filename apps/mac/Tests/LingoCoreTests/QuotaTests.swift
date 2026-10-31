@@ -176,7 +176,8 @@ import Testing
 @Suite struct OutputReserveTests {
     @Test func dialogReserveIsMeasuredNotGenerous() {
         #expect(PromptBuilder.dialogOutputReserve == 300)
-        #expect(OpenAICompatibleProvider.reasoningHeadroom <= 192)
+        #expect(OpenAICompatibleProvider.reasoningHeadroom(for: .dialog) == 192)
+        #expect(OpenAICompatibleProvider.reasoningHeadroom(for: .recap) == 512)
     }
 
     @Test func usageRecordKeepsFinishReasonAndOldLogsStillDecode() throws {
@@ -188,5 +189,25 @@ import Testing
         #expect(try dec.decode(UsageRecord.self, from: enc.encode(rec)).finishReason == "length")
         let old = #"{"ts":"2026-10-26T06:02:24Z","purpose":"dialog","provider":"groq","model":"m","keyIndex":1,"status":"ok","estimatedInput":1,"ms":1}"#
         #expect(try dec.decode(UsageRecord.self, from: Data(old.utf8)).finishReason == nil)
+    }
+}
+
+@Suite struct ReserveRequestBodyTests {
+    private func body(_ id: ProviderID, _ model: String, _ purpose: LLMPurpose, max: Int) throws -> [String: Any] {
+        let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")], maxTokens: max, purpose: purpose)
+        let r = try OpenAICompatibleProvider(id, transport: FixedTransport(status: 200, headers: [:], body: []), customBase: URL(string: "https://example.test/v1"))
+            .makeRequest(req, model: model, key: "k")
+        return try JSONSerialization.jsonObject(with: r.httpBody!) as! [String: Any]
+    }
+
+    @Test func groqReasoningDialogGetsSmallHeadroomOthersKeepTheOld() throws {
+        #expect(try body(.groq, "openai/gpt-oss-120b", .dialog, max: 300)["max_completion_tokens"] as? Int == 492)
+        #expect(try body(.groq, "openai/gpt-oss-120b", .recap, max: 700)["max_completion_tokens"] as? Int == 1212)
+    }
+
+    @Test func nonReasoningModelsGetNoHeadroom() throws {
+        #expect(try body(.groq, "llama-3.3-70b", .dialog, max: 300)["max_completion_tokens"] as? Int == 300)
+        #expect(try body(.mistral, "mistral-small", .dialog, max: 300)["max_tokens"] as? Int == 300)
+        #expect(try body(.custom, "openai/gpt-oss-20b", .dialog, max: 300)["max_tokens"] as? Int == 492)
     }
 }

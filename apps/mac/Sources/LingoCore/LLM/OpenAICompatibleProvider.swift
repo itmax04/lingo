@@ -15,9 +15,12 @@ public struct OpenAICompatibleProvider: LLMProvider {
 
     /// Reasoning models of the GPT-OSS family: reasoning is short and not part of the reply.
     static func isReasoning(_ model: String) -> Bool { model.contains("gpt-oss") }
-    /// Extra completion tokens for the short reasoning of gpt-oss models. Groq counts the full limit against the tokens-per-minute budget,
-    /// so it is kept small: measured dialog output including reasoning was at most 204 tokens in 41 requests (usage log, 2026-10-26/27).
-    static let reasoningHeadroom = 192
+    /// Extra completion tokens for the short reasoning of gpt-oss models. Groq counts the full limit against the tokens-per-minute budget.
+    /// Dialog is measured (at most 204 tokens including reasoning in 41 requests, usage log 2026-10-26/27) and gets a small headroom;
+    /// the other purposes have little or no data (recap none) and keep the previous generous headroom until they are measured.
+    static let dialogReasoningHeadroom = 192
+    static let defaultReasoningHeadroom = 512
+    static func reasoningHeadroom(for purpose: LLMPurpose) -> Int { purpose == .dialog ? dialogReasoningHeadroom : defaultReasoningHeadroom }
 
     public func makeRequest(_ request: LLMRequest, model: String, key: String) throws -> URLRequest {
         guard let base = ProviderEndpoints.base(id, customBase: customBase) else {
@@ -41,14 +44,14 @@ public struct OpenAICompatibleProvider: LLMProvider {
                 body["reasoning_effort"] = "low"
                 body["include_reasoning"] = false
                 // Headroom for short reasoning: Groq counts max_completion_tokens against the tokens-per-minute limit (P-05).
-                body["max_completion_tokens"] = request.maxTokens + Self.reasoningHeadroom
+                body["max_completion_tokens"] = request.maxTokens + Self.reasoningHeadroom(for: request.purpose)
             } else {
                 if model.lowercased().contains("qwen") { body["reasoning_effort"] = "none" }
                 body["max_completion_tokens"] = request.maxTokens
             }
         case .mistral, .openrouter, .custom:
             // Common Chat Completions parameters.
-            body["max_tokens"] = request.maxTokens + (reasoning ? Self.reasoningHeadroom : 0)
+            body["max_tokens"] = request.maxTokens + (reasoning ? Self.reasoningHeadroom(for: request.purpose) : 0)
             if reasoning { body["reasoning_effort"] = "low" }
         }
         if let t = request.temperature { body["temperature"] = t }
