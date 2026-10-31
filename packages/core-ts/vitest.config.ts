@@ -16,7 +16,9 @@ const noSkips: Reporter = {
         else if (state === "skipped" || state === "pending") skipped.push(t.fullName);
       }
     }
-    if (skipped.length > 0 || passed === 0) {
+    // A local name filter (`vitest run -t …`) skips the other tests on purpose; the T and C profiles never filter.
+    const filtered = process.argv.some((a) => a === "-t" || a.startsWith("--testNamePattern"));
+    if ((skipped.length > 0 && !filtered) || passed === 0) {
       process.exitCode = 1;
       console.error(skipped.length > 0 ? `Skipped or todo tests are not allowed: ${skipped.join("; ")}` : "No test passed.");
     }
