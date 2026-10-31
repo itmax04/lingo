@@ -2,7 +2,7 @@
 
 Status: **Q29 stage 1 done (build 19, `8470d07`); next — Cloudflare (owner), H-3 (the iCloud folder), the control 30-minute session tomorrow (AC-17)** · Updated: 2026-10-25 · Branch: `feat/lingo-01` · Commit: see `git log -1`
 Goal and boundaries: [intent.md](intent.md), requirements: [spec.md](spec.md), steps: [plan.md](plan.md).
-Translated to English in LINGO-03 P-06 (MR-08); the Russian original is in the Git history of this file. Quoted owner statements were originally in Russian.
+Translated to English in LINGO-03 P-06 (MR-08); the Russian original is in the Git history of this file. Quoted owner statements were originally in Russian. Quoted UI strings and tool output were Russian too and are translated; they may differ from the wording of the current catalog.
 
 ## Done
 - 2026-10-25: a brainstorm with the owner (Q1–Q26), the SDLC documents were created:
@@ -122,7 +122,7 @@ Checked: `codesign -dvvv dist/Lingo.app` → `Authority=InterviewCopilot`. "Ling
   through `SyncFolder` (50 messages, the same order, no duplicates, ✓✓); S-20 (no folder → "Sync folder unavailable — choose again",
   the history intact after a restart); a newer schema on another device → `readOnly`; the continuation of `seq`/`lamport`.
 - S-19 through the CLI on a temporary folder: `lingo-eval sync-write … --offline` ×2 of 25, `sync-now` ×3, `scripts/sync-check.py … --expect 50` →
-  `RESULT: PASS (0 losses, 0 duplicates)`, both local databases show `lost=0 order_mismatch_sessions=0 dup=0`. A negative check (a duplicated line) → FAIL.
+  `RESULT: PASS (0 losses, 0 duplicates)` (the output is translated), both local databases show `lost=0 order_mismatch_sessions=0 dup=0`. A negative check (a duplicated line) → FAIL.
 - `scripts/check-core-ios.sh` — PASS (15 objects, platform 2). `scripts/secret-scan.sh` — 0 findings.
 - The real iCloud folder — in P-10 (H-3).
 
