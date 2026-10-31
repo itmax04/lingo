@@ -47,10 +47,12 @@ public struct HistoryState: Sendable {
     public var starred: [String: Phrase] = [:]
     /// My vocabulary (VR-01…VR-05): the learner's own items with statistics; ★ phrases are added by `vocabulary(lang:)`.
     public var vocab: [String: VocabItem] = [:]
-    /// Statistics of ★ phrases used as items, by `VocabItem.starredID`.
+    /// ★ phrases as items (VR-01a), by `VocabItem.starredID`, with statistics.
     public var starredStats: [String: VocabItem] = [:]
     /// Items the learner used correctly in each session (VR-06: they make room for the next ones).
     public var vocabUsedInSession: [String: Set<String>] = [:]
+    /// De-duplicated `vocab.used` events (canonical item ids), for statistics "before a session" (VR-06).
+    public var vocabUses: [VocabUse] = []
     public var profile = LearnerProfile()
     public var eventCount = 0
     public var maxLamport = 0
@@ -61,19 +63,25 @@ public struct HistoryState: Sendable {
 
     public init() {}
 
-    /// All practice items of a language (or all): the learner's own items and the ★ phrases (A-02).
+    /// All practice items of a language (or all): own items and ★ phrases (VR-01a); an own item hides a ★ phrase with the same key.
     public func vocabulary(lang: Lang? = nil) -> [VocabItem] {
         var out = vocab.values.filter { lang == nil || $0.lang == lang }
-        for (key, p) in starred where lang == nil || p.lang == lang {
-            let id = VocabItem.starredID(key)
-            var item = starredStats[id] ?? VocabItem(id: id, lang: p.lang, text: p.text, createdAt: .distantPast)
-            item.lang = p.lang; item.text = p.text; item.translation = p.translation; item.source = .starred
-            // A ★ phrase that is also a manual item is shown once (the manual one).
-            if !out.contains(where: { VocabularyText.key(lang: $0.lang, text: $0.text) == VocabularyText.key(lang: p.lang, text: p.text) }) {
-                out.append(item)
-            }
+        let own = Set(out.map { VocabularyText.key(lang: $0.lang, text: $0.text) })
+        for item in starredStats.values where (lang == nil || item.lang == lang) && !own.contains(VocabularyText.key(lang: item.lang, text: item.text)) {
+            out.append(item)
         }
-        return out
+        return out.sorted { Array($0.id.utf8).lexicographicallyPrecedes(Array($1.id.utf8)) }
+    }
+
+    /// Items with the statistics as they were before `session` (its own uses are left out), so the targets stay stable within it (VR-06).
+    public func vocabulary(lang: Lang, before session: String) -> [VocabItem] {
+        var base = Dictionary(uniqueKeysWithValues: vocabulary(lang: lang).map { item -> (String, VocabItem) in
+            var x = item
+            x.offered = 0; x.used = 0; x.mistakes = 0; x.lastPractised = nil
+            return (item.id, x)
+        })
+        for u in vocabUses where u.session != session { base[u.item]?.count(u) }
+        return base.values.sorted { Array($0.id.utf8).lexicographicallyPrecedes(Array($1.id.utf8)) }
     }
 
     /// Visible sessions by last activity (R-05).
@@ -137,7 +145,7 @@ public enum Merger {
         var vocab: [String: VocabAcc] = [:]
         var vocabUpdates: [(Version, Payload.VocabUpdated)] = []
         var vocabRemovals: [(Version, String)] = []
-        var vocabUses: [(Event, Payload.VocabUsed)] = []
+        var vocabUseEvents: [(Event, Payload.VocabUsed)] = []
         var starTime: [String: Date] = [:]
         var goals = LWW(""), interests = LWW("")
 
@@ -212,7 +220,7 @@ public enum Merger {
                 vocabRemovals.append((ver, p.item))
             case EventType.vocabUsed:
                 guard let p = try? e.payload.decode(Payload.VocabUsed.self) else { st.unknownEvents += 1; continue }
-                vocabUses.append((e, p))
+                vocabUseEvents.append((e, p))
             case EventType.profileUpdated:
                 guard let p = try? e.payload.decode(Payload.ProfileUpdated.self) else { st.unknownEvents += 1; continue }
                 if let g = p.goals { goals.apply(g, ver) }
@@ -255,34 +263,51 @@ public enum Merger {
         }
         for (key, reg) in stars where reg.value { st.starred[key] = starPhrase[key] }
 
-        // My vocabulary: field updates and removals are applied by version (order of arrival does not matter).
-        for (v, u) in vocabUpdates {
-            if let t = u.text { vocab[u.item]?.text.apply(t, v) }
-            if let t = u.translation { vocab[u.item]?.translation.apply(t, v) }
-            if let t = u.note { vocab[u.item]?.note.apply(t, v) }
-            if let t = u.example { vocab[u.item]?.example.apply(t, v) }
+        // My vocabulary. Two items with the same language and text (added on two devices) are one: the earliest is canonical (VR-02).
+        var canonical: [String: String] = [:]
+        var byKey: [String: (Event, String)] = [:]
+        for (id, acc) in vocab.sorted(by: { (a, b) in (a.value.event.tsMillis, a.value.event.device, a.value.event.seq, a.key) < (b.value.event.tsMillis, b.value.event.device, b.value.event.seq, b.key) }) {
+            let key = VocabularyText.key(lang: acc.draft.lang, text: acc.draft.text)
+            if let first = byKey[key] { canonical[id] = first.1 } else { byKey[key] = (acc.event, id); canonical[id] = id }
         }
-        for (v, id) in vocabRemovals { vocab[id]?.removed.apply(true, v) }
-        for (id, acc) in vocab where !acc.removed.value {
+        // Field updates and removals are applied by version (order of arrival does not matter); removal is final.
+        for (v, u) in vocabUpdates {
+            guard let id = canonical[u.item] else { continue }
+            if let t = u.text, !VocabularyText.normalize(t).isEmpty { vocab[id]?.text.apply(t, v) }
+            if let t = u.translation { vocab[id]?.translation.apply(t, v) }
+            if let t = u.note { vocab[id]?.note.apply(t, v) }
+            if let t = u.example { vocab[id]?.example.apply(t, v) }
+        }
+        for (v, id) in vocabRemovals { if let c = canonical[id] { vocab[c]?.removed.apply(true, v) } }
+        for (id, acc) in vocab where canonical[id] == id && !acc.removed.value {
             st.vocab[id] = VocabItem(id: id, lang: acc.draft.lang, text: acc.text.value, translation: acc.translation.value,
                                      note: acc.note.value, example: acc.example.value, source: acc.draft.source, createdAt: acc.event.ts)
         }
-        for (key, p) in st.starred {
-            let id = VocabItem.starredID(key)
+        for p in st.starred.values.sorted(by: { $0.id < $1.id }) {
+            let id = VocabItem.starredID(lang: p.lang, text: p.text)
+            guard st.starredStats[id] == nil else { continue }  // two ★ phrases with the same key: the first by phrase key
             st.starredStats[id] = VocabItem(id: id, lang: p.lang, text: p.text, translation: p.translation, source: .starred,
-                                            createdAt: starTime[key] ?? .distantPast)
+                                            createdAt: starTime[p.id] ?? .distantPast)
         }
-        for (e, u) in vocabUses {
-            func bump(_ item: inout VocabItem) {
-                switch (u.by, u.outcome) {
-                case (.assistant, _): item.offered += 1
-                case (.learner, .ok): item.used += 1
-                case (.learner, .mistake): item.mistakes += 1
-                }
-                item.lastPractised = max(item.lastPractised ?? .distantPast, e.ts)
+        // Uses: one per (item, by, message), `mistake` wins over `ok`; ids of duplicates count for the canonical item (VR-02).
+        var uses: [String: VocabUse] = [:]
+        var order: [String] = []
+        for (e, u) in vocabUseEvents.sorted(by: { ($0.0.tsMillis, $0.0.device, $0.0.seq, $0.0.id) < ($1.0.tsMillis, $1.0.device, $1.0.seq, $1.0.id) }) {
+            let id = canonical[u.item] ?? u.item
+            guard st.vocab[id] != nil || st.starredStats[id] != nil else { continue }
+            let k = "\(id)|\(u.by.rawValue)|\(u.message)"
+            if let cur = uses[k] {
+                if u.outcome == .mistake, cur.outcome == .ok { uses[k]!.outcome = .mistake }
+                continue
             }
-            if st.vocab[u.item] != nil { bump(&st.vocab[u.item]!) } else if st.starredStats[u.item] != nil { bump(&st.starredStats[u.item]!) }
-            if u.by == .learner, u.outcome == .ok, !e.session.isEmpty { st.vocabUsedInSession[e.session, default: []].insert(u.item) }
+            uses[k] = VocabUse(item: id, session: e.session, by: u.by, outcome: u.outcome, at: e.ts)
+            order.append(k)
+        }
+        for k in order {
+            let use = uses[k]!
+            st.vocabUses.append(use)
+            if st.vocab[use.item] != nil { st.vocab[use.item]!.count(use) } else { st.starredStats[use.item]!.count(use) }
+            if use.by == .learner, use.outcome == .ok, !use.session.isEmpty { st.vocabUsedInSession[use.session, default: []].insert(use.item) }
         }
         st.profile = LearnerProfile(goals: goals.value, interests: interests.value)
         return st

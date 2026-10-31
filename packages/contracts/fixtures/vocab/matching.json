@@ -1,17 +1,260 @@
 {
-  "rule": "VR-07 of docs/changes/LINGO-08/spec.md: normalise (lower case, punctuation removed, apostrophes dropped, umlauts and ß kept); tokens of the item in the same order with at most 2 other tokens between neighbours; a token matches equal text, or for tokens of >= 5 letters a common prefix of at least max(5, length - 2) letters.",
+  "rule": "VR-07b of docs/changes/LINGO-08/spec.md (v2). `expected` false with a `why` starting with 'accepted miss' documents a known limitation.",
   "cases": [
-    {"item": "Feierabend", "utterance": "Ich habe um sechs Feierabend.", "expected": true},
-    {"item": "sich verabreden", "utterance": "Wir haben uns gestern verabredet, aber er kam nicht.", "expected": false, "why": "'sich' does not occur: the reflexive pronoun changes (uns); add the verb alone to practise inflected forms"},
-    {"item": "verabreden", "utterance": "Wir haben uns gestern verabredet.", "expected": true},
-    {"item": "eine Ausrede", "utterance": "Das ist doch nur eine schlechte Ausrede!", "expected": true},
-    {"item": "eine Ausrede", "utterance": "Ausrede eine", "expected": false, "why": "order"},
-    {"item": "to make ends meet", "utterance": "It's hard to make ends meet in a big city.", "expected": true},
-    {"item": "to make ends meet", "utterance": "I need to make my ends meet", "expected": true, "why": "one word between"},
-    {"item": "break the ice", "utterance": "I tried to break the awkward silence and ice", "expected": false, "why": "gap of 3 tokens between 'the' and 'ice'"},
-    {"item": "cat", "utterance": "I like my category of work", "expected": false, "why": "short tokens must be equal: no substring match"},
-    {"item": "let's call it a day", "utterance": "OK, lets call it a day.", "expected": true, "why": "apostrophes dropped"},
-    {"item": "Größe", "utterance": "Welche größe haben Sie?", "expected": true},
-    {"item": "Fernweh", "utterance": "Ich habe Heimweh.", "expected": false}
+    {
+      "lang": "de",
+      "item": "Feierabend",
+      "utterance": "Ich habe um sechs Feierabend.",
+      "expected": true
+    },
+    {
+      "lang": "de",
+      "item": "Feierabend",
+      "utterance": "Schönen Feierabends noch!",
+      "expected": true,
+      "why": "ending -s"
+    },
+    {
+      "lang": "de",
+      "item": "verabreden",
+      "utterance": "Wir haben uns gestern verabredet.",
+      "expected": true,
+      "why": "stem + -et"
+    },
+    {
+      "lang": "de",
+      "item": "sich verabreden",
+      "utterance": "Ich verabrede mich mit Anna.",
+      "expected": true,
+      "why": "placeholder 'sich' dropped"
+    },
+    {
+      "lang": "de",
+      "item": "kaufen",
+      "utterance": "Ich habe Brot gekauft.",
+      "expected": true,
+      "why": "participle ge-"
+    },
+    {
+      "lang": "de",
+      "item": "anrufen",
+      "utterance": "Ich rufe dich morgen an.",
+      "expected": true,
+      "why": "separable verb"
+    },
+    {
+      "lang": "de",
+      "item": "aufstehen",
+      "utterance": "Wann stehst du am Sonntag auf?",
+      "expected": true,
+      "why": "separable verb with -st"
+    },
+    {
+      "lang": "de",
+      "item": "eine Ausrede",
+      "utterance": "Das ist doch nur eine schlechte Ausrede!",
+      "expected": true
+    },
+    {
+      "lang": "de",
+      "item": "eine Ausrede",
+      "utterance": "Ausrede ist eine gute Sache",
+      "expected": true,
+      "why": "German: any order within the window"
+    },
+    {
+      "lang": "de",
+      "item": "jdm etw ausreden",
+      "utterance": "Ich habe ihm die Idee ausgeredet.",
+      "expected": true,
+      "why": "separable participle: aus + ge + redet"
+    },
+    {
+      "lang": "de",
+      "item": "fahren",
+      "utterance": "Er fährt nach Berlin.",
+      "expected": false,
+      "why": "accepted miss: vowel change"
+    },
+    {
+      "lang": "de",
+      "item": "Größe",
+      "utterance": "Welche größe haben Sie?",
+      "expected": true
+    },
+    {
+      "lang": "de",
+      "item": "Fernweh",
+      "utterance": "Ich habe Heimweh.",
+      "expected": false
+    },
+    {
+      "lang": "de",
+      "item": "Hund",
+      "utterance": "Hunde sind toll",
+      "expected": true,
+      "why": "ending -e on a 4-letter token"
+    },
+    {
+      "lang": "de",
+      "item": "Tag",
+      "utterance": "Tage vergehen",
+      "expected": false,
+      "why": "tokens of 3 letters or fewer must be equal"
+    },
+    {
+      "lang": "en",
+      "item": "to make ends meet",
+      "utterance": "It's hard to make ends meet in a big city.",
+      "expected": true,
+      "why": "leading 'to' dropped"
+    },
+    {
+      "lang": "en",
+      "item": "to make ends meet",
+      "utterance": "We are making ends meet somehow.",
+      "expected": true,
+      "why": "make → making"
+    },
+    {
+      "lang": "en",
+      "item": "make ends meet",
+      "utterance": "ends meet make",
+      "expected": false,
+      "why": "English: order matters"
+    },
+    {
+      "lang": "en",
+      "item": "break the ice",
+      "utterance": "I tried to break the very awkward silence and ice",
+      "expected": false,
+      "why": "gap of 4 words between 'the' and 'ice'"
+    },
+    {
+      "lang": "en",
+      "item": "look forward to sth",
+      "utterance": "I'm looking forward to it",
+      "expected": true,
+      "why": "placeholder sth dropped, look → looking"
+    },
+    {
+      "lang": "en",
+      "item": "stand",
+      "utterance": "That is the standard way",
+      "expected": false,
+      "why": "'ard' is not an allowed ending"
+    },
+    {
+      "lang": "en",
+      "item": "practise",
+      "utterance": "I keep practising every day",
+      "expected": true,
+      "why": "stem drops -e, + ing"
+    },
+    {
+      "lang": "en",
+      "item": "give up",
+      "utterance": "I gave up smoking",
+      "expected": false,
+      "why": "accepted miss: vowel change"
+    },
+    {
+      "lang": "en",
+      "item": "cat",
+      "utterance": "I like my category of work",
+      "expected": false,
+      "why": "short tokens must be equal: no substring match"
+    },
+    {
+      "lang": "en",
+      "item": "let's call it a day",
+      "utterance": "OK, lets call it a day.",
+      "expected": true,
+      "why": "apostrophes dropped"
+    },
+    {
+      "lang": "en",
+      "item": "a b c",
+      "utterance": "a b b x x c",
+      "expected": true,
+      "why": "repeated words: backtracking finds a@0 b@2 c@5"
+    },
+    {
+      "lang": "en",
+      "item": "e-mail address",
+      "utterance": "my e mail address",
+      "expected": true,
+      "why": "hyphen becomes a space"
+    },
+    {
+      "lang": "en",
+      "item": "a very long expression indeed",
+      "utterance": "long expression",
+      "expected": false,
+      "why": "item longer than the utterance"
+    },
+    {
+      "lang": "de",
+      "item": "anrufen",
+      "utterance": "Hast du ihn schon angerufen?",
+      "expected": true,
+      "why": "separable participle"
+    },
+    {
+      "lang": "de",
+      "item": "einkaufen",
+      "utterance": "Ich habe gestern eingekauft.",
+      "expected": true,
+      "why": "separable participle"
+    },
+    {
+      "lang": "de",
+      "item": "anrufen",
+      "utterance": "Ich versuche, ihn anzurufen.",
+      "expected": true,
+      "why": "zu-infinitive"
+    },
+    {
+      "lang": "de",
+      "item": "vorbeikommen",
+      "utterance": "Kommst du morgen vorbei?",
+      "expected": true,
+      "why": "long prefix vorbei"
+    },
+    {
+      "lang": "en",
+      "item": "care",
+      "utterance": "I like fast cars",
+      "expected": false,
+      "why": "dropped e: only vowel endings"
+    },
+    {
+      "lang": "en",
+      "item": "care",
+      "utterance": "She is caring and kind",
+      "expected": true,
+      "why": "dropped e + ing"
+    },
+    {
+      "lang": "en",
+      "item": "hope",
+      "utterance": "The rabbit hops away",
+      "expected": false,
+      "why": "dropped e: only vowel endings"
+    },
+    {
+      "lang": "en",
+      "item": "stop",
+      "utterance": "We stopped at noon",
+      "expected": false,
+      "why": "accepted miss: consonant doubling"
+    },
+    {
+      "lang": "en",
+      "item": "study",
+      "utterance": "She studied law",
+      "expected": false,
+      "why": "accepted miss: y to i"
+    }
   ]
 }

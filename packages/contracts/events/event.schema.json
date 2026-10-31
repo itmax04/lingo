@@ -709,7 +709,7 @@
     },
     "VocabAdded": {
       "type": "object",
-      "description": "vocab.added, session \"\". The item id is the event id.",
+      "description": "vocab.added, session \"\". The item id is the event id. Two items with the same language and normalised text are one item: the earliest vocab.added is kept.",
       "required": [
         "item"
       ],
@@ -732,6 +732,7 @@
         },
         "text": {
           "type": "string",
+          "minLength": 1,
           "maxLength": 120
         },
         "translation": {
@@ -750,7 +751,7 @@
     },
     "VocabRemoved": {
       "type": "object",
-      "description": "vocab.removed: a tombstone (last-writer-wins against vocab.updated).",
+      "description": "vocab.removed: final — a removed item never comes back, whatever its later updates.",
       "required": [
         "item"
       ],
@@ -762,15 +763,20 @@
     },
     "VocabUsed": {
       "type": "object",
-      "description": "vocab.used: one per item, role and turn; session = where it happened. Item ids of starred phrases are \"star:<phrase key>\".",
+      "description": "vocab.used: session = where it happened. Counted once per (item, by, message); when such events disagree, mistake wins. Ids of starred phrases are \"star:<lang>:<normalised text>\"; ids of a duplicate item (same language and text) count for the earliest item.",
       "required": [
         "item",
+        "message",
         "by",
         "outcome"
       ],
       "properties": {
         "item": {
           "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "description": "The learner's message (by learner) or the assistant's reply (by assistant)."
         },
         "by": {
           "enum": [

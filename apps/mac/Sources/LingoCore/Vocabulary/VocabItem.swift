@@ -41,8 +41,28 @@ public struct VocabItem: Sendable, Hashable, Identifiable {
         self.lastPractised = lastPractised
     }
 
-    /// Id of a ★ phrase shown as an item (A-02): stable, derived from the phrase key.
-    public static func starredID(_ phraseKey: String) -> String { "star:" + phraseKey }
+    /// Id of a ★ phrase shown as an item (VR-01a): `star:<lang>:<normalised text>`.
+    public static func starredID(lang: Lang, text: String) -> String { "star:" + VocabularyText.key(lang: lang, text: text) }
+}
+
+/// One counted use of an item (VR-05): after de-duplication, with the canonical item id.
+public struct VocabUse: Sendable, Hashable {
+    public var item: String
+    public var session: String
+    public var by: VocabActor
+    public var outcome: VocabOutcome
+    public var at: Date
+}
+
+extension VocabItem {
+    mutating func count(_ u: VocabUse) {
+        switch (u.by, u.outcome) {
+        case (.assistant, _): offered += 1
+        case (.learner, .ok): used += 1
+        case (.learner, .mistake): mistakes += 1
+        }
+        lastPractised = max(lastPractised ?? .distantPast, u.at)
+    }
 }
 
 /// The learner's profile used by the prompt (PR-01): free text, synced through the journal (`profile.updated`).

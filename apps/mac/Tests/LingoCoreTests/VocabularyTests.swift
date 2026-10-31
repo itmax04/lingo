@@ -13,34 +13,43 @@ private func isoDate(_ s: String) -> Date {
 }
 
 @Suite struct VocabularyTextTests {
-    @Test func pastedListSplitsLinesAndTranslations() {
-        let list = VocabularyText.parseList("""
-        Feierabend — конец рабочего дня
-        sich verabreden - договориться о встрече
-
-        Fernweh: тоска по дальним странам
-        eine Ausrede\tотговорка
-        nur Text
-        """)
-        #expect(list.map(\.text) == ["Feierabend", "sich verabreden", "Fernweh", "eine Ausrede", "nur Text"])
-        #expect(list.map(\.translation) == ["конец рабочего дня", "договориться о встрече", "тоска по дальним странам", "отговорка", ""])
+    struct TextFile: Decodable {
+        struct Norm: Decodable { let `in`: String; let out: String }
+        struct Key: Decodable { let lang: Lang; let text: String; let out: String }
+        struct Entry: Decodable { let text: String; let translation: String }
+        struct Parse: Decodable { let `in`: String; let entries: [Entry]; let rejected: Int }
+        let normalize: [Norm]
+        let key: [Key]
+        let parseList: Parse
     }
 
-    @Test func normalisationKeepsUmlautsAndDropsPunctuation() {
-        #expect(VocabularyText.normalize("  Let's   GO!  ") == "lets go")
-        #expect(VocabularyText.normalize("Größe, bitte.") == "größe bitte")
-        #expect(VocabularyText.key(lang: .de, text: "Feierabend!") == VocabularyText.key(lang: .de, text: "feierabend"))
+    @Test func textRulesMatchTheGoldenFixture() throws {
+        let f = try JSONDecoder().decode(TextFile.self, from: Data(contentsOf: contracts.appendingPathComponent("text.json")))
+        for c in f.normalize { #expect(VocabularyText.normalize(c.in) == c.out, "\(c.in)") }
+        for c in f.key { #expect(VocabularyText.key(lang: c.lang, text: c.text) == c.out) }
+        let parsed = VocabularyText.parseList(f.parseList.in)
+        #expect(parsed.entries.map(\.text) == f.parseList.entries.map(\.text))
+        #expect(parsed.entries.map(\.translation) == f.parseList.entries.map(\.translation))
+        #expect(parsed.rejected == f.parseList.rejected)
+    }
+
+    @Test func longLinesAndTheLineLimitAreRejected() {
+        let long = String(repeating: "x", count: 121)
+        #expect(VocabularyText.parseList("\(long) — перевод\nok").rejected == 1)
+        let many = (1...205).map { "word\($0)" }.joined(separator: "\n")
+        let r = VocabularyText.parseList(many)
+        #expect(r.entries.count == 200 && r.rejected == 5)
     }
 }
 
 @Suite struct VocabularyContractTests {
     struct SelectionFile: Decodable {
         struct Item: Decodable { let id: String; let lang: Lang; let text: String; let createdAt: String; let offered: Int; let used: Int; let mistakes: Int; let lastPractised: String? }
-        struct Case: Decodable { let name: String; let lang: Lang; let count: Int; let usedInSession: [String]; let items: [Item]; let expected: [String] }
+        struct Case: Decodable { let name: String; let lang: Lang; let count: Int; let usedInSession: [String]; let pinned: String?; let items: [Item]; let expected: [String] }
         let cases: [Case]
     }
     struct MatchingFile: Decodable {
-        struct Case: Decodable { let item: String; let utterance: String; let expected: Bool }
+        struct Case: Decodable { let lang: Lang; let item: String; let utterance: String; let expected: Bool }
         let cases: [Case]
     }
 
@@ -50,15 +59,15 @@ private func isoDate(_ s: String) -> Date {
         for c in f.cases {
             let items = c.items.map { VocabItem(id: $0.id, lang: $0.lang, text: $0.text, createdAt: isoDate($0.createdAt), offered: $0.offered,
                                                 used: $0.used, mistakes: $0.mistakes, lastPractised: $0.lastPractised.map(isoDate)) }
-            let got = VocabularySelection.select(items, lang: c.lang, usedInSession: Set(c.usedInSession), count: c.count).map(\.id)
+            let got = VocabularySelection.select(items, lang: c.lang, usedInSession: Set(c.usedInSession), count: c.count, pinned: c.pinned).map(\.id)
             #expect(got == c.expected, "\(c.name)")
         }
     }
 
     @Test func matchingMatchesTheGoldenFixture() throws {
         let f = try JSONDecoder().decode(MatchingFile.self, from: Data(contentsOf: contracts.appendingPathComponent("matching.json")))
-        #expect(f.cases.count >= 10)
-        for c in f.cases { #expect(VocabularyMatcher.contains(c.item, in: c.utterance) == c.expected, "\(c.item) in \(c.utterance)") }
+        #expect(f.cases.count >= 30)
+        for c in f.cases { #expect(VocabularyMatcher.contains(c.item, in: c.utterance, lang: c.lang) == c.expected, "\(c.item) in \(c.utterance)") }
     }
 }
 
@@ -71,7 +80,7 @@ private func isoDate(_ s: String) -> Date {
 
     @Test func addingAListSkipsDuplicatesAndEmptyLines() async throws {
         let (e, store) = try engine("voc-add")
-        let r1 = try await e.addVocabulary(lang: .de, entries: VocabularyText.parseList("Feierabend — конец дня\n\nFernweh"), source: .list)
+        let r1 = try await e.addVocabulary(lang: .de, entries: VocabularyText.parseList("Feierabend — конец дня\n\nFernweh").entries, source: .list)
         #expect(r1.added == 2 && r1.duplicates == 0)
         let r2 = try await e.addVocabulary(lang: .de, entries: [("feierabend!", ""), ("eine Ausrede", "отговорка")], source: .manual)
         #expect(r2.added == 1 && r2.duplicates == 1)
@@ -107,8 +116,9 @@ private func isoDate(_ s: String) -> Date {
         let (e, store) = try engine("voc-use")
         try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
         let id = try #require(await store.state.vocabulary(lang: .de).first?.id)
-        for (by, outcome) in [(VocabActor.assistant, VocabOutcome.ok), (.learner, .mistake), (.learner, .ok)] {
-            try await store.append(EventType.vocabUsed, session: "s1", Payload.VocabUsed(item: id, by: by, outcome: outcome))
+        for (by, outcome, msg) in [(VocabActor.assistant, VocabOutcome.ok, "m1"), (.learner, .mistake, "m2"), (.learner, .ok, "m3"),
+                                   (.learner, .ok, "m3")] {  // the last one repeats (item, by, message): not counted again
+            try await store.append(EventType.vocabUsed, session: "s1", Payload.VocabUsed(item: id, message: msg, by: by, outcome: outcome))
         }
         let st = await store.state
         let item = try #require(st.vocab[id])
@@ -149,7 +159,7 @@ private func isoDate(_ s: String) -> Date {
             try await e.addVocabulary(lang: .de, entries: [("Feierabend", "конец рабочего дня")], source: .manual)
             let id = try #require(await store.state.vocabulary(lang: .de).first?.id)
             try await e.updateVocabulary(id, note: "nach der Arbeit")
-            try await store.append(EventType.vocabUsed, session: "s1", Payload.VocabUsed(item: id, by: .learner, outcome: .ok))
+            try await store.append(EventType.vocabUsed, session: "s1", Payload.VocabUsed(item: id, message: "01K8WVBC80M0000000000000AA", by: .learner, outcome: .ok))
             try await e.updateProfile(goals: "B2 exam", interests: "football")
             try await e.removeVocabulary(id)
             let lines = try JournalReader.readDevice(store.ownDir).events.map { try $0.line() }
@@ -163,5 +173,89 @@ private func isoDate(_ s: String) -> Date {
         #expect(Set(events.map(\.type)) == [EventType.vocabAdded, EventType.vocabUpdated, EventType.vocabUsed, EventType.profileUpdated, EventType.vocabRemoved])
         let st = Merger.build(events)
         #expect(st.vocab.isEmpty && st.unknownEvents == 0 && st.profile.goals == "B2 exam")
+    }
+}
+
+
+@Suite struct VocabularyMergeTests {
+    private func ev(_ type: String, _ session: String = "", device: String = "mac-aaaa", seq: Int, lamport: Int, ms: Int, _ p: some Encodable) -> Event {
+        Event(id: ULID.make(date: Date(timeIntervalSince1970: Double(ms) / 1000)), device: device, seq: seq, lamport: lamport,
+              ts: Date(timeIntervalSince1970: Double(ms) / 1000), type: type, session: session, payload: try! JSONValue.from(p))
+    }
+
+    private func sample() -> [Event] {
+        let add = ev(EventType.vocabAdded, seq: 1, lamport: 1, ms: 1_000, Payload.VocabAdded(item: .init(lang: .de, text: "Feierabend")))
+        let dup = ev(EventType.vocabAdded, device: "web-bbbb", seq: 1, lamport: 1, ms: 2_000, Payload.VocabAdded(item: .init(lang: .de, text: "feierabend!")))
+        return [add, dup,
+                ev(EventType.vocabUpdated, seq: 2, lamport: 2, ms: 3_000, Payload.VocabUpdated(item: add.id, translation: "старый")),
+                ev(EventType.vocabUpdated, device: "web-bbbb", seq: 2, lamport: 3, ms: 2_500, Payload.VocabUpdated(item: dup.id, translation: "новый")),
+                ev(EventType.vocabUsed, "s1", seq: 3, lamport: 4, ms: 4_000, Payload.VocabUsed(item: dup.id, message: "u1", by: .learner, outcome: .ok)),
+                ev(EventType.vocabUsed, "s1", device: "web-bbbb", seq: 3, lamport: 5, ms: 4_100, Payload.VocabUsed(item: add.id, message: "u1", by: .learner, outcome: .mistake)),
+                ev(EventType.vocabUsed, "s2", seq: 4, lamport: 6, ms: 5_000, Payload.VocabUsed(item: add.id, message: "u2", by: .assistant, outcome: .ok)),
+                ev(EventType.vocabUsed, "s2", seq: 5, lamport: 7, ms: 5_100, Payload.VocabUsed(item: "unknown", message: "u3", by: .learner, outcome: .ok))]
+    }
+
+    @Test func orderAndDuplicatesDoNotChangeTheResult() {
+        let events = sample()
+        let reference = Merger.build(events)
+        var rng = SystemRandomNumberGenerator()
+        for _ in 0..<30 {
+            let st = Merger.build((events + events.prefix(3)).shuffled(using: &rng))
+            #expect(st.vocab == reference.vocab && st.vocabUses == reference.vocabUses && st.vocabUsedInSession == reference.vocabUsedInSession)
+        }
+    }
+
+    @Test func sameTextFromTwoDevicesIsOneItemAndMistakeWins() throws {
+        let st = Merger.build(sample())
+        #expect(st.vocab.count == 1)
+        let item = try #require(st.vocab.values.first)
+        #expect(item.translation == "новый")       // the higher lamport wins, even through the duplicate id
+        #expect(item.used == 0 && item.mistakes == 1 && item.offered == 1)  // (item, learner, u1): mistake wins; unknown item ignored
+        #expect(st.vocabUsedInSession["s1"] == nil)
+    }
+
+    @Test func removalIsFinalEvenAgainstALaterUpdate() {
+        let add = ev(EventType.vocabAdded, seq: 1, lamport: 1, ms: 1_000, Payload.VocabAdded(item: .init(lang: .en, text: "spot on")))
+        let events = [add,
+                      ev(EventType.vocabRemoved, seq: 2, lamport: 2, ms: 2_000, Payload.VocabRemoved(item: add.id)),
+                      ev(EventType.vocabUpdated, device: "web-bbbb", seq: 1, lamport: 9, ms: 3_000, Payload.VocabUpdated(item: add.id, note: "later"))]
+        for order in [events, events.reversed()] { #expect(Merger.build(Array(order)).vocab.isEmpty) }
+    }
+
+    @Test func statisticsBeforeASessionLeaveItsOwnUsesOut() throws {
+        let st = Merger.build(sample())
+        let id = try #require(st.vocab.keys.first)
+        let beforeS2 = try #require(st.vocabulary(lang: .de, before: "s2").first { $0.id == id })
+        #expect(beforeS2.offered == 0 && beforeS2.mistakes == 1)  // s2's assistant use is left out
+        let beforeS1 = try #require(st.vocabulary(lang: .de, before: "s1").first { $0.id == id })
+        #expect(beforeS1.offered == 1 && beforeS1.mistakes == 0)
+    }
+
+    @Test func mistakeOutcomeFollowsTheFixSpan() {
+        let item = VocabItem(id: "x", lang: .de, text: "seit zwei Jahren", createdAt: Date())
+        let other = Fix(original: "Ich wohne in Hamburg seit zwei Jahren und arbeite viel", corrected: "Ich wohne seit zwei Jahren in Hamburg und arbeite viel", rule: "Wortstellung")
+        #expect(VocabularyMatcher.outcome(item, fixes: [other]) == .ok)    // the item itself is the same in both
+        let wrong = Fix(original: "Ich wohne seit zwei Jahre hier", corrected: "Ich wohne seit zwei Jahren hier", rule: "Dativ")
+        #expect(VocabularyMatcher.outcome(VocabItem(id: "y", lang: .de, text: "seit zwei Jahre", createdAt: Date()), fixes: [wrong]) == .mistake)
+        #expect(VocabularyMatcher.outcome(item, fixes: []) == .ok)
+    }
+
+    @Test func oldJournalsGiveTheSameStateAsBefore() throws {
+        for name in ["sample-journal.jsonl", "merge-two-devices.input.jsonl"] {
+            let url = contracts.deletingLastPathComponent().appendingPathComponent("events/\(name)")
+            let events = try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map { try Event(line: $0) }
+            let st = Merger.build(events)
+            #expect(st.vocab.isEmpty && st.vocabUses.isEmpty && !st.sessions.isEmpty, "\(name)")
+        }
+    }
+
+    @Test func editingIsValidated() async throws {
+        let store = try JournalStore(base: tempDir("voc-edit"), deviceName: "Mac", deviceID: "mac-edit")
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }
+        try await e.addVocabulary(lang: .en, entries: [("spot on", "")], source: .manual)
+        let id = try #require(await store.state.vocab.keys.first)
+        await #expect(throws: DialogEngine.VocabularyError.emptyText) { try await e.updateVocabulary(id, text: "  !! ") }
+        await #expect(throws: DialogEngine.VocabularyError.starredItem) { try await e.updateVocabulary("star:en:x", text: "y") }
+        await #expect(throws: DialogEngine.VocabularyError.unknownItem) { try await e.updateVocabulary("nope", text: "y") }
     }
 }

@@ -285,7 +285,14 @@ public actor DialogEngine {
         return (batch.count, dup)
     }
 
+    public enum VocabularyError: Error, Equatable { case emptyText, starredItem, unknownItem }
+
+    /// Updates an own item (★ items cannot be edited, VR-01a); an empty text is rejected.
     public func updateVocabulary(_ id: String, text: String? = nil, translation: String? = nil, note: String? = nil, example: String? = nil) async throws {
+        if id.hasPrefix("star:") { throw VocabularyError.starredItem }
+        guard await store.state.vocab[id] != nil else { throw VocabularyError.unknownItem }
+        let text = text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let t = text, VocabularyText.normalize(t).isEmpty { throw VocabularyError.emptyText }
         try await store.append(EventType.vocabUpdated, session: "", Payload.VocabUpdated(
             item: id, text: text.map { String($0.prefix(120)) }, translation: translation.map { String($0.prefix(160)) },
             note: note.map { String($0.prefix(300)) }, example: example.map { String($0.prefix(200)) }))
@@ -294,8 +301,11 @@ public actor DialogEngine {
     /// Removes an item; a ★ phrase is un-starred instead.
     public func removeVocabulary(_ id: String) async throws {
         let st = await store.state
-        if id.hasPrefix("star:"), let p = st.starred[String(id.dropFirst(5))] {
-            try await store.append(EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
+        if id.hasPrefix("star:") {
+            // VR-01a: removing a ★ item un-stars every ★ phrase with that key.
+            for p in st.starred.values where VocabItem.starredID(lang: p.lang, text: p.text) == id {
+                try await store.append(EventType.phraseUnstarred, session: "", Payload.PhraseMark(phrase: p))
+            }
             return
         }
         try await store.append(EventType.vocabRemoved, session: "", Payload.VocabRemoved(item: id))

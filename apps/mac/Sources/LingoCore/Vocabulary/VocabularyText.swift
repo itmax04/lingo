@@ -18,61 +18,174 @@ public enum VocabularyText {
     /// Duplicate key: language + normalised text.
     public static func key(lang: Lang, text: String) -> String { "\(lang.rawValue):\(normalize(text))" }
 
-    /// A pasted list (VR-03, A-01): one item per line; text and translation split by the first ` — `, ` – `, ` - `, tab or `: `.
-    public static func parseList(_ pasted: String) -> [(text: String, translation: String)] {
+    public static let maxListLines = 200
+
+    /// Result of parsing a pasted list (VR-03).
+    public struct ParsedList: Sendable {
+        public var entries: [(text: String, translation: String)] = []
+        /// Lines whose text is longer than 120 characters, and lines beyond the 200-line limit.
+        public var rejected = 0
+    }
+
+    /// A pasted list (VR-03): leading bullets and numbering removed; split at the first ` — `, ` – `, ` - `, tab or `: ` by position;
+    /// a Cyrillic left side with a non-Cyrillic right side is swapped; empty lines skipped; texts over 120 characters rejected.
+    public static func parseList(_ pasted: String) -> ParsedList {
         let separators = [" — ", " – ", " - ", "\t", ": "]
-        var out: [(String, String)] = []
+        var out = ParsedList()
+        var lines = 0
         for raw in pasted.components(separatedBy: .newlines) {
-            let line = raw.trimmingCharacters(in: .whitespaces)
+            var line = raw.trimmingCharacters(in: .whitespaces)
             guard !line.isEmpty else { continue }
+            lines += 1
+            if lines > maxListLines { out.rejected += 1; continue }
+            line = stripBullet(line)
             var text = line, translation = ""
             if let sep = separators.compactMap({ s in line.range(of: s).map { (s, $0) } }).min(by: { $0.1.lowerBound < $1.1.lowerBound }) {
                 text = String(line[..<sep.1.lowerBound]).trimmingCharacters(in: .whitespaces)
                 translation = String(line[sep.1.upperBound...]).trimmingCharacters(in: .whitespaces)
             }
+            if isCyrillic(text), !translation.isEmpty, !isCyrillic(translation) { swap(&text, &translation) }
             guard !normalize(text).isEmpty else { continue }
-            out.append((String(text.prefix(120)), String(translation.prefix(160))))
+            guard text.count <= 120 else { out.rejected += 1; continue }
+            out.entries.append((text, String(translation.prefix(160))))
         }
         return out
     }
-}
 
-/// Finds the learner's items in an utterance (VR-07): tokens in the same order, at most 2 other tokens between neighbours;
-/// a token matches equal text, or for tokens of at least 5 letters a common prefix of at least max(5, length − 2) letters.
-public enum VocabularyMatcher {
-    public static let maxGap = 2
-
-    static func tokenMatches(_ item: String, _ word: String) -> Bool {
-        if item == word { return true }
-        guard item.count >= 5, word.count >= 5 else { return false }
-        let need = max(5, item.count - 2)
-        return word.count >= need && item.commonPrefix(with: word).count >= need
+    static func stripBullet(_ line: String) -> String {
+        var s = Substring(line)
+        if let f = s.first, "-•*–—".contains(f) { s = s.dropFirst() }
+        else {
+            let digits = s.prefix { $0.isNumber }
+            if !digits.isEmpty, let next = s.dropFirst(digits.count).first, next == "." || next == ")" { s = s.dropFirst(digits.count + 1) }
+        }
+        return s.trimmingCharacters(in: .whitespaces)
     }
 
-    public static func contains(_ itemText: String, in utterance: String) -> Bool {
-        let a = VocabularyText.tokens(itemText), b = VocabularyText.tokens(utterance)
-        guard !a.isEmpty, a.count <= b.count else { return false }
-        // Try every start position; greedy in-order search with bounded gaps.
-        for start in b.indices where tokenMatches(a[0], b[start]) {
-            var pos = start
-            var ok = true
-            for t in a.dropFirst() {
-                var found: Int?
-                var j = pos + 1
-                while j < b.count, j - pos - 1 <= maxGap {
-                    if tokenMatches(t, b[j]) { found = j; break }
-                    j += 1
-                }
-                guard let f = found else { ok = false; break }
-                pos = f
-            }
-            if ok { return true }
+    /// Mostly Cyrillic letters.
+    static func isCyrillic(_ s: String) -> Bool {
+        let letters = s.unicodeScalars.filter { CharacterSet.letters.contains($0) }
+        guard !letters.isEmpty else { return false }
+        let cyr = letters.filter { (0x0400...0x04FF).contains($0.value) }.count
+        return cyr * 2 > letters.count
+    }
+}
+
+/// Finds an item in an utterance (VR-07b). Golden cases: `packages/contracts/fixtures/vocab/matching.json`.
+public enum VocabularyMatcher {
+    public static let maxGap = 3
+    static let placeholders: [Lang: Set<String>] = [
+        .de: ["sich", "jdm", "jdn", "jemandem", "jemanden", "etw", "etwas"],
+        .en: ["sb", "sth", "someone", "something", "somebody", "ones", "oneself"],
+    ]
+    static let endings: [Lang: Set<String>] = [
+        .de: ["", "e", "en", "n", "st", "t", "et", "est", "te", "ten", "tet", "er", "es", "em", "s", "ens"],
+        .en: ["", "s", "es", "ed", "d", "ing", "er"],
+    ]
+    static let droppedEEndings: Set<String> = ["e", "es", "ed", "er", "ing"]
+    /// Longest first, so that `vorbei` is tried before `vor`.
+    static let separablePrefixes = ["zusammen", "zurück", "vorbei", "weiter", "durch", "fest", "nach", "auf", "aus", "bei", "ein", "her",
+                                    "hin", "los", "mit", "vor", "weg", "ab", "an", "um", "zu"]
+
+    /// Item tokens without placeholders (and without a leading English "to").
+    public static func itemTokens(_ text: String, lang: Lang) -> [String] {
+        var t = VocabularyText.tokens(text).filter { !(placeholders[lang]?.contains($0) ?? false) }
+        if lang == .en, t.first == "to", t.count > 1 { t.removeFirst() }
+        return t
+    }
+
+    static func stem(_ t: String, lang: Lang) -> String {
+        switch lang {
+        case .de:
+            if t.count > 5, t.hasSuffix("en") { return String(t.dropLast(2)) }
+            if t.count > 4, t.hasSuffix("n") || t.hasSuffix("e") { return String(t.dropLast()) }
+            return t
+        default:
+            if t.count > 3, t.hasSuffix("e") { return String(t.dropLast()) }
+            return t
+        }
+    }
+
+    /// One item token against one word: equal, or stem + allowed ending; short tokens must be equal; German participles may drop `ge`.
+    public static func wordMatches(_ token: String, _ word: String, lang: Lang) -> Bool {
+        if token == word { return true }
+        guard token.count > 3 else { return false }
+        let s = stem(token, lang: lang)
+        var candidates = [word]
+        if lang == .de, word.hasPrefix("ge"), word.count >= 6 { candidates.append(String(word.dropFirst(2))) }
+        // An English item that lost its `e` takes only vowel endings (`care` → `cares`, `caring`, but not `cars`, VR-07b).
+        let allowed = lang == .en && s != token ? droppedEEndings : (endings[lang] ?? [])
+        for w in candidates where w.hasPrefix(s) {
+            if allowed.contains(String(w.dropFirst(s.count))) { return true }
         }
         return false
     }
 
-    public static func found(_ items: [VocabItem], in utterance: String) -> [VocabItem] {
-        items.filter { contains($0.text, in: utterance) }
+    /// Indices of the utterance words that realise one item token at `i` (two indices for a separated German verb), or nil.
+    static func tokenAt(_ token: String, _ words: [String], _ i: Int, lang: Lang) -> [Int]? {
+        let word = words[i]
+        if wordMatches(token, word, lang: lang) { return [i] }
+        guard lang == .de else { return nil }
+        for p in separablePrefixes where token.hasPrefix(p) && token.count > p.count + 3 {
+            let verb = String(token.dropFirst(p.count))
+            // Participle `angerufen` and zu-infinitive `anzurufen`: the prefix stays in front of the verb form.
+            if word.hasPrefix(p), word.count > p.count + 3 {
+                var rest = String(word.dropFirst(p.count))
+                if rest.hasPrefix("zu"), rest.count > 4, wordMatches(verb, String(rest.dropFirst(2)), lang: lang) { return [i] }
+                if rest.hasPrefix("ge") { rest = String(rest.dropFirst(2)) }
+                if wordMatches(verb, rest, lang: lang) { return [i] }
+            }
+            // Split form: `ich rufe dich morgen an`.
+            if wordMatches(verb, word, lang: lang), i + 1 < words.count, let j = words[(i + 1)...].firstIndex(of: p), j - i <= 10 { return [i, j] }
+        }
+        return nil
+    }
+
+    /// The utterance word indices that realise the item, or nil when the item does not occur. Backtracking search, so repeated
+    /// words never hide a valid placement.
+    public static func match(_ itemText: String, in utterance: String, lang: Lang) -> [Int]? {
+        let a = itemTokens(itemText, lang: lang), b = VocabularyText.tokens(utterance)
+        guard !a.isEmpty, !b.isEmpty else { return nil }
+        if lang == .de {
+            // Any order within a window (word order changes in German clauses).
+            let width = a.count + maxGap * (a.count - 1)
+            func assign(_ k: Int, _ range: Range<Int>, _ used: Set<Int>) -> [Int]? {
+                if k == a.count { return [] }
+                for i in range where !used.contains(i) {
+                    guard let hit = tokenAt(a[k], b, i, lang: lang), used.isDisjoint(with: hit) else { continue }
+                    if let rest = assign(k + 1, range, used.union(hit)) { return hit + rest }
+                }
+                return nil
+            }
+            for start in b.indices {
+                if let span = assign(0, start..<min(b.count, start + width), []) { return span.sorted() }
+            }
+            return nil
+        }
+        func place(_ k: Int, after prev: Int) -> [Int]? {
+            if k == a.count { return [] }
+            let range = k == 0 ? 0..<b.count : (prev + 1)..<min(b.count, prev + 2 + maxGap)
+            for j in range {
+                guard let hit = tokenAt(a[k], b, j, lang: lang), let rest = place(k + 1, after: hit[0]) else { continue }
+                return hit + rest
+            }
+            return nil
+        }
+        return place(0, after: -1)
+    }
+
+    public static func contains(_ itemText: String, in utterance: String, lang: Lang) -> Bool { match(itemText, in: utterance, lang: lang) != nil }
+
+    /// VR-07 outcome: a mistake when an `@fix` of the turn has an original that contains the item and a corrected text whose matched
+    /// words differ (or that does not contain the item).
+    public static func outcome(_ item: VocabItem, fixes: [Fix]) -> VocabOutcome {
+        for f in fixes {
+            guard let o = match(item.text, in: f.original, lang: item.lang) else { continue }
+            let ow = VocabularyText.tokens(f.original), cw = VocabularyText.tokens(f.corrected)
+            guard let c = match(item.text, in: f.corrected, lang: item.lang) else { return .mistake }
+            if o.map({ ow[$0] }) != c.map({ cw[$0] }) { return .mistake }
+        }
+        return .ok
     }
 }
 
@@ -81,13 +194,16 @@ public enum VocabularySelection {
     public static let ordinaryCount = 3
     public static let wordsModeCount = 6
 
-    public static func select(_ items: [VocabItem], lang: Lang, usedInSession: Set<String>, count: Int) -> [VocabItem] {
-        let candidates = items.filter { $0.lang == lang && !usedInSession.contains($0.id) }
-        return Array(candidates.sorted(by: before).prefix(max(0, count)))
+    /// `pinned` (the "Practise" button) comes first while it is a candidate.
+    public static func select(_ items: [VocabItem], lang: Lang, usedInSession: Set<String>, count: Int, pinned: String? = nil) -> [VocabItem] {
+        var candidates = items.filter { $0.lang == lang && !usedInSession.contains($0.id) }.sorted(by: before)
+        if let p = pinned, let i = candidates.firstIndex(where: { $0.id == p }) { candidates.insert(candidates.remove(at: i), at: 0) }
+        return Array(candidates.prefix(max(0, count)))
     }
 
     static func before(_ a: VocabItem, _ b: VocabItem) -> Bool {
         if a.used != b.used { return a.used < b.used }
+        if a.mistakes != b.mistakes { return a.mistakes > b.mistakes }
         if a.offered != b.offered { return a.offered < b.offered }
         switch (a.lastPractised, b.lastPractised) {
         case (nil, .some): return true
@@ -96,6 +212,6 @@ public enum VocabularySelection {
         default: break
         }
         if a.createdAt != b.createdAt { return a.createdAt > b.createdAt }
-        return a.id < b.id
+        return Array(a.id.utf8).lexicographicallyPrecedes(Array(b.id.utf8))
     }
 }

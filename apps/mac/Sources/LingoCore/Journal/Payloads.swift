@@ -110,9 +110,13 @@ public enum Payload {
 
     public struct VocabUsed: Codable, Sendable, Hashable {
         public var item: String
+        /// The learner's message (by learner) or the assistant's reply (by assistant): one event counts per (item, by, message).
+        public var message: String
         public var by: VocabActor
         public var outcome: VocabOutcome
-        public init(item: String, by: VocabActor, outcome: VocabOutcome) { self.item = item; self.by = by; self.outcome = outcome }
+        public init(item: String, message: String, by: VocabActor, outcome: VocabOutcome) {
+            self.item = item; self.message = message; self.by = by; self.outcome = outcome
+        }
     }
 
     public struct ProfileUpdated: Codable, Sendable, Hashable {
