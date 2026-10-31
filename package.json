@@ -1,0 +1,12 @@
+{
+  "name": "lingo",
+  "private": true,
+  "description": "Lingo TypeScript workspaces (ADR-0002, ADR-0004): shared core, engine and web client.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "workspaces": ["packages/core-ts"],
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "build": "npm run build --workspaces"
+  }
+}

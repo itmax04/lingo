@@ -39,3 +39,11 @@ services/engine/dist/
 coverage/
 playwright-report/
 test-results/
+
+# TypeScript workspaces (ADR-0004)
+node_modules/
+packages/*/dist/
+apps/web/dist/
+services/*/dist/
+.wrangler/
+coverage/
