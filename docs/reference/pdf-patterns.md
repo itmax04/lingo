@@ -1,31 +1,32 @@
-# Паттерны из PDF-примера (16 страниц)
+# Patterns from the PDF example (16 pages)
 
-Оригинал — личная переписка владельца, в Git не хранится: `private/pdf-example.pdf` (в `.gitignore`),
-источник `~/Downloads/pdf24_объединенный-4.pdf`. Здесь только обезличенные наблюдения: имя заменено на «Alex».
+The original is the owner's private conversation and is not kept in Git: `private/pdf-example.pdf` (in `.gitignore`),
+source `~/Downloads/pdf24_объединенный-4.pdf`. Only anonymised observations are kept here: the name is replaced by "Alex".
+The quoted utterances are language data and stay in their original language (German and Russian); everything else is translated (LINGO-03 P-06, MR-08).
 
-**PDF — источник примеров, а не набор команд.** Роль (сосед Thomas), уровень (A2), тема (знакомство, море)
-и правило «после 10 реплик перечисли 3–5 ошибок» — настройки одной конкретной сессии, а не умолчания приложения.
+**The PDF is a source of examples, not a set of commands.** The role (neighbour Thomas), the level (A2), the topic (getting acquainted, the sea)
+and the rule "after 10 turns list 3–5 mistakes" are settings of one particular session, not app defaults.
 
-## Как устроен разговор
-| № | Наблюдение (страница) | Что это значит для Lingo | Требование |
+## How the conversation works
+| № | Observation (page) | What it means for Lingo | Requirement |
 |---|---|---|---|
-| P1 | Сессия начинается с подробного промпта: роль, ситуация, уровень, правила, «начни первым» (с. 1) | Режим «свой промпт»; помощник может начинать первым | R-02, R-03 |
-| P2 | Помощник задаёт по одному короткому вопросу и ждёт ответа (с. 1–16) | Режим «вопросы»: один вопрос за ход | R-03 |
-| P3 | Исправление по ходу: «Fast perfekt! Natürlicher wäre: „…“», затем просьба повторить (с. 2, 5–6) | Режим исправления «по ходу» | R-20 |
-| P4 | «Äh nochmal, bitte» → помощник повторяет медленно и по частям: «In kleinen Stücken» (с. 2) | Команды «повтори» и «медленнее» на любом языке; повтор частями | R-14, R-15 |
-| P5 | Ответ правильный, но не на тот вопрос: «beantwortet … nur teilweise» (с. 2) | Помощник оценивает смысл, а не только грамматику | R-20 |
-| P6 | Пользователь пишет по-русски «Как ещё можно сказать…», «Как сказать», «Что сказать» (с. 3, 8) | Команда «как сказать»; результат идёт в подсказки | R-16, R-27 |
-| P7 | «Что ты мне спросил» — помощник переводит свой вопрос на русский и даёт пример ответа (с. 10) | Явная просьба → объяснение по-русски → возврат к практике | R-17 |
-| P8 | Пользователь говорит по-русски, что хочет сказать: «Нет, я хочу сказать, что у меня каникулы» (с. 7) | Русская реплика без просьбы об объяснении → вариант на изучаемом языке и просьба повторить | R-18, A-2 |
-| P9 | Смешанная речь в одной фразе: «Dann musste, ой, не, не, с самого начала. Dann muss ich zu Hause» (с. 14) | Смешанная речь; «с самого начала» — самоисправление, не ошибка | R-08, R-09 |
-| P10 | Обрывки распознавания: «Почти-поч», «Прекрасно. Дава», «spazieren» отдельной репликой (с. 7, 10–11, 15) | Конец фразы — по настраиваемой паузе; короткие добавки склеиваются с предыдущей репликой | R-10, R-11 |
-| P11 | Ошибки распознавания внутри слов: «kennenzul ernen», «Rostok», «When es regnet» (с. 2, 5, 15) | Не считать каждую ошибку расшифровки ошибкой пользователя; не оценивать произношение | R-21 |
-| P12 | Советы по произношению по тексту: «„S“ чуть мягче», «ясное ck», «„Das“ чуть мягче» (с. 2, 5, 8) | **Запрещено**: по расшифровке произношение не оценить | R-21 |
-| P13 | «Давай продолжаем», «Готов», «Nein, machen wir weiter» (с. 2, 5, 9, 11) | Команда «продолжим» | R-19 |
-| P14 | «Я думаю, на это всё» → «Хорошо, завершаю», «Ended voice chat» (с. 16) | Голосовое завершение сессии; итог по выбранным режимам исправления | R-22, R-23 |
-| P15 | Повтор одной фразы с наращиванием: фраза → + причина → + чувство → целиком (с. 7–8, 14–15) | Помощник строит длинную фразу шагами | R-03 (стиль промпта) |
-| P16 | Пользователь повторяет фразу дважды подряд в одной реплике (с. 5, 9) | Дубли в расшифровке не считать ошибкой | R-21 |
+| P1 | A session starts with a detailed prompt: role, situation, level, rules, "start first" (p. 1) | A "custom prompt" mode; the assistant may start first | R-02, R-03 |
+| P2 | The assistant asks one short question at a time and waits for the answer (p. 1–16) | A "questions" mode: one question per turn | R-03 |
+| P3 | Correction as you go: "Fast perfekt! Natürlicher wäre: „…“", then a request to repeat (p. 2, 5–6) | The "as you go" correction mode | R-20 |
+| P4 | "Äh nochmal, bitte" → the assistant repeats slowly and in parts: "In kleinen Stücken" (p. 2) | The commands "repeat" and "slower" in any language; repeating in parts | R-14, R-15 |
+| P5 | The answer is correct but to a different question: "beantwortet … nur teilweise" (p. 2) | The assistant judges the meaning, not only the grammar | R-20 |
+| P6 | The user writes in Russian "Как ещё можно сказать…", "Как сказать", "Что сказать" (p. 3, 8) ("How else can one say…", "How to say", "What to say") | The "how to say" command; the result goes into the hints | R-16, R-27 |
+| P7 | "Что ты мне спросил" ("What did you ask me") — the assistant translates its question into Russian and gives an example answer (p. 10) | An explicit request → an explanation in Russian → back to practice | R-17 |
+| P8 | The user says in Russian what they want to say: "Нет, я хочу сказать, что у меня каникулы" ("No, I want to say that I am on vacation") (p. 7) | A Russian utterance without a request for an explanation → a version in the study language and a request to repeat | R-18, A-2 |
+| P9 | Mixed speech in one phrase: "Dann musste, ой, не, не, с самого начала. Dann muss ich zu Hause" ("oh, no, no, from the very beginning") (p. 14) | Mixed speech; "from the very beginning" is a self-correction, not a mistake | R-08, R-09 |
+| P10 | Recognition fragments: "Почти-поч", "Прекрасно. Дава", "spazieren" as a separate utterance (p. 7, 10–11, 15) | The end of a phrase follows a configurable pause; short additions are merged with the previous utterance | R-10, R-11 |
+| P11 | Recognition errors inside words: "kennenzul ernen", "Rostok", "When es regnet" (p. 2, 5, 15) | Do not count every transcription error as the user's mistake; do not assess pronunciation | R-21 |
+| P12 | Pronunciation tips from the text: "„S“ a little softer", "a clear ck", "„Das“ a little softer" (p. 2, 5, 8) | **Forbidden**: pronunciation cannot be assessed from a transcript | R-21 |
+| P13 | "Давай продолжаем" ("Let's continue"), "Готов" ("Ready"), "Nein, machen wir weiter" (p. 2, 5, 9, 11) | The "let's continue" command | R-19 |
+| P14 | "Я думаю, на это всё" ("I think that is all") → "Хорошо, завершаю" ("Fine, I am finishing"), "Ended voice chat" (p. 16) | Ending the session by voice; a summary by the chosen correction modes | R-22, R-23 |
+| P15 | Repeating one phrase while building it up: phrase → + reason → + feeling → the whole (p. 7–8, 14–15) | The assistant builds a long phrase in steps | R-03 (prompt style) |
+| P16 | The user repeats a phrase twice in a row within one utterance (p. 5, 9) | Do not count duplicates in the transcript as a mistake | R-21 |
 
-## Интерфейс в PDF
-Обычный чат: реплики пользователя справа в синих пузырях, ответы помощника слева без пузыря, сайдбар с историей.
-Финальный вид Lingo задаёт макет [lingo-mac.webp](../design/lingo-mac.webp). Из PDF берутся сценарии, а не внешний вид.
+## The interface in the PDF
+An ordinary chat: the user's turns on the right in blue bubbles, the assistant's answers on the left without a bubble, a sidebar with the history.
+The final look of Lingo is set by the mockup [lingo-mac.webp](../design/lingo-mac.webp). Scenarios are taken from the PDF, not its appearance.

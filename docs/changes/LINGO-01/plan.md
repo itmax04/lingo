@@ -1,173 +1,174 @@
-# LINGO-01: Технический план v2 — MVP для Mac
+# LINGO-01: Technical plan v2 — MVP for the Mac
 
-ID: LINGO-01-plan · Статус: **accepted** (2026-10-25) · Версия: 2 · Дата: 2026-10-25 · Владелец: itmax04
-Предусловие: intent, spec и ADR-0001 приняты владельцем. Требования здесь не повторяются, только ссылки на номера R- и AC- из [spec.md](spec.md).
-Исполнитель: Claude Code, `claude-opus-5-5`, effort high.
-Версия 2: владелец решил начать с Mac, а под iPhone адаптировать потом (Q27). Проверки на iPhone (spec, раздел 4) и служебное приложение
-переносятся в LINGO-02. Версия 1 плана есть в истории Git, коммит `9e8daa0`.
+ID: LINGO-01-plan · Status: **accepted** (2026-10-25) · Version: 2 · Date: 2026-10-25 · Owner: itmax04
+Precondition: intent, spec and ADR-0001 were accepted by the owner. Requirements are not repeated here, only references to the R- and AC- numbers of [spec.md](spec.md).
+Executor: Claude Code, `claude-opus-5-5`, effort high.
+Version 2: the owner decided to start with the Mac and adapt for the iPhone later (Q27). The iPhone checks (spec, section 4) and the utility app
+move to LINGO-02. Version 1 of the plan is in the Git history, commit `9e8daa0`.
+Translated to English in LINGO-03 P-06 (MR-08); the Russian original is in the Git history of this file.
 
-## Предусловия и состояние
-- Репозиторий `~/Desktop/1/lingo`, приватный `itmax04/lingo`. Работа идёт в `feat/lingo-01`, в `main` только начальный коммит.
-- Код не написан. Все команды ниже **новые**. Пока команды нет, её результат — NOT RUN.
-- Справочный код: Interview Copilot — `~/Desktop/InterviewCopilot-redesign/Результат-ImageGen/source` (коммит `cf0e764`), каталоги `Sources/CopilotCore/LLM`, `Secrets`, `STT`.
-  Код **копируется с адаптацией**, с указанием источника в шапке файла.
-- **Готовность к iPhone.** `LingoCore` пишется без AppKit и без API, которых нет на macOS или iOS.
-  С P-01 его сборка для iOS проверяется командой (см. «Проверки»), чтобы адаптация в LINGO-02 не требовала переделки ядра.
+## Preconditions and state
+- Repository `~/Desktop/1/lingo`, private `itmax04/lingo`. Work goes on in `feat/lingo-01`, `main` holds only the initial commit.
+- No code is written. All commands below are **new**. While a command does not exist, its result is NOT RUN.
+- Reference code: Interview Copilot — `~/Desktop/InterviewCopilot-redesign/<ImageGen results folder>/source` (commit `cf0e764`), directories `Sources/CopilotCore/LLM`, `Secrets`, `STT`.
+  The code is **copied with adaptation**, with the source named in the file header.
+- **iPhone readiness.** `LingoCore` is written without AppKit and without APIs that are missing on macOS or iOS.
+  From P-01 its iOS build is checked by a command (see "Checks"), so that the adaptation in LINGO-02 does not require reworking the core.
 
-## Точки ручных действий (H)
-В точке исполнитель останавливается, даёт пошаговую инструкцию на русском, говорит, что проверит после, и ждёт «готово». Других вопросов не задаёт.
+## Manual action points (H)
+At a point the executor stops, gives a step-by-step instruction in Russian, says what it will check afterwards, and waits for "done". It asks no other questions.
 
-| H | Шаг | Действие владельца |
+| H | Step | Owner action |
 |---|---|---|
-| H-0 | P-01 | Подтвердить сертификат подписи: оставить существующий «InterviewCopilot» (A-5) или создать «Lingo Dev» по инструкции |
-| H-1 | P-03 | Создать ключ Groq (и по желанию Mistral, OpenRouter) и ввести его в Lingo → «Настройки → Ключи и модели», нажать «Проверить». В чат ключи не присылать |
-| H-2 | P-04 | Разрешить Lingo доступ к микрофону и распознаванию речи. Прочитать 15 фраз для проверки распознавания по `evals/live-script-mac.md`, часть 1 |
-| H-3 | P-10 | Выбрать папку iCloud Drive `Lingo` в настройках синхронизации; при запросе macOS разрешить доступ к iCloud Drive |
-| H-4 | P-11 | Живая проверка по `evals/live-script-mac.md` (≈40 мин) + оценка интерфейса рядом с макетом + слепая оценка 20 ответов (`evals/blind-review.md`) |
-| H-5 | P-12 | Приёмка по report.md |
+| H-0 | P-01 | Confirm the signing certificate: keep the existing "InterviewCopilot" (A-5) or create "Lingo Dev" following the instruction |
+| H-1 | P-03 | Create a Groq key (and optionally Mistral, OpenRouter) and enter it in Lingo → "Settings → Keys and models", press "Check". Do not send keys in the chat |
+| H-2 | P-04 | Allow Lingo access to the microphone and speech recognition. Read 15 phrases to check recognition from `evals/live-script-mac.md`, part 1 |
+| H-3 | P-10 | Choose the iCloud Drive folder `Lingo` in the sync settings; allow access to iCloud Drive when macOS asks |
+| H-4 | P-11 | Live check from `evals/live-script-mac.md` (≈40 min) + an interface assessment next to the mockup + a blind assessment of 20 answers (`evals/blind-review.md`) |
+| H-5 | P-12 | Acceptance from report.md |
 
-## Файлы и порядок
-Каждый шаг: реализация → проверки шага → просмотр своего diff → обновление handoff.md → коммит `P-xx: <кратко>` → `scripts/secret-scan.sh` → `git push origin feat/lingo-01`.
+## Files and order
+Each step: implementation → step checks → review of its own diff → update handoff.md → commit `P-xx: <short>` → `scripts/secret-scan.sh` → `git push origin feat/lingo-01`.
 
-**P-00. Обследование и baseline**
-- Записать в handoff.md: `git status`, `xcodebuild -version`, `swift --version`, свободное место.
-- Сверить с первоисточниками на дату шага и записать со ссылками:
-  - бесплатные лимиты и модели Groq, Mistral, OpenRouter; требуют ли они карту;
-  - релиз whisper.cpp с XCFramework: тег, размер, SHA256.
-- Сведения об iPhone из сессии 2026-10-25 — для LINGO-02, в этом плане не используются.
+**P-00. Survey and baseline**
+- Record in handoff.md: `git status`, `xcodebuild -version`, `swift --version`, free space.
+- Check against the primary sources on the date of the step and record with links:
+  - the free limits and models of Groq, Mistral, OpenRouter; whether they require a card;
+  - the whisper.cpp release with an XCFramework: tag, size, SHA256.
+- The iPhone information from the session of 2026-10-25 is for LINGO-02 and is not used in this plan.
 
-**P-01. Каркас, тема, окно** — R-40, R-41 (статично), R-49, AC-11 (часть), AC-13, AC-14
-- `Package.swift`: цели `LingoCore`, `LingoMac`, `lingo-eval`, `LingoCoreTests`. Платформы: macOS 15, iOS 17 (для ядра).
-- `LingoMac/Design/Theme.swift`: токены из DESIGN.md один в один. Окно из трёх колонок на фикстурах:
-  сессии и сообщения с макета, две подсказки, голосовая панель в состоянии «Слушаю».
-- Скрипты:
-  - `scripts/build-app.sh` — `dist/Lingo.app`, подпись по A-5;
-  - `scripts/secret-scan.sh` — ключи Groq `gsk_…`, Mistral, OpenRouter `sk-or-…`, общие `sk-…`; email и телефоны; запрет `private/` в индексе;
-  - `scripts/check-core-ios.sh` — сборка `LingoCore` для `generic/platform=iOS`.
-- Проверки: `swift build`, `scripts/build-app.sh`, `scripts/check-core-ios.sh`, `scripts/secret-scan.sh`.
-  Скриншот окна рядом с `lingo-mac.webp` → `evidence/ui-p01.png`; контраст текста по DESIGN.md §8 записать в handoff.
+**P-01. Skeleton, theme, window** — R-40, R-41 (static), R-49, AC-11 (part), AC-13, AC-14
+- `Package.swift`: targets `LingoCore`, `LingoMac`, `lingo-eval`, `LingoCoreTests`. Platforms: macOS 15, iOS 17 (for the core).
+- `LingoMac/Design/Theme.swift`: tokens from DESIGN.md one to one. A three-column window on fixtures:
+  the sessions and messages from the mockup, two hints, the voice panel in the "Listening" state.
+- Scripts:
+  - `scripts/build-app.sh` — `dist/Lingo.app`, signing per A-5;
+  - `scripts/secret-scan.sh` — Groq keys `gsk_…`, Mistral, OpenRouter `sk-or-…`, generic `sk-…`; emails and phone numbers; a ban on `private/` in the index;
+  - `scripts/check-core-ios.sh` — a `LingoCore` build for `generic/platform=iOS`.
+- Checks: `swift build`, `scripts/build-app.sh`, `scripts/check-core-ios.sh`, `scripts/secret-scan.sh`.
+  A screenshot of the window next to `lingo-mac.webp` → `evidence/ui-p01.png`; record the text contrast per DESIGN.md §8 in the handoff.
 - **H-0.**
 
-**P-02. Журнал и синхронизация (ядро)** — R-34…R-39, S-19, S-20
+**P-02. Journal and sync (core)** — R-34…R-39, S-19, S-20
 - `LingoCore/Journal/`:
   - `Event` (R-35);
-  - `JournalWriter` (дописывание + fsync);
+  - `JournalWriter` (append + fsync);
   - `JournalReader` (R-39);
   - `Merger` (R-37);
-  - `SyncFolder` (bookmark, `NSFileCoordinator`, загрузка из iCloud);
+  - `SyncFolder` (bookmark, `NSFileCoordinator`, download from iCloud);
   - `SyncScheduler` (R-38).
-- Тесты:
-  - слияние: перестановки, дубли, равные `ts`, LWW по `lamport`;
-  - оборванная строка;
-  - 2 писателя × 25 сообщений;
-  - свойство «объединение коммутативно и идемпотентно».
-- `lingo-eval sync-write --device <id> --session <id> --count N` — второе «устройство» для проверки S-19 без iPhone.
-  `scripts/sync-check.py <folder>` — сверка множеств сообщений, потери и дубли.
+- Tests:
+  - merge: permutations, duplicates, equal `ts`, LWW by `lamport`;
+  - a truncated line;
+  - 2 writers × 25 messages;
+  - the property "the union is commutative and idempotent".
+- `lingo-eval sync-write --device <id> --session <id> --count N` — a second "device" for checking S-19 without an iPhone.
+  `scripts/sync-check.py <folder>` — compares the message sets, losses and duplicates.
 
-**P-03. Цепочка моделей** — R-24, R-25, R-29, R-30, R-44 (вкладка ключей), R-48, S-18, AC-09
-- Перенос из IC с адаптацией:
-  - `LLM/ProviderChain.swift` (R-29: тройки, неограниченные ключи, выключение ключа, `retry-after`);
+**P-03. Model chain** — R-24, R-25, R-29, R-30, R-44 (keys tab), R-48, S-18, AC-09
+- Ported from IC with adaptation:
+  - `LLM/ProviderChain.swift` (R-29: triples, unlimited keys, disabling a key, `retry-after`);
   - `ProviderHealth`, `SSEClient`, `KeyVerifier`;
-  - `Providers` (OpenAI-совместимые);
+  - `Providers` (OpenAI-compatible);
   - `Secrets/KeychainStore.swift` (service `com.itmax04.lingo`).
-- `LingoCore/Dialogue/ReplyProtocolParser.swift` (R-24, потоковый), `PromptBuilder.swift` (R-25), `ContextPolicy.swift` (R-04).
-- Окно настроек, вкладка «Ключи и модели»: список ключей у каждого провайдера, «Проверить», порядок цепочки, модели из `GET /models`.
-- Тесты:
-  - цепочка с mock-провайдером: 429 → следующий ключ; 401 → ключ выключен; таймаут; исчерпание;
-  - парсер на фикстурах, включая битые строки;
-  - снапшоты PromptBuilder для трёх режимов и всех сочетаний исправлений.
-- **H-1**, затем `GET /models` у Groq. Список моделей записать в handoff.
+- `LingoCore/Dialogue/ReplyProtocolParser.swift` (R-24, streaming), `PromptBuilder.swift` (R-25), `ContextPolicy.swift` (R-04).
+- The settings window, the "Keys and models" tab: a list of keys for each provider, "Check", the chain order, models from `GET /models`.
+- Tests:
+  - the chain with a mock provider: 429 → next key; 401 → key disabled; timeout; exhaustion;
+  - the parser on fixtures, including broken lines;
+  - PromptBuilder snapshots for the three modes and all combinations of corrections.
+- **H-1**, then `GET /models` at Groq. Record the model list in the handoff.
 
-**P-04. Речь на Mac** — R-08…R-15, R-12, AC-04, AC-16
+**P-04. Speech on the Mac** — R-08…R-15, R-12, AC-04, AC-16
 - `LingoCore/Speech/`:
-  - `SpeechRecognizer` (протокол) и движки Mac по ADR-0001 п. 6;
+  - `SpeechRecognizer` (protocol) and the Mac engines per ADR-0001 item 6;
   - `VoiceActivityDetector`;
   - `TurnSegmenter` (R-10, R-11);
-  - `SpeechOutput` (AVSpeechSynthesizer, сегменты, темп, деление на части R-15);
+  - `SpeechOutput` (AVSpeechSynthesizer, segments, pace, splitting into parts R-15);
   - `BargeInMonitor` (R-12, voice processing).
-- `LingoCore/Commands/CommandDetector.swift` и `evals/commands/*.yaml` (≥ 90 фраз ru, de, en, ≥ 25% отрицательных).
-- `evals/audio/`: синтетика `say` (en Samantha/Daniel, de Anna, ru Milena), смешанные — склейка ffmpeg. Эталонные тексты.
-- `lingo-eval stt --engine <id> --set evals/audio`: WER, определение языка, задержка, память. Выбор движка записать в ADR-0001.
-  Неиспользуемые модели whisper удалить с диска.
-- Проверки: `swift test`; `scripts/run-evals.sh commands` (≥ 95%); `scripts/run-evals.sh turn`. **H-2** → AC-16 на живых фразах.
+- `LingoCore/Commands/CommandDetector.swift` and `evals/commands/*.yaml` (≥ 90 phrases ru, de, en, ≥ 25% negative).
+- `evals/audio/`: synthetic `say` recordings (en Samantha/Daniel, de Anna, ru Milena), mixed ones joined with ffmpeg. Reference texts.
+- `lingo-eval stt --engine <id> --set evals/audio`: WER, language detection, latency, memory. Record the engine choice in ADR-0001.
+  Delete the unused whisper models from the disk.
+- Checks: `swift test`; `scripts/run-evals.sh commands` (≥ 95%); `scripts/run-evals.sh turn`. **H-2** → AC-16 on live phrases.
 
-**P-05. Качество диалога** — R-03, R-16…R-21, R-24…R-26, AC-05, AC-06
-- `evals/dialog/*.yaml`: ≥ 80 кейсов по паттернам P1–P16 (evals/README.md), только синтетика.
-- `lingo-eval dialog --source chain` → `evals/out/dialog-chain.json`. Правила и судья по evals/README.md.
-- Подбор моделей Groq по умолчанию и порядка цепочки по результатам. Запись в ADR-0001.
-- `evals/blind-review.md`: 20 случайных ответов для H-4.
+**P-05. Dialogue quality** — R-03, R-16…R-21, R-24…R-26, AC-05, AC-06
+- `evals/dialog/*.yaml`: ≥ 80 cases from the patterns P1–P16 (evals/README.md), synthetic data only.
+- `lingo-eval dialog --source chain` → `evals/out/dialog-chain.json`. Rules and judge per evals/README.md.
+- Choosing the default Groq models and the chain order from the results. Recorded in ADR-0001.
+- `evals/blind-review.md`: 20 random answers for H-4.
 
-**P-06. Сессии** — R-01…R-05, S-01, S-16, AC-01, AC-07
-- Экран настройки (S-01, A-3), список и фильтр English/Deutsch, меню «…», продолжение с `ContextPolicy`, краткое содержание и итог как события.
-- Тесты: создание, переименование, удаление-надгробие, продолжение, перезапуск приложения.
+**P-06. Sessions** — R-01…R-05, S-01, S-16, AC-01, AC-07
+- The setup screen (S-01, A-3), the list and the English/Deutsch filter, the "…" menu, continuation with `ContextPolicy`, the summary and the recap as events.
+- Tests: creation, renaming, delete-tombstone, continuation, app restart.
 
-**P-07. Голосовой цикл** — R-06, R-07, R-10…R-13, R-42, R-43, S-02…S-05, AC-02, AC-03
-- `TurnController`: удержание пробела, непрерывный режим, склейка, перебивание, отмена запроса, отметка «прервано».
-- Голосовая панель (состояния и волна), ввод текстом.
-- `MetricsRecorder` (отметки хода R-47; на Mac — без MetricKit) и `scripts/metrics.py`.
-- Тесты `TurnController` на фейковом аудио: склейка, перебивание, Esc.
+**P-07. Voice loop** — R-06, R-07, R-10…R-13, R-42, R-43, S-02…S-05, AC-02, AC-03
+- `TurnController`: holding the space bar, continuous mode, merging, barge-in, request cancellation, the "interrupted" mark.
+- The voice panel (states and wave), text input.
+- `MetricsRecorder` (turn marks R-47; on the Mac without MetricKit) and `scripts/metrics.py`.
+- `TurnController` tests on fake audio: merging, barge-in, Esc.
 
-**P-08. Поведение помощника** — R-14…R-26, S-06…S-15, AC-04…AC-06
-- Команды локально и через модель, русский по явной просьбе, R-18, режимы исправления и их сочетания, агрегатор `@fix`, итог R-23, завершение голосом R-22.
-- `scripts/run-evals.sh dialog` и `commands` по порогам AC-04 и AC-05.
+**P-08. Assistant behaviour** — R-14…R-26, S-06…S-15, AC-04…AC-06
+- Commands locally and through the model, Russian on an explicit request, R-18, the correction modes and their combinations, the `@fix` aggregator, the recap R-23, ending by voice R-22.
+- `scripts/run-evals.sh dialog` and `commands` against the AC-04 and AC-05 thresholds.
 
-**P-09. Подсказки и словарь** — R-27, R-28, AC-10
-- Фоновая генерация «Фраз темы», разделы, прослушивание с очередью и паузой микрофона, ★ и словарь.
+**P-09. Hints and vocabulary** — R-27, R-28, AC-10
+- Background generation of "Topic phrases", the sections, listening with a queue and a microphone pause, ★ and the vocabulary.
 
-**P-10. Синхронизация в приложении, настройки, первый запуск** — R-32, R-33, R-36…R-38, R-44, R-45, S-17, S-20, AC-08, AC-12
-- Интеграция `SyncScheduler`, статусы, ✓/✓✓, остальные вкладки настроек, мастер первого запуска, плашка источника, офлайн-состояние.
-- Исполнитель создаёт папку `~/Library/Mobile Documents/com~apple~CloudDocs/Lingo`. **H-3**.
-- S-19 по AC-08: Lingo без сети пишет 25 сообщений, `lingo-eval sync-write` пишет 25 от второго устройства, сеть включается, `scripts/sync-check.py`.
+**P-10. Sync in the app, settings, first launch** — R-32, R-33, R-36…R-38, R-44, R-45, S-17, S-20, AC-08, AC-12
+- Integration of `SyncScheduler`, statuses, ✓/✓✓, the remaining settings tabs, the first-launch wizard, the source badge, the offline state.
+- The executor creates the folder `~/Library/Mobile Documents/com~apple~CloudDocs/Lingo`. **H-3**.
+- S-19 per AC-08: Lingo without a network writes 25 messages, `lingo-eval sync-write` writes 25 from the second device, the network is switched on, `scripts/sync-check.py`.
 
-**P-11. Живая проверка** — AC-02, AC-03, AC-10, AC-11, AC-15, AC-16
-- `evals/live-script-mac.md`, метрики, `footprint -p $(pgrep Lingo)` раз в минуту. **H-4.**
+**P-11. Live check** — AC-02, AC-03, AC-10, AC-11, AC-15, AC-16
+- `evals/live-script-mac.md`, metrics, `footprint -p $(pgrep Lingo)` once a minute. **H-4.**
 
-**P-12. Ревью и отчёт** — все AC
-- `/code-review` уровня high по ветке, исправление P0 и P1.
-- `report.md`: таблица AC → команда → результат → свидетельство; непроверенное; риски; что готово для LINGO-02 (iPhone).
-- Обновить README, ADR, handoff. **H-5.**
+**P-12. Review and report** — all AC
+- `/code-review` at level high on the branch, fixing P0 and P1.
+- `report.md`: a table AC → command → result → evidence; what was not verified; risks; what is ready for LINGO-02 (iPhone).
+- Update the README, the ADR, the handoff. **H-5.**
 
-## Зависимости
-Только из ADR-0001 п. 11. Любая другая — запись в ADR и пометка «требует подтверждения владельца» в handoff.
+## Dependencies
+Only from ADR-0001 item 11. Any other one is an ADR entry and a "needs owner confirmation" note in the handoff.
 
-## Проверки
-| Команда (новая) | Шаги | Ожидаемое свидетельство |
+## Checks
+| Command (new) | Steps | Expected evidence |
 |---|---|---|
-| `swift build` | все | Сборка без ошибок |
-| `swift test` | P-02+ | Все тесты зелёные, число тестов в handoff |
-| `scripts/check-core-ios.sh` | P-01+ | `LingoCore` собирается для iOS (готовность к LINGO-02) |
-| `scripts/build-app.sh` | P-01+ | `dist/Lingo.app`, `codesign -dv` показывает сертификат по A-5 |
-| `scripts/secret-scan.sh` | P-01+, перед каждым push | «0 findings» (AC-13) |
+| `swift build` | all | Build without errors |
+| `swift test` | P-02+ | All tests green, the number of tests in the handoff |
+| `scripts/check-core-ios.sh` | P-01+ | `LingoCore` builds for iOS (readiness for LINGO-02) |
+| `scripts/build-app.sh` | P-01+ | `dist/Lingo.app`, `codesign -dv` shows the certificate per A-5 |
+| `scripts/secret-scan.sh` | P-01+, before each push | "0 findings" (AC-13) |
 | `scripts/run-evals.sh commands` | P-04+ | ≥ 95% (AC-04) |
-| `scripts/run-evals.sh turn` | P-04+ | Метрики из evals/README |
-| `scripts/run-evals.sh dialog` | P-05+ | Пороги AC-05, AC-06 |
-| `lingo-eval stt …` | P-04 | WER и определение языка |
-| `scripts/metrics.py <jsonl>` | P-07+ | Медианы и p90 (AC-02) |
-| `scripts/sync-check.py <folder>` | P-02, P-10 | 0 потерь, 0 дублей (AC-08) |
-| `footprint -p $(pgrep Lingo)` | P-11 | Пик ≤ 1,2 ГБ (AC-15) |
+| `scripts/run-evals.sh turn` | P-04+ | Metrics from evals/README |
+| `scripts/run-evals.sh dialog` | P-05+ | The AC-05, AC-06 thresholds |
+| `lingo-eval stt …` | P-04 | WER and language detection |
+| `scripts/metrics.py <jsonl>` | P-07+ | Medians and p90 (AC-02) |
+| `scripts/sync-check.py <folder>` | P-02, P-10 | 0 losses, 0 duplicates (AC-08) |
+| `footprint -p $(pgrep Lingo)` | P-11 | Peak ≤ 1.2 GB (AC-15) |
 
-Тесты и пороги нельзя ослаблять ради зелёного результата. Если тест требует ключа, которого нет, — NOT RUN, а не удаление теста.
+Tests and thresholds must not be weakened to get a green result. If a test needs a key that is missing, it is NOT RUN, not a deleted test.
 
-## Риски и откат
-| Риск | Признак | Действие |
+## Risks and rollback
+| Risk | Sign | Action |
 |---|---|---|
-| Эхо колонок MacBook ломает перебивание | AC-03 ниже порога | Порог VAD во время озвучки; рекомендация наушников в отчёте |
-| Смешанная речь плохо распознаётся | AC-16 ниже порога | R-09; сравнить движки; spec, раздел 6 |
-| whisper large-v3-turbo и приложение не укладываются в 1,2 ГБ или медленные | AC-15, задержка `stt_final` | Модель small или `SFSpeechRecognizer` |
-| macOS не даёт доступ к iCloud Drive без песочницы | Ошибка доступа в H-3 | Разрешение «Файлы и папки» через TCC (делает владелец), bookmark; spec, раздел 6 (F-08) |
-| Лимиты Groq во время evals | 429 | Пауза, ротация ключей и моделей, растянуть прогон; ключей не просить |
-| Ядро использует API только для macOS | `scripts/check-core-ios.sh` падает | Вынести платформенный код из `LingoCore` в `LingoMac` |
-| Нехватка диска | < 3 ГБ свободно | Удалить неиспользуемые модели и DerivedData проекта; чужое не трогать |
+| The echo of the MacBook speakers breaks barge-in | AC-03 below the threshold | A VAD threshold during playback; a headphone recommendation in the report |
+| Mixed speech is recognised poorly | AC-16 below the threshold | R-09; compare engines; spec, section 6 |
+| whisper large-v3-turbo and the app do not fit in 1.2 GB or are slow | AC-15, `stt_final` latency | The small model or `SFSpeechRecognizer` |
+| macOS does not give access to iCloud Drive without a sandbox | An access error in H-3 | The "Files and Folders" permission through TCC (done by the owner), a bookmark; spec, section 6 (F-08) |
+| Groq limits during the evals | 429 | A pause, rotation of keys and models, stretch the run; do not ask for keys |
+| The core uses a macOS-only API | `scripts/check-core-ios.sh` fails | Move the platform code from `LingoCore` to `LingoMac` |
+| Not enough disk | < 3 GB free | Delete unused models and the project's DerivedData; do not touch other people's files |
 
-Откат: каждый шаг — отдельный коммит в `feat/lingo-01`. Провалившийся шаг откатывается через `git revert` своего коммита. `main` не меняется.
+Rollback: each step is a separate commit in `feat/lingo-01`. A failed step is rolled back with `git revert` of its commit. `main` does not change.
 
-## Условия остановки (эскалация владельцу)
-- Нужна зависимость, сервис или ключ вне ADR-0001 и intent, или что-то платное.
-- Требование spec невыполнимо без изменения границ.
-- Найден секрет или личные данные в истории Git.
-- Три попытки подряд по одной проблеме без прогресса: сохранить состояние в handoff, описать гипотезы.
-- Любое действие из списка «Запрещено» в CLAUDE.md.
+## Stop conditions (escalation to the owner)
+- A dependency, service or key outside ADR-0001 and the intent is needed, or something paid.
+- A spec requirement cannot be met without changing the boundaries.
+- A secret or personal data is found in the Git history.
+- Three attempts in a row on one problem without progress: save the state in the handoff, describe the hypotheses.
+- Any action from the "Forbidden" list in CLAUDE.md.
 
-## Готово, когда
-AC-01…AC-16 имеют свидетельство в report.md — PASS, либо NOT RUN с причиной, которую принял владелец.
-Ревью без открытых P0 и P1, `LingoCore` собирается для iOS, ветка запушена, handoff актуален, владелец подтвердил H-5.
+## Done when
+AC-01…AC-16 have evidence in report.md — PASS, or NOT RUN with a reason the owner accepted.
+The review has no open P0 and P1, `LingoCore` builds for iOS, the branch is pushed, the handoff is current, the owner confirmed H-5.

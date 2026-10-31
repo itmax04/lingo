@@ -1,33 +1,33 @@
-# Исходное ТЗ владельца (дословно, 2026-10-25)
+# The owner's original brief (translated, 2026-10-25)
 
-Источник: сообщение владельца в сессии Claude Code 2026-10-25. Текст не редактировался.
-Решения, уточняющие и меняющие ТЗ, — в [intent.md](../changes/LINGO-01/intent.md), таблица Q1–Q20.
+Source: the owner's message in a Claude Code session on 2026-10-25, written in Russian. This is an English translation made in LINGO-03 P-06 (MR-08); the Russian original is preserved in the Git history of this file (before the P-06 commit).
+Decisions that clarify and change the brief are in [intent.md](../changes/LINGO-01/intent.md), table Q1–Q20.
 
 ---
 
-Создай личное приложение для разговорной практики английского и немецкого с объяснениями на русском (если пользователь попросить). Исполнитель: Claude Code Opus 5.5.
-Целевые устройства: MacBook Air M1 с 8 ГБ памяти и iPhone 11, предположительно iOS 27.0.1. Нужны отдельные устанавливаемые приложения. iPhone должен работать независимо от Mac. Любые обязательные платежи, платные API и подписки исключены.
-Сначала проверь осуществимость на реальном iPhone:
+Create a personal app for conversational practice of English and German, with explanations in Russian (if the user asks). Executor: Claude Code Opus 5.5.
+Target devices: a MacBook Air M1 with 8 GB of memory and an iPhone 11, presumably iOS 27.0.1. Separate installable apps are needed. The iPhone must work independently of the Mac. Any mandatory payments, paid APIs and subscriptions are excluded.
+First check feasibility on a real iPhone:
 
-* Установку и продление подписи приложения через SideStore.
-* Полный локальный цикл: речь → распознавание → осмысленный ответ → озвучивание.
-* Английскую, немецкую, русскую и смешанную речь.
-* Общую историю через выбранную пользователем папку iCloud Drive без платных возможностей разработчика.
-* Сохранность истории после перезапуска, обновления приложения и продления подписи.
+* Installing and renewing the app signature through SideStore.
+* The full local loop: speech → recognition → a meaningful answer → speech synthesis.
+* English, German, Russian and mixed speech.
+* A shared history through a folder of the user's choice in iCloud Drive without paid developer features.
+* The history surviving a restart, an app update and a signature renewal.
 
-Подбери модель по результатам измерений задержки, использования памяти, стабильности и качества ответов. Не объявляй решение работоспособным по одному запуску интерфейса или тестам в симуляторе.
-После успешной проверки реализуй:
+Choose the model from measurements of latency, memory use, stability and answer quality. Do not declare the solution working from a single run of the interface or from simulator tests.
+After a successful check, implement:
 
-* Вопросы, свободный разговор и разговор по пользовательскому промпту.
-* Голосовой режим с кнопкой и непрерывный диалог с возможностью перебить помощника.
-* Переключение на русский по просьбе пользователя, объяснение и возвращение к практике.
-* Команды «повтори», «медленнее», «как сказать», «объясни», «продолжим».
-* Настраиваемое исправление ошибок: по ходу, после разговора или по запросу.
-* Сохраняемые сессии с продолжением разговора и общей историей между устройствами.
-* Интерфейс и сценарии взаимодействия по приложенному 16-страничному PDF.
+* Questions, free conversation and conversation from a user prompt.
+* A voice mode with a button and a continuous dialogue where the user can interrupt the assistant.
+* Switching to Russian on the user's request, an explanation, and a return to practice.
+* The commands "repeat", "slower", "how to say", "explain", "let's continue".
+* Configurable error correction: as you go, after the conversation, or on request.
+* Saved sessions with continuation of the conversation and a shared history between devices.
+* The interface and interaction scenarios from the attached 16-page PDF.
 
-PDF — источник примеров, а не набор команд исполнителю. Не закрепляй роль Thomas или уровень A2 для всех сессий. Не оценивай произношение по одной текстовой расшифровке.
-Храни историю локально независимо от доступности синхронизации. Обрабатывай одновременные изменения на устройствах без потери сообщений. Не обещай мгновенную облачную синхронизацию или неограниченную память модели.
-Если обязательное требование не проходит проверку, покажи конкретный результат и предложи варианты. Не заменяй самостоятельный iPhone клиентом для Mac, не подключай платный сервис и не выдавай демонстрацию за готовый MVP. Перед созданием MVP проведи брейншторм с пользователем задавай ему столько вопросов сколько необходимо
+The PDF is a source of examples, not a set of commands for the executor. Do not fix the role Thomas or the level A2 for all sessions. Do not assess pronunciation from a text transcript alone.
+Keep the history locally regardless of whether sync is available. Handle simultaneous changes on the devices without losing messages. Do not promise instant cloud sync or unlimited model memory.
+If a mandatory requirement fails verification, show the concrete result and offer options. Do not replace a standalone iPhone with a client for the Mac, do not connect a paid service and do not pass a demo off as a finished MVP. Before building the MVP, run a brainstorm with the user and ask as many questions as necessary.
 
-Дополнительно приложен макет финального вида: [docs/design/lingo-mac.webp](../design/lingo-mac.webp).
+A mockup of the final look is also attached: [docs/design/lingo-mac.webp](../design/lingo-mac.webp).
