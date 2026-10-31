@@ -25,7 +25,7 @@ a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](d
 ## 3. Repository map
 | Path | What | Status |
 |---|---|---|
-| `Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/` (Mac parts), `evals/` | Swift package of the Mac app (to move to `apps/mac`, `packages/contracts` in **P-01**) | working |
+| `apps/mac/` (`Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/`) | Swift package of the Mac app (moved in P-01); eval sets and prompt snapshots live in `packages/contracts/` | working |
 | `apps/web/` | React + Vite PWA | created in P-15 |
 | `services/engine/` | Cloudflare Worker + D1 | created in P-08 |
 | `packages/core-ts/` | TypeScript ports shared by web and engine | created in P-07 |

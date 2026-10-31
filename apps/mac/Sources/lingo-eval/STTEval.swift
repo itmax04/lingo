@@ -15,7 +15,7 @@ enum STTEval {
     static func run(engine id: String, set: String, forcedMixed: Bool) async throws -> Int32 {
         let manifestURL = URL(fileURLWithPath: set).appendingPathComponent("manifest.json")
         guard let data = try? Data(contentsOf: manifestURL) else {
-            print("stt: missing \(manifestURL.path) — run scripts/make-audio-fixtures.sh")
+            print("stt: missing \(manifestURL.path) — run apps/mac/scripts/make-audio-fixtures.sh")
             return 2
         }
         let items = try JSONDecoder().decode([Item].self, from: data)

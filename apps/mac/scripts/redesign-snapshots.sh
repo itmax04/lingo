@@ -2,10 +2,9 @@
 # Render only synthetic presentation fixtures; never starts journal observers, voice or provider calls.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-MAC="$ROOT/apps/mac"
 APP="$ROOT/dist/Lingo.app/Contents/MacOS/Lingo"
 OUTPUT="${1:-$ROOT/design/redesign-2026/10-comparison/implementation}"
-[ -x "$APP" ] || { echo 'Build the signed app with scripts/build-app.sh first.' >&2; exit 1; }
+[ -x "$APP" ] || { echo 'Build the signed app with apps/mac/scripts/build-app.sh first.' >&2; exit 1; }
 mkdir -p "$OUTPUT"
 for THEME in dark light; do
   "$APP" --ui-snapshot "$OUTPUT/mac-conversation-speaking-$THEME-1280x800.png" \

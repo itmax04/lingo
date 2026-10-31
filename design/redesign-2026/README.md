@@ -33,7 +33,7 @@ There are 118 product screen/state mockups across both themes, six direction boa
 
 Mac uses native components and exact DESIGN.md v2 tokens. Future sections are Coming soon placeholders. All other platforms and teacher features are concepts. Native menus and correction details in fixture evidence are component previews, not captures of separate system popover windows. Voice, real Keychain, iCloud and provider sessions were not exercised.
 
-Reproduce native captures with `scripts/build-app.sh` then `scripts/redesign-snapshots.sh`. The packaged .app contains both compiled String Catalogs. Some menus and service strings need a restart after changing the UI language. No OS language or privacy settings are modified.
+Reproduce native captures with `apps/mac/scripts/build-app.sh` then `apps/mac/scripts/redesign-snapshots.sh`. The packaged .app contains both compiled String Catalogs. Some menus and service strings need a restart after changing the UI language. No OS language or privacy settings are modified.
 
 ## Asset map
 

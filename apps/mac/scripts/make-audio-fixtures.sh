@@ -3,7 +3,6 @@
 # Reads packages/contracts/evals/audio/phrases.yaml, writes packages/contracts/evals/audio/{en,de,ru,mixed}/<id>.wav and manifest.json. Audio is not stored in Git.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-MAC="$ROOT/apps/mac"
 cd "$ROOT/packages/contracts/evals/audio"
 python3 -I - <<'PY'
 import json, os, subprocess, tempfile, re
