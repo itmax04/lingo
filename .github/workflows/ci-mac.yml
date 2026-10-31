@@ -41,3 +41,10 @@ jobs:
           if [ -f apps/mac/Package.swift ]; then P="--package-path apps/mac"; else P=""; fi
           swift build $P
           swift test $P
+      - name: Compile String Catalogs
+        run: |
+          if [ -f apps/mac/Package.swift ]; then R="apps/mac/Resources"; else R="Resources"; fi
+          mkdir -p /tmp/lingo-localization
+          for catalog in "$R"/*.xcstrings; do
+            xcrun xcstringstool compile "$catalog" --output-directory /tmp/lingo-localization
+          done

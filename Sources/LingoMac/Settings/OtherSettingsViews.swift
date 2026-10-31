@@ -15,11 +15,12 @@ struct VoiceSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
+                InterfaceSettingsView()
                 SettingsCard(title: "Voices", subtitle: "By default — the best installed voice of the language (Premium → Enhanced → Default).") {
                     ForEach(Lang.allCases, id: \.self) { l in
                         let list = Voices.available(l)
                         HStack(spacing: Theme.S.s12) {
-                            Text(l.nativeName).font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary).frame(width: 90, alignment: .leading)
+                            Text(l.nativeName).font(Theme.F.rowTitle).foregroundStyle(Theme.C.textPrimary).frame(width: 92, alignment: .leading)
                             Picker("", selection: Binding(get: { voice.voiceIDs[l] ?? "" }, set: { voice.voiceIDs[l] = $0.isEmpty ? nil : $0; save() })) {
                                 Text(String(localized: "Best installed") + (list.first.map { " (\($0.name), \($0.qualityTitle))" } ?? "")).tag("")
                                 ForEach(list) { v in Text("\(v.name) · \(v.language) · \(v.qualityTitle)").tag(v.id) }

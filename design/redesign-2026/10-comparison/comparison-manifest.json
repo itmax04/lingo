@@ -1,0 +1,1157 @@
+{
+  "pairs": [
+    {
+      "reference": "mac-conversation-speaking-dark-1536x1024.png",
+      "implementation": "mac-conversation-speaking-dark-1280x800.png",
+      "pair": "mac-conversation-speaking-dark-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-conversation-narrow-dark-1536x1024.png",
+      "implementation": "mac-conversation-narrow-dark-1100x800.png",
+      "pair": "mac-conversation-narrow-dark-comparison.png",
+      "reference_original_pixels": [
+        1470,
+        1070
+      ],
+      "comparison_canvas": [
+        1100,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1099,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1100,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-today-overview-dark-1536x1024.png",
+      "implementation": "mac-today-overview-dark-1280x800.png",
+      "pair": "mac-today-overview-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-voice-states-dark-1536x1024.png",
+      "implementation": "mac-voice-states-dark-1280x800.png",
+      "pair": "mac-voice-states-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-keys-dark-1536x1024.png",
+      "implementation": "mac-settings-keys-dark-1280x800.png",
+      "pair": "mac-settings-keys-dark-comparison.png",
+      "reference_original_pixels": [
+        1422,
+        1106
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1029,
+        800
+      ],
+      "reference_offset": [
+        125,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-quota-dark-1536x1024.png",
+      "implementation": "mac-settings-quota-dark-1280x800.png",
+      "pair": "mac-settings-quota-dark-comparison.png",
+      "reference_original_pixels": [
+        1422,
+        1106
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1029,
+        800
+      ],
+      "reference_offset": [
+        125,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-voice-dark-1536x1024.png",
+      "implementation": "mac-settings-voice-dark-1280x800.png",
+      "pair": "mac-settings-voice-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-sync-dark-1536x1024.png",
+      "implementation": "mac-settings-sync-dark-1280x800.png",
+      "pair": "mac-settings-sync-dark-comparison.png",
+      "reference_original_pixels": [
+        1419,
+        1109
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1024,
+        800
+      ],
+      "reference_offset": [
+        128,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-data-dark-1536x1024.png",
+      "implementation": "mac-settings-data-dark-1280x800.png",
+      "pair": "mac-settings-data-dark-comparison.png",
+      "reference_original_pixels": [
+        1422,
+        1106
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1029,
+        800
+      ],
+      "reference_offset": [
+        125,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-new-session-form-dark-1536x1024.png",
+      "implementation": "mac-new-session-form-dark-1280x800.png",
+      "pair": "mac-new-session-form-dark-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-transcript-edit-dark-1536x1024.png",
+      "implementation": "mac-transcript-edit-dark-1280x800.png",
+      "pair": "mac-transcript-edit-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-microphone-dark-1536x1024.png",
+      "implementation": "mac-onboarding-0-dark-1280x800.png",
+      "pair": "mac-onboarding-microphone-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-keys-dark-1536x1024.png",
+      "implementation": "mac-onboarding-1-dark-1280x800.png",
+      "pair": "mac-onboarding-keys-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-sync-dark-1536x1024.png",
+      "implementation": "mac-onboarding-2-dark-1280x800.png",
+      "pair": "mac-onboarding-sync-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-recap-complete-dark-1536x1024.png",
+      "implementation": "mac-recap-complete-dark-1280x800.png",
+      "pair": "mac-recap-complete-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-dictionary-starred-dark-1536x1024.png",
+      "implementation": "mac-dictionary-overview-dark-1280x800.png",
+      "pair": "mac-dictionary-starred-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-progress-soon-dark-1536x1024.png",
+      "implementation": "mac-progress-overview-dark-1280x800.png",
+      "pair": "mac-progress-soon-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-teacher-soon-dark-1536x1024.png",
+      "implementation": "mac-teacher-overview-dark-1280x800.png",
+      "pair": "mac-teacher-soon-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-session-menu-dark-1536x1024.png",
+      "implementation": "mac-session-menu-dark-1280x800.png",
+      "pair": "mac-session-menu-dark-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": true
+    },
+    {
+      "reference": "mac-correction-detail-dark-1536x1024.png",
+      "implementation": "mac-correction-detail-dark-1280x800.png",
+      "pair": "mac-correction-detail-dark-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": true
+    },
+    {
+      "reference": "mac-conversation-speaking-light-1536x1024.png",
+      "implementation": "mac-conversation-speaking-light-1280x800.png",
+      "pair": "mac-conversation-speaking-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-conversation-narrow-light-1536x1024.png",
+      "implementation": "mac-conversation-narrow-light-1100x800.png",
+      "pair": "mac-conversation-narrow-light-comparison.png",
+      "reference_original_pixels": [
+        1470,
+        1070
+      ],
+      "comparison_canvas": [
+        1100,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1099,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1100,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-today-overview-light-1536x1024.png",
+      "implementation": "mac-today-overview-light-1280x800.png",
+      "pair": "mac-today-overview-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-voice-states-light-1536x1024.png",
+      "implementation": "mac-voice-states-light-1280x800.png",
+      "pair": "mac-voice-states-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-keys-light-1536x1024.png",
+      "implementation": "mac-settings-keys-light-1280x800.png",
+      "pair": "mac-settings-keys-light-comparison.png",
+      "reference_original_pixels": [
+        1422,
+        1106
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1029,
+        800
+      ],
+      "reference_offset": [
+        125,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-quota-light-1536x1024.png",
+      "implementation": "mac-settings-quota-light-1280x800.png",
+      "pair": "mac-settings-quota-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-voice-light-1536x1024.png",
+      "implementation": "mac-settings-voice-light-1280x800.png",
+      "pair": "mac-settings-voice-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-sync-light-1536x1024.png",
+      "implementation": "mac-settings-sync-light-1280x800.png",
+      "pair": "mac-settings-sync-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-settings-data-light-1536x1024.png",
+      "implementation": "mac-settings-data-light-1280x800.png",
+      "pair": "mac-settings-data-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-new-session-form-light-1536x1024.png",
+      "implementation": "mac-new-session-form-light-1280x800.png",
+      "pair": "mac-new-session-form-light-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-transcript-edit-light-1536x1024.png",
+      "implementation": "mac-transcript-edit-light-1280x800.png",
+      "pair": "mac-transcript-edit-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-microphone-light-1536x1024.png",
+      "implementation": "mac-onboarding-0-light-1280x800.png",
+      "pair": "mac-onboarding-microphone-light-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-keys-light-1536x1024.png",
+      "implementation": "mac-onboarding-1-light-1280x800.png",
+      "pair": "mac-onboarding-keys-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-onboarding-sync-light-1536x1024.png",
+      "implementation": "mac-onboarding-2-light-1280x800.png",
+      "pair": "mac-onboarding-sync-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-recap-complete-light-1536x1024.png",
+      "implementation": "mac-recap-complete-light-1280x800.png",
+      "pair": "mac-recap-complete-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-dictionary-starred-light-1536x1024.png",
+      "implementation": "mac-dictionary-overview-light-1280x800.png",
+      "pair": "mac-dictionary-starred-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-progress-soon-light-1536x1024.png",
+      "implementation": "mac-progress-overview-light-1280x800.png",
+      "pair": "mac-progress-soon-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-teacher-soon-light-1536x1024.png",
+      "implementation": "mac-teacher-overview-light-1280x800.png",
+      "pair": "mac-teacher-soon-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": false
+    },
+    {
+      "reference": "mac-session-menu-light-1536x1024.png",
+      "implementation": "mac-session-menu-light-1280x800.png",
+      "pair": "mac-session-menu-light-comparison.png",
+      "reference_original_pixels": [
+        1586,
+        992
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1279,
+        800
+      ],
+      "reference_offset": [
+        0,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": true
+    },
+    {
+      "reference": "mac-correction-detail-light-1536x1024.png",
+      "implementation": "mac-correction-detail-light-1280x800.png",
+      "pair": "mac-correction-detail-light-comparison.png",
+      "reference_original_pixels": [
+        1536,
+        1024
+      ],
+      "comparison_canvas": [
+        1280,
+        800
+      ],
+      "reference_scaled_pixels": [
+        1200,
+        800
+      ],
+      "reference_offset": [
+        40,
+        0
+      ],
+      "native_pixels": [
+        1280,
+        800
+      ],
+      "geometry_acceptance": "NOT PASSED: generated layout differs; no assertion of \u00b14 pt parity",
+      "component_preview": true
+    }
+  ],
+  "native_color_samples": [
+    {
+      "theme": "dark",
+      "surface": "window",
+      "point": [
+        500,
+        500
+      ],
+      "expected": "#111315",
+      "actual": "#111315",
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "surface": "sidebar",
+      "point": [
+        20,
+        690
+      ],
+      "expected": "#16191C",
+      "actual": "#16191C",
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "surface": "hints",
+      "point": [
+        1020,
+        650
+      ],
+      "expected": "#16191C",
+      "actual": "#16191C",
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "surface": "window",
+      "point": [
+        500,
+        500
+      ],
+      "expected": "#F7F6F3",
+      "actual": "#F7F6F3",
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "surface": "sidebar",
+      "point": [
+        20,
+        690
+      ],
+      "expected": "#F0EFEB",
+      "actual": "#F0EFEB",
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "surface": "hints",
+      "point": [
+        1020,
+        650
+      ],
+      "expected": "#F7F6F3",
+      "actual": "#F7F6F3",
+      "pass": true
+    }
+  ],
+  "notes": [
+    "Original ImageGen outputs are preserved. References are contained on equal-size canvases with explicit letterboxing.",
+    "Menu and correction captures show the actual shared SwiftUI component over fixtures, not a captured system popover window.",
+    "Geometry \u00b14 pt is not certified. Native tokens are exact; generated effects and layout differ."
+  ]
+}

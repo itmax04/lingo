@@ -14,6 +14,7 @@ enum UIClickTest {
         let size = NSSize(width: 900, height: Theme.R.voicePanelHeight)
         let view = VoicePanel(state: .idle, levels: [], onMic: { hits.mic += 1 }, onPause: { hits.pause += 1 }, onEnd: { hits.end += 1 })
             .frame(width: size.width, height: size.height)
+            .environment(\.locale, Locale(identifier: "en"))
         let hosting = NSHostingView(rootView: view)
         hosting.frame = NSRect(origin: .zero, size: size)
         let w = NSWindow(contentRect: NSRect(x: 100, y: 100, width: size.width, height: size.height), styleMask: [.borderless], backing: .buffered, defer: false)
@@ -29,11 +30,11 @@ enum UIClickTest {
                 RunLoop.main.run(until: Date().addingTimeInterval(0.05))
             }
         }
-        // Window coordinates: the origin is the bottom-left corner. Microphone: padding 24 + radius 25; the buttons are on the right.
-        let midY = size.height / 2
-        click(NSPoint(x: Theme.S.s24 + Theme.R.micCircle / 2, y: midY))
-        click(NSPoint(x: size.width - Theme.S.s24 - Theme.R.roundButton / 2, y: midY + 8))
-        click(NSPoint(x: size.width - Theme.S.s24 - Theme.R.roundButton - Theme.S.s16 - Theme.R.roundButton / 2, y: midY + 8))
+        // The compact panel has 16 pt side padding and a 12 pt top inset. Use the English
+        // fixture captions so both secondary controls stay 36 pt wide.
+        click(NSPoint(x: 16 + 22, y: size.height - 39))
+        click(NSPoint(x: size.width - 16 - 18, y: size.height - 30))
+        click(NSPoint(x: size.width - 16 - 36 - 12 - 18, y: size.height - 30))
         print("ui-click-test: mic=\(hits.mic) pause=\(hits.pause) end=\(hits.end)")
         return hits.mic == 1 && hits.pause == 1 && hits.end == 1 ? 0 : 1
     }

@@ -1,0 +1,6432 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    " ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " "
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " "
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%@ s": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ s"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ с"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%@ · %@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ · %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%@ · %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%@, %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld h": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld h"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ч"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld h %lld min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld h %lld min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ч %lld мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld ms": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld мс"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld s": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld s"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld с"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld. %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld. %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld. %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "30 min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "A review of your last utterances when you ask “were there mistakes?”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A review of your last utterances when you ask “were there mistakes?”"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разбор последних реплик по просьбе «были ошибки?»"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "API address is not set (https://…/v1)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API address is not set (https://…/v1)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Адрес API не задан (https://…/v1)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "About Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "О программе Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Access denied. Turn on Lingo: System Settings → Privacy & Security → Microphone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access denied. Turn on Lingo: System Settings → Privacy & Security → Microphone."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ запрещён. Разрешите Lingo использовать микрофон: Системные настройки → Конфиденциальность и безопасность → Микрофон."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Add step": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add step"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить шаг"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "After the conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After the conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После разговора"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "All phrases done — write “done” in the chat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All phrases done — write “done” in the chat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все фразы пройдены — напишите «готово» в чате"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Allow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "An https:// address is required (http — localhost only)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An https:// address is required (http — localhost only)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужен адрес https:// (http — только для localhost)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Any OpenAI-compatible endpoint: https://…/v1 (or http://localhost for your own server).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any OpenAI-compatible endpoint: https://…/v1 (or http://localhost for your own server)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любой OpenAI-совместимый адрес: https://…/v1 (или http://localhost для своего сервера)."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "As reported by the provider: input / output / cached tokens (on Groq cached tokens do not count toward limits). Empty — the provider did not report it. Free Groq: 8,000 tokens per minute and 200,000 per day per model for the whole account.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As reported by the provider: input / output / cached tokens (on Groq cached tokens do not count toward limits). Empty — the provider did not report it. Free Groq: 8,000 tokens per minute and 200,000 per day per model for the whole account."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные провайдера: входные / выходные / кэшированные токены. В Groq кэшированные токены не входят в лимит. Пустое значение — провайдер не сообщил данные. Бесплатный Groq: 8 000 токенов в минуту и 200 000 в день на модель для всей организации."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "As we go": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As we go"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По ходу"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Assistant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistant"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Audio and recognition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio and recognition"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звук и распознавание"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Audio: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Аудио: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Auto (chain)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto (chain)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Авто (цепочка)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Available in the running app": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available in the running app"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступно в работающем приложении"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назад"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Best installed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best installed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лучший установленный"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "By default — the best installed voice of the language (Premium → Enhanced → Default).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By default — the best installed voice of the language (Premium → Enhanced → Default)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По умолчанию — лучший установленный голос языка: Premium → Enhanced → Default."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Chain order": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chain order"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порядок цепочки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Checking…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверяю…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Checksum mismatch: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checksum mismatch: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Контрольная сумма не совпадает: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose a folder…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a folder…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать папку…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose a model from the list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a model from the list"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать модель из списка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose another…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать другую…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose at least one correction mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one correction mode"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите хотя бы один режим исправлений"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose at least one mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose at least one mode"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите хотя бы один режим"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose the “Lingo” folder in iCloud Drive. Each device writes its own journal there.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the “Lingo” folder in iCloud Drive. Each device writes its own journal there."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите папку «Lingo» в iCloud Drive. Каждое устройство записывает в неё свой журнал."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрыть"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Collapse hints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse hints"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свернуть подсказки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Coming soon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming soon"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скоро"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Continue conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Continuous": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuous"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Непрерывно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Conversations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversations"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разговоры"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Copy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Correction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correction"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправление"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Correction: %@ — correct: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correction: %@ — correct: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправление: %@ — правильно: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Corrections": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrections"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправления"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not create the session: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not create the session: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось создать сессию: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not load the model: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load the model: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось загрузить модель: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not open the journal: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open the journal: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось открыть журнал: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not restart audio: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not restart audio: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось восстановить звук: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Create a session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a session"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создайте разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Create a session: “New session”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a session: “New session”"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создайте разговор: «Новый разговор»"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Custom endpoint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom endpoint"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой адрес"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Custom endpoint: not set (Settings → Keys and models)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom endpoint: not set (Settings → Keys and models)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой адрес не задан: Настройки → Ключи и модели"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Custom prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom prompt"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свой промпт"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Cut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cut"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вырезать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Daily plan · 4 × 30 min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily plan · 4 × 30 min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "План на день · 4 × 30 мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Dark": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тёмная"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Data": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete local history…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete local history…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить локальную историю…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete session “%@”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete session “%@”?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить разговор «%@»?"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete step": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete step"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить шаг"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete the local history?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the local history?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить локальную историю?"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Disconnect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отключить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Echo cancellation (voice processing) — barge-in without headphones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Echo cancellation (voice processing) — barge-in without headphones"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эхоподавление — перебивание без наушников"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Echo cancellation unavailable — headphones work better for barge-in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Echo cancellation unavailable — headphones work better for barge-in"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эхоподавление недоступно — для перебивания лучше использовать наушники"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Edit transcript": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit transcript"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправить расшифровку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Empty key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пустой ключ"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "End of utterance and merging": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End of utterance and merging"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Конец реплики и склейка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "English": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Английский"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "English · IELTS Part 2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English · IELTS Part 2"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Английский · IELTS Part 2"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "English · Job interview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English · Job interview"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Английский · Работа: собеседование"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Error correction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error correction"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправление ошибок"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Error: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибка: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экзамен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Export to ZIP…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export to ZIP…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт в ZIP…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Export: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экспорт: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Fallback: only free “:free” models.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallback: only free “:free” models."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резерв: только бесплатные модели «:free»."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Fallback: the free Free plan without a card.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallback: the free Free plan without a card."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резерв: бесплатный тариф Free без карты."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "File: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Finish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "First-token timeout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First-token timeout"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ожидание первого токена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Fix the transcript": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix the transcript"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправить расшифровку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "For example: “You are my new neighbour. We met at the mailboxes. Speak simply, ask one question at a time and start first.”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example: “You are my new neighbour. We met at the mailboxes. Speak simply, ask one question at a time and start first.”"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Например: «Ты мой новый сосед. Мы встретились у почтовых ящиков. Говори просто, задавай по одному вопросу и начни первым»."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Free conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свободный разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "German": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "German"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немецкий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "German B1 exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "German B1 exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экзамен B1"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "German · At the doctor's": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "German · At the doctor's"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немецкий · У врача"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "German · Free conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "German · Free conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немецкий · Свободный разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Get a key…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get a key…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Получить ключ…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Hide Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скрыть Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Hints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hints"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подсказки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "History is shared between devices through a folder in iCloud Drive: each device writes only its own journal. No paid developer features are needed. iCloud decides when changes appear on another device — sync is not instant.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History is shared between devices through a folder in iCloud Drive: each device writes only its own journal. No paid developer features are needed. iCloud decides when changes appear on another device — sync is not instant."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "История передаётся через папку iCloud Drive: каждое устройство записывает только свой журнал. Платные функции разработчика не нужны. Задержка зависит от iCloud — синхронизация не мгновенная."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "How to say": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to say"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Как сказать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "IELTS Speaking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IELTS Speaking"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IELTS Speaking"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "In Russian": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Russian"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По-русски"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "In continuous mode an utterance is sent after pause T. If a new utterance starts within G and the assistant has not started speaking, it is merged with the previous one (R-10, R-11).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In continuous mode an utterance is sent after pause T. If a new utterance starts within G and the assistant has not started speaking, it is merged with the previous one (R-10, R-11)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В непрерывном режиме реплика отправляется после паузы T. Если следующая фраза началась за время G до начала ответа помощника, обе реплики склеиваются (R-10, R-11)."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Interface": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Интерфейс"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Interface language": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface language"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык интерфейса"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Interrupted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interrupted"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "прервано"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недействителен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Invalid key (HTTP %lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid key (HTTP %lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недействительный ключ (HTTP %lld)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Journal from a newer version — read-only": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal from a newer version — read-only"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Журнал новой версии — только чтение"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Key %lld  ••••%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key %lld  ••••%@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ %lld  ••••%@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Key works · models: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key works · models: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ работает · моделей: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Keys and models": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys and models"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключи и модели"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Keys are stored only in this Mac's Keychain. The model receives the text of utterances; audio never leaves the Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keys are stored only in this Mac's Keychain. The model receives the text of utterances; audio never leaves the Mac."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключи хранятся только в Связке ключей этого Mac. Модели получают текст реплик; аудио не покидает Mac."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language filter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language filter"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фильтр по языку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Level": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уровень"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Light": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Светлая"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo %@ (build %@, %@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo %@ (build %@, %@)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo %@ (сборка %@, %@)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo Settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo Settings"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo Settings…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo Settings…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки Lingo…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo listens to your speech and recognizes it on this Mac. Audio is not saved and never goes to the network — only text is sent to the model.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo listens to your speech and recognizes it on this Mac. Audio is not saved and never goes to the network — only text is sent to the model."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo распознаёт вашу речь на этом Mac. Аудио не сохраняется и не отправляется в сеть — модель получает только текст."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo — first launch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo — first launch"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo — первый запуск"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo's rules take precedence over a custom prompt: the reply language, the reply format and the ban on rating pronunciation do not change (R-03).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo's rules take precedence over a custom prompt: the reply language, the reply format and the ban on rating pronunciation do not change (R-03)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила Lingo важнее своего промпта: язык и формат ответа, а также запрет оценки произношения сохраняются (R-03)."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Listen and repeat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen and repeat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прослушать и повторить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Listening": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слушаю"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Loading the speech recognition model…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the speech recognition model…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загружаю модель распознавания…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Local journal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local journal"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальный журнал"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Main provider, free tier. Add as many keys as you like: on a limit the chain moves to the next one.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main provider, free tier. Add as many keys as you like: on a limit the chain moves to the next one."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основной провайдер, бесплатный тариф. Можно добавить несколько ключей; при ограничении цепочка переходит к следующему шагу."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mark it: understandable or not": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark it: understandable or not"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отметьте: понятно или непонятно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Me": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Я"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Merge G": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge G"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Склейка G"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Microphone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Микрофон"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Microphone and speech recognition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone and speech recognition"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Микрофон и распознавание речи"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Microphone capture stopped. Recovering audio; please repeat your phrase.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone capture stopped. Recovering audio; please repeat your phrase."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Захват микрофона остановился. Восстанавливаю звук; повторите фразу."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Microphone: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Микрофон: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Minimize": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimize"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свернуть"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mistakes are collected silently; a recap in Russian comes after “Finish”": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mistakes are collected silently; a recap in Russian comes after “Finish”"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибки копятся без прерывания; после «Завершить» появится итог по-русски"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mixed (%@ + ru)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixed (%@ + ru)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Смешанная речь (%@ + ru)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Model ID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model ID"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идентификатор модели"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Model download: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model download: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Загрузка модели: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Model not found: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model not found: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель не найдена: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Models (GET /models): %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models (GET /models): %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели (GET /models): %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Models are unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models are unavailable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели недоступны"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Models are unavailable: %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models are unavailable: %@."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели недоступны: %@."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Models unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models unavailable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели недоступны"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Move down": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move down"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переместить вниз"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Move up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move up"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переместить вверх"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "My sessions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My sessions"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мои разговоры"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "New session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New session"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новый разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Next": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дальше"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Next attempt in %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next attempt in %@."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Следующая попытка через %@."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет ключа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No key: Settings → Keys and models": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No key: Settings → Keys and models"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет ключа: Настройки → Ключи и модели"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No microphone access. System Settings → Privacy & Security → Microphone → turn on Lingo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No microphone access. System Settings → Privacy & Security → Microphone → turn on Lingo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет доступа к микрофону. Разрешите Lingo: Системные настройки → Конфиденциальность и безопасность → Микрофон."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No microphone access: System Settings → Privacy & Security → Microphone → Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No microphone access: System Settings → Privacy & Security → Microphone → Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет доступа к микрофону: Системные настройки → Конфиденциальность и безопасность → Микрофон → Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No permission for speech recognition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No permission for speech recognition"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет разрешения на распознавание речи"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No requests today.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No requests today."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня запросов не было."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No session selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No session selected"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разговор не выбран"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not selected"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не выбрана"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not set up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set up"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не настроена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not understandable ✗": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not understandable ✗"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Непонятно ✗"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет сети"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Offline: model replies are unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline: model replies are unavailable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет сети: ответы модели недоступны"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "On device": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On device"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На устройстве"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "On request": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On request"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По запросу"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "On-device recognition is not available for %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-device recognition is not available for %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальное распознавание недоступно для %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "One more key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One more key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ещё один ключ"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Only a basic-quality voice is installed for %@. For a better one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → download Enhanced or Premium.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only a basic-quality voice is installed for %@. For a better one: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → download Enhanced or Premium."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для языка %@ установлен только базовый голос. Улучшенный можно загрузить: Системные настройки → Универсальный доступ → Устный контент → Системный голос → Управление голосами → Enhanced или Premium."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Open conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Optional key label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional key label"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Метка ключа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Partner's role": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partner's role"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Роль собеседника"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Paste": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Paste a key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste a key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставьте ключ"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Pause": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Pause T": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause T"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза T"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пауза"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Permissions…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissions…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешения…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Phrase %lld of %lld · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrase %lld of %lld · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фраза %lld из %lld · %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Phrases appear after the first turns of the conversation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phrases appear after the first turns of the conversation."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фразы появятся после первых реплик разговора."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Planned modes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planned modes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Будущие режимы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Play": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прослушать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Play the voice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play the voice"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить голос"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Practice time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practice time"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Время практики"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Press and speak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press and speak"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нажмите и говорите"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Preview of a planned section. These features are not available yet.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview of a planned section. These features are not available yet."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Макет будущего раздела. Эти функции пока недоступны."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прогресс"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Provider": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Провайдер"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Questions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вопросы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Quit Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершить Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Quota": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quota"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Квота"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Read the phrase aloud at your normal pace. Audio is not saved: only texts and numbers are written to the file.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the phrase aloud at your normal pace. Audio is not saved: only texts and numbers are written to the file."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прочитайте фразу вслух в обычном темпе. Аудио не сохраняется: в файл записываются только тексты и числа."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Ready (Apple Speech not permitted — whisper only)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready (Apple Speech not permitted — whisper only)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готово (Apple Speech не разрешён — только whisper)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recognition: whisper.cpp large-v3-turbo on this Mac (chosen by the P-04 measurements and the H-2 live check). Audio never leaves the Mac and is not saved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognition: whisper.cpp large-v3-turbo on this Mac (chosen by the P-04 measurements and the H-2 live check). Audio never leaves the Mac and is not saved."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание: whisper.cpp large-v3-turbo на этом Mac. Аудио не покидает устройство и не сохраняется."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recognized (%@ s of audio)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognized (%@ s of audio)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознано (%@ с аудио)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recognizing…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognizing…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознаю…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Record again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записать заново"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recording": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запись"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Redo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove from vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Убрать из словаря"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rename session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename session"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переименовать разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rename…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переименовать…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Reply again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ответить заново"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Reply source: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply source: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Источник ответа: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Restart Lingo to apply the language to menus and service messages.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Lingo to apply the language to menus and service messages."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перезапустите Lingo, чтобы применить язык к меню и служебным сообщениям."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Russian": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Russian"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Russian (session %@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Russian (session %@)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский (сессия %@)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Save to vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В словарь"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Saved locally": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved locally"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранено на устройстве"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Saved phrases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved phrases"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Избранные фразы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Scenario": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenario"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сценарий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Scenarios": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scenarios"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сценарии"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Select All": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбрать всё"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Session actions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session actions"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действия с разговором"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Session recap": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session recap"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Итог занятия"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Session settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session settings"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки разговора"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Settings…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Show hints": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show hints"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать подсказки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Show in Finder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Finder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать в Finder"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Show in journal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in journal"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать в журнале"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Show usage log": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show usage log"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать журнал расхода"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пропустить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Slow pace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow pace"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Медленный темп"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Slowly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slowly"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Медленно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speak"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Говорить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speaking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaking"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Говорю"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speak… (stop — space or a 1.5 s pause)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speak… (stop — space or a 1.5 s pause)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Говорите… (завершить — пробел или пауза 1,5 с)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech rate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech rate"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Темп речи"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание речи"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition cancelled"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание отменено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition check": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition check"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка распознавания"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition check — part 1 (H-2)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition check — part 1 (H-2)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка распознавания — часть 1 (H-2)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition check — part 2 (H-4)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition check — part 2 (H-4)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка распознавания — часть 2 (H-4)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition check…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition check…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка распознавания…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition model: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition model: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель распознавания: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition unavailable: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition unavailable: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание недоступно: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Speech recognition: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Step %lld of 3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %lld of 3"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаг %lld из 3"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Steps are tried top to bottom; each step uses all working keys of its provider in order. It moves on after a rate limit (429), a server or network error, a model refusal, or no first token within the timeout.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps are tried top to bottom; each step uses all working keys of its provider in order. It moves on after a rate limit (429), a server or network error, a model refusal, or no first token within the timeout."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаги выполняются сверху вниз; каждый использует рабочие ключи провайдера по очереди. Переход происходит при лимите, ошибке сервера или сети, отказе модели или истечении ожидания первого токена."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync folder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка синхронизации"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync folder unavailable — choose it again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync folder unavailable — choose it again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка синхронизации недоступна — выберите снова"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync folder: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync folder: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка синхронизации: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync is not set up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is not set up"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация не настроена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sync now": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync now"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизировать сейчас"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Synced at %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synced at %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизировано в %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Syncing…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизирую…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "System": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Системная"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Teacher": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teacher"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Учитель"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The assistant immediately offers a natural version and asks you to repeat it": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The assistant immediately offers a natural version and asks you to repeat it"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помощник сразу предлагает естественный вариант и просит повторить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The assistant remembers a summary and the last %lld turns": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The assistant remembers a summary and the last %lld turns"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помощник помнит краткое содержание и последние %lld ходов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The corrected text is saved in the history (an “edit” event). “Reply again” regenerates the assistant's reply.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The corrected text is saved in the history (an “edit” event). “Reply again” regenerates the assistant's reply."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправленный текст сохраняется в истории. «Ответить заново» повторно создаёт ответ помощника."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The journals on this Mac will be deleted. Copies on other devices and in the sync folder remain; the history comes back from the folder at the next sync. Keys and settings are not deleted.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The journals on this Mac will be deleted. Copies on other devices and in the sync folder remain; the history comes back from the folder at the next sync. Keys and settings are not deleted."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Журналы на этом Mac будут удалены. Копии на других устройствах и в папке синхронизации останутся; при следующей синхронизации история вернётся. Ключи и настройки сохранятся."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The key is too short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The key is too short"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ слишком короткий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The microphone gives no sound: check the input in System Settings → Sound → Input": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The microphone gives no sound: check the input in System Settings → Sound → Input"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Микрофон не передаёт звук: проверьте Системные настройки → Звук → Вход"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The model is not in the provider's list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model is not in the provider's list"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели нет в списке провайдера"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The provider did not say when it will recover.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The provider did not say when it will recover."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Провайдер не сообщил время восстановления."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The session disappears on all devices after a sync. The messages stay in the journal (a tombstone event).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The session disappears on all devices after a sync. The messages stay in the journal (a tombstone event)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После синхронизации разговор исчезнет на всех устройствах. Сообщения останутся в журнале с отметкой удаления."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The source of truth on this Mac is its event journal (append-only). Keys never get into the journal.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The source of truth on this Mac is its event journal (append-only). Keys never get into the journal."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "История на этом Mac хранится в журнале событий с добавлением записей. Ключи в журнал не попадают."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Theme": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тема"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Thinking…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thinking…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Думаю…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "This model is not in the GET /models list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This model is not in the GET /models list"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этой модели нет в списке GET /models"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "To share the history with an iPhone (LINGO-02), choose the “Lingo” folder in iCloud Drive. The history is always kept on this Mac as well.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To share the history with an iPhone (LINGO-02), choose the “Lingo” folder in iCloud Drive. The history is always kept on this Mac as well."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для обмена историей выберите папку «Lingo» в iCloud Drive. История также всегда хранится на этом Mac."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Today, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today, %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня, %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Too short — record again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too short — record again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слишком коротко — запишите заново"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тема"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Topic phrases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic phrases"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фразы темы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Totals (whisper / Apple)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totals (whisper / Apple)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Итоги (whisper / Apple)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Turn timing and memory (without utterance text) — for checking latency and resources.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn timing and memory (without utterance text) — for checking latency and resources."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Время этапов и память без текста реплик — для проверки задержки и ресурсов."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Understandable ✓": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Understandable ✓"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Понятно ✓"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Undo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Usage today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ресурсы на сегодня"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Useful phrases for this topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Useful phrases for this topic"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полезные фразы для этой темы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Версия"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Словарь"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Vocabulary ★": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocabulary ★"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Словарь ★"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Voice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Голос"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Voice loop metrics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice loop metrics"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Метрики голосового цикла"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Voices": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voices"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Голоса"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Waiting for iCloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for iCloud"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ожидает iCloud"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Warm-up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warm-up"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разминка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Weekly report": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weekly report"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отчёт за неделю"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Welcome to Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добро пожаловать в Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "What Lingo knows about me": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What Lingo knows about me"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что Lingo знает обо мне"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Who starts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who starts"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кто начинает"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Window": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Окно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Without a key, voice and model replies are inactive; you can add a key later in Settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without a key, voice and model replies are inactive; you can add a key later in Settings."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Без ключа голос и ответы модели недоступны; ключ можно добавить позже в настройках."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Words and mistakes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words and mistakes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слова и ошибки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Write a message…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a message…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напишите сообщение…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Write your custom prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write your custom prompt"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напишите свой промпт"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Written to the sync folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Written to the sync folder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записано в папку синхронизации"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Yesterday, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday, %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вчера, %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Your existing saved phrases are available in Hints → Vocabulary ★.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your existing saved phrases are available in Hints → Vocabulary ★."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранённые фразы доступны в разделе Подсказки → Словарь ★."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Your words and mistakes, ready for another try.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your words and mistakes, ready for another try."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши слова и ошибки для повторения."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "all steps are paused after errors": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "all steps are paused after errors"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "все шаги приостановлены после ошибок"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "allowed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "allowed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "разрешено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auto"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "авто"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "bad request or key (HTTP 400)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bad request or key (HTTP 400)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "неверный запрос или ключ (HTTP 400)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "by purpose: ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "by purpose: "
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "по назначению: "
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cancelled"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "отменено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "custom text": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "custom text"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "свой вариант"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "daily request limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daily request limit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "дневной лимит запросов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "daily token limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "daily token limit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "дневной лимит токенов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "denied"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "запрещено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "dialogue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dialogue"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "диалог"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "empty reply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "empty reply"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "пустой ответ"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "error: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "error: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ошибка: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "evals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "evals"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "проверки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "folder not found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "folder not found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "папка не найдена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "for example: intermediate, I want more conversational speech": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "for example: intermediate, I want more conversational speech"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "например: средний уровень, хочу больше разговорной практики"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "https://example.org/v1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https://example.org/v1"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https://example.org/v1"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "iCloud decides the delay between devices — sync is not instant (R-38)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud decides the delay between devices — sync is not instant (R-38)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Задержка зависит от iCloud — синхронизация не мгновенная"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "in English": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in English"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "на английском"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "in German": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in German"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "на немецком"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "in Russian": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in Russian"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "на русском"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "invalid key (HTTP %lld)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "invalid key (HTTP %lld)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "недействительный ключ (HTTP %lld)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "key %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "key %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ключ %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "key not found in the Keychain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "key not found in the Keychain"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ключ не найден в Связке ключей"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "keys: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "keys: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ключей: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "language %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "language %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "язык %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "language %lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "language %lld/%lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "язык %lld/%lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "last refusal: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "last refusal: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "последний отказ: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "left this minute: %lld tokens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "left this minute: %lld tokens"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "остаток на минуту: %lld токенов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "local build": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "local build"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "локальная сборка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "marked: not understandable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "marked: not understandable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "отмечено: непонятно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "marked: understandable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "marked: understandable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "отмечено: понятно"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "network: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "network: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "сеть: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no access to the folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no access to the folder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нет доступа к папке"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no echo cancellation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no echo cancellation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "без эхоподавления"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no key"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нет ключа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no keys": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no keys"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нет ключей"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no reply within the time limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no reply within the time limit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ответ не получен вовремя"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "no session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no session"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "нет разговора"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "not requested": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not requested"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не запрошено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "not set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not set"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "не задан"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "optional: introductions, café, work…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "optional: introductions, café, work…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "например: знакомство, кафе, работа…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "optional: neighbour, waiter, colleague…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "optional: neighbour, waiter, colleague…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "например: сосед, официант, коллега…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "payment required (402)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "payment required (402)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "требуется оплата (402)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "per-minute request limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per-minute request limit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "минутный лимит запросов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "per-minute token limit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per-minute token limit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "минутный лимит токенов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "provider limit (429, kind not specified)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "provider limit (429, kind not specified)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "лимит провайдера (429, вид не указан)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "rate limit (HTTP 429), try again later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rate limit (HTTP 429), try again later"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "лимит запросов (HTTP 429), повторите позже"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "recap": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "recap"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "итог"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "requests %lld (succeeded %lld, rate-limited %lld) · input %lld · output %lld · cached %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "requests %lld (succeeded %lld, rate-limited %lld) · input %lld · output %lld · cached %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "запросов %lld (успешно %lld, лимит %lld) · вход %lld · выход %lld · кэш %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "retry in %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "retry in %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "повтор через %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "summary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "краткое содержание"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "the model refused to answer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the model refused to answer"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "модель отказалась отвечать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "timeout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "timeout"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "время ожидания истекло"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "topic phrases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "topic phrases"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "фразы темы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "understood %lld/%lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "understood %lld/%lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "понято %lld/%lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "understood as: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "understood as: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "понято как: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "unexpected response: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unexpected response: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "неожиданный ответ: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "with button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "with button"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "по кнопке"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "“I'm speaking Russian” button mode: the same phrase, recognized with the button.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“I'm speaking Russian” button mode: the same phrase, recognized with the button."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Режим «Говорю по-русски»: та же фраза распознаётся по кнопке."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "▶": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "▶"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "▶"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "✓ — saved on this Mac, ✓✓ — written to the sync folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ — saved on this Mac, ✓✓ — written to the sync folder."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ — сохранено на этом Mac, ✓✓ — записано в папку синхронизации."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "At the doctor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At the doctor"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У врача"
+          }
+        }
+      }
+    },
+    "Work: interview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work: interview"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Работа: собеседование"
+          }
+        }
+      }
+    },
+    "Saved on this Mac": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved on this Mac"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранено на этом Mac"
+          }
+        }
+      }
+    },
+    "No network: model replies are unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No network: model replies are unavailable"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет сети: ответы модели недоступны"
+          }
+        }
+      }
+    },
+    "Quota exhausted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quota exhausted"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит исчерпан"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

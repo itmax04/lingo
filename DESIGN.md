@@ -1,147 +1,85 @@
-# DESIGN.md — Lingo
+# DESIGN.md — Lingo Quiet, version 2
 
-Source: the owner's mockup [docs/design/lingo-mac.webp](docs/design/lingo-mac.webp) (1774×887 px), owner's choice Q15 of 2026-10-25.
-Colours were sampled from the mockup on 2026-10-25 (the most frequent pixel colour in the element's area). Sizes were converted from mockup pixels
-to pt with a factor of **1.44** (the window in the mockup ≈ 1730 px ≈ 1200 pt). **Do not invent values that are not here.** If something is missing,
-the executor adds the value here marked "(added, <step>, reason)" and shows it to the owner at acceptance.
+Change: LINGO-07, issue #32. Status: implementation specification; generated references remain subject to the evidence audit. This document supersedes the former dark-only visual system. The executor selected A Quiet under the owner's autonomous instruction.
 
-Platforms: macOS (SwiftUI) since LINGO-01; the web (PWA) since LINGO-03 — see §9 for the web adaptation (owner decision O-20: adapt this file, one column on phones).
-Theme: **dark only** in v1. The mockup has no light theme; its values are not invented.
+## 1. Principles and boundaries
 
-## 1. Colours
-| Token | HEX | Where in the mockup |
+Use calm, flat surfaces, readable text and a compact voice control area. Conversation text is the primary content. The mark is an abstract pair of overlapping loops, never a robot or a person. A thin waveform reflects captured levels. No pronunciation assessment, microphone quality score or invented learner statistics.
+
+Existing Mac actions remain unchanged. Today, standalone Vocabulary, Progress and Teacher are explicit Coming soon previews. Existing saved phrases remain usable in the conversation's Vocabulary hints section. Accounts, web, mobile, exams, review scheduling and teacher logic in reference images describe future work only.
+
+## 2. Colors
+
+Dynamic sRGB colors resolve per window appearance. Theme.swift is the executable mapping. The following HEX values are exact, not sampled from generated pixels.
+
+| Token | Light | Dark |
 |---|---|---|
-| `bg.window` | `#121619` | Message feed background |
-| `bg.sidebar` | `#14181B` | Left column |
-| `bg.hints` | `#161A1E` | Right column |
-| `bg.titlebar` | `#1B2125` | Window title bar |
-| `surface.card` | `#1F252A` | Hint cards, English/Deutsch segment track |
-| `surface.voicePanel` | `#171D22` | Voice panel |
-| `surface.input` | `#181F21` | Input field |
-| `surface.bubbleAssistant` | `#242E38` | Assistant bubble |
-| `surface.rowSelected` | `#232C39` | Selected session in the list |
-| `surface.control` | `#283039` | Round "Pause" button |
-| `surface.sendButton` | `#333D47` | Round send button |
-| `surface.chip` | `#101719` | Source badge ("On device") |
-| `border.subtle` | `#23292E` | Outline of cards, badge, voice panel and input field |
-| `border.divider` | `#272B2E` | Column dividers |
-| `accent.primary` | `#1162F4` | "New session", active segment |
-| `bubble.user` | `#105DEB` | User bubble |
-| `avatar.userBg` | `#1B324F` | User avatar circle |
-| `avatar.userIcon` | `#4075D1` | Person icon |
-| `avatar.botBg` | `#274246` | Assistant avatar circle |
-| `avatar.botIcon` | `#87EBE0` | Robot icon |
-| `voice.accent` | `#5BF2DF` | "Listening", waveform, microphone icon |
-| `voice.accentSoft` | `#1C433F` | Microphone circle on the panel |
-| `status.danger` | `#E64542` | "Finish" button |
-| `status.success` | `#1FD67F` | Status dot in the source badge |
-| `text.primary` | `#FFFFFF` | Titles, bubble text, session names |
-| `text.secondary` | `#AAB3BF` | Subtitle, session dates, phrase translations, "My sessions" |
-| `text.tertiary` | `#848B97` | Input placeholder, idle icons |
-| `text.metaOnAccent` | `#AFE8FF` | Time and ✓✓ on the blue bubble |
-| `icon.send` | `#E7EFF8` | "Send" icon |
+| `bgWindow` | `#F7F6F3` | `#111315` |
+| `bgSidebar` | `#F0EFEB` | `#16191C` |
+| `bgHints` | `#F7F6F3` | `#16191C` |
+| `surfaceCard` | `#FFFFFF` | `#1D2125` |
+| `surfaceBubbleAssistant` | `#FFFFFF` | `#20262A` |
+| `surfaceRowSelected` | `#E4E4DE` | `#2B3136` |
+| `surfaceControl` | `#EBECE8` | `#2B3136` |
+| `surfaceSendButton` | `#855107` | `#F2B85B` |
+| `borderSubtle` | `#D3D7D9` | `#343A40` |
+| `accentGerman` | `#855107` | `#F2B85B` |
+| `accentEnglish` | `#136C61` | `#62D5C5` |
+| `bubbleUser` | `#F3E9D9` | `#29241C` |
+| `avatarBotBg` | `#F3E9D9` | `#352A1A` |
+| `statusDanger` | `#A52A32` | `#FF9CA2` |
+| `statusSuccess` | `#216A49` | `#86D8AD` |
+| `textPrimary` | `#202428` | `#F5F4F0` |
+| `textSecondary` | `#505A63` | `#B5BBC1` |
+| `textTertiary` | `#5D676F` | `#9DA5AC` |
+| `iconSend` | `#FFFFFF` | `#202428` |
 
-`text.secondary` was derived from anti-aliased text pixels (the lightest pixel #C7D2E1 minus anti-aliasing). It is checked against the mockup with a screenshot at acceptance.
+German accent surfaces: light #F3E9D9, dark #352A1A. English accent surfaces: light #E4F2EE, dark #19332F. Use explicit DE/EN labels as well as color, never flags. Primary button text: light #FFFFFF, dark #202428. Primary button fill, selected navigation, focus rings and tint: `Theme.accent(currentStudyLanguage)` (German amber or English teal).
 
-## 2. Typography
-Font: the system SF Pro (`.system`); Cyrillic and Latin in one font. Sizes in pt:
-| Token | Size / weight | Where |
-|---|---|---|
-| `type.logo` | 30 / bold | "Lingo" |
-| `type.title` | 22 / semibold | Session title in the header |
-| `type.subtitle` | 14 / regular, `text.secondary` | "Free conversation in English" |
-| `type.button` | 16 / medium | "New session" |
-| `type.segment` | 14 / medium | English / Deutsch |
-| `type.section` | 13 / regular, `text.secondary` | "My sessions", "Useful phrases for this topic" |
-| `type.rowTitle` | 14 / regular | Session title in the list |
-| `type.rowMeta` | 12 / regular, `text.secondary` | "Today, 14:28" |
-| `type.bubble` | 17 / regular | Message text |
-| `type.meta` | 11 / regular | Time in bubbles, "provider · model" label |
-| `type.panelTitle` | 17 / semibold | "Hints" |
-| `type.hintPhrase` | 16 / semibold | Hint phrase |
-| `type.hintTranslation` | 13 / regular, `text.secondary` | Translation |
-| `type.voiceState` | 16 / semibold, `voice.accent` | "Listening" |
-| `type.caption` | 11 / regular | "Pause", "Finish" under the buttons |
-| `type.chip` | 13 / regular | "On device" |
+## 3. Typography
 
-Dynamic Type is not used on macOS. Minimum text size: 11 pt.
+Use system SF Pro through Font.system; no bundled or paid font files. Logo 28 semibold; page title 24 semibold; panel title 18 semibold; conversation 16 regular; hint phrase 15 medium; button 14 medium; row 14 regular; subtitle/translation 13 regular; metadata/caption/section 12. State labels 14 medium. Text remains selectable in conversation content and errors. Preserve Russian and English translations; user language data is not translated.
 
-## 3. Spacing and grid
-Base step: 4 pt. Only these values are used: **4, 8, 12, 16, 20, 24, 32**.
-| Token | Value | Where |
-|---|---|---|
-| `layout.sidebarWidth` | 256 pt | Left column |
-| `layout.hintsWidth` | 264 pt | Right column (collapses below a window width of 1280, R-40) |
-| `layout.headerHeight` | 72 pt | Center column header |
-| `space.columnPadding` | 16 pt | Column inner padding |
-| `space.messageGap` | 16 pt | Between messages |
-| `space.bubblePaddingH` / `V` | 16 / 12 pt | Inside a bubble |
-| `space.avatarGap` | 12 pt | Avatar ↔ bubble |
-| `space.rowPadding` | 12 pt | Session row |
-| `space.cardGap` | 12 pt | Between hint cards |
+## 4. Geometry
 
-Bubble width: at most 70% of the center column.
+Spacing uses 4 pt increments: 4, 8, 12, 16, 20, 24, 32. Hairlines 1 pt and optical icon strokes are exceptions. Main reference canvas 1280×800 pt; sidebar 232 pt; hints 272 pt; header 80 pt. The hints column collapses below 1280 pt; minimum supported Mac content size 1100×700 pt. Do not fabricate a mobile-sized native Mac window.
 
-## 4. Radii and element sizes
-| Token | Value |
-|---|---|
-| `radius.button` | 8 pt ("New session", segment, session row) |
-| `radius.bubble` | 16 pt |
-| `radius.card` | 10 pt (hint cards) |
-| `radius.capsule` | half the height (voice panel, input field, source badge) |
-| `size.primaryButtonHeight` | 40 pt |
-| `size.segmentHeight` | 36 pt |
-| `size.rowHeight` | 50 pt |
-| `size.avatar` | 40 pt, circle |
-| `size.voicePanelHeight` | 86 pt |
-| `size.micCircle` | 50 pt |
-| `size.roundButton` | 44 pt (Pause, Finish) |
-| `size.inputHeight` | 48 pt |
-| `size.sendButton` | 40 pt |
-| `size.hintCardMinHeight` | 78 pt |
-| `size.chipHeight` | 32 pt |
-| `stroke.subtle` | 1 pt, `border.subtle` |
-| `size.waveBar` / `space.waveGap` | 3 / 4 pt (added, P-01 of LINGO-01: waveform bars in the mockup ≈ 4 px wide with ≈ 6 px pitch) |
-| `size.statusDot` | 12 pt (added, P-01 of LINGO-01: the dot in the source badge ≈ 16 px in the mockup) |
+Conversation gaps 24 pt; bubble padding 16 pt; avatar/mark 32 pt with 12 pt gap; bubble maximum fraction 0.82. Primary button height 44 pt; voice panel height 112 pt; microphone target 44 pt; secondary voice control 36 pt plus caption. Input height 48 pt. Card/button radius 12 pt; bubble radius 16 pt. Settings navigation 200 pt; new-session content 820×680 pt; onboarding 720×560 pt; transcript editor 520×320 pt.
 
-## 5. Components
-- **Session row.** "Bubble" icon in `text.tertiary`, title `type.rowTitle`, date `type.rowMeta`, "…" on the right.
-  Selected: background `surface.rowSelected`. Hover: the same background at 50% opacity.
-- **Language segment.** Track `surface.card`; active segment `accent.primary` + `text.primary`; inactive `text.secondary`.
-- **User bubble.** Background `bubble.user`, on the right. Bottom right: time + ✓/✓✓ in `text.metaOnAccent`. Avatar to the right (`avatar.userBg`/`avatar.userIcon`).
-- **Assistant bubble.** Background `surface.bubbleAssistant`, on the left, robot avatar (`avatar.botBg`/`avatar.botIcon`). Time in `text.secondary`.
-  - `@fix` correction block inside the bubble: outline `stroke.subtle`, radius `radius.card`.
-  - Russian segment (R-17): background `surface.card` inside the bubble.
-  - Interrupted part: `text.tertiary`.
-- **Voice panel.** Capsule `surface.voicePanel` + `stroke.subtle`.
-  - Left: circle `voice.accentSoft` with a microphone icon in `voice.accent`, state label `type.voiceState`.
-  - Center: waveform bars in `voice.accent`, fading towards the edges (opacity 100% → 30%).
-  - Right: "Pause" (`surface.control`) and "Finish" (`status.danger`) buttons, captions `type.caption`.
-- **Input field.** Capsule `surface.input` + `stroke.subtle`, keyboard icon `text.tertiary`, vertical divider `border.divider`, placeholder `text.tertiary`.
-  Send button: circle `surface.sendButton`, icon `icon.send`.
-- **Source badge.** Capsule `surface.chip` + `stroke.subtle`, dot `status.success` (or `status.danger` when offline), text `type.chip`, chevron.
-- **Hint card.** `surface.card` + `stroke.subtle`, `radius.card`. Phrase `type.hintPhrase`, translation `type.hintTranslation`, speaker icon on the right, ★ next to it.
-  Icons idle in `text.primary`; an active ★ in `accent.primary`.
+Content shadow token: none (opacity 0, blur 0, x 0, y 0). Native floating popovers retain the system window shadow; that system effect is not claimed to match generated shadows. The app icon is the permitted raster exception.
 
-Icons: SF Symbols, regular weight, sized to the line's text.
+## 5. Components and states
 
-## 6. States
-- **Keyboard focus:** the system macOS focus ring (accent colour `accent.primary`).
-- **Hover:** buttons get lighter. No separate colours: `opacity(0.85)` over the original.
-- **Disabled:** `opacity(0.4)` and a hint with the reason (R-33, S-01).
-- **Error:** text in `status.danger` under the element.
+- Sidebar: mark, product name, five navigation entries, language filter, new session, real session history, sync status and Settings. Planned entries visibly say Coming soon.
+- Conversation: assistant on the left, learner on the right; inline original word struck through with corrected word beside it. Correction detail shows original, corrected text and explanation; original journal data is retained. Unattachable fixes remain a separate block.
+- Reply state: idle, recording, listening, thinking, speaking, paused. Network, quota and chain failures use explicit text and an error symbol. Do not infer new business states or alter voice transitions.
+- Voice panel: one compact rectangle; state label, level line, microphone, pause/resume, finish and existing toggles. No giant decorative orb.
+- Hints: Topic phrases, Corrections, How to say, Vocabulary ★. Preserve playback and starring behavior.
+- Settings: provider/model keys, quotas, voice, sync and data. Additional account is a label on an existing key, not a promise of quota independence.
+- Forms and alerts: keyboard default/cancel actions, clear labels, visible validation and destructive intent. Never execute exports or deletion during screenshot capture.
 
-## 7. Motion
-- Only system SwiftUI animations (`.default`, `.easeInOut` 0.2 s) for appearing messages and panel state changes.
-- The waveform follows the sound level; no decorative animation.
-- With "Reduce motion" (`accessibilityReduceMotion`) the waveform becomes a static level bar and transitions are not animated.
+## 6. Motion and accessibility
 
-## 8. Accessibility
-- Contrast of `text.primary` and `text.secondary` against the column backgrounds ≥ 4.5:1 (check and record in handoff).
-- Every icon button has an accessibility label (localized).
-- Keyboard: space (hold to talk), Esc (stop), ⌥R ("I'm speaking Russian"), ⌘N (new session), ⌘, (settings).
+Transitions 180 ms ease-in-out. Speaking mark breathing scale 1.00–1.06 over 1.2 s. Reduce Motion disables breathing and animated scrolling and replaces the animated waveform with a level meter. No required information depends on motion or color alone. Keep keyboard focus, native controls and VoiceOver labels. Native controls use the platform focus ring; custom buttons add a 2 pt accent outline with a 4 pt inset. Hover is not the only state indication.
 
-## 9. Web adaptation (LINGO-03; added by the architecture of 2026-10-26, to be confirmed by the owner at acceptance)
+Light `textTertiary` is #5D676F to make the hierarchy lighter than #505A63 secondary text while retaining at least 4.5:1 even on selected rows.
+
+Normal text must achieve at least 4.5:1 against its actual surface. `contrast.json` records token-pair calculations; `check-design.py` independently computes WCAG sRGB luminance from `tokens.json` for every required pair. Disabled controls are exempt from WCAG text contrast, but descriptions and Coming soon labels remain full-opacity readable text. Decorative dividers are not text and are not certified by the text contrast table.
+
+## 7. Future platform adaptation
+
+Phone uses one column with bottom navigation Today / Conversations / Vocabulary / Progress; primary voice actions stay within thumb reach with at least 44 pt targets and safe-area padding. Hints become a sheet. iPad uses adaptive two/three columns in landscape and collapsible secondary content in portrait. Web uses the same token values as CSS variables and `system-ui, -apple-system, BlinkMacSystemFont, sans-serif`; Windows and Android use system fallback fonts without downloading SF Pro. Native Live Activity and Dynamic Island are concepts, not implemented capabilities.
+
+## 8. Reproducibility and evidence
+
+Generated gradients, blurred edges, inconsistent marks, text shaping and variable canvas dimensions are not executable specifications. Replace them with flat token colors, native SF typography and the vector LingoGlyph. The permitted app-icon bitmap is a separate asset; generated screenshots are never embedded in UI.
+
+Preserve original ImageGen outputs and exact prompts. Normalize comparison canvases with recorded scaling only; do not claim pixel agreement from resampling. Every Mac screen requires reference | implementation evidence in both themes. The ±4 pt acceptance criterion remains unpassed until measured; all larger differences stay listed in the report. Autonomous choice is not owner approval of a deviation.
+
+## 9. Web adaptation (carried over from main)
+
+> Status: written against the v1 dark tokens before DESIGN.md v2. Section 7 and the v2 token tables above win on any difference; rebase this section on v2 in LINGO-03 P-15 (Web UI).
+
 - **Tokens → CSS custom properties** with the same names (`--bg-window`, `--surface-card`, `--type-bubble-size`, …). 1 pt in this file = **1 CSS px**.
 - **Font stack:** `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` — Cyrillic and Latin in every member; system fonts only, no web-font downloads.
 - **Wide layout (≥ 1100 px):** the three columns of the mockup with the widths of §3; the hints column becomes a slide-over below 1280 px (as R-40).

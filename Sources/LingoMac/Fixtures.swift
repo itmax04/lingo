@@ -1,57 +1,40 @@
 import Foundation
 import LingoCore
 
-/// Synthetic data for P-01 and UI snapshots: sessions and messages as in the `lingo-mac.webp` mockup.
-/// The name "Alex" is anonymized (evals/README.md). Russian texts are language data (the learner's Russian utterances and translations).
+/// Synthetic redesign evidence. This data never reads or writes the learner's journal.
 @MainActor
 enum Fixtures {
-    static func fill(_ m: AppModel, now: Date = Date()) {
-        let cal = Calendar.current
-        func day(_ month: Int, _ d: Int, _ h: Int, _ min: Int) -> Date {
-            var c = cal.dateComponents([.year], from: now)
-            c.month = month; c.day = d; c.hour = h; c.minute = min
-            return cal.date(from: c) ?? now
-        }
-        let today = cal.date(bySettingHour: 14, minute: 28, second: 0, of: now) ?? now
-        func s(_ id: String, _ title: String, _ date: Date, mode: SessionMode = .free, topic: String = "") -> Session {
-            Session(id: id, title: title, settings: SessionSettings(lang: .en, mode: mode, topic: topic, level: "B1",
-                                                                     corrections: [.inline]),
-                    createdAt: date, lastActivity: date)
-        }
+    static let original = "Ich habe seit zwei Tage Kopfschmerzen."
+    static let corrected = "Ich habe seit zwei Tagen Kopfschmerzen."
+    static let russianExplanation = "После seit нужен дательный падеж: seit zwei Tagen."
+    static let rule = "Nach seit steht der Dativ."
+    static func fill(_ m: AppModel, now: Date = Date(timeIntervalSince1970: 1793109600)) {
+        let settings = SessionSettings(lang: .de, mode: .customPrompt, topic: "Beim Arzt", level: "B1", corrections: [.inline])
         m.sessions = [
-            Session(id: "s1", title: "Practice: introductions",
-                    settings: SessionSettings(lang: .en, mode: .free, topic: "introductions", level: "B1", corrections: [.inline]),
-                    createdAt: today, lastActivity: today),
-            s("s2", "At the café", day(5, 12, 17, 3)),
-            s("s3", "Travel", day(5, 10, 11, 20)),
-            s("s4", "Work and career", day(5, 8, 16, 45)),
-            s("s5", "Everyday situations", day(5, 5, 9, 12)),
-            s("s6", "At the airport", day(5, 2, 20, 18)),
-            s("s7", "Weekend plans", day(4, 28, 14, 6)),
+            Session(id: "s1", title: String(localized: "At the doctor"), settings: settings, createdAt: now, lastActivity: now),
+            Session(id: "s2", title: "IELTS Part 2", settings: SessionSettings(lang: .en, mode: .free), createdAt: now, lastActivity: now),
+            Session(id: "s3", title: String(localized: "Work: interview"), settings: settings, createdAt: now, lastActivity: now)
         ]
         m.selectedSessionID = "s1"
-        let t1 = today, t2 = today.addingTimeInterval(60)
+        m.section = .conversations
+        m.langFilter = .de
         m.messages = [
-            ChatMessage(id: "m1", session: "s1", role: .user, text: "How do I introduce myself naturally?", lang: .en,
-                        createdAt: t1, synced: true),
-            ChatMessage(id: "m2", session: "s1", role: .assistant, text: "", lang: .en,
-                        segments: [.say(.en, "You can say: “Hi, I’m Alex. Nice to meet you.”")], createdAt: t1),
-            ChatMessage(id: "m3", session: "s1", role: .user, text: "А можно медленнее?", lang: .ru, createdAt: t2, synced: true),
-            ChatMessage(id: "m4", session: "s1", role: .assistant, text: "", lang: .en,
-                        segments: [.say(.en, "Конечно. Повторим по частям.")], createdAt: t2),
+            ChatMessage(id: "m1", session: "s1", role: .assistant, text: "", lang: .de,
+                        segments: [.say(.de, "Guten Morgen! Was führt Sie heute zu mir?")], createdAt: now),
+            ChatMessage(id: "m2", session: "s1", role: .user, text: original, lang: .de, createdAt: now, synced: true),
+            ChatMessage(id: "m3", session: "s1", role: .assistant, text: "", lang: .de,
+                        segments: [.say(.de, "Das tut mir leid. Haben Sie auch Fieber?"),
+                                   .fix(Fix(original: original, corrected: corrected, rule: rule))], createdAt: now)
         ]
         m.phrases = [
-            Phrase(lang: .en, text: "Nice to meet you.", translation: "Приятно познакомиться.", source: .topic),
-            Phrase(lang: .en, text: "I’m Alex.", translation: "Меня зовут Алекс.", source: .topic),
+            Phrase(lang: .de, text: "Ich habe Kopfschmerzen.", translation: "У меня болит голова.", source: .topic),
+            Phrase(lang: .de, text: "Seit wann haben Sie Fieber?", translation: "С какого времени у вас температура?", source: .topic)
         ]
-        m.voiceState = .listening
-        m.levels = (0..<64).map { i in
-            let x = Float(i) / 63
-            let env = max(0, 1 - abs(x - 0.45) * 2.6)
-            return 0.12 + env * (0.55 + 0.4 * abs(sin(Float(i) * 1.7)))
-        }
-        m.sourceLabel = String(localized: "On device")
+        m.voiceState = .speaking
+        m.levels = (0..<64).map { 0.1 + 0.7 * abs(sin(Float($0) * 0.3)) }
+        m.sourceLabel = "Groq · 120b"
+        m.hasKey = true
         m.online = true
-        m.syncStatus = SyncStatus.synced(t1).title
+        m.syncStatus = String(localized: "Saved on this Mac")
     }
 }

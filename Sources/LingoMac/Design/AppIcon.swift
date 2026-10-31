@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// App icon from DESIGN.md tokens: an `accent.primary` bubble with a `voice.accent` wave on `bg.window`.
+/// Production ImageGen icon (permitted bitmap exception), with a vector mark fallback.
 /// `scripts/build-app.sh` calls `Lingo --export-iconset <dir>` and builds the .icns with iconutil.
 struct AppIconView: View {
     var body: some View {
@@ -9,16 +9,8 @@ struct AppIconView: View {
             let s = g.size.width
             ZStack {
                 RoundedRectangle(cornerRadius: s * 0.22, style: .continuous).fill(Theme.C.bgWindow)
-                RoundedRectangle(cornerRadius: s * 0.18, style: .continuous)
-                    .fill(Theme.C.accentPrimary)
-                    .frame(width: s * 0.62, height: s * 0.46)
-                    .offset(y: -s * 0.04)
-                HStack(spacing: s * 0.035) {
-                    ForEach([0.12, 0.22, 0.32, 0.22, 0.12], id: \.self) { h in
-                        Capsule().fill(Theme.C.voiceAccent).frame(width: s * 0.045, height: s * h)
-                    }
-                }
-                .offset(y: -s * 0.04)
+                LingoGlyph().stroke(Color(red: 242/255, green: 184/255, blue: 91/255), style: StrokeStyle(lineWidth: s * 0.045, lineCap: .round, lineJoin: .round))
+                    .frame(width: s * 0.62, height: s * 0.62)
             }
             .padding(s * 0.08)
         }
@@ -32,8 +24,24 @@ struct AppIconView: View {
                 let px = base * scale
                 let renderer = ImageRenderer(content: AppIconView().frame(width: CGFloat(px), height: CGFloat(px)))
                 renderer.scale = 1
-                guard let cg = renderer.cgImage else { throw CocoaError(.fileWriteUnknown) }
-                let rep = NSBitmapImageRep(cgImage: cg)
+                let source = CommandLine.arguments.firstIndex(of: "--icon-source").flatMap { index in
+                    CommandLine.arguments.indices.contains(index + 1) ? NSImage(contentsOfFile: CommandLine.arguments[index + 1]) : nil
+                }
+                let rep: NSBitmapImageRep
+                if let source, let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px, bitsPerSample: 8,
+                                                          samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                                          colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+                   let context = NSGraphicsContext(bitmapImageRep: bitmap) {
+                    NSGraphicsContext.saveGraphicsState()
+                    NSGraphicsContext.current = context
+                    context.imageInterpolation = .high
+                    source.draw(in: NSRect(x: 0, y: 0, width: px, height: px))
+                    NSGraphicsContext.restoreGraphicsState()
+                    rep = bitmap
+                } else {
+                    guard let cg = renderer.cgImage else { throw CocoaError(.fileWriteUnknown) }
+                    rep = NSBitmapImageRep(cgImage: cg)
+                }
                 guard let png = rep.representation(using: .png, properties: [:]) else { throw CocoaError(.fileWriteUnknown) }
                 let name = scale == 1 ? "icon_\(base)x\(base).png" : "icon_\(base)x\(base)@2x.png"
                 try png.write(to: dir.appendingPathComponent(name))

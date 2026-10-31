@@ -1,0 +1,22 @@
+{
+  "service": "subscription ImageGen",
+  "error": "usage_limit_reached",
+  "http_status": 429,
+  "estimated_reset_utc": "2026-10-28T06:45:19Z",
+  "estimated_reset_berlin": "2026-10-28 07:45 CET",
+  "paid_api_used": false,
+  "visual_repairs_not_generated": [
+    "teacher-f7-concept-light-1024x1536",
+    "teacher-f8-concept-light-1024x1536",
+    "teacher-f9-concept-light-1024x1536",
+    "teacher-f10-concept-light-1536x1024",
+    "system-typography-scale-light-1536x1024",
+    "system-components-library-light-1536x1024",
+    "system-icon-app-light-1024x1024",
+    "architecture-system-context-planned-light-1536x1024",
+    "architecture-voice-turn-planned-light-1536x1024",
+    "architecture-history-sync-planned-light-1536x1024"
+  ],
+  "production_geometry_refinements_not_started": 37,
+  "note": "All 132 base targets, six direction boards and one production icon exist. Remaining repairs and strict geometry acceptance are blocked; the change is not complete."
+}

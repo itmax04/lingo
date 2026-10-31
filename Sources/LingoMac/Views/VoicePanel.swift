@@ -5,85 +5,79 @@ import SwiftUI
 struct VoicePanel: View {
     let state: VoiceState
     let levels: [Float]
+    var lang: Lang = .de
+    var unavailable: String?
     var onMic: () -> Void = {}
     var onPause: () -> Void = {}
     var onEnd: () -> Void = {}
     var extraControls: AnyView = AnyView(EmptyView())
 
+
+    var microphoneLabel: String {
+        state == .idle ? String(localized: "Speak") : String(localized: "Microphone: \(state.title)")
+    }
+    var activeLevels: [Float] { [.recording, .listening, .speaking].contains(state) ? levels : [] }
+
     var body: some View {
-        HStack(spacing: Theme.S.s16) {
-            Button(action: onMic) {
-                ZStack {
-                    Circle().fill(Theme.C.voiceAccentSoft)
-                    Image(systemName: state == .idle ? "mic.fill" : "waveform")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Theme.C.voiceAccent)
-                }
-                .frame(width: Theme.R.micCircle, height: Theme.R.micCircle)
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Button(action: onMic) {
+                    Image(systemName: state == .idle ? "mic" : "waveform")
+                        .font(.system(size: 18, weight: .medium)).foregroundStyle(Theme.accent(lang))
+                        .frame(width: Theme.R.micCircle, height: Theme.R.micCircle)
+                        .background(Theme.accentSurface(lang), in: Circle())
+                }.buttonStyle(LingoButtonStyle()).accessibilityLabel(microphoneLabel)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(unavailable ?? state.title).font(Theme.F.voiceState)
+                        .foregroundStyle(unavailable == nil ? Theme.accent(lang) : Theme.C.statusDanger).lineLimit(2)
+                    if state == .thinking { ProgressView().controlSize(.mini).accessibilityLabel("Thinking…") }
+                }.frame(minWidth: 76, alignment: .leading)
+                Waveform(levels: activeLevels, color: Theme.accent(lang))
+                    .frame(maxWidth: .infinity).frame(height: 36).accessibilityHidden(true)
+                RoundCaptionButton(symbol: state == .paused ? "play.fill" : "pause.fill",
+                                   caption: state == .paused ? "Resume" : "Pause",
+                                   fill: Theme.C.surfaceControl, iconColor: Theme.C.textPrimary, action: onPause)
+                RoundCaptionButton(symbol: "xmark", caption: "Finish",
+                                   fill: Theme.C.surfaceControl, iconColor: Theme.C.statusDanger, action: onEnd)
             }
-            .buttonStyle(LingoButtonStyle())
-            .accessibilityLabel(state == .idle ? "Speak" : "Microphone: \(state.title)")
-
-            Text(state.title)
-                .font(Theme.F.voiceState)
-                .foregroundStyle(Theme.C.voiceAccent)
-                .lineLimit(1)
-                .fixedSize()
-
-            Waveform(levels: levels)
-                .frame(maxWidth: .infinity)
-                .frame(height: Theme.R.micCircle)
-                .accessibilityHidden(true)
-
-            extraControls
-
-            RoundCaptionButton(symbol: state == .paused ? "play.fill" : "pause.fill",
-                               caption: state == .paused ? "Resume" : "Pause",
-                               fill: Theme.C.surfaceControl, iconColor: Theme.C.textPrimary, action: onPause)
-            RoundCaptionButton(symbol: "xmark", caption: "Finish",
-                               fill: Theme.C.statusDanger, iconColor: Theme.C.textPrimary, action: onEnd)
+            HStack { extraControls; Spacer(minLength: 0) }
         }
-        .padding(.horizontal, Theme.S.s24)
+        .padding(.horizontal, 16).padding(.vertical, 12)
         .frame(height: Theme.R.voicePanelHeight)
-        .background(Theme.C.surfaceVoicePanel, in: Capsule())
-        .subtleStroke(Capsule())
+        .background(Theme.C.surfaceVoicePanel, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
     }
 }
 
 /// Waveform: `voice.accent` bars fading toward the edges (100% → 30%). Driven only by the sound level, no decorative animation.
 /// With "Reduce motion" — a static level bar (DESIGN.md §7).
+/// A single line driven by captured sound levels. Reduce Motion uses a level meter.
 struct Waveform: View {
     let levels: [Float]
+    var color = Theme.C.voiceAccent
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { geometry in
             if reduceMotion {
-                let level = CGFloat(levels.last ?? 0)
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Theme.C.voiceAccent.opacity(0.3))
-                    Capsule().fill(Theme.C.voiceAccent).frame(width: geo.size.width * min(1, max(0, level)))
-                }
-                .frame(height: Theme.S.s4)
-                .frame(maxHeight: .infinity)
+                    Capsule().fill(color.opacity(0.16))
+                    Capsule().fill(color).frame(width: geometry.size.width * CGFloat(min(1, max(0, levels.last ?? 0))))
+                }.frame(height: 4).frame(maxHeight: .infinity)
             } else {
-                let count = max(1, Int(geo.size.width / (Theme.R.waveBar + Theme.R.waveGap)))
-                let values = Self.resample(levels, count: count)
-                HStack(alignment: .center, spacing: Theme.R.waveGap) {
-                    ForEach(0..<count, id: \.self) { i in
-                        let edge = 1 - abs(Double(i) / Double(max(1, count - 1)) * 2 - 1)
-                        Capsule()
-                            .fill(Theme.C.voiceAccent.opacity(0.3 + 0.7 * edge))
-                            .frame(width: Theme.R.waveBar,
-                                   height: max(Theme.S.s4, geo.size.height * CGFloat(values[i])))
+                Path { path in
+                    let count = max(2, Int(geometry.size.width / 4))
+                    let values = Self.resample(levels, count: count)
+                    for index in 0..<count {
+                        let x = geometry.size.width * CGFloat(index) / CGFloat(count - 1)
+                        let value = CGFloat(min(1, max(0, values[index])))
+                        let y = geometry.size.height / 2 + sin(CGFloat(index) * 0.55) * value * geometry.size.height * 0.4
+                        if index == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                        else { path.addLine(to: CGPoint(x: x, y: y)) }
                     }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }.stroke(color, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
             }
         }
     }
-
-    /// The last `count` values; if there are fewer — silence on the left.
     static func resample(_ levels: [Float], count: Int) -> [Float] {
         let tail = Array(levels.suffix(count))
         return Array(repeating: 0, count: count - tail.count) + tail
@@ -92,6 +86,7 @@ struct Waveform: View {
 
 /// Input field (R-43, DESIGN.md §5).
 struct InputBar: View {
+    @Environment(\.studyLanguage) private var studyLanguage
     @Binding var text: String
     var enabled = true
     var disabledReason: String?
@@ -128,7 +123,7 @@ struct InputBar: View {
 
             Button(action: onSend) {
                 ZStack {
-                    Circle().fill(Theme.C.surfaceSendButton)
+                    Circle().fill(Theme.accent(studyLanguage))
                     Image(systemName: "paperplane")
                         .font(.system(size: 18))
                         .foregroundStyle(Theme.C.iconSend)

@@ -54,8 +54,12 @@ BUILD_NO="$(git rev-list --count HEAD 2>/dev/null || echo 0)"
 /usr/libexec/PlistBuddy -c "Add :LingoBuildDate string $(date -u +%Y-%m-%dT%H:%M:%SZ)" "$APP/Contents/Info.plist"
 find "$ROOT/Resources" -maxdepth 1 -type f ! -name Info.plist -exec cp {} "$APP/Contents/Resources/" \;
 
-# The icon is drawn by the app itself, then iconutil builds the .icns.
-"$BIN" --export-iconset "$STAGE/AppIcon.iconset"
+xcrun xcstringstool compile "$ROOT/Resources/Localizable.xcstrings" --output-directory "$APP/Contents/Resources"
+if [ -f "$ROOT/Resources/InfoPlist.xcstrings" ]; then
+  xcrun xcstringstool compile "$ROOT/Resources/InfoPlist.xcstrings" --output-directory "$APP/Contents/Resources"
+fi
+# The icon is rendered at native sizes, then iconutil builds the .icns.
+"$BIN" --export-iconset "$STAGE/AppIcon.iconset" --icon-source "$ROOT/Resources/AppIcon.png"
 iconutil -c icns "$STAGE/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
 
 # Native libraries (the whisper XCFramework), if any, go into Frameworks.

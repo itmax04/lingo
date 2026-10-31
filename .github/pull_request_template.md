@@ -25,5 +25,5 @@ Plan step: `LINGO-__ P-__` · Requirements: `MR-__` / `WR-__` / `WAC-__`
 ## Screenshots / evidence
 <!-- UI screenshots, metric excerpts (no utterance text, no keys). -->
 
-## For the owner (Russian, 1–3 lines)
-<!-- Что изменилось для тебя и что нужно проверить. -->
+## For the owner
+<!-- State what changed and what the owner should review. -->

@@ -22,7 +22,7 @@ struct STTCheckView: View {
         .padding(Theme.S.s24)
         .frame(minWidth: 860, minHeight: 760, alignment: .topLeading)
         .background(Theme.C.bgWindow)
-        .preferredColorScheme(.dark)
+        .modifier(InterfaceAppearance())
         .task { await c.prepare() }
         .onKeyPress(.space) { c.toggleRecording(); return .handled }
     }
@@ -122,7 +122,7 @@ enum STTCheckWindow {
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 920, height: 880), styleMask: [.titled, .closable, .resizable, .miniaturizable],
                          backing: .buffered, defer: false)
         w.title = String(localized: "Speech recognition check")
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.appearance = nil
         w.contentView = NSHostingView(rootView: STTCheckView(c: c))
         w.isReleasedWhenClosed = false
         w.center()

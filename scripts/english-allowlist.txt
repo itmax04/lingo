@@ -45,3 +45,15 @@ docs/changes/LINGO-01/spec.md
 docs/decisions/ADR-0001-stack.md
 docs/reference/*
 evals/live-script-mac.md
+
+# LINGO-07 exact Russian UI reference prompts and generated evidence manifests.
+design/redesign-2026/*generation-tasks.json
+
+# Legacy eval documentation pending the paused English migration; unchanged by LINGO-07.
+evals/README.md
+
+# Exact UI lettering in visual-repair prompt metadata (language data, not repository prose).
+design/redesign-2026/*repair-tasks.json
+# Exact prompts and OCR results are preserved UI language data.
+design/redesign-2026/prompts-used/*.md
+design/redesign-2026/10-comparison/text-audit.json

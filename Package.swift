@@ -35,6 +35,7 @@ let package = Package(
             dependencies: ["LingoCore", "LingoEvalKit", .product(name: "Yams", package: "Yams")],
             linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path"])]
         ),
+        .testTarget(name: "LingoMacTests", dependencies: ["LingoMac", "LingoCore"]),
         .testTarget(name: "LingoCoreTests", dependencies: ["LingoCore", "LingoEvalKit"], exclude: ["Snapshots"]),
     ]
 )

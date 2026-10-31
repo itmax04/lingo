@@ -8,6 +8,7 @@ enum LingoMain {
     static var delegate: AppDelegate?
     static func main() {
         let args = CommandLine.arguments
+        InterfacePreferences.prepare(arguments: args)
         if let i = args.firstIndex(of: "--audio-diag"), i + 1 < args.count { AudioDiag.step(args[i + 1], "main") }
         if let i = args.firstIndex(of: "--export-iconset"), i + 1 < args.count {
             do {
@@ -20,7 +21,9 @@ enum LingoMain {
         }
         // Service mode: a PNG snapshot of the window on fixtures (evidence for AC-11), without audio, network or journal.
         if let i = args.firstIndex(of: "--ui-snapshot"), i + 1 < args.count {
-            exit(UISnapshot.run(to: URL(fileURLWithPath: args[i + 1])))
+            let url = URL(fileURLWithPath: args[i + 1])
+            Task { @MainActor in exit(await UISnapshot.run(to: url)) }
+            RunLoop.main.run()
         }
         // Service mode: check all keys and `GET /models` (H-1, P-03). Key values are never printed.
         // Runs from the signed .app: only it gets keys from the Keychain without a prompt.
@@ -91,9 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showOnboarding() {
         guard let svc = services else { return }
-        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 680, height: 520), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 560), styleMask: [.titled, .closable], backing: .buffered, defer: false)
         w.title = String(localized: "Lingo — first launch")
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.appearance = nil
         w.contentView = NSHostingView(rootView: OnboardingView(services: svc, keys: keys) { [weak self] in
             self?.onboardingWindow?.close()
             self?.onboardingWindow = nil
@@ -156,8 +159,8 @@ enum MainWindow {
         w.titleVisibility = .hidden
         w.titlebarAppearsTransparent = true
         // Title bar — `bg.titlebar` (DESIGN.md §1).
-        w.backgroundColor = NSColor(srgbRed: 0x1B / 255, green: 0x21 / 255, blue: 0x25 / 255, alpha: 1)
-        w.appearance = NSAppearance(named: .darkAqua)
+        w.backgroundColor = NSColor(Theme.C.bgTitlebar)
+        w.appearance = nil
         w.contentMinSize = Theme.S.minWindow
         w.contentView = NSHostingView(rootView: MainView(model: model))
         w.setFrameAutosaveName("LingoMain")
@@ -206,43 +209,139 @@ enum MainMenu {
     }
 }
 
-/// `--ui-snapshot <file.png>`: a 1280×800 snapshot of the main window on fixtures (modelled on IC `UISnapshots.render`, commit cf0e764).
+/// Fixture-only rendering: no real journal, credentials, audio or provider requests.
 @MainActor
 enum UISnapshot {
-    static func run(to url: URL) -> Int32 {
+    static func run(to url: URL) async -> Int32 {
         NSApplication.shared.setActivationPolicy(.accessory)
+        let args = CommandLine.arguments
+        func option(_ name: String) -> String? {
+            guard let index = args.firstIndex(of: name), index + 1 < args.count else { return nil }
+            return args[index + 1]
+        }
+        let theme = option("--ui-theme") ?? "dark"
+        let defaults = UserDefaults.standard
+        var process = defaults.volatileDomain(forName: UserDefaults.argumentDomain)
+        process["LingoInterfaceAppearance"] = theme
+        defaults.setVolatileDomain(process, forName: UserDefaults.argumentDomain)
+        NSApp.appearance = NSAppearance(named: theme == "light" ? .aqua : .darkAqua)
         let model = AppModel()
         Fixtures.fill(model)
-        let size = NSSize(width: 1280, height: 800)
-        var ok = render(MainView(model: model), size: size, to: url)
-        // Settings with synthetic keys (values only in memory).
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent("lingo-ui-" + UUID().uuidString)
+        let suite = "lingo-ui-" + UUID().uuidString
+        guard let isolated = UserDefaults(suiteName: suite) else { return 1 }
+        defer { try? FileManager.default.removeItem(at: base); isolated.removePersistentDomain(forName: suite) }
+        let secrets = InMemorySecretStore()
+        guard let services = try? AppServices(model: model, settingsStore: SettingsStore(defaults: isolated), secrets: secrets, base: base) else { return 1 }
+        model.services = services
+        Fixtures.fill(model)
         var llm = LLMSettings()
-        llm.keys = [KeyRecord(id: "k1", provider: .groq, last4: "a1b2"),
-                    KeyRecord(id: "k2", provider: .groq, last4: "c3d4", invalid: true, invalidReason: "HTTP 401")]
-        llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
+        llm.keys = [KeyRecord(id: "demo-1", provider: .groq, last4: "0000"),
+                    KeyRecord(id: "demo-2", provider: .groq, last4: "1111", invalid: true, invalidReason: "HTTP 401")]
+        llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
         llm.knownModelsAt[.groq] = Date()
-        let keys = KeysController(settings: llm, secrets: InMemorySecretStore(["k1": "synthetic-0000", "k2": "synthetic-1111"])) { _ in }
-        keys.checks["k1"] = KeyCheckResult.ok(models: ["a", "b", "c"]).summary
-        let settingsURL = url.deletingPathExtension().appendingPathExtension("settings.png")
-        ok = render(SettingsView(keys: keys), size: NSSize(width: 900, height: 1100), to: settingsURL) && ok
-        let newURL = url.deletingPathExtension().appendingPathExtension("new-session.png")
-        ok = render(NewSessionView(lang: .de, lastCorrections: [.inline], onStart: { _, _ in }, onCancel: {}), size: NSSize(width: 620, height: 640), to: newURL) && ok
-        print(ok ? "ui-snapshot: \(url.path), \(settingsURL.path), \(newURL.path)" : "ui-snapshot: FAILED")
+        let keys = KeysController(settings: llm, secrets: secrets) { _ in }
+        // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
+        var ok = true
+        func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
+            let target = option("--ui-all") == nil ? url : url.deletingLastPathComponent().appendingPathComponent("mac-" + name + "-" + theme + "-" + String(Int(size.width)) + "x" + String(Int(size.height)) + ".png")
+            if option("--ui-all") == nil && name != "conversation-speaking" { return }
+            ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
+            print("ui-snapshot: " + target.path)
+        }
+        await capture("conversation-speaking", MainView(model: model))
+        if option("--ui-all") != nil {
+            await capture("conversation-narrow", MainView(model: model), NSSize(width: 1100, height: 800))
+            model.hintsVisible = true
+            for section in [AppSection.today, .dictionary, .progress, .teacher] {
+                model.section = section
+                await capture(section.rawValue + "-overview", MainView(model: model))
+            }
+            model.section = .conversations
+            for state in [VoiceState.idle, .recording, .listening, .thinking, .speaking, .paused] {
+                model.voiceState = state
+                await capture("voice-" + String(describing: state), MainView(model: model))
+            }
+            model.voiceState = .recording
+            model.banner = String(localized: "Saved on this Mac")
+            await capture("voice-recording-notice", MainView(model: model))
+            model.banner = nil
+            model.networkUp = false
+            model.banner = String(localized: "No network: model replies are unavailable")
+            await capture("voice-offline", MainView(model: model))
+            model.networkUp = true
+            let quotaSteps = keys.settings.chain.filter(\.enabled).flatMap { entry in
+                keys.settings.keys(for: entry.provider).filter { !$0.invalid }.map { StepInfo(provider: entry.provider, model: entry.model, keyID: $0.id) }
+            }
+            services.settings.llm = keys.settings
+            for step in quotaSteps { ProviderHealth.shared.reportFailure(step, .http(status: 429, message: "Quota exhausted", retryAfter: 60)) }
+            model.banner = String(localized: "Quota exhausted")
+            await capture("voice-quota", MainView(model: model))
+            for step in quotaSteps { ProviderHealth.shared.reportSuccess(step) }
+            model.banner = nil
+            model.messages[1].heard = Fixtures.corrected
+            await capture("conversation-heard", MainView(model: model))
+            model.messages[2].segments.insert(.say(.ru, Fixtures.russianExplanation), at: 0)
+            await capture("conversation-russian", MainView(model: model))
+            model.messages[2].interruptedAt = 12
+            await capture("conversation-interrupted", MainView(model: model))
+            Fixtures.fill(model)
+            model.messages.append(ChatMessage(id: "recap", session: "s1", role: .assistant,
+                text: "seit zwei Tage → seit zwei Tagen", lang: .ru, createdAt: Date(), kind: .summary))
+            await capture("recap-complete", MainView(model: model))
+            model.messages.removeLast()
+            model.messages.append(ChatMessage(id: "error", session: "s1", role: .assistant,
+                text: String(localized: "Quota exhausted"), lang: .de, createdAt: Date(), kind: .error))
+            await capture("conversation-error", MainView(model: model))
+            Fixtures.fill(model)
+            await capture("correction-detail", MainView(model: model).overlay(alignment: .topTrailing) {
+                CorrectionDetailView(fix: Fix(original: Fixtures.original, corrected: Fixtures.corrected, rule: Fixtures.rule))
+                    .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card)).padding(.top, 180).padding(.trailing, 288)
+            })
+            await capture("session-menu", MainView(model: model).overlay(alignment: .topLeading) {
+                VStack(alignment: .leading, spacing: 12) { SessionActionsContent() }
+                    .padding(16).frame(width: 200).background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+                    .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card)).padding(.top, 480).padding(.leading, 100)
+            })
+            for tab in SettingsTab.allCases {
+                await capture("settings-" + tab.rawValue, SettingsView(keys: keys, services: services, tab: tab))
+            }
+            await capture("new-session-form", NewSessionView(lang: .de, lastCorrections: [.inline], onStart: { _, _ in }, onCancel: {}))
+            await capture("transcript-edit", EditMessageView(message: model.messages[1], onSave: { _ in }, onRegenerate: { _ in }, onCancel: {}))
+            for step in 0..<3 {
+                await capture("onboarding-" + String(step), OnboardingView(services: services, keys: keys, initialStep: step, onDone: {}))
+            }
+        }
         return ok ? 0 : 1
     }
-
-    static func render<V: View>(_ view: V, size: NSSize, to url: URL) -> Bool {
-        let hosting = NSHostingView(rootView: view.frame(width: size.width, height: size.height))
+    static func render<V: View>(_ view: V, size: NSSize, to url: URL) async -> Bool {
+        let hosting = NSHostingView(rootView: view.frame(width: size.width, height: size.height).background(Theme.C.bgWindow))
         hosting.frame = NSRect(origin: .zero, size: size)
         let window = NSWindow(contentRect: NSRect(x: -20_000, y: -20_000, width: size.width, height: size.height),
                               styleMask: [.borderless], backing: .buffered, defer: false)
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.isReleasedWhenClosed = false
+        window.appearance = NSApp.appearance
         window.contentView = hosting
         window.orderFrontRegardless()
-        for _ in 0..<8 { RunLoop.main.run(until: Date().addingTimeInterval(0.08)); hosting.layoutSubtreeIfNeeded() }
-        guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { return false }
-        hosting.cacheDisplay(in: hosting.bounds, to: rep)
-        window.orderOut(nil)
+        defer { window.orderOut(nil); window.contentView = nil; window.close() }
+        // Explicit pixel dimensions keep evidence at 2× even on a 1× or off-screen display.
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width * 2), pixelsHigh: Int(size.height * 2), bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else { return false }
+        rep.size = size
+        var previous: Data?
+        var stablePasses = 0
+        for pass in 1...8 {
+            // Yield the main actor so deferred SwiftUI updates can actually execute.
+            try? await Task.sleep(for: .milliseconds(80))
+            hosting.layoutSubtreeIfNeeded()
+            hosting.displayIfNeeded()
+            hosting.cacheDisplay(in: hosting.bounds, to: rep)
+            guard let pixels = rep.bitmapData else { return false }
+            let current = Data(bytes: pixels, count: rep.bytesPerRow * rep.pixelsHigh)
+            stablePasses = current == previous ? stablePasses + 1 : 0
+            previous = current
+            // Two unchanged captures after at least four passes allow onAppear/onChange to settle.
+            if pass >= 4 && stablePasses >= 2 { break }
+        }
         guard let png = rep.representation(using: .png, properties: [:]) else { return false }
         return (try? png.write(to: url)) != nil
     }
