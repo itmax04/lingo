@@ -201,3 +201,21 @@ struct SeededRNG: RandomNumberGenerator {
         return z ^ (z >> 31)
     }
 }
+
+/// Shared timestamp fixture (LINGO-03 P-07b): odd milliseconds round-trip byte for byte, as in the TypeScript port.
+@Suite struct TimestampContractTests {
+    @Test func oddMillisecondsRoundTrip() throws {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("packages/contracts/fixtures/events/timestamps.jsonl")
+        let lines = try String(contentsOf: url, encoding: .utf8).split(separator: "\n")
+        #expect(lines.count >= 6)
+        for line in lines { #expect(try Event(line: line).line() == String(line)) }
+        // Every millisecond of one second formats back to itself (formatting the Double directly lost about half of them).
+        for ms in 0..<1000 {
+            let s = String(format: "2026-10-26T07:33:21.%03dZ", ms)
+            #expect(Event.formatTS(try #require(Event.parseTS(s))) == s)
+        }
+        #expect(Event.formatTS(Date(timeIntervalSince1970: -0.001)) == "1969-12-31T23:59:59.999Z")
+    }
+}

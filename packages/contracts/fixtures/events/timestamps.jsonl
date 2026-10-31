@@ -1,0 +1,6 @@
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ700","lamport":1,"payload":{},"seq":1,"session":"s-ts","ts":"2026-10-26T07:33:21.001Z","type":"session.ended","v":1}
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ701","lamport":2,"payload":{},"seq":2,"session":"s-ts","ts":"2026-10-26T07:33:21.007Z","type":"session.ended","v":1}
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ702","lamport":3,"payload":{},"seq":3,"session":"s-ts","ts":"2026-10-26T07:33:21.123Z","type":"session.ended","v":1}
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ703","lamport":4,"payload":{},"seq":4,"session":"s-ts","ts":"2026-10-26T07:33:21.499Z","type":"session.ended","v":1}
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ704","lamport":5,"payload":{},"seq":5,"session":"s-ts","ts":"2026-10-26T07:33:21.501Z","type":"session.ended","v":1}
+{"device":"mac-fixture0001","id":"01M5VJ1KF80KH70QYS833AQ705","lamport":6,"payload":{},"seq":6,"session":"s-ts","ts":"2026-10-26T07:33:21.999Z","type":"session.ended","v":1}
