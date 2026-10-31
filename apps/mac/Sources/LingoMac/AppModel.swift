@@ -122,7 +122,7 @@ enum VoiceAvailability {
         let steps = settings.chain.filter { $0.enabled && (settings.pinnedEntryID == nil || $0.id == settings.pinnedEntryID) }
             .flatMap { entry in
                 settings.keys(for: entry.provider).filter { !$0.invalid }.map {
-                    StepInfo(provider: entry.provider, model: entry.model, keyID: $0.id)
+                    settings.stepInfo(provider: entry.provider, model: entry.model, key: $0)
                 }
             }
         return !steps.isEmpty && steps.allSatisfy { health.pause(for: $0, now: now)?.error.status == 429 }

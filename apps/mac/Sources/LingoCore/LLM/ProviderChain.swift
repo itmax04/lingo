@@ -1,6 +1,6 @@
 // Ported from Interview Copilot (`Sources/CopilotCore/LLM/ProviderChain.swift`, commit cf0e764) and adapted per R-29:
-// a step is a "provider + model + key" triple with any number of keys; an invalid key disables that key, not the provider;
-// a failed step pauses for `retry-after` or 300 s, per "key + model" pair; parallel hedging was not ported (D-10).
+// a step is a "provider + model + key" triple with any number of keys; an invalid key disables that key, not the provider; keys of one organization are one pool (MR-07);
+// a failed step pauses for `retry-after` or 300 s, per "pool + model" pair; parallel hedging was not ported (D-10).
 import Foundation
 
 /// A chain step without the key value — for labels, events and logs.
@@ -10,12 +10,15 @@ public struct StepInfo: Sendable, Hashable {
     public var keyID: String
     /// Index of the key within its provider (1, 2, …) — used in labels and logs instead of the value.
     public var keyIndex: Int
+    /// Rate-limit pool of the key (provider + organization); keys of one pool pause and count together. Defaults to the key itself.
+    public var poolID: String
 
-    public init(provider: ProviderID, model: String, keyID: String, keyIndex: Int = 1) {
+    public init(provider: ProviderID, model: String, keyID: String, keyIndex: Int = 1, poolID: String? = nil) {
         self.provider = provider
         self.model = model
         self.keyID = keyID
         self.keyIndex = keyIndex
+        self.poolID = poolID ?? keyID
     }
 
     /// "provider · model" label (R-29) — without the family prefix ("openai/").
@@ -55,7 +58,7 @@ public final class ProviderHealth: @unchecked Sendable {
 
     public init() {}
 
-    static func key(_ s: StepInfo) -> String { "\(s.keyID)|\(s.model)" }
+    static func key(_ s: StepInfo) -> String { "\(s.poolID)|\(s.model)" }
 
     public func pause(for s: StepInfo, now: Date = Date()) -> (until: Date, error: LLMError)? {
         lock.withLock {
@@ -165,11 +168,14 @@ public struct ProviderChain: Sendable {
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
+                // Pools (organization + model) that hit a rate limit during this run: their sibling keys would only spend the same ceiling.
+                var limitedPools = Set<String>()
                 // All failures are rate limits (429): then a second pass after a short wait is possible.
                 var allRateLimited = true
                 for step in usable {
                     if Task.isCancelled { break }
                     if invalidKeys.contains(step.info.keyID) { continue }
+                    if limitedPools.contains(ProviderHealth.key(step.info)) { continue }
                     continuation.yield(.attempt(step.info))
                     if attempted > 0 { continuation.yield(.restart(step.info)) }
                     attempted += 1
@@ -187,7 +193,7 @@ public struct ProviderChain: Sendable {
                         record(step, request, status: Task.isCancelled ? "cancelled" : e.usageStatus, error: e, stats: stats, since: t0)
                         if Task.isCancelled { break }
                         if e == .cancelled { break }
-                        if e.status != 429 { allRateLimited = false }
+                        if e.status != 429 { allRateLimited = false } else { limitedPools.insert(ProviderHealth.key(step.info)) }
                         Log.llm.error("step \(step.info.provider.rawValue, privacy: .public) model=\(step.info.model, privacy: .public) key#\(step.info.keyIndex, privacy: .public) failed: \(e.description, privacy: .public)")
                         continuation.yield(.stepFailed(step.info, e))
                         if e.isInvalidKey {
@@ -203,8 +209,10 @@ public struct ProviderChain: Sendable {
                 if !Task.isCancelled, let s = plan(needed: needed).soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
                    allRateLimited {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
+                    limitedPools.removeAll()  // a new pass: the pauses were re-planned above
                     for step in plan(needed: needed).run where !invalidKeys.contains(step.info.keyID) {
                         if Task.isCancelled { break }
+                        if limitedPools.contains(ProviderHealth.key(step.info)) { continue }
                         continuation.yield(.attempt(step.info))
                         continuation.yield(.restart(step.info))
                         let stats = StepStats()
@@ -220,6 +228,7 @@ public struct ProviderChain: Sendable {
                             let e = (error as? LLMError) ?? .network(error.localizedDescription)
                             record(step, request, status: e.usageStatus, error: e, stats: stats, since: t0)
                             if e == .cancelled { break }
+                            if e.status == 429 { limitedPools.insert(ProviderHealth.key(step.info)) }
                             continuation.yield(.stepFailed(step.info, e))
                             health.reportFailure(step.info, e)
                             reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")
@@ -346,11 +355,10 @@ public enum ChainFactory {
             let model = entry.model.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !model.isEmpty else { continue }
             let prov = providers?[entry.provider] ?? provider(entry.provider, settings: settings, transport: transport)
-            let keys = settings.keys(for: entry.provider)
-            for (i, k) in keys.enumerated() where !k.invalid {
+            for k in settings.orderedKeys(for: entry.provider) where !k.invalid {
                 if values[k.id] == nil { values[k.id] = (try? secrets.get(k.id)) ?? "" }
                 guard let v = values[k.id], !v.isEmpty else { continue }
-                steps.append(.init(info: StepInfo(provider: entry.provider, model: model, keyID: k.id, keyIndex: i + 1),
+                steps.append(.init(info: settings.stepInfo(provider: entry.provider, model: model, key: k),
                                    provider: prov, key: v))
             }
         }

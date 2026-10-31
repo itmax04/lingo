@@ -271,7 +271,7 @@ enum UISnapshot {
             await capture("voice-offline", MainView(model: model))
             model.networkUp = true
             let quotaSteps = keys.settings.chain.filter(\.enabled).flatMap { entry in
-                keys.settings.keys(for: entry.provider).filter { !$0.invalid }.map { StepInfo(provider: entry.provider, model: entry.model, keyID: $0.id) }
+                keys.settings.keys(for: entry.provider).filter { !$0.invalid }.map { keys.settings.stepInfo(provider: entry.provider, model: entry.model, key: $0) }
             }
             services.settings.llm = keys.settings
             for step in quotaSteps { ProviderHealth.shared.reportFailure(step, .http(status: 429, message: "Quota exhausted", retryAfter: 60)) }

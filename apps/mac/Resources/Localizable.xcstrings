@@ -6562,6 +6562,57 @@
           }
         }
       }
+    },
+    "Organization: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organization: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Организация: %@"
+          }
+        }
+      }
+    },
+    "Organization (empty = main)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organization (empty = main)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Организация (пусто = основная)"
+          }
+        }
+      }
+    },
+    "Owner risk: an additional organization may violate the provider's terms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner risk: an additional organization may violate the provider's terms"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Риск владельца: дополнительная организация может нарушать условия провайдера"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
