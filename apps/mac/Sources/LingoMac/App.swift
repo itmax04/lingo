@@ -313,6 +313,14 @@ enum UISnapshot {
                 await capture("settings-" + tab.rawValue, SettingsView(keys: keys, services: services, tab: tab))
             }
             await capture("new-session-form", NewSessionView(lang: .de, lastCorrections: [.inline], onStart: { _, _ in }, onCancel: {}))
+            // LINGO-08 VAC-07: "My words" in the new-session screen, the vocabulary with all languages, the paste sheet.
+            await capture("new-session-my-words", NewSessionView(lang: .de, lastCorrections: [.inline], vocabularyCount: { _ in 3 }, onStart: { _, _ in }, onCancel: {}), NSSize(width: 820, height: 680))
+            model.section = .dictionary
+            model.vocabularyFilter = nil
+            await capture("dictionary-all", MainView(model: model))
+            model.vocabularyFilter = .de
+            model.section = .conversations
+            await capture("vocabulary-paste", VocabularyPasteView(lang: .de, onAdd: { _ in }, onCancel: {}), NSSize(width: 560, height: 520))
             await capture("transcript-edit", EditMessageView(message: model.messages[1], onSave: { _ in }, onRegenerate: { _ in }, onCancel: {}))
             for step in 0..<3 {
                 await capture("onboarding-" + String(step), OnboardingView(services: services, keys: keys, initialStep: step, onDone: {}))

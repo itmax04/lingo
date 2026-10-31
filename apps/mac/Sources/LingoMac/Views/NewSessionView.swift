@@ -7,13 +7,24 @@ struct NewSessionView: View {
     @State private var title = ""
     @State private var levelChoice = ""
     @State private var customLevel = ""
+    let vocabularyCount: (Lang) -> Int
     let onStart: (SessionSettings, String?) -> Void
     let onCancel: () -> Void
 
-    init(lang: Lang, lastCorrections: Set<CorrectionMode>, onStart: @escaping (SessionSettings, String?) -> Void, onCancel: @escaping () -> Void) {
+    init(lang: Lang, lastCorrections: Set<CorrectionMode>, vocabularyCount: @escaping (Lang) -> Int = { _ in 0 },
+         onStart: @escaping (SessionSettings, String?) -> Void, onCancel: @escaping () -> Void) {
         _settings = State(initialValue: SessionSettings(lang: lang, mode: .free, corrections: lastCorrections))
+        self.vocabularyCount = vocabularyCount
         self.onStart = onStart
         self.onCancel = onCancel
+    }
+
+    /// "My words" (VR-09): the Questions mode with the vocabulary focus, offered when the language has items.
+    private var wordsMode: Binding<Bool> {
+        Binding(get: { settings.isVocabularyFocus },
+                set: { on in
+                    if on { settings.mode = .questions; settings.vocabularyFocus = true } else { settings.vocabularyFocus = nil }
+                })
     }
 
     static let promptExample = String(localized: "For example: “You are my new neighbour. We met at the mailboxes. Speak simply, ask one question at a time and start first.”")
@@ -29,10 +40,24 @@ struct NewSessionView: View {
                 LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)], alignment: .leading, spacing: 20) {
                     field("Language") { LanguageSegment(selection: $settings.lang).frame(width: Theme.S.sidebarWidth) }
                     field("Mode") {
-                        Picker("", selection: $settings.mode) {
-                            ForEach(SessionMode.allCases, id: \.self) { Text($0.title).tag($0) }
+                        VStack(alignment: .leading, spacing: Theme.S.s8) {
+                            Picker("", selection: $settings.mode) {
+                                ForEach(SessionMode.allCases, id: \.self) { Text($0.title).tag($0) }
+                            }
+                            .pickerStyle(.segmented).labelsHidden()
+                            .onChange(of: settings.mode) { _, m in if m != .questions { settings.vocabularyFocus = nil } }
+                            if vocabularyCount(settings.lang) > 0 {
+                                Toggle("My words", isOn: wordsMode).toggleStyle(.checkbox).font(Theme.F.rowTitle)
+                            }
+                            if settings.isVocabularyFocus {
+                                Text("Every question practises one of your words; the ones you have not used yet come first.")
+                                    .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                            } else {
+                                Toggle("Use my vocabulary in this conversation", isOn: Binding(get: { settings.vocabularyOn },
+                                                                                              set: { settings.useVocabulary = $0 ? nil : false }))
+                                    .toggleStyle(.checkbox).font(Theme.F.rowTitle)
+                            }
                         }
-                        .pickerStyle(.segmented).labelsHidden()
                     }
                     if settings.mode != .customPrompt {
                         field("Topic") { TextField("optional: introductions, café, work…", text: $settings.topic).textFieldStyle(.roundedBorder) }
@@ -122,6 +147,9 @@ struct NewSessionView: View {
         .background(Theme.C.bgWindow)
         .modifier(InterfaceAppearance())
         .environment(\.studyLanguage, settings.lang)
+        .onChange(of: settings.lang) { _, l in
+            if settings.isVocabularyFocus && vocabularyCount(l) == 0 { settings.vocabularyFocus = nil }
+        }
     }
 
     var startEnabled: Bool {

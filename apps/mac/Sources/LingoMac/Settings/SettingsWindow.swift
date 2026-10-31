@@ -4,12 +4,13 @@ import SwiftUI
 
 /// Settings tabs (R-44). "Voice", "Sync" and "Data" were added in P-04 and P-10.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case keys, quota, voice, sync, data
+    case keys, quota, voice, profile, sync, data
     var title: LocalizedStringKey {
         switch self {
         case .keys: "Keys and models"
         case .quota: "Quota"
         case .voice: "Voice"
+        case .profile: "About me"
         case .sync: "Sync"
         case .data: "Data"
         }
@@ -47,6 +48,8 @@ struct SettingsView: View {
                 case .voice:
                     if let services { VoiceSettingsView(services: services) }
                     else { InterfaceSettingsView().padding(24) }
+                case .profile:
+                    if let services { ProfileSettingsView(services: services) } else { unavailable }
                 case .sync:
                     if let services { SyncSettingsView(services: services, model: services.model) } else { unavailable }
                 case .data:

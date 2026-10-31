@@ -48,6 +48,13 @@ final class AppModel {
     private(set) var history = HistoryState()
     /// Vocabulary ★ (R-28).
     var dictionary: [Phrase] = []
+    /// My vocabulary (LINGO-08): own items and ★ phrases of every language, with statistics.
+    var vocabulary: [VocabItem] = []
+    var profile = LearnerProfile()
+    /// The Vocabulary screen: language filter (nil = all), search and the result of the last add.
+    var vocabularyFilter: Lang? = .de
+    var vocabularySearch = ""
+    var vocabularyNote: String?
     /// The "Corrections" section (R-27) — from the session's `@fix` records.
     var corrections: [Phrase] = []
     weak var services: AppServices?
@@ -58,6 +65,8 @@ final class AppModel {
         sessions = Array(st.sessions.values)
         starred = Set(st.starred.keys)
         dictionary = st.starred.values.sorted { $0.text < $1.text }
+        vocabulary = st.vocabulary()
+        profile = st.profile
         if selectedSessionID == nil || st.sessions[selectedSessionID!]?.deleted == true {
             selectedSessionID = visibleSessions.first?.id
         }
