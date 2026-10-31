@@ -90,6 +90,11 @@ private func isoDate(_ s: String) -> Date {
         #expect(r3.added == 1)
         let st = await store.state
         #expect(st.vocabulary(lang: .de).map(\.text).sorted() == ["Feierabend", "Fernweh", "eine Ausrede"])
+        // The original text of an edited item is still that item: adding it again is a duplicate, not a silently hidden item.
+        let id = try #require(await store.state.vocabulary(lang: .de).first { $0.text == "eine Ausrede" }?.id)
+        try await e.updateVocabulary(id, text: "Ausrede")
+        let r5 = try await e.addVocabulary(lang: .de, entries: [("eine Ausrede", "")], source: .manual)
+        #expect(r5.added == 0 && r5.duplicates == 1)
         #expect(st.vocabulary(lang: .de).first { $0.text == "Feierabend" }?.translation == "конец дня")
     }
 
@@ -243,8 +248,11 @@ private func isoDate(_ s: String) -> Date {
 
     @Test func aRepeatedWordItemDoesNotStallTheMatcher() {
         let t0 = Date()
-        #expect(!VocabularyMatcher.contains("die die die die die die x", in: String(repeating: "die und ", count: 60), lang: .de))
-        #expect(!VocabularyMatcher.contains("a a a a a a a a a a a a b", in: String(repeating: "a ", count: 90), lang: .en))
+        // The last token occurs only at the end, so the pre-check passes and the search itself is bounded (memo, step budget).
+        let far = String(repeating: "y ", count: 25)
+        #expect(!VocabularyMatcher.contains("die die die die die die x", in: String(repeating: "die und ", count: 60) + far + "x", lang: .de))
+        #expect(!VocabularyMatcher.contains("a a a a a a a a a a a a b", in: String(repeating: "a ", count: 90) + far + "b", lang: .en))
+        #expect(VocabularyMatcher.contains("die die die die xyz", in: String(repeating: "die und ", count: 30) + "die die die die xyz", lang: .de))
         #expect(Date().timeIntervalSince(t0) < 1)
     }
 
