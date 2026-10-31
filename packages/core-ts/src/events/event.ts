@@ -1,4 +1,4 @@
-import { canonicalJSON, isJSONObject, type JSONObject, type JSONValue } from "../json.js";
+import { canonicalJSON, isJSONObject, isSwiftCompatible, type JSONObject, type JSONValue } from "../json.js";
 
 /** Current schema version; a journal with a newer version is opened read-only (R-39). */
 export const JOURNAL_SCHEMA_VERSION = 1;
@@ -47,7 +47,7 @@ const KNOWN_FIELDS = new Set(["v", "id", "device", "seq", "lamport", "ts", "type
 const TS = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{3}))?Z$/;
 
 export class EventParseError extends Error {
-  constructor(readonly reason: "notJSON" | "notObject" | "missingField", readonly field?: string) {
+  constructor(readonly reason: "notJSON" | "notObject" | "missingField" | "notSwiftCompatible", readonly field?: string) {
     super(field ? `${reason}: ${field}` : reason);
     this.name = "EventParseError";
   }
@@ -55,7 +55,9 @@ export class EventParseError extends Error {
 
 /** "2026-10-25T13:01:02.123Z" (ISO 8601 UTC with milliseconds). */
 export function formatTS(ms: number): string {
-  return new Date(ms).toISOString();
+  const s = new Date(ms).toISOString();
+  if (!TS.test(s)) throw new RangeError("timestamp outside the years 0000–9999");
+  return s;
 }
 
 /** Milliseconds, or null when the text is not a valid contract timestamp. */
@@ -77,10 +79,12 @@ export function parseEventLine(line: string): JournalEvent {
     throw new EventParseError("notJSON");
   }
   if (!isJSONObject(raw)) throw new EventParseError("notObject");
+  // Swift drops such a line as corrupted (lone surrogates, numbers beyond Double); so does this reader.
+  if (!isSwiftCompatible(raw)) throw new EventParseError("notSwiftCompatible");
   const o = raw;
   const int = (k: string): number => {
     const x = o[k];
-    if (typeof x !== "number" || !Number.isInteger(x)) throw new EventParseError("missingField", k);
+    if (typeof x !== "number" || !Number.isSafeInteger(x)) throw new EventParseError("missingField", k);
     return x;
   };
   const str = (k: string): string => {
@@ -90,8 +94,8 @@ export function parseEventLine(line: string): JournalEvent {
   };
   const ts = parseTS(str("ts"));
   if (ts === null) throw new EventParseError("missingField", "ts");
-  const extra: JSONObject = {};
-  for (const [k, x] of Object.entries(o)) if (!KNOWN_FIELDS.has(k)) extra[k] = x;
+  // `Object.fromEntries` defines own properties, so an unknown `__proto__` field is kept like any other.
+  const extra: JSONObject = Object.fromEntries(Object.entries(o).filter(([k]) => !KNOWN_FIELDS.has(k)));
   return {
     v: int("v"),
     id: str("id"),
@@ -101,7 +105,7 @@ export function parseEventLine(line: string): JournalEvent {
     ts,
     type: str("type"),
     session: typeof o["session"] === "string" ? o["session"] : "",
-    payload: o["payload"] ?? {},
+    payload: Object.hasOwn(o, "payload") ? (o["payload"] as JSONValue) : {},
     extra,
   };
 }
@@ -127,7 +131,32 @@ export function eventLine(e: JournalEvent): string {
   return canonicalJSON(eventObject(e));
 }
 
-/** A journal file (JSON Lines) → events; empty lines are skipped. */
-export function parseJournal(text: string): JournalEvent[] {
-  return text.split("\n").filter((l) => l.trim() !== "").map(parseEventLine);
+/** Result of reading a journal (R-39), as Swift `JournalReadResult`. */
+export interface JournalReadResult {
+  events: JournalEvent[];
+  /** A last line without a trailing newline (a write in progress) — ignored. */
+  tornTail: boolean;
+  /** Corrupted lines — skipped and counted. */
+  corruptedLines: number;
+  /** Events of a newer schema version — the journal opens read-only. */
+  newerSchema: boolean;
+}
+
+/** A journal file (JSON Lines), as Swift `JournalReader.parse`: a torn last line is ignored, corrupted lines are skipped and counted. */
+export function readJournal(text: string): JournalReadResult {
+  const r: JournalReadResult = { events: [], tornTail: false, corruptedLines: 0, newerSchema: false };
+  if (text === "") return r;
+  const lines = text.split("\n");
+  if (lines.pop() !== "") r.tornTail = true;
+  for (const line of lines) {
+    if (line.replace(/[\t\p{Zs}]/gu, "") === "") continue;  // Swift `.whitespaces`: tab and space separators
+    try {
+      const e = parseEventLine(line);
+      if (e.v > JOURNAL_SCHEMA_VERSION) r.newerSchema = true;
+      r.events.push(e);
+    } catch {
+      r.corruptedLines += 1;
+    }
+  }
+  return r;
 }
