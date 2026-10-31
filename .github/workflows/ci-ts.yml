@@ -1,10 +1,11 @@
 name: ts
-# TypeScript workspaces (web, engine, core-ts): tests and build. Skips until the npm workspace exists (LINGO-03 P-07).
+# TypeScript workspaces (web, engine, core-ts): tests and build (the workspace exists since LINGO-03 P-07a).
 on:
   pull_request:
     paths:
       - "package.json"
       - "package-lock.json"
+      - "tsconfig*.json"
       - "apps/web/**"
       - "services/**"
       - "packages/**"
@@ -13,9 +14,12 @@ on:
     branches: [main]
     paths:
       - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
       - "apps/web/**"
       - "services/**"
       - "packages/**"
+      - ".github/workflows/ci-ts.yml"
   workflow_dispatch:
 concurrency:
   group: ts-${{ github.ref }}
@@ -26,22 +30,17 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Check for the npm workspace
-        id: ws
-        run: if [ -f package.json ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; echo "No package.json yet (created in P-07) — skipping."; fi
       - uses: actions/setup-node@v4
-        if: steps.ws.outputs.exists == 'true'
         with:
           node-version: 22
           cache: npm
       - name: Install, test, build
-        if: steps.ws.outputs.exists == 'true'
         run: |
           npm ci
           npm test
-          npm run build --if-present
+          npm run build
       - name: Scan the built client for secrets
-        if: steps.ws.outputs.exists == 'true' && hashFiles('apps/web/dist/**') != ''
+        if: hashFiles('apps/web/dist/**') != ''
         run: |
           if grep -rEn 'gsk_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{32,}|Bearer [A-Za-z0-9_-]{24,}' apps/web/dist; then
             echo "Possible secret in the client bundle"; exit 1

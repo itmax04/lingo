@@ -39,3 +39,6 @@ services/engine/dist/
 coverage/
 playwright-report/
 test-results/
+
+# TypeScript build info (ADR-0004; node_modules, dist and .wrangler are listed above)
+*.tsbuildinfo

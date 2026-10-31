@@ -32,6 +32,7 @@ Status: **accepted** (owner brainstorms 2026-10-26) · Version 2 (replaces the v
 | `@playwright/test` | web (dev) | browser flow tests |
 | `ajv` | core-ts, engine | validate events and requests against `packages/contracts` schemas |
 | `yaml` | core-ts (tests) | read shared eval YAML sets |
+| `@types/node` | core-ts, engine (dev) | types for Node APIs used by tests and tools (reading `packages/contracts`) — added in LINGO-03 P-07a |
 
 No auth library is needed for GitHub OAuth (two HTTPS calls); no ORM (plain D1 prepared statements); no state-management library unless a measured need appears.
 Exact versions are chosen when the workspace is created (current stable from the npm registry, pinned in `package-lock.json`).
