@@ -168,13 +168,14 @@ public struct ProviderChain: Sendable {
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
+                // Pools (organization + model) that hit a rate limit during this run: their sibling keys would only spend the same ceiling.
+                var limitedPools = Set<String>()
                 // All failures are rate limits (429): then a second pass after a short wait is possible.
                 var allRateLimited = true
                 for step in usable {
                     if Task.isCancelled { break }
                     if invalidKeys.contains(step.info.keyID) { continue }
-                    // An earlier key of the same organization just hit a limit: its pool is paused, a second key would only spend the same ceiling.
-                    if health.pause(for: step.info) != nil { continue }
+                    if limitedPools.contains(ProviderHealth.key(step.info)) { continue }
                     continuation.yield(.attempt(step.info))
                     if attempted > 0 { continuation.yield(.restart(step.info)) }
                     attempted += 1
@@ -192,7 +193,7 @@ public struct ProviderChain: Sendable {
                         record(step, request, status: Task.isCancelled ? "cancelled" : e.usageStatus, error: e, stats: stats, since: t0)
                         if Task.isCancelled { break }
                         if e == .cancelled { break }
-                        if e.status != 429 { allRateLimited = false }
+                        if e.status != 429 { allRateLimited = false } else { limitedPools.insert(ProviderHealth.key(step.info)) }
                         Log.llm.error("step \(step.info.provider.rawValue, privacy: .public) model=\(step.info.model, privacy: .public) key#\(step.info.keyIndex, privacy: .public) failed: \(e.description, privacy: .public)")
                         continuation.yield(.stepFailed(step.info, e))
                         if e.isInvalidKey {
@@ -208,8 +209,10 @@ public struct ProviderChain: Sendable {
                 if !Task.isCancelled, let s = plan(needed: needed).soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
                    allRateLimited {
                     try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
+                    limitedPools.removeAll()  // a new pass: the pauses were re-planned above
                     for step in plan(needed: needed).run where !invalidKeys.contains(step.info.keyID) {
                         if Task.isCancelled { break }
+                        if limitedPools.contains(ProviderHealth.key(step.info)) { continue }
                         continuation.yield(.attempt(step.info))
                         continuation.yield(.restart(step.info))
                         let stats = StepStats()
@@ -225,6 +228,7 @@ public struct ProviderChain: Sendable {
                             let e = (error as? LLMError) ?? .network(error.localizedDescription)
                             record(step, request, status: e.usageStatus, error: e, stats: stats, since: t0)
                             if e == .cancelled { break }
+                            if e.status == 429 { limitedPools.insert(ProviderHealth.key(step.info)) }
                             continuation.yield(.stepFailed(step.info, e))
                             health.reportFailure(step.info, e)
                             reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")

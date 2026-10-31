@@ -145,13 +145,13 @@ public struct LLMSettings: Codable, Sendable, Hashable {
         return !org.isEmpty && org != mainOrganization(for: key.provider)
     }
 
-    /// All keys of a provider (validity is checked by the caller), the main organization first, additional organizations after it (stable within each group).
     /// The chain step of a key for a model: carries the number shown in Settings and the key's pool, so health lookups match the chain.
     public func stepInfo(provider: ProviderID, model: String, key: KeyRecord) -> StepInfo {
         let index = (keys(for: provider).firstIndex(where: { $0.id == key.id }) ?? 0) + 1
         return StepInfo(provider: provider, model: model, keyID: key.id, keyIndex: index, poolID: poolID(of: key))
     }
 
+    /// All keys of a provider (validity is checked by the caller), the main organization first, additional organizations after it (stable within each group).
     public func orderedKeys(for p: ProviderID) -> [KeyRecord] {
         let all = keys(for: p)
         return all.filter { !isOwnerRisk($0) } + all.filter { isOwnerRisk($0) }

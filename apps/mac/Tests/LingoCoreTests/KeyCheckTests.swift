@@ -159,4 +159,31 @@ final class ScriptedTransport: HTTPTransport, @unchecked Sendable {
         _ = await collect(c.run(LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")], maxTokens: 10, purpose: .dialog)))
         #expect(log.all == ["groq/m/va", "groq/m/vb"])
     }
+
+    /// When every step is paused by a non-rate-limit error (network down), the chain still tries them once: the network may be back.
+    @Test func stepsPausedByANetworkErrorAreStillRetried() async throws {
+        var s = settings([key("a", org: "main"), key("b", org: "second")])
+        s.chain = [ChainEntry(provider: .groq, model: "m")]
+        let store = InMemorySecretStore(["a": "va", "b": "vb"])
+        let health = ProviderHealth()
+        let ia = s.stepInfo(provider: .groq, model: "m", key: s.keys[0]), ib = s.stepInfo(provider: .groq, model: "m", key: s.keys[1])
+        health.reportFailure(ia, .network("offline")); health.reportFailure(ib, .network("offline"))
+        let log = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, _ in .text(["ok"]) }, calls: log)
+        let c = ChainFactory.chain(settings: s, secrets: store, health: health, providers: [.groq: p])
+        let ev = await collect(c.run(LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")], maxTokens: 10, purpose: .dialog)))
+        #expect(text(ev) == "ok")
+        #expect(log.all == ["groq/m/va"])
+    }
+
+    @Test func aTimeoutOnOneKeyStillLetsTheSiblingKeyTryInTheSameRun() async throws {
+        var s = settings([key("a", org: "main"), key("c", org: "main")])
+        s.chain = [ChainEntry(provider: .groq, model: "m")]
+        let store = InMemorySecretStore(["a": "va", "c": "vc"])
+        let log = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, k in k == "va" ? .fail(.network("reset")) : .text(["ok"]) }, calls: log)
+        let c = ChainFactory.chain(settings: s, secrets: store, health: ProviderHealth(), providers: [.groq: p])
+        _ = await collect(c.run(LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")], maxTokens: 10, purpose: .dialog)))
+        #expect(log.all == ["groq/m/va", "groq/m/vc"])
+    }
 }
