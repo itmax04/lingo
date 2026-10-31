@@ -26,6 +26,8 @@ public enum LLMPurpose: String, Sendable {
     case recap
     /// Eval judge (evals/README.md).
     case judge
+    /// "Translate to Russian" of one message, on the user's click.
+    case translate
 }
 
 public struct LLMRequest: Sendable, Equatable {

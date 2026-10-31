@@ -102,11 +102,20 @@ public final class TurnController {
         if state == .idle || state == .paused { state = .listening }
     }
 
-    public func stopVoice() {
+    /// `cancelTurn` (the "Finish" button, R-22): also cancel the turn that is still being recognised or generated, so that no
+    /// further reply is produced or spoken after the owner ended the conversation. Turning continuous mode off keeps the running turn.
+    public func stopVoice(cancelTurn: Bool = false) {
         mode = .pushToTalk
         recording = false
         paused = false
         interrupt(reason: "stop")
+        if cancelTurn {
+            turnTask?.cancel()
+            turnTask = nil
+            speakingTurn = nil
+            currentTurnID = ""
+            answerStarted = false
+        }
         state = .idle
     }
 

@@ -229,3 +229,33 @@ extension TurnControllerTests {
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
     }
 }
+
+@MainActor @Suite struct FinishCancelsTheTurnTests {
+    /// "Finish" must stop a reply that is still being generated; nothing may be spoken afterwards.
+    @Test func finishCancelsAReplyThatIsStillBeingGenerated() async throws {
+        let h = TurnControllerTests()
+        let e = try await h.env(texts: ["Ich wohne in Hamburg."], reply: { _ in .delayed(0.8, ["@say de: Schön! Wie lange schon?"]) })
+        e.tc.pushDown()
+        await e.feed(1200, speech: true)
+        e.tc.pushUp()
+        await e.settle(0.2)
+        #expect(e.tc.state == .thinking)
+        e.tc.stopVoice(cancelTurn: true)
+        await e.settle(1.2)
+        #expect(e.sink.spoken.isEmpty)
+        #expect(e.tc.state == .idle)
+    }
+
+    /// Without `cancelTurn` (switching continuous mode off) the running turn still finishes: the old behaviour is kept.
+    @Test func switchingContinuousModeOffKeepsTheRunningTurn() async throws {
+        let h = TurnControllerTests()
+        let e = try await h.env(texts: ["Ich wohne in Hamburg."], reply: { _ in .delayed(0.5, ["@say de: Schön! Wie lange schon?"]) })
+        e.tc.pushDown()
+        await e.feed(1200, speech: true)
+        e.tc.pushUp()
+        await e.settle(0.2)
+        e.tc.stopVoice()
+        await e.settle(1.0)
+        #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
+    }
+}

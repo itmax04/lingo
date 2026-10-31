@@ -29,6 +29,8 @@ final class AppModel {
     private var streamingCreatedAt = Date()
     var streamingSource: String?
     var thinking = false
+    /// "Translate to Russian" results by message id (memory only: not part of the journal).
+    var translations: [String: MessageTranslation] = [:]
     var banner: String?
     var readOnly = false
     var memoryNote: String?

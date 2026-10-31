@@ -62,7 +62,7 @@ struct MainView: View {
                 Text(b).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger).padding(Theme.S.s8)
                     .onTapGesture { model.banner = nil }
             }
-            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) })
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
             VStack(spacing: Theme.S.s16) {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     VoicePanel(state: model.voiceState, levels: model.levels, lang: model.studyLanguage, unavailable: model.voiceUnavailableReason(now: context.date),

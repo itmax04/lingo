@@ -138,10 +138,17 @@ extension AppServices {
 
     /// "Finish" (R-07, R-22): goodbye, a recap in the "after" mode, voice turns off.
     func endTapped() {
-        guard let sid = model.selectedSessionID else { return }
-        turn?.stopVoice()
+        guard let sid = model.selectedSessionID, !ending else { return }
+        ending = true
+        // Nothing may go on generating or speaking after "Finish": cancel the voice turn and the text turn that are in flight.
+        turn?.stopVoice(cancelTurn: true)
+        turnTask?.cancel()
+        voiceIO?.stopSpeaking()
         model.continuous = false
+        model.thinking = false
+        model.streaming = nil
         Task {
+            defer { ending = false }
             for await e in engine.respond(session: sid, command: .finish) { turnEvent(e)
                 if case .speak(let l, let t) = e, let io = voiceIO {
                     io.speak(t, lang: l, voiceID: settings.voice.voiceIDs[l], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
