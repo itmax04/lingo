@@ -1,6 +1,6 @@
 # Lingo — Architecture
 
-Status: **target architecture, accepted direction** (owner brainstorms of 2026-10-26) · Version 3 · Date: 2026-10-26
+Status: **target architecture, accepted direction** (owner brainstorms of 2026-10-26) · Version 4 · Date: 2026-10-28
 Supersedes: the architecture sections of `docs/changes/LINGO-03/*` v1 drafts and the "engine" wording of the audit reports.
 Decision records: [ADR-0001](../decisions/ADR-0001-stack.md) (Mac stack), [ADR-0002](../decisions/ADR-0002-web-stack.md) (web stack),
 [ADR-0003](../decisions/ADR-0003-authentication.md) (sign-in), [ADR-0004](../decisions/ADR-0004-repository-layout.md) (monorepo and contracts),
@@ -8,6 +8,14 @@ Decision records: [ADR-0001](../decisions/ADR-0001-stack.md) (Mac stack), [ADR-0
 
 This document describes **what Lingo is made of, how the parts talk, and why**. Requirements live in the change specs
 (`docs/changes/LINGO-NN/spec.md`); this file never defines requirements, it explains structure.
+
+| Document | Scope |
+|---|---|
+| **ARCHITECTURE.md** (this file) | the whole system and everything shared by both apps |
+| [MAC.md](MAC.md) | **Lingo for Mac** — modules, files, data on disk, commands, where to change what |
+| [WEB.md](WEB.md) | **Lingo Web + Lingo Engine** — every other device (iPhone, iPad, Android, Windows, any browser) |
+| [CODEBASE.md](CODEBASE.md) | repository map, shared contracts, scripts |
+| [EVOLVING.md](../process/EVOLVING.md) | how to update and extend the apps within this architecture (invariants, recipes, ADRs) |
 
 ---
 
@@ -57,6 +65,15 @@ flowchart LR
 | Groq | Chat models (gpt-oss-120b, gpt-oss-20b, qwen) and Whisper large-v3-turbo | — |
 | Workers AI | Fallback chat model and fallback transcription through the Worker binding | — |
 | GitHub OAuth | Proves "this is itmax04" for the web sign-in | Authorization beyond identity (the engine allow-lists the user id) |
+
+### 2.1 What exists today (2026-10-28)
+
+| Element | State |
+|---|---|
+| Lingo for Mac | **working** (LINGO-01 MVP); redesign LINGO-07 in PR #33; Stage 0 stabilisation next |
+| Contracts | event schema v1, OpenAPI, golden fixtures — **written**; prompts and evals move in P-01 |
+| Lingo Engine, Lingo Web, core-ts | **not written yet** — LINGO-03 Stages 1–2; design references ready in `design/redesign-2026` |
+| Mac ↔ account, teacher, native iPhone | planned — LINGO-04, LINGO-05, LINGO-06 |
 
 ## 3. Containers and code layout
 
@@ -270,7 +287,16 @@ Details and the owner's decision on multiple Groq accounts: [ADR-0005](../decisi
 
 No custom domain, no paid plan. A preview deployment per PR is optional (Workers versions) and must not touch production D1.
 
-## 10. Quality system
+## 10. Design system
+
+- `DESIGN.md` is the only source of colours, type, spacing and radii for both apps (§9 adapts it to the web). Code never invents a value.
+- LINGO-07 (PR #33) adds DESIGN.md v2 (light and dark themes, DE/EN accents, the two-loop Lingo mark) and reference images for every
+  platform in `design/redesign-2026/` (Mac, iPhone, iPad, web desktop, Android/Windows browsers, teacher screens, design-system sheets).
+  The references are the visual spec for new screens; values still come from DESIGN.md.
+- Platform behaviour: Mac — sidebar + three columns; phone — four bottom tabs (Today / Conversations / Vocabulary / Progress);
+  wide web — the Mac layout. Corrections are shown inside the learner's own utterance.
+
+## 11. Quality system
 
 - Unit tests per package (Swift Testing; Vitest), contract/parity tests on `packages/contracts` fixtures,
   engine integration tests in the Workers runtime (`@cloudflare/vitest-pool-workers` with D1).
@@ -280,14 +306,15 @@ No custom domain, no paid plan. A preview deployment per PR is optional (Workers
   repeated on a second day.
 - Details: [`docs/process/TESTING.md`](../process/TESTING.md).
 
-## 11. Evolution (roadmap)
+## 12. Evolution (roadmap)
 
 | Change | Content |
 |---|---|
 | LINGO-01 (frozen) | Mac MVP — done except AC-17 and acceptance |
 | **LINGO-03** | Stage 0 Mac stabilisation + monorepo; Stage 1 evidence (device voice spike, model comparison, tempo); Stage 2 engine + web with GitHub sign-in and web-device sync; full-day test |
+| LINGO-07 | Redesign: DESIGN.md v2, Mac UI, reference images for all platforms (PR #33) |
 | LINGO-04 | Mac joins the account: sync adapter, optional engine turns, device token |
 | LINGO-05 | Teacher: memory, spaced repetition (FSRS), scenarios and exam modes, progress and weekly report, role split |
 | LINGO-06 | Native iPhone client for the locked screen; streaming real-time pipeline |
 
-See [`docs/ROADMAP.md`](../ROADMAP.md).
+See [`docs/ROADMAP.md`](../ROADMAP.md). How to change the architecture itself: [EVOLVING.md](../process/EVOLVING.md) §6 (ADRs).

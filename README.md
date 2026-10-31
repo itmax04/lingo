@@ -23,7 +23,12 @@ open dist/Lingo.app              # run
 | What | Where |
 |---|---|
 | Agent and contributor guide | [AGENTS.md](AGENTS.md) |
-| Architecture | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) |
+| Documentation index | [docs/README.md](docs/README.md) |
+| Architecture (whole system) | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) |
+| Lingo for Mac — architecture and code | [docs/architecture/MAC.md](docs/architecture/MAC.md) |
+| Lingo Web + Engine (all devices) — architecture and code | [docs/architecture/WEB.md](docs/architecture/WEB.md) |
+| Repository map | [docs/architecture/CODEBASE.md](docs/architecture/CODEBASE.md) |
+| How to update and extend | [docs/process/EVOLVING.md](docs/process/EVOLVING.md) |
 | Roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |
 | Development process (SDLC), testing, release | [docs/process/](docs/process/) |
 | Decisions (ADR) | [docs/decisions/](docs/decisions/) |

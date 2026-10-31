@@ -4,7 +4,9 @@ This is the entry point for every AI agent (Claude Code, Codex, others) and ever
 Claude Code loads it through `CLAUDE.md`; Codex reads it directly. Keep it short and current.
 
 ## 1. First 10 minutes
-1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) and [`docs/process/SDLC.md`](docs/process/SDLC.md).
+1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
+   [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
+   and [`docs/process/SDLC.md`](docs/process/SDLC.md). Before changing anything structural read [`docs/process/EVOLVING.md`](docs/process/EVOLVING.md).
 2. Open the current change: [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) — `intent.md` (why, decisions O-01…O-22), `spec.md` (requirements, acceptance), `plan.md` (steps P-01…P-20, owner checkpoints H-0…H-5), `handoff.md` (what is done, what is next).
 3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-03 · Stage 0 — Stabilise"`), take the lowest-numbered unblocked step.
 4. Make sure you are in your own worktree and branch (§5), the tree is clean, and `main` is up to date.
@@ -26,10 +28,11 @@ a native iPhone client and real-time voice (LINGO-06). See [`docs/ROADMAP.md`](d
 | `services/engine/` | Cloudflare Worker + D1 | created in P-08 |
 | `packages/core-ts/` | TypeScript ports shared by web and engine | created in P-07 |
 | `packages/contracts/` | event schema v1, OpenAPI, golden fixtures (later prompts and evals) | started |
-| `docs/architecture/` | system structure | current |
+| `docs/architecture/` | ARCHITECTURE (system), MAC (Mac app), WEB (web + engine), CODEBASE (repository map) | current |
+| `design/` | redesign inputs; `design/redesign-2026/` reference images for every platform (LINGO-07, PR #33) | current |
 | `docs/decisions/` | ADRs 0001 (Mac stack, Russian — translation pending), 0002 web stack, 0003 sign-in, 0004 repo layout, 0005 routing & quota | current |
 | `docs/changes/` | SDLC folders per change; LINGO-01 frozen (partly Russian), LINGO-03 current | current |
-| `docs/process/` | SDLC, TESTING, RELEASE | current |
+| `docs/process/` | SDLC, EVOLVING (how to change things), TESTING, RELEASE, STAGE-PROMPTS | current |
 | `DESIGN.md` | design tokens (dark theme) — the only source of colours, type, spacing, radii | current |
 | `.github/` | CI workflow, PR template | current |
 
@@ -102,9 +105,13 @@ UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swif
 | Why a decision was made | `docs/decisions/` and the change's `intent.md` |
 | What exactly to build | the change's `spec.md` |
 | What to do next | the change's `handoff.md` → "Next step", then GitHub issues |
-| How a part works | `docs/architecture/ARCHITECTURE.md`, then the code |
+| How a part works | `docs/architecture/ARCHITECTURE.md`, then `MAC.md` or `WEB.md`, then the code |
+| Where a file or module is | `docs/architecture/CODEBASE.md` |
+| How to make a kind of change | `docs/process/EVOLVING.md` |
+| All documents | `docs/README.md` |
 | Data formats / API | `packages/contracts/` |
 | How to test / release | `docs/process/TESTING.md`, `docs/process/RELEASE.md` |
+| Start prompt for each stage | `docs/process/STAGE-PROMPTS.md` |
 | Terms | `docs/GLOSSARY.md` |
 | Design | `DESIGN.md`, `docs/design/lingo-mac.webp` |
 
