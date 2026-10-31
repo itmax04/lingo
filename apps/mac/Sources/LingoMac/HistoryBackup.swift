@@ -35,14 +35,21 @@ enum HistoryBackup {
         defer { try? fm.removeItem(at: stage) }
         for sub in ["devices", "cache"] {
             for file in journalFiles(under: base.appendingPathComponent(sub, isDirectory: true)) {
-                let rel = relativePath(of: file, in: base)
+                let rel = try relativePath(of: file, in: base)
                 let target = root.appendingPathComponent(rel)
                 try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try fm.copyItem(at: file, to: target)
             }
         }
-        try? fm.removeItem(at: dest)
-        try run("/usr/bin/ditto", ["-c", "-k", "--keepParent", root.path, dest.path])
+        // Zip next to the destination under a temporary name, then swap it in: a failed run never leaves a partial file or removes a good one.
+        let partial = dest.deletingLastPathComponent().appendingPathComponent(".\(dest.lastPathComponent).partial-\(UUID().uuidString)")
+        do {
+            try run("/usr/bin/ditto", ["-c", "-k", "--keepParent", "--norsrc", "--noextattr", "--noqtn", "--noacl", root.path, partial.path])
+            if fm.fileExists(atPath: dest.path) { _ = try fm.replaceItemAt(dest, withItemAt: partial) } else { try fm.moveItem(at: partial, to: dest) }
+        } catch {
+            try? fm.removeItem(at: partial)
+            throw error
+        }
     }
 
     // MARK: Restore
@@ -64,7 +71,8 @@ enum HistoryBackup {
         for file in all {
             let values = try? file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
             guard values?.isRegularFile == true else { continue }
-            let parts = relativePath(of: file, in: root).split(separator: "/").map(String.init)
+            guard let rel = try? relativePath(of: file, in: root) else { report.rejected += 1; continue }
+            let parts = rel.split(separator: "/").map(String.init)
             guard parts.count == 3, ["devices", "cache"].contains(parts[0]), isSafeComponent(parts[1]),
                   isJournalName(parts[2]), values?.isSymbolicLink != true else { report.rejected += 1; continue }
             let owner = parts[1]
@@ -76,7 +84,11 @@ enum HistoryBackup {
             }
             guard let dir else { report.rejected += 1; continue }
             let target = dir.appendingPathComponent(parts[2])
-            if fm.fileExists(atPath: target.path) { report.skippedExisting += 1; continue }
+            if fm.fileExists(atPath: target.path) {
+                // The same monthly file exists: append only the lines (events) it does not have yet; existing lines are never changed.
+                if try appendMissingLines(from: file, to: target) > 0 { report.restored += 1 } else { report.skippedExisting += 1 }
+                continue
+            }
             try fm.createDirectory(at: dir, withIntermediateDirectories: true)
             try fm.copyItem(at: file, to: target)
             report.restored += 1
@@ -98,7 +110,7 @@ enum HistoryBackup {
         try export(base: base, to: dest)
         let daily = ((try? fm.contentsOfDirectory(atPath: folder.path)) ?? [])
             .filter { $0.hasPrefix(dailyPrefix) && $0.hasSuffix(".zip") }.sorted()
-        for old in daily.dropLast(max(keep, 1)) { try? fm.removeItem(at: folder.appendingPathComponent(old)) }
+        for old in daily.dropLast(max(keep, 1)) where old != dest.lastPathComponent { try? fm.removeItem(at: folder.appendingPathComponent(old)) }
         return dest
     }
 
@@ -113,21 +125,38 @@ enum HistoryBackup {
     static func isJournalName(_ name: String) -> Bool { name.hasPrefix("journal-") && name.hasSuffix(".jsonl") && isSafeComponent(name) }
     static func isSafeComponent(_ s: String) -> Bool { !s.isEmpty && s != "." && s != ".." && !s.contains("/") && !s.contains("\0") }
 
-    private static func relativePath(of file: URL, in root: URL) -> String {
+    private static func relativePath(of file: URL, in root: URL) throws -> String {
         let r = root.resolvingSymlinksInPath().path, f = file.resolvingSymlinksInPath().path
-        return f.hasPrefix(r + "/") ? String(f.dropFirst(r.count + 1)) : file.lastPathComponent
+        guard f.hasPrefix(r + "/") else { throw Failure.notABackup }
+        return String(f.dropFirst(r.count + 1))
+    }
+
+    /// Appends the lines of `source` that are missing in `target`; returns how many were appended.
+    private static func appendMissingLines(from source: URL, to target: URL) throws -> Int {
+        let have = Set(try String(contentsOf: target, encoding: .utf8).split(separator: "\n", omittingEmptySubsequences: true))
+        let missing = try String(contentsOf: source, encoding: .utf8).split(separator: "\n", omittingEmptySubsequences: true).filter { !have.contains($0) }
+        guard !missing.isEmpty else { return 0 }
+        let existing = try Data(contentsOf: target)
+        var out = existing
+        if existing.last != UInt8(ascii: "\n"), !existing.isEmpty { out.append(UInt8(ascii: "\n")) }
+        out.append(Data((missing.joined(separator: "\n") + "\n").utf8))
+        try out.write(to: target, options: .atomic)
+        return missing.count
     }
 
     private static func run(_ tool: String, _ args: [String]) throws {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: tool)
         p.arguments = args
-        let err = Pipe()
-        p.standardError = err
+        // stderr goes to a file, not a pipe: a full pipe buffer would block the tool while we wait for it.
+        let errFile = FileManager.default.temporaryDirectory.appendingPathComponent("lingo-tool-" + UUID().uuidString + ".err")
+        FileManager.default.createFile(atPath: errFile.path, contents: nil)
+        defer { try? FileManager.default.removeItem(at: errFile) }
+        p.standardError = try FileHandle(forWritingTo: errFile)
         try p.run()
         p.waitUntilExit()
         guard p.terminationStatus == 0 else {
-            let msg = String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+            let msg = String(data: (try? Data(contentsOf: errFile)) ?? Data(), encoding: .utf8) ?? ""
             throw Failure.tool(msg.isEmpty ? "\(tool) exited with \(p.terminationStatus)" : msg)
         }
     }

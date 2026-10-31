@@ -65,10 +65,13 @@ extension AppServices {
         let p = NSSavePanel()
         p.nameFieldStringValue = HistoryBackup.dailyName(for: MetricsDay.today())
         guard p.runModal() == .OK, let dest = p.url else { return }
-        do {
-            try HistoryBackup.export(base: store.base, to: dest)
-            NSWorkspace.shared.activateFileViewerSelecting([dest])
-        } catch { model.banner = String(localized: "Export: \(error.localizedDescription)") }
+        let base = store.base, m = model
+        Task.detached {  // the copy and the zip run off the main thread
+            do {
+                try HistoryBackup.export(base: base, to: dest)
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting([dest]) }
+            } catch { await MainActor.run { m.banner = String(localized: "Export: \(error.localizedDescription)") } }
+        }
     }
 
     /// Restore from a ZIP made by `exportHistory`: merges journals, never overwrites a file (MR-04).
@@ -77,11 +80,14 @@ extension AppServices {
         p.allowedContentTypes = [.zip]
         p.canChooseDirectories = false
         guard p.runModal() == .OK, let zip = p.url else { return }
-        do {
-            let r = try HistoryBackup.restore(from: zip, into: store.base, ownDeviceID: store.deviceID)
-            Task { await store.reload() }
-            model.banner = String(localized: "Restored \(r.restored) files, \(r.skippedExisting) already here, \(r.rejected) skipped.")
-        } catch { model.banner = String(localized: "Restore: \(error.localizedDescription)") }
+        let base = store.base, id = store.deviceID, m = model, store = store
+        Task.detached {
+            do {
+                let r = try HistoryBackup.restore(from: zip, into: base, ownDeviceID: id)
+                await store.reload()
+                await MainActor.run { m.banner = String(localized: "Restored \(r.restored) files, \(r.skippedExisting) already here, \(r.rejected) skipped.") }
+            } catch { await MainActor.run { m.banner = String(localized: "Restore: \(error.localizedDescription)") } }
+        }
     }
 
     /// Deleting the local history (R-44): only the journals on this Mac; copies on other devices and in the sync folder remain.

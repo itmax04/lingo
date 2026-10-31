@@ -86,4 +86,70 @@ import LingoCore
         let names = try FileManager.default.contentsOfDirectory(atPath: folder.path).sorted()
         #expect(names == [HistoryBackup.dailyName(for: "2026-10-02"), HistoryBackup.dailyName(for: "2026-10-03")])
     }
+
+    @Test func restoreFillsMissingEventsInAnExistingFileWithoutChangingIt() throws {
+        let src = tmp("m-src"), dst = tmp("m-dst")
+        let name = "journal-2026-10.jsonl"
+        for (base, lines) in [(src, "{\"a\":1}\n{\"b\":2}\n{\"c\":3}\n"), (dst, "{\"b\":2}\n{\"x\":9}\n")] {
+            let dir = base.appendingPathComponent("devices/mac-aaaa", isDirectory: true)
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            try lines.write(to: dir.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        }
+        let zip = tmp("m-zip").appendingPathComponent("b.zip")
+        try HistoryBackup.export(base: src, to: zip)
+        let r = try HistoryBackup.restore(from: zip, into: dst, ownDeviceID: "mac-aaaa")
+        #expect(r.restored == 1)
+        let merged = try String(contentsOf: dst.appendingPathComponent("devices/mac-aaaa/\(name)"), encoding: .utf8)
+        #expect(merged == "{\"b\":2}\n{\"x\":9}\n{\"a\":1}\n{\"c\":3}\n")
+        #expect(try HistoryBackup.restore(from: zip, into: dst, ownDeviceID: "mac-aaaa").restored == 0)
+    }
+
+    @Test func hostileZipOnlyRestoresJournalsOfTheRightShape() throws {
+        let fm = FileManager.default
+        let stage = tmp("h-stage"), root = stage.appendingPathComponent("Lingo-history", isDirectory: true)
+        func put(_ rel: String, _ text: String = "{\"e\":1}\n") throws {
+            let f = root.appendingPathComponent(rel)
+            try fm.createDirectory(at: f.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try text.write(to: f, atomically: true, encoding: .utf8)
+        }
+        try put("devices/mac-aaaa/journal-2026-10.jsonl")          // own journal: restored
+        try put("devices/web-bbbb/journal-2026-10.jsonl")          // foreign device: goes to the cache
+        try put("cache/mac-aaaa/journal-2026-10.jsonl")            // a cache copy claiming to be this device: rejected
+        try put("device.json", "{\"id\":\"mac-aaaa\"}")              // identity: rejected
+        try put("sync-state.json", "{}")                            // sync state: rejected
+        try put("devices/mac-aaaa/notes.txt", "x")                  // not a journal: rejected
+        try put("devices/mac-aaaa/deeper/journal-2026-10.jsonl")    // wrong depth: rejected
+        try fm.createSymbolicLink(at: root.appendingPathComponent("devices/mac-aaaa/journal-2026-11.jsonl"), withDestinationURL: URL(fileURLWithPath: "/etc/hosts"))
+        let zip = tmp("h-zip").appendingPathComponent("h.zip")
+        let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        p.arguments = ["-c", "-k", "--keepParent", root.path, zip.path]
+        try p.run(); p.waitUntilExit()
+        let base = tmp("h-base")
+        let r = try HistoryBackup.restore(from: zip, into: base, ownDeviceID: "mac-aaaa")
+        #expect(r.restored == 2)
+        #expect(fm.fileExists(atPath: base.appendingPathComponent("devices/mac-aaaa/journal-2026-10.jsonl").path))
+        #expect(fm.fileExists(atPath: base.appendingPathComponent("cache/web-bbbb/journal-2026-10.jsonl").path))
+        #expect(!fm.fileExists(atPath: base.appendingPathComponent("cache/mac-aaaa").path))
+        #expect(!fm.fileExists(atPath: base.appendingPathComponent("device.json").path))
+        #expect(!fm.fileExists(atPath: base.appendingPathComponent("sync-state.json").path))
+        #expect(!fm.fileExists(atPath: base.appendingPathComponent("devices/mac-aaaa/journal-2026-11.jsonl").path))
+    }
+
+    @Test func exportContainsOnlyJournals() throws {
+        let fm = FileManager.default
+        let base = tmp("e-base")
+        let dir = base.appendingPathComponent("devices/mac-aaaa", isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        try "{\"e\":1}\n".write(to: dir.appendingPathComponent("journal-2026-10.jsonl"), atomically: true, encoding: .utf8)
+        try "{\"id\":\"mac-aaaa\"}".write(to: base.appendingPathComponent("device.json"), atomically: true, encoding: .utf8)
+        try "{}".write(to: base.appendingPathComponent("sync-state.json"), atomically: true, encoding: .utf8)
+        try "secret".write(to: dir.appendingPathComponent("keys.txt"), atomically: true, encoding: .utf8)
+        let zip = tmp("e-zip").appendingPathComponent("e.zip")
+        try HistoryBackup.export(base: base, to: zip)
+        let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/zipinfo"); p.arguments = ["-1", zip.path]
+        let out = Pipe(); p.standardOutput = out
+        try p.run(); let data = out.fileHandleForReading.readDataToEndOfFile(); p.waitUntilExit()
+        let files = String(decoding: data, as: UTF8.self).split(separator: "\n").map(String.init).filter { !$0.hasSuffix("/") }
+        #expect(files == ["Lingo-history/devices/mac-aaaa/journal-2026-10.jsonl"])
+    }
 }
