@@ -1,20 +1,22 @@
 # P-00 — Intent: adopt the accepted upgrade plan
 
-Status: accepted by the owner (DG-01 H-U, DG-02 H-0, DG-03 = A on 2026-10-29). Risk: R1 (documents only).
+Risk: R1 (documents only). Authority and boundaries: [handoff.md](handoff.md) is the ledger; this file adds only the 2026-10-31 decision.
 
 ## Goal
-Land the reviewed 15-document adoption delta (base `22ec44d`, `docs/upgrade-plan`) so the repository records the accepted
-upgrade plan, the DG-01/02 acceptance and the AI-only review policy (D04-01). No product code, schema, contract, ADR or workflow changes.
-
-## Scope
-- In: the 15 Markdown paths of the adoption candidate; this intent; the `/sdlc:run` process wording.
-- Out: product code, LINGO-07 and LINGO-03 work, any merge of #1/#31/#34/#33 without gate G-CHAIN.
+Land the reviewed 15-document adoption delta (base `22ec44d`, `docs/upgrade-plan`) so the repository records the accepted upgrade plan,
+the DG-01/02/03 acceptance and the AI-only review policy (D04-01). No product code, schema, contract, ADR or workflow changes.
 
 ## Decisions
-- Q-01 (2026-10-29, owner): DG-03 = A — own docs PR and its merge after AI checks; no manual owner review of documents.
-- Q-02 (2026-10-29, owner): D04-01 — AI-only review for R2/R3.
-- A-01: the PR is stacked on `docs/upgrade-plan` (PR #34) because main differs from the base in 44 paths; it lands after G-CHAIN.
+| ID | Date | Owner's words / source | Effect |
+|---|---|---|---|
+| DG-01/02/03 | 2026-10-29 | "I accept H-U", "I accept H-0", "A; without my review, the AI checks remain" (translated from Russian) | See handoff.md |
+| D04-01 | 2026-10-29 | AI-only review for R2/R3 | See review-policy-2026-10-29.md |
+| G-CHAIN | 2026-10-31 | "I accept" (Russian, translated; recommended option: merge #1 → #31 → #34 in order after green CI and AI review, then the own docs PR) | Resolves the base blocker in handoff.md; applies only to #1/#31/#34, not #33 |
+
+## Scope
+- In: the 15 reviewed Markdown paths plus this intent (record of the G-CHAIN decision; no requirement text).
+- Out: product code; LINGO-07 and LINGO-03 work; #33; any merge outside the G-CHAIN order and checks.
 
 ## Definition of done
-`scripts/check-english.sh` and `scripts/secret-scan.sh` pass; independent AI review has no open P0/P1; PR is open, CI green,
-stacked on #34; merge only after G-CHAIN.
+Local checks pass; independent AI review has no open P0/P1 on the chain PRs and the own PR; chain merged in order with green CI;
+own PR (rebased on the new main) merged after CI.

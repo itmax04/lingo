@@ -140,7 +140,7 @@ For future LINGO-04/05/06 document rows: `test -s docs/changes/LINGO-NN/spec.md`
 
 ### P-00 — document and issue reconciliation (C, 200–450 lines)
 
-Preparation detail: [P-00 delivery plan](../changes/P-00/plan.md), P00-D01…D05, refines this existing row without adding product goals or renumbering P-01…P-20. Accepted P00-SPEC-02 and the actual owner decision chain govern the preparation boundary. The amendment itself remains proposed until H-U.
+Preparation detail: [P-00 delivery plan](../changes/P-00/plan.md), P00-D01…D05, refines this existing row without adding product goals or renumbering P-01…P-20. Accepted P00-SPEC-02 and the actual owner decision chain govern the preparation boundary. The amendment was accepted at H-U (DG-01, 2026-10-29).
 
 
 Goal: turn this amendment into accepted execution inputs. Requirements: [S03] and [intent O-01…O-22][INT], SDLC Definition of Ready. Files: LINGO-03 intent/spec/plan/handoff, ROADMAP status, AGENTS/process contradictions; issue bodies #2…#30/#32. Depends: H-U. Acceptance: record H-0/H-U evidence and Q1 resolution; spec/plan links point here, old parent IDs retained, child issues have acceptance checks and predecessor IDs; WS-09 is fixture replay unless owner changes offline scope; no future spec claimed accepted. Verify: D; `gh issue list --state open --limit 100`; `gh pr list --state open --limit 100`; manual crosswalk against §5. Risk: unauthorized scope change; do not resolve product alternatives by fiat. Owner only: acceptance. The current no-publication preparation may create reviewable drafts before H-U; formal canonical/issue adoption waits for H-U, actual H-0 evidence and separately authorized adoption/publication. Future executor merge authority is conditional under §3. This documentation step may precede redesign completion; Stage 0 code may not.
@@ -326,7 +326,7 @@ Executor prepares a **Russian numbered checklist** with exact ready paths, URL, 
 
 ## 8. Questions and separate proposals (not silently adopted)
 
-Current recorded dispositions (2026-10-29): Q1 is decided in D01-01; Q3 is a fixture clarification preserving WS-05 read-only behavior. Q2/Q4/Q5/Q6/Q7 remain deferred to their named gates. The table retains historical alternatives, not unresolved requests to re-ask Q1/Q3. [D04-01](../changes/P-00/review-policy-2026-10-29.md) replaces the prior human-review policy; H-U/H-0 remain pending.
+Current recorded dispositions (2026-10-29): Q1 is decided in D01-01; Q3 is a fixture clarification preserving WS-05 read-only behavior. Q2/Q4/Q5/Q6/Q7 remain deferred to their named gates. The table retains historical alternatives, not unresolved requests to re-ask Q1/Q3. [D04-01](../changes/P-00/review-policy-2026-10-29.md) replaces the prior human-review policy; H-U and H-0 were accepted in DG-01/DG-02 (2026-10-29).
 
 None prevents producing this plan. Q1 is resolved by D01-01: Russian first-run, retaining explicit Russian/English/System. Q3 preserves read-only offline history with seeded queue fixtures; later questions belong to their indicated gates. If an owner chooses an alternative, update the relevant intent/spec/ADR **before implementation**, never weaken §6 rules.
 
