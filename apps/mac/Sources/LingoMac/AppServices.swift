@@ -139,7 +139,7 @@ final class AppServices {
         let cmd = CommandDetector.detect(text)?.kind
         guard !ending else { model.draft = text; return }
         Task {
-            if cmd == .finish {
+            if cmd == .finish, s.state != .ended {
                 // "that's all" typed behaves like the button and the voice command (R-22): save the line, say goodbye, end the session.
                 _ = try? await engine.recordUser(session: sid, text: text, lang: lang)
                 finishSession(sid)

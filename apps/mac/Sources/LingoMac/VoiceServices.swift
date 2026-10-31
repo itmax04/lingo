@@ -124,7 +124,7 @@ extension AppServices {
                 if voiceIO?.isSpeaking == true { t.cancel() }
                 return
             }
-            if t.state == .recording { t.pushUp() } else { await resumeIfEnded(); t.pushDown() }
+            if t.state == .recording { t.pushUp() } else { t.pushDown(); await resumeIfEnded() }
         }
     }
 
@@ -132,7 +132,7 @@ extension AppServices {
         guard !ending else { return }
         Task {
             guard let t = await ensureVoice() else { return }
-            if t.mode == .continuous { t.stopVoice() } else { await resumeIfEnded(); t.startContinuous() }
+            if t.mode == .continuous { t.stopVoice() } else { t.startContinuous(); await resumeIfEnded() }
             model.continuous = t.mode == .continuous
         }
     }
@@ -168,19 +168,25 @@ extension AppServices {
             if let bye = await engine.farewell(session: sid), let io = voiceIO {
                 io.speak(bye.text, lang: bye.lang, voiceID: settings.voice.voiceIDs[bye.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
             }
-            await engine.end(sid)
+            // The finished state is written first and input is accepted again at once; the recap and the summary (model calls,
+            // they can take a while on a degraded chain) follow in the background.
+            let ended = await engine.markEnded(sid)
+            ending = false
+            if model.banner == note { model.banner = nil }
+            if ended { await engine.finalizeEnded(sid) }
             await scheduler?.trigger(.sessionEnded)
         }
     }
 
-    /// Speaking in a finished session continues it (R-01), like sending text does. `engine.resume` checks the journal itself,
+    /// Speaking in a finished session continues it (R-01), like sending text does. It runs right AFTER the recording has started: the
+    /// key-up must never arrive before the key-down, and the utterance is processed long after the session is resumed. `engine.resume` checks the journal itself,
     /// so it is safe to call whenever the learner starts to talk (the window model may lag behind the journal).
     func resumeIfEnded() async {
         guard let sid = model.selectedSessionID else { return }
         try? await engine.resume(sid)
     }
 
-    func spaceDown() { guard !ending else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { await resumeIfEnded(); t.pushDown() } else { t.cancel() } } }
+    func spaceDown() { guard !ending else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown(); await resumeIfEnded() } else { t.cancel() } } }
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
     func escape() { turn?.cancel() }
     func toggleRussian() {

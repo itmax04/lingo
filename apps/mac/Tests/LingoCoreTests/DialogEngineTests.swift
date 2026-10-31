@@ -160,7 +160,11 @@ import Testing
         #expect(log.all.isEmpty)  // no model call: a model asked to finish answered the last utterance instead
         let msgs = await store.state.messages[sid] ?? []
         #expect(msgs.count == 1 && msgs[0].role == .assistant && msgs[0].spokenText == bye.text)
-        await e.end(sid)
+        #expect(await e.markEnded(sid))           // the finished state is written at once, without any model call
+        #expect(!(await e.markEnded(sid)))        // a second call changes nothing
+        #expect(log.all.isEmpty)
+        await e.end(sid)                          // already finished: no recap, no summary request
+        #expect(log.all.isEmpty)
         #expect(await e.farewell(session: sid) == nil)  // a second click on a finished session adds nothing
         #expect((await store.state.messages[sid] ?? []).count == 1)
     }

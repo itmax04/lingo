@@ -308,12 +308,25 @@ public actor DialogEngine {
     /// "Finish" or "that's all": a goodbye in the target language (already in the reply to the finish command), a recap in Russian
     /// if the "after the conversation" mode is on (R-23), the "finished" state, and a summary.
     public func end(_ session: String) async {
+        guard await markEnded(session) else { return }
+        await finalizeEnded(session)
+    }
+
+    /// The "finished" state, written at once (no model call), so the app can accept input again right away.
+    /// Returns false when the session is missing or was already finished.
+    public func markEnded(_ session: String) async -> Bool {
         let st = await store.state
-        guard let s = st.sessions[session], s.state != .ended else { return }
-        if s.settings.corrections.contains(.after) {
-            await recap(session)
-        }
+        guard let s = st.sessions[session], s.state != .ended else { return false }
+        _ = s
         _ = try? await store.append(EventType.sessionEnded, session: session, payload: .object([:]))
+        return true
+    }
+
+    /// What follows the end of a session and needs the model: the recap in the "after" mode (R-23) and the final summary.
+    public func finalizeEnded(_ session: String) async {
+        let st = await store.state
+        guard let s = st.sessions[session] else { return }
+        if s.settings.corrections.contains(.after) { await recap(session) }
         await maybeSummarize(session, force: true)
     }
 
