@@ -72,7 +72,9 @@ struct MainView: View {
                     .disabled(!model.disabledReason.isEmpty)
                     .help(model.disabledReason)
                 }
-                if !model.disabledReason.isEmpty, model.selectedSession != nil {
+                if model.selectedSession?.state == .ended {
+                    FinishedSessionCard(onContinue: { model.services?.continueSession() }, onNew: { model.showNewSession = true })
+                } else if !model.disabledReason.isEmpty, model.selectedSession != nil {
                     Text(model.disabledReason).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger)
                 }
                 InputBar(text: $model.draft, enabled: model.disabledReason.isEmpty,

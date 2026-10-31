@@ -97,6 +97,8 @@ final class AppModel {
         if !networkUp { return String(localized: "Offline: model replies are unavailable") }
         if !hasKey { return String(localized: "No key: Settings → Keys and models") }
         if selectedSession == nil { return String(localized: "Create a session") }
+        // A finished session takes no input until the learner explicitly continues it (the "Session finished" card).
+        if selectedSession?.state == .ended { return String(localized: "The session is finished") }
         return ""
     }
 

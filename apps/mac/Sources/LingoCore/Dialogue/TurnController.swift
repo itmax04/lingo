@@ -46,6 +46,9 @@ public final class TurnController {
     public var onNotice: ((String) -> Void)?
     /// The learner said "that's all" (R-22). Their line is saved, no model reply is requested; the app ends the session with its own goodbye.
     public var onFinishCommand: ((String) -> Void)?
+    /// An utterance arrived for a finished session (for example the learner selected a finished session while voice was on):
+    /// it is dropped, voice stops, and the app should switch the microphone off.
+    public var onEndedSession: (() -> Void)?
     public private(set) var mode: Mode = .pushToTalk
     /// "I'm speaking Russian" (R-09): the next single utterance is recognized as Russian.
     public var forceRussianOnce = false
@@ -231,6 +234,11 @@ public final class TurnController {
 
     private func process(span: TurnSegmenter.Span, merge: Bool) {
         guard let ctx = context() else { onNotice?(String(localized: "No session selected")); return }
+        guard ctx.session.state != .ended else {
+            stopVoice()
+            onEndedSession?()
+            return
+        }
         let study = ctx.session.settings.lang
         // Merging (R-11): the assistant has not started speaking yet → cancel the pending request and send the combined text.
         let doMerge = merge && !answerStarted && lastUserID != nil

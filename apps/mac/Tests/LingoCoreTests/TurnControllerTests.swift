@@ -300,3 +300,24 @@ extension TurnControllerTests {
         #expect(!finished)
     }
 }
+
+@MainActor @Suite struct EndedSessionVoiceTests {
+    /// Voice still on while a finished session is selected: the utterance is dropped (no model call, nothing written), voice stops.
+    @Test func anUtteranceForAFinishedSessionIsDroppedAndVoiceStops() async throws {
+        let h = TurnControllerTests()
+        let e = try await h.env(texts: ["Ich wohne in Hamburg."])
+        var s = try #require(e.holder?.ctx?.session)
+        s.state = .ended
+        e.holder?.ctx = TurnController.Context(session: s, lastAssistant: nil, lastUser: nil, phrases: [])
+        var told = false
+        e.tc.onEndedSession = { told = true }
+        e.tc.startContinuous()
+        await e.feed(1200, speech: true)
+        await e.feed(1700, speech: false)
+        await e.waitUntil { told }
+        #expect(told)
+        #expect(e.log.all.isEmpty)
+        #expect(e.tc.mode == .pushToTalk)
+        #expect((await e.store.state.messages[e.sid] ?? []).isEmpty)
+    }
+}
