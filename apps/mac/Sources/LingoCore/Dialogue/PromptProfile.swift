@@ -50,7 +50,8 @@ public extension HistoryState {
         return LearnerProfile(goals: goals.value, interests: interests.value)
     }
 
-    /// The profile block of a session (PR-01): goals and interests before the session started and up to 3 recurring mistakes —
+    /// The profile block of a session (PR-01); the engine computes it once per session and keeps it, so events that sync later do not
+    /// change the system part in the middle of a session: goals and interests before the session started and up to 3 recurring mistakes —
     /// `fix.recorded` of other non-deleted sessions in the same language from the 30 days before it, grouped by the normalised rule
     /// text, at least 2 occurrences, most frequent first (then the most recent, then the key).
     func promptProfile(session: String) -> PromptProfile {
@@ -59,17 +60,22 @@ public extension HistoryState {
         let p = learnerProfile(before: start)
         struct Group { var count = 0; var last = Date.distantPast; var rule = ""; var examples: [String] = [] }
         var groups: [String: Group] = [:]
+        var picked: [(sid: String, f: FixEntry)] = []
         for (sid, list) in fixes where sid != session {
             guard let other = sessions[sid], !other.deleted, other.settings.lang == s.settings.lang else { continue }
-            for f in list where f.ts < start && f.ts >= start.addingTimeInterval(-PromptProfile.window) {
-                let key = VocabularyText.normalize(f.fix.rule)
-                guard !key.isEmpty else { continue }
-                var g = groups[key] ?? Group()
-                g.count += 1
-                if f.ts >= g.last { g.last = f.ts; g.rule = f.fix.rule }
-                g.examples.append("\(f.fix.original) → \(f.fix.corrected)")
-                groups[key] = g
-            }
+            for f in list where f.ts < start && f.ts >= start.addingTimeInterval(-PromptProfile.window) { picked.append((sid, f)) }
+        }
+        // A fixed order (time, session, message), so the rule spelling shown for a group never depends on dictionary order.
+        picked.sort { ($0.f.ts, $0.sid, $0.f.message) < ($1.f.ts, $1.sid, $1.f.message) }
+        for (_, f) in picked {
+            let key = VocabularyText.normalize(f.fix.rule)
+            guard !key.isEmpty else { continue }
+            var g = groups[key] ?? Group()
+            g.count += 1
+            g.last = f.ts
+            g.rule = f.fix.rule
+            g.examples.append("\(f.fix.original) → \(f.fix.corrected)")
+            groups[key] = g
         }
         let ranked = groups.filter { $0.value.count >= PromptProfile.minOccurrences }.sorted { a, b in
             if a.value.count != b.value.count { return a.value.count > b.value.count }
