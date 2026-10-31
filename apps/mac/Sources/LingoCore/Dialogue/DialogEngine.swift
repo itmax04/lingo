@@ -265,16 +265,19 @@ public actor DialogEngine {
 
     // MARK: My vocabulary (LINGO-08, VR-03, VR-04) and the learner profile (PR-01)
 
-    /// Adds items; an item whose normalised text already exists in that language is skipped. Returns (added, duplicates).
+    /// Adds items; an item whose normalised text already exists in that language is skipped, a text over 120 characters is rejected
+    /// (VR-03). Returns (added, duplicates, rejected).
     @discardableResult
-    public func addVocabulary(lang: Lang, entries: [(text: String, translation: String)], source: VocabSource) async throws -> (added: Int, duplicates: Int) {
+    public func addVocabulary(lang: Lang, entries: [(text: String, translation: String)], source: VocabSource) async throws
+        -> (added: Int, duplicates: Int, rejected: Int) {
         let st = await store.state
         var keys = Set(st.vocabulary(lang: lang).map { VocabularyText.key(lang: $0.lang, text: $0.text) })
         var batch: [(type: String, session: String, payload: JSONValue)] = []
-        var dup = 0
+        var dup = 0, rejected = 0
         for e in entries {
-            let text = String(e.text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(120))
+            let text = e.text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !VocabularyText.normalize(text).isEmpty else { continue }
+            guard text.count <= 120 else { rejected += 1; continue }
             let key = VocabularyText.key(lang: lang, text: text)
             guard keys.insert(key).inserted else { dup += 1; continue }
             let tr = String(e.translation.trimmingCharacters(in: .whitespacesAndNewlines).prefix(160))
@@ -282,10 +285,10 @@ public actor DialogEngine {
                 lang: lang, text: text, translation: tr.isEmpty ? nil : tr, source: source)))))
         }
         if !batch.isEmpty { _ = try await store.appendBatch(batch) }
-        return (batch.count, dup)
+        return (batch.count, dup, rejected)
     }
 
-    public enum VocabularyError: Error, Equatable { case emptyText, starredItem, unknownItem }
+    public enum VocabularyError: Error, Equatable { case emptyText, tooLong, starredItem, unknownItem }
 
     /// Updates an own item (★ items cannot be edited, VR-01a); an empty text is rejected.
     public func updateVocabulary(_ id: String, text: String? = nil, translation: String? = nil, note: String? = nil, example: String? = nil) async throws {
@@ -293,8 +296,9 @@ public actor DialogEngine {
         guard await store.state.vocab[id] != nil else { throw VocabularyError.unknownItem }
         let text = text?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let t = text, VocabularyText.normalize(t).isEmpty { throw VocabularyError.emptyText }
+        if let t = text, t.count > 120 { throw VocabularyError.tooLong }
         try await store.append(EventType.vocabUpdated, session: "", Payload.VocabUpdated(
-            item: id, text: text.map { String($0.prefix(120)) }, translation: translation.map { String($0.prefix(160)) },
+            item: id, text: text, translation: translation.map { String($0.prefix(160)) },
             note: note.map { String($0.prefix(300)) }, example: example.map { String($0.prefix(200)) }))
     }
 

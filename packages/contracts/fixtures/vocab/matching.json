@@ -255,6 +255,13 @@
       "utterance": "She studied law",
       "expected": false,
       "why": "accepted miss: y to i"
-    }
+    },
+    {"lang": "de", "item": "gehen", "utterance": "Er geht nach Hause.", "expected": true},
+    {"lang": "de", "item": "sagen", "utterance": "Was sagst du dazu?", "expected": true},
+    {"lang": "de", "item": "anrufen", "utterance": "Er ruft mich morgen an.", "expected": true},
+    {"lang": "de", "item": "leben", "utterance": "Wir lebten in Wien.", "expected": true},
+    {"lang": "de", "item": "Rose", "utterance": "Das ist Rost.", "expected": false},
+    {"lang": "en", "item": "work", "utterance": "I workd there.", "expected": false},
+    {"lang": "en", "item": "agree", "utterance": "We agreed on it.", "expected": true}
   ]
 }

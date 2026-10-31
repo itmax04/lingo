@@ -17,17 +17,19 @@ Item texts, translations, goals and interests are learner data: they are never w
 - **VR-02. Events** (journal schema v1, additive; older readers store and ignore unknown types):
   - `vocab.added` `{ item: { lang, text, translation?, note?, example?, source } }`, session `""`;
   - `vocab.updated` `{ item, text?, translation?, note?, example? }` — each present field last-writer-wins by (`lamport`, `device`);
-  - `vocab.removed` `{ item }` — final: a removed item never comes back, whatever its later updates;
+  - `vocab.removed` `{ item }` — final: it removes every `vocab.added` with the same key (VR-07a) whose version (`lamport`, `device`,
+    `id`) is below the removal's, and their later updates and uses are dropped; an add with a higher version (the learner adds the text
+    again) is a new item;
   - `vocab.used` `{ item, message, by: learner | assistant, outcome: ok | mistake }`, session = where it happened, `message` = the id of
     the learner's message (by learner) or of the assistant's reply (by assistant). The reducer counts one event per (item, by, message);
     when such events disagree, `mistake` wins (a later "Reply again" with an `@fix` turns an `ok` into a mistake);
   - `profile.updated` `{ goals?, interests? }`, session `""`, each present field last-writer-wins.
-  - Two items with the same language and normalised text (added on two devices) are one item: the earliest `vocab.added` (by ts, device,
-    seq, id) is kept, and the events of the other id count for it.
+  - Two live items with the same language and normalised text (added on two devices) are one item: the earliest live `vocab.added` (by
+    ts, device, seq, id) is kept, and the events of the other id count for it.
 - **VR-03. Adding.** One item at a time, or a pasted list of at most 200 lines for the language chosen in the form (with the filter on "All",
-  the form asks for the language). Per line: leading bullets and numbering (`-`, `•`, `*`, `1.`, `1)`) are removed; the line is split at the
+  the form asks for the language). Per line: leading bullets and numbering (`-`, `•`, `*`, `1.`, `1)`) followed by a space are removed (`-5 Grad`, `1.5 kg` stay); the line is split at the
   first of ` — `, ` – `, ` - `, a tab or `: ` by position into text and translation; if the left side is Cyrillic and the right side is not,
-  the sides are swapped; empty lines are skipped; a text over 120 characters is not added and is reported. An item whose key (VR-07a)
+  the sides are swapped; empty lines are skipped; a text over 120 characters is not added and is reported (also for a single item; an edit to over 120 characters is refused). An item whose key (VR-07a)
   already exists in that language is not added again. The result reports added, duplicates and rejected.
 - **VR-04. Editing and removing** own items: `vocab.updated` / `vocab.removed`; ★ items: VR-01a.
 - **VR-05. Statistics per item**, derived from `vocab.used`: offered (by assistant), used (by learner, ok), mistakes (by learner, mistake),
@@ -49,15 +51,17 @@ Item texts, translations, goals and interests are learner data: they are never w
   - placeholders are dropped from the item before matching: de `sich jdm jdn jemandem jemanden etw etwas`, en `to` (leading),
     `sb sth someone something somebody ones oneself`;
   - a token matches a word if the word equals it, or equals its stem plus an allowed ending, where the stem drops the item token's own
-    ending (de: `en`, `n`, `e`; en: `e`) and the endings are de `e en n st t et est te ten tet er es em s ens` and en `s es ed d ing er`;
+    ending (de, tokens of at least 5 letters: `en`, else `n` or `e`; en, tokens of more than 3 letters: `e`) and the endings are
+    de `e en n st t et est te ten tet er es em s ens` and en `s es ed ing er`;
     when an English `e` was dropped only `e es ed er ing` follow (so `care` ≠ `cars`);
-    tokens of 3 letters or fewer must be equal; a German word starting with `ge` may drop it (participles: `kaufen` → `gekauft`);
+    tokens of 3 letters or fewer must be equal; a German word of at least 6 letters starting with `ge` may drop it (participles: `kaufen` → `gekauft`);
   - German separable verbs: an item token `<prefix><verb>` (prefixes `ab an auf aus bei durch ein fest her hin los mit nach um vor vorbei
-    weg weiter zu zurück zusammen`) also matches the verb part plus the separate prefix later in the same utterance (`anrufen` → `ich rufe
+    weg weiter zu zurück zusammen`) also matches the verb part plus the separate prefix at most 10 words later in the same utterance (`anrufen` → `ich rufe
     dich morgen an`), the participle `<prefix>ge<verb form>` (`angerufen`, `eingekauft`) and the zu-infinitive `<prefix>zu<verb>` (`anzurufen`);
   - multi-token items: all tokens found in order with at most 3 other words between neighbours (any order for German);
   - accepted misses: vowel changes (`fahren` → `fährt`, `give` → `gave`), plurals with umlaut, irregular forms, English consonant
-    doubling (`stop` → `stopped`) and y → i (`study` → `studied`); the learner can add the form they want to practise.
+    doubling (`stop` → `stopped`) and y → i (`study` → `studied`); a German item search that exceeds 20 000 steps (an item that repeats
+    a word against a long reply); the learner can add the form they want to practise.
 - **VR-07c. Recognition hint.** The session's targets are put first into the speech-recognition context (at most 30 words of it), so
   that rare own words are heard correctly.
 - **VR-08. Per-session switch** `useVocabulary`, an optional field of `SessionSettings` (missing = on; old sessions decode unchanged),
