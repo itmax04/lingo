@@ -226,3 +226,20 @@ private struct DeferredLayoutProbe: View {
             .onAppear { DispatchQueue.main.async { settled = true } }
     }
 }
+
+@MainActor @Suite struct FinishedSessionTests {
+    /// After "Finish" the session takes no voice or typed input until the learner explicitly continues it.
+    @Test func aFinishedSessionDisablesInputAndAnActiveOneDoesNot() {
+        let model = AppModel()
+        model.hasKey = true
+        model.networkUp = true
+        let settings = SessionSettings(lang: .en, mode: .free, topic: "", corrections: [.inline])
+        let now = Date()
+        model.sessions = [Session(id: "a", title: "A", settings: settings, createdAt: now, lastActivity: now, state: .ended),
+                          Session(id: "b", title: "B", settings: settings, createdAt: now, lastActivity: now)]
+        model.selectedSessionID = "a"
+        #expect(model.disabledReason == String(localized: "The session is finished"))
+        model.selectedSessionID = "b"
+        #expect(model.disabledReason.isEmpty)
+    }
+}

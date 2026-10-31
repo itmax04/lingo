@@ -116,7 +116,7 @@ extension AppServices {
 
     /// Microphone button: push-to-talk — start/finish the utterance (S-02); in continuous mode — stop the speech (R-12).
     func micTapped() {
-        guard !ending else { return }
+        guard !ending, model.selectedSession?.state != .ended else { return }
         Task {
             guard let t = await ensureVoice() else { return }
             voiceIO?.checkHealth(stallSeconds: 0.5)
@@ -124,15 +124,15 @@ extension AppServices {
                 if voiceIO?.isSpeaking == true { t.cancel() }
                 return
             }
-            if t.state == .recording { t.pushUp() } else { t.pushDown(); await resumeIfEnded() }
+            if t.state == .recording { t.pushUp() } else { t.pushDown() }
         }
     }
 
     func toggleContinuous() {
-        guard !ending else { return }
+        guard !ending, model.selectedSession?.state != .ended else { return }
         Task {
             guard let t = await ensureVoice() else { return }
-            if t.mode == .continuous { t.stopVoice() } else { t.startContinuous(); await resumeIfEnded() }
+            if t.mode == .continuous { t.stopVoice() } else { t.startContinuous() }
             model.continuous = t.mode == .continuous
         }
     }
@@ -171,6 +171,7 @@ extension AppServices {
             // The finished state is written first and input is accepted again at once; the recap and the summary (model calls,
             // they can take a while on a degraded chain) follow in the background.
             let ended = await engine.markEnded(sid)
+            await shutDownVoice()
             ending = false
             if model.banner == note { model.banner = nil }
             if ended { await engine.finalizeEnded(sid) }
@@ -178,15 +179,29 @@ extension AppServices {
         }
     }
 
-    /// Speaking in a finished session continues it (R-01), like sending text does. It runs right AFTER the recording has started: the
-    /// key-up must never arrive before the key-down, and the utterance is processed long after the session is resumed. `engine.resume` checks the journal itself,
-    /// so it is safe to call whenever the learner starts to talk (the window model may lag behind the journal).
-    func resumeIfEnded() async {
-        guard let sid = model.selectedSessionID else { return }
-        try? await engine.resume(sid)
+    /// "Continue session" on the "Session finished" card (R-01): the only way back into a finished session.
+    func continueSession() {
+        guard let sid = model.selectedSessionID, !ending else { return }
+        Task { try? await engine.resume(sid) }
     }
 
-    func spaceDown() { guard !ending else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown(); await resumeIfEnded() } else { t.cancel() } } }
+    /// After "Finish" the microphone is switched off completely (the macOS microphone indicator goes out): the goodbye is
+    /// allowed to finish first. The next voice action creates audio again.
+    func shutDownVoice() async {
+        if let io = voiceIO {
+            let deadline = Date().addingTimeInterval(8)
+            while io.isSpeaking, Date() < deadline { try? await Task.sleep(for: .milliseconds(100)) }
+            io.stop()
+        }
+        turn?.stopVoice(cancelTurn: true)
+        turn = nil
+        voiceIO = nil
+        model.continuous = false
+        model.voiceState = .idle
+        model.levels = []
+    }
+
+    func spaceDown() { guard !ending, model.selectedSession?.state != .ended else { return }; Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown() } else { t.cancel() } } }
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
     func escape() { turn?.cancel() }
     func toggleRussian() {
