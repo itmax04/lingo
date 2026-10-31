@@ -180,6 +180,7 @@ final class AppServices {
 
     func editMessage(_ id: String, text: String) {
         guard let sid = model.selectedSessionID else { return }
+        model.translations[id] = nil  // the old translation no longer matches the text
         Task { try? await engine.edit(id, session: sid, text: text) }
     }
 

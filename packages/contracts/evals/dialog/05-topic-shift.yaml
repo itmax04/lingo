@@ -5,34 +5,34 @@
   session: { lang: en, mode: free, level: A2, topic: "Cooking", corrections: [inline] }
   history: [{ role: assistant, text: "Do you like cooking at home?" }, { role: user, text: "Sometimes. I cook pasta." }, { role: assistant, text: "Nice! What sauce do you like?" }]
   user: "How do you make spaghetti?"
-  expect: { one_question: true, says: ["boil|water|salt|sauce|pasta|minutes"] }
+  expect: { one_question: true, says: ["\\b(boil|boiling|simmer|salt|salted|minutes|drain|cook the|add the)\\b"] }
 - id: en-shift-weather
   category: topic_shift
   session: { lang: en, mode: questions, level: B1, topic: "Family", corrections: [after] }
   history: [{ role: assistant, text: "Do you have brothers or sisters?" }]
   user: "Wait, what is the weather like today where you are?"
-  expect: { one_question: true, says: ["weather|sunny|rain|cloud|warm|cold|don't|do not|can't|cannot|no weather"] }
+  expect: { one_question: true, says: ["\\b(sunny|rainy|raining|cloudy|warm|cold|degrees|I (don't|do not|can't|cannot)|as an AI|no weather)\\b"] }
 - id: en-shift-meaning
   category: topic_shift
   session: { lang: en, mode: free, level: A2, topic: "Travel", corrections: [on_demand] }
   history: [{ role: assistant, text: "Where did you go on your last holiday?" }]
   user: "Sorry, what does the word borrow mean?"
-  expect: { one_question: true, says: ["borrow|take|give back|return|lend"] }
+  expect: { one_question: true, says: ["\\b(means|mean|lend|give back|take something|use something)\\b"] }
 - id: de-shift-kochen-frage
   category: topic_shift
   session: { lang: de, mode: free, level: A2, topic: "Arbeit", corrections: [inline] }
   history: [{ role: assistant, text: "Was machen Sie beruflich?" }, { role: user, text: "Ich bin Lehrer." }, { role: assistant, text: "Interessant! Arbeiten Sie gern mit Kindern?" }]
   user: "Wie macht man Spaghetti?"
-  expect: { one_question: true, says: ["Wasser|kochen|Salz|Soße|Sauce|Nudeln|Minuten|Spaghetti"] }
+  expect: { one_question: true, says: ["(kochen|Salzwasser|Minuten|abgießen|köcheln|Wasser)"] }
 - id: de-shift-wetter
   category: topic_shift
   session: { lang: de, mode: questions, level: B1, topic: "Hobbys", corrections: [after] }
   history: [{ role: assistant, text: "Was machen Sie in Ihrer Freizeit?" }]
   user: "Moment, wie spät ist es bei Ihnen jetzt?"
-  expect: { one_question: true, says: ["spät|Uhr|Zeit|weiß nicht|kann nicht|nicht sagen"] }
+  expect: { one_question: true, says: ["(Uhr|weiß nicht|kann nicht|nicht sagen|keine Uhr|Uhrzeit)"] }
 - id: de-shift-bedeutung
   category: topic_shift
   session: { lang: de, mode: free, level: A2, topic: "Reisen", corrections: [on_demand] }
   history: [{ role: assistant, text: "Wohin möchten Sie im Sommer fahren?" }]
   user: "Was bedeutet das Wort Fernweh?"
-  expect: { one_question: true, says: ["Fernweh|Sehnsucht|Ferne|weit|Reisen|reisen"] }
+  expect: { one_question: true, says: ["(Sehnsucht|bedeutet|heißt|Wunsch|Ferne)"] }

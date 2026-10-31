@@ -311,7 +311,13 @@ public final class VoiceIO: @unchecked Sendable {
         // The synthesizer delivers a phrase as hundreds of 256-frame chunks. Resampling every chunk with a fresh converter
         // breaks the signal every ~12 ms (an audible crackle, measured 2026-10-31), so the chunks are joined and converted once.
         var out: [AVAudioPCMBuffer] = []
-        if let joined = SpeechBufferJoiner.join(buffers), let c = convert(joined) { out.append(c) }
+        if let joined = SpeechBufferJoiner.join(buffers), let c = convert(joined) {
+            out.append(c)
+        } else {
+            // Joining needs one uniform mono/planar format; anything else is converted chunk by chunk as before rather than dropped.
+            if !buffers.isEmpty { Log.speech.error("speech buffers could not be joined; converting chunk by chunk") }
+            for b in buffers { if let c = convert(b) { out.append(c) } }
+        }
         if pauseAfter > 0, let silence = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: AVAudioFrameCount(pauseAfter * outFormat.sampleRate)) {
             silence.frameLength = silence.frameCapacity
             out.append(silence)

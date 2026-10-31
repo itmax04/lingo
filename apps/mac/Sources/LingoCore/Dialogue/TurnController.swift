@@ -252,6 +252,7 @@ public final class TurnController {
             do {
                 tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
             } catch {
+                if Task.isCancelled { return }  // "Finish" or a merge cancelled the turn: not an error
                 self.onNotice?(String(localized: "Speech recognition: \(String(describing: error))"))
                 self.state = self.mode == .continuous ? .listening : .idle
                 return
@@ -338,7 +339,8 @@ public final class TurnController {
     }
 
     private func waitSpeechEnd() async {
-        while sink.isSpeaking { try? await Task.sleep(for: .milliseconds(50)) }
+        // A cancelled task must not spin here: Task.sleep throws at once on cancellation.
+        while sink.isSpeaking, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(50)) }
     }
 
     /// First audio of a reply part (from `VoiceIO.onPlaybackStarted`) — the `first_audio` metric.

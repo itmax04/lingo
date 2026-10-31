@@ -6715,6 +6715,23 @@
           }
         }
       }
+    },
+    "translation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "translation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "перевод"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

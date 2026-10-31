@@ -6,6 +6,7 @@ public enum SpeechBufferJoiner {
     public static func join(_ buffers: [AVAudioPCMBuffer]) -> AVAudioPCMBuffer? {
         guard let first = buffers.first else { return nil }
         let format = first.format
+        guard !format.isInterleaved || format.channelCount == 1 else { return nil }
         let usable = buffers.filter { $0.format == format && $0.frameLength > 0 }
         guard !usable.isEmpty else { return nil }
         let total = usable.reduce(0) { $0 + Int($1.frameLength) }
