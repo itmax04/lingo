@@ -1,6 +1,6 @@
 # LINGO-03: Specification — Mac stabilisation, Lingo Engine and Lingo Web
 
-P-00 decision record (2026-10-29): DG-02 accepts these LINGO-03 documents at H-0; runtime/product completion is not asserted. MR-03 is unchanged: D01-01 confirms Russian first-run with explicit Russian/English/System. The draft redesign still defaults to System; no code correction is claimed. Process review follows [D04-01](../P-00/review-policy-2026-10-29.md).
+P-00 decision record (2026-10-29): DG-02 accepts these LINGO-03 documents at H-0; runtime/product completion is not asserted. MR-03 is unchanged: D01-01 confirms Russian first-run with explicit Russian/English/System. The redesign shipped with System as the default; P-03 (2026-10-31) corrected the code default to Russian. Process review follows [D04-01](../P-00/review-policy-2026-10-29.md).
 
 ID: LINGO-03-spec · Status: **accepted at H-0 in DG-02 on 2026-10-29** · Version: 2 · Date: 2026-10-26 · Owner: itmax04
 Links: [intent.md](intent.md) (decisions O-01…O-22) · [plan.md](plan.md) · [ARCHITECTURE](../../architecture/ARCHITECTURE.md) · [contracts](../../../packages/contracts/README.md) ·
