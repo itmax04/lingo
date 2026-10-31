@@ -13,8 +13,8 @@ words, answers an empty "continue" with filler, and opens a free session with a 
 1. **My vocabulary.** The learner adds their own words, phrases and expressions (one by one or a pasted list, with an optional translation
    and note), per study language; the ★ phrases are part of the same list. Each item shows how often it was practised.
 2. **The model uses it.** In every session (unless switched off for that session) the model weaves a few of the learner's items into the
-   conversation naturally, invites the learner to use them, and notices when they do. A dedicated session mode, "My words", builds the
-   whole conversation around the list. Items the learner has not used yet, or rarely, come first.
+   conversation naturally, invites the learner to use them, and notices when they do. A vocabulary focus, "My words" (the Questions mode with a focus
+   flag), builds the whole conversation around the list. Items the learner has not used yet, or rarely, come first.
 3. **Prompting v2.** One clear system wrapper with a learner profile (level, goals, interests, recurring mistakes across sessions), the
    vocabulary block, tighter conversation-flow rules (no repeat loops, no filler, follow the learner's lead, a purposeful opening), and the
    existing rules kept. Measured by eval sets, not by impression.
@@ -31,7 +31,7 @@ words, answers an empty "continue" with filler, and opens a free session with a 
 |---|---|---|---|
 | Q-01 | How to keep the web consistent while it does not exist yet? | "Mac + shared contracts" | Mac implementation; formats, selection and prompts in `packages/contracts` |
 | Q-02 | How to track that an item is learned? | "Simple tracking" | Counters per item (offered by the model, used by the learner, mistakes); FSRS stays in LINGO-05 |
-| Q-03 | How should the model use the items? | "Everywhere + a separate mode" | Woven into every session (per-session switch, on by default) and a new mode "My words" |
+| Q-03 | How should the model use the items? | "Everywhere + a separate mode" | Woven into every session (per-session switch, on by default) and "My words" (a vocabulary focus of the Questions mode) |
 | Q-04 | Stage 0 (H-1) is not accepted yet | "Accept H-1 now" | H-1 recorded as accepted 2026-10-31 without the 30-minute live session, backup walk-through and RU/EN check |
 | Q-05 | Platforms of this stage | "macOS and the web version only; no iOS changes" (the stage brief) | iOS untouched |
 

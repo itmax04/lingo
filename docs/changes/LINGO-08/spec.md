@@ -1,6 +1,6 @@
 # LINGO-08: Specification — my vocabulary and prompting v2
 
-ID: LINGO-08-spec · Status: **draft for AI review** · Version: 2 (review of v1: F-01…F-19) · Date: 2026-10-31 · Owner: itmax04 · Risk: R2
+ID: LINGO-08-spec · Status: **draft for AI review** · Version: 2.1 (reviews: F-01…F-19, N-01…N-12) · Date: 2026-10-31 · Owner: itmax04 · Risk: R2
 Links: [intent.md](intent.md) (decisions Q-01…Q-05, assumptions A-01…A-06) · [plan.md](plan.md) · [handoff.md](handoff.md) ·
 [contracts](../../../packages/contracts/README.md) · [DESIGN.md](../../../DESIGN.md)
 Requirements of this change are defined only here: VR (vocabulary), PR (prompting), VAC/PAC (acceptance). The iOS app is out of scope.
@@ -20,6 +20,7 @@ Item texts, translations, goals and interests are learner data: they are never w
   - `vocab.removed` `{ item }` — final: a removed item never comes back, whatever its later updates;
   - `vocab.used` `{ item, message, by: learner | assistant, outcome: ok | mistake }`, session = where it happened, `message` = the id of
     the learner's message (by learner) or of the assistant's reply (by assistant). The reducer counts one event per (item, by, message);
+    when such events disagree, `mistake` wins (a later "Reply again" with an `@fix` turns an `ok` into a mistake);
   - `profile.updated` `{ goals?, interests? }`, session `""`, each present field last-writer-wins.
   - Two items with the same language and normalised text (added on two devices) are one item: the earliest `vocab.added` (by ts, device,
     seq, id) is kept, and the events of the other id count for it.
@@ -36,6 +37,7 @@ Item texts, translations, goals and interests are learner data: they are never w
   same during a session. Candidates: items of the session language, minus the items the learner used correctly in this session. Sort by
   (1) used ascending, (2) mistakes descending, (3) offered ascending, (4) last practised ascending (never practised first),
   (5) `createdAt` descending, (6) `id` ascending (ULIDs are ASCII: byte order). Take **3**, or **6** with the vocabulary focus (VR-09).
+  An optional **pinned** item (the "Practise" button, VR-11) comes first while it is a candidate.
 - **VR-07. Usage detection** (local, no model call; A-03) after each turn, against **all** items of the session language (not only the
   targets): each item found in the learner's utterance gives `vocab.used by learner`, each item found in the assistant's `@say` lines
   gives `vocab.used by assistant`. Not counted: command utterances (R-14…R-22), Russian utterances, and turns whose reply failed for the
@@ -48,16 +50,21 @@ Item texts, translations, goals and interests are learner data: they are never w
     `sb sth someone something somebody ones oneself`;
   - a token matches a word if the word equals it, or equals its stem plus an allowed ending, where the stem drops the item token's own
     ending (de: `en`, `n`, `e`; en: `e`) and the endings are de `e en n st t et est te ten tet er es em s ens` and en `s es ed d ing er`;
+    when an English `e` was dropped only `e es ed er ing` follow (so `care` ≠ `cars`);
     tokens of 3 letters or fewer must be equal; a German word starting with `ge` may drop it (participles: `kaufen` → `gekauft`);
-  - German separable verbs: an item token `<prefix><verb>` (prefixes `ab an auf aus bei ein fest her hin los mit nach vor weg zu zurück`)
-    also matches the verb part plus the separate prefix later in the same utterance (`anrufen` → `ich rufe dich morgen an`);
+  - German separable verbs: an item token `<prefix><verb>` (prefixes `ab an auf aus bei durch ein fest her hin los mit nach um vor vorbei
+    weg weiter zu zurück zusammen`) also matches the verb part plus the separate prefix later in the same utterance (`anrufen` → `ich rufe
+    dich morgen an`), the participle `<prefix>ge<verb form>` (`angerufen`, `eingekauft`) and the zu-infinitive `<prefix>zu<verb>` (`anzurufen`);
   - multi-token items: all tokens found in order with at most 3 other words between neighbours (any order for German);
-  - accepted misses: vowel changes (`fahren` → `fährt`, `give` → `gave`), plurals with umlaut, irregular forms; the learner can add the
-    form they want to practise.
+  - accepted misses: vowel changes (`fahren` → `fährt`, `give` → `gave`), plurals with umlaut, irregular forms, English consonant
+    doubling (`stop` → `stopped`) and y → i (`study` → `studied`); the learner can add the form they want to practise.
+- **VR-07c. Recognition hint.** The session's targets are put first into the speech-recognition context (at most 30 words of it), so
+  that rare own words are heard correctly.
 - **VR-08. Per-session switch** `useVocabulary`, an optional field of `SessionSettings` (missing = on; old sessions decode unchanged),
   in the new-session screen and the session menu. Off: no vocabulary block, no `vocab.used` events for that session.
 - **VR-09. "My words"** is the "Questions" mode with the optional field `vocabularyFocus = true` (no new mode value: older builds still
-  read the session as "Questions"). It forces `useVocabulary` on, takes 6 targets and follows PR-03. Offered in the new-session screen as a
+  read the session as "Questions"; an older build that edits such a session drops the two optional fields — accepted, one device today).
+  Its default title is "My words: <topic>". It forces `useVocabulary` on, takes 6 targets and follows PR-03. Offered in the new-session screen as a
   separate choice "My words", only when the language has at least one item.
 - **VR-10. Translation help.** In the add form, "Translate" fills the translation with one `translate` request; never automatic.
 - **VR-11. Mac screen "Vocabulary"** (the sidebar entry that today shows "Coming soon"; layout from
@@ -71,13 +78,15 @@ Item texts, translations, goals and interests are learner data: they are never w
 ## 2. Prompting v2
 - **PR-01. Learner profile** in a `<profile>` block of the system part, computed **once per session** from the journal as it was before
   the session started (so the system part stays identical during the session and can be cached): the session level; goals and interests
-  (`profile.updated`, free text, set in Settings; empty means "not stated"); up to 3 recurring mistakes in the session language — `fix.recorded`
+  (`profile.updated`, free text of at most 300 characters each, set in Settings; empty means "not stated"); up to 3 recurring mistakes in the session language — `fix.recorded`
   of non-deleted sessions in that language in the last 30 days, grouped by the normalised rule text (VR-07a), at least 2 occurrences, most
-  frequent first, each shown as the rule with one short example `original → corrected`. The model uses them to create practice
+  frequent first, each shown as the rule with one short example `original → corrected` (at most 80 characters). Grouping by the
+  rule text is best-effort (the model writes the rule); PAC-02 records how often a real journal yields at least one. The model uses them to create practice
   opportunities, never to lecture.
 - **PR-02. Vocabulary block** — after `</transcript>` in the user message (the summary and transcript prefix stays cacheable), as
   `<vocabulary>` lines `text | translation | status`, where status is `new`, `practising` (used n times) or `needs work` (mistakes > used);
-  at most 120 tokens. The rules about it are always in the system part when `useVocabulary` is on: at most one target per turn; weave it
+  at most 120 tokens: each text and translation is cut to 60 characters, then targets are dropped from the end until the block is at most
+  420 characters (golden fixture `fixtures/vocab/block.json`). The rules about it are always in the system part when `useVocabulary` is on: at most one target per turn; weave it
   naturally into what you say (use it in context or ask a question that invites the learner to use it); prefer `new` and `needs work`;
   when the learner uses one, react briefly and naturally; a mistake with it follows the correction modes; never list the targets, never quiz
   in ordinary modes, never force an item that does not fit; a new question or subject from the learner comes first (rule 4b).
@@ -98,11 +107,11 @@ Item texts, translations, goals and interests are learner data: they are never w
   kept, new ones 2a, 4c, …) → output protocol → custom instructions. Rule 7 treats `<profile>` and `<vocabulary>` as data too; closing tags
   are stripped from learner text, as for the transcript. All text in English; language data in the study language.
 - **PR-09. Budget** (with MR-02): P-1 carries out the open prompt compaction of LINGO-03 (P-02b). Target: the system part ≤ 900 tokens of
-  instructions as reported by the provider's `prompt_tokens` for a request with an empty transcript (the local `TokenEstimate` is only a
+  instructions as reported by the provider's `prompt_tokens` for a request with an empty transcript, a maximal profile and no custom prompt (the local `TokenEstimate` is only a
   guide); the vocabulary block ≤ 120 tokens. If the night evals show that 900 tokens cannot hold the rules' effect, the executor stops and
   asks the owner with the numbers. The usage log records input, cached and output tokens before and after (PAC-04).
 - **PR-10. Evals** (`packages/contracts/evals`): the case format gets optional `vocabulary` (items with status), `profile` and an optional
-  `user` (empty = the assistant starts); new automatic rules `uses_target` (a target appears in the reply), `no_target_list` (at most one
+  `user` (empty = the assistant starts); new automatic rules `uses_target` (a target appears in the reply, by the VR-07b matching), `no_target_list` (at most one
   target per reply), `no_repeat_request` (no request to repeat when the learner's last turn repeated the corrected phrase),
   `concrete_opening` (the opening has one question and none of the generic greetings listed in the README), `no_filler`. New categories:
   `vocab_weave` ≥ 8, `vocab_focus` ≥ 6, `repeat_loop` ≥ 4, `opening` ≥ 4, `continue_thread` ≥ 4, `data_injection` ≥ 2 (instructions hidden in
