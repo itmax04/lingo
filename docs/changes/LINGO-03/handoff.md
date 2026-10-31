@@ -14,10 +14,11 @@ Status: **documents v2 accepted at H-0 in DG-02 on 2026-10-29; implementation no
 | Step | PR | Checks | Notes |
 |---|---|---|---|
 | P-01 | pending PR (branch `feat/3-p01-monorepo`) | PASS: `swift test --package-path apps/mac` 112 tests in 30 suites; `apps/mac/scripts/build-app.sh` builds and signs `dist/Lingo.app`; `run-evals.sh commands` 99.2 % PASS; `check-core-ios.sh` PASS; `check-english`, `secret-scan --no-history`, `check-design` PASS. NOT RUN: live voice, providers | Rename-only move (deviation from plan: the per-checkout `.build` cache helper `ensure-build-dir.sh` was kept and ported, not removed): Swift package and Mac scripts to `apps/mac`, prompt snapshots to `packages/contracts/prompts`, eval sets to `packages/contracts/evals`; `dist/` stays at the repository root; lingo-eval defaults are relative to the repository root. |
+| P-02a | pending PR (branch `feat/3-p02a-safety`) | PASS: `swift test --package-path apps/mac` 114 tests in 31 suites. NOT RUN: 10 live turns, night `dialog` batch, prompt compaction | Output reserve measured from the usage log (41 dialog requests: output median 70, max 204 tokens incl. reasoning): dialog reserve 450 to 300, reasoning headroom 512 to 192; `finish_reason` is now written to the usage log (old logs still decode). |
 
 ## Executor decisions
 (none yet — record as D-01, D-02, … with the reason)
 
 ## Next step
 
-2026-10-31: LINGO-07 (PR #33) and P-00 are merged; Stage 0 P-01 is in review. After it merges, take P-02 (token economy, safe errors, night eval guard; no live batch before P-02b passes), then P-03…P-06, then stop at H-1 with a Russian checklist.
+2026-10-31: P-01 and P-02a are merged or in review. Next: P-02b - compact system instructions (target 900 tokens) and a total input budget, re-record prompt snapshots in `packages/contracts/prompts`, then one night `dialog` batch (at most 15 requests, 23:00-08:00 Berlin only; the daytime quota is shared with live practice). Acceptance of P-02 (TPM charge <= 1.8 k per dialog turn after 10 live turns, no `finish_reason=length`) needs those live runs and stays NOT RUN until then. Then P-03...P-06 and the H-1 checklist.

@@ -121,14 +121,16 @@ public struct UsageRecord: Codable, Sendable, Hashable {
     public var remainingTokens: Int?
     public var remainingRequests: Int?
     public var ms: Int
+    /// `finish_reason` of the response when the provider sent one (`stop`, `length`, …); nil = unknown or the request failed.
+    public var finishReason: String?
 
     public init(ts: Date, purpose: String, provider: String, model: String, keyIndex: Int, status: String, limitKind: RateLimitKind?,
                 retryAfter: Double?, inputTokens: Int?, outputTokens: Int?, cachedTokens: Int?, estimatedInput: Int,
-                remainingTokens: Int?, remainingRequests: Int?, ms: Int) {
+                remainingTokens: Int?, remainingRequests: Int?, ms: Int, finishReason: String? = nil) {
         self.ts = ts; self.purpose = purpose; self.provider = provider; self.model = model; self.keyIndex = keyIndex
         self.status = status; self.limitKind = limitKind; self.retryAfter = retryAfter; self.inputTokens = inputTokens
         self.outputTokens = outputTokens; self.cachedTokens = cachedTokens; self.estimatedInput = estimatedInput
-        self.remainingTokens = remainingTokens; self.remainingRequests = remainingRequests; self.ms = ms
+        self.remainingTokens = remainingTokens; self.remainingRequests = remainingRequests; self.ms = ms; self.finishReason = finishReason
     }
 }
 

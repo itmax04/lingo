@@ -172,3 +172,21 @@ import Testing
         #expect(order.all.count == 2, "the reply, then topic phrases")
     }
 }
+
+@Suite struct OutputReserveTests {
+    @Test func dialogReserveIsMeasuredNotGenerous() {
+        #expect(PromptBuilder.dialogOutputReserve == 300)
+        #expect(OpenAICompatibleProvider.reasoningHeadroom <= 192)
+    }
+
+    @Test func usageRecordKeepsFinishReasonAndOldLogsStillDecode() throws {
+        let rec = UsageRecord(ts: Date(timeIntervalSince1970: 0), purpose: "dialog", provider: "groq", model: "m", keyIndex: 1, status: "ok",
+                              limitKind: nil, retryAfter: nil, inputTokens: 10, outputTokens: 5, cachedTokens: nil, estimatedInput: 12,
+                              remainingTokens: nil, remainingRequests: nil, ms: 100, finishReason: "length")
+        let enc = JSONEncoder(); enc.dateEncodingStrategy = .iso8601
+        let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
+        #expect(try dec.decode(UsageRecord.self, from: enc.encode(rec)).finishReason == "length")
+        let old = #"{"ts":"2026-10-26T06:02:24Z","purpose":"dialog","provider":"groq","model":"m","keyIndex":1,"status":"ok","estimatedInput":1,"ms":1}"#
+        #expect(try dec.decode(UsageRecord.self, from: Data(old.utf8)).finishReason == nil)
+    }
+}
