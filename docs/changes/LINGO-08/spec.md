@@ -37,7 +37,7 @@ Requirements of this change are defined only here: VR (vocabulary), PR (promptin
 - **VR-10. Translation help.** In the add form, "Translate" fills the translation with one `translate` request (the purpose of
   LINGO-03 H-1 findings); it never runs on its own.
 - **VR-11. Mac screen "Vocabulary"** (the sidebar entry that today shows a "Coming soon" preview; layout from the LINGO-07 reference
-  `mac-dictionary-overview`, tokens from DESIGN.md only): language filter, search, add field with "Add", "Paste a list", the list with text,
+  `design/redesign-2026/04-mac/mac-dictionary-starred-*-1536x1024.png`, tokens from DESIGN.md only): language filter, search, add field with "Add", "Paste a list", the list with text,
   translation, statistics, ★ marker for starred items, edit and remove. Russian and English UI strings.
 - **VR-12. Contracts.** `event.schema.json` lists the new types and payloads and the new mode `words`; golden fixtures for the events and
   for the selection; README updated. The web (LINGO-03 Stage 2) implements the same rules from these files.
