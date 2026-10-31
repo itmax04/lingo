@@ -26,6 +26,17 @@ enum Fixtures {
                         segments: [.say(.de, "Das tut mir leid. Haben Sie auch Fieber?"),
                                    .fix(Fix(original: original, corrected: corrected, rule: rule))], createdAt: now)
         ]
+        // My vocabulary (LINGO-08 VR-11): synthetic items, two ★ phrases as on the design reference.
+        m.vocabulary = [
+            VocabItem(id: VocabItem.starredID(lang: .de, text: "Ich habe Kopfschmerzen."), lang: .de, text: "Ich habe Kopfschmerzen.",
+                      translation: "У меня болит голова.", source: .starred, createdAt: now, offered: 2, used: 1),
+            VocabItem(id: "01JVOCABFEIERABEND00000000", lang: .de, text: "Feierabend", translation: "конец рабочего дня",
+                      note: "nach der Arbeit", source: .manual, createdAt: now.addingTimeInterval(-60), offered: 3, used: 2),
+            VocabItem(id: "01JVOCABVERABREDEN00000000", lang: .de, text: "sich verabreden", translation: "договориться о встрече",
+                      source: .list, createdAt: now.addingTimeInterval(-120), offered: 1, used: 0, mistakes: 1),
+            VocabItem(id: VocabItem.starredID(lang: .en, text: "Nice to meet you."), lang: .en, text: "Nice to meet you.",
+                      translation: "Приятно познакомиться.", source: .starred, createdAt: now),
+        ]
         m.phrases = [
             Phrase(lang: .de, text: "Ich habe Kopfschmerzen.", translation: "У меня болит голова.", source: .topic),
             Phrase(lang: .de, text: "Seit wann haben Sie Fieber?", translation: "С какого времени у вас температура?", source: .topic)

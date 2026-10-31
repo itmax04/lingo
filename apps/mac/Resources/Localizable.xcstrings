@@ -6834,6 +6834,839 @@
           }
         }
       }
+    },
+    "%lld / 300": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 300"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld / 300"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "About me": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About me"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обо мне"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Add words, phrases or expressions you want to practise, or paste a list (one per line, “word — translation”). Lingo weaves a few of them into every conversation; ★ phrases from the hints are here too.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add words, phrases or expressions you want to practise, or paste a list (one per line, “word — translation”). Lingo weaves a few of them into every conversation; ★ phrases from the hints are here too."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте слова, фразы или выражения, которые хотите тренировать, или вставьте список (по одному в строке, «слово — перевод»). Lingo вплетает несколько из них в каждый разговор; фразы со ★ из подсказок тоже здесь."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Added: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавлено: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "All": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Все"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not add: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not add: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось добавить: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not save: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось сохранить: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Every question practises one of your words; the ones you have not used yet come first.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every question practises one of your words; the ones you have not used yet come first."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Каждый вопрос тренирует одно из ваших слов; сначала те, что вы ещё не использовали."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Example (optional)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example (optional)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пример (необязательно)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "For example: hiking, cooking, jazz": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example: hiking, cooking, jazz"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Например: походы, кулинария, джаз"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "For example: speak confidently at work, prepare for the B1 exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example: speak confidently at work, prepare for the B1 exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Например: уверенно говорить на работе, подготовиться к экзамену B1"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Goals": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goals"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цели"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Interests": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interests"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Интересы"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Its statistics are removed too.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Its statistics are removed too."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Его статистика тоже будет удалена."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Learner profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learner profile"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Профиль ученика"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo uses this to choose topics and examples. Changes apply from the next conversation. At most 300 characters each.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo uses this to choose topics and examples. Changes apply from the next conversation. At most 300 characters each."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo учитывает это при выборе тем и примеров. Изменения действуют со следующего разговора. Не больше 300 символов в каждом поле."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Listen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прослушать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No words yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No words yet"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слов пока нет"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Note (optional)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note (optional)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметка (необязательно)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Nothing found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ничего не найдено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Offered %lld · used %lld · mistakes %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offered %lld · used %lld · mistakes %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Предложено %lld · использовано %lld · ошибок %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "One item per line. A translation may follow after “ — ”, “ – ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One item per line. A translation may follow after “ — ”, “ – ”, “ - ”, a tab or “: ”; bullets and numbers are removed. At most 200 lines, 120 characters per item."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По одному в строке. Перевод можно указать после « — », « – », « - », табуляции или «: »; маркеры и номера убираются. Не больше 200 строк и 120 символов в строке."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "One request to the model; only when you click": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One request to the model; only when you click"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Один запрос к модели — только по нажатию"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Paste a list": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste a list"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить список"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Paste a list…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste a list…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить список…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Practise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practise"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тренировать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recognised: %lld · rejected: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognised: %lld · rejected: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознано: %lld · отклонено: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove the star": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the star"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снять звёздочку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove “%@”?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove “%@”?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить «%@»?"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Search": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поиск"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Start a “My words” session with this item first": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a “My words” session with this item first"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать сессию «Мои слова» с этого слова"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The phrase is un-starred.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The phrase is un-starred."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Со фразы будет снята звёздочка."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The text cannot be empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The text cannot be empty."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст не может быть пустым."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The text is longer than 120 characters.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The text is longer than 120 characters."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текст длиннее 120 символов."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Translate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевести"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Translation (optional)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation (optional)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевод (необязательно)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Translation failed: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation failed: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось перевести: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Use my vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use my vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать мой словарь"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Use my vocabulary in this conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use my vocabulary in this conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать мой словарь в этом разговоре"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Word, phrase or expression": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word, phrase or expression"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слово, фраза или выражение"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "already in the list: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "already in the list: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "уже в списке: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "too long or over 200 lines: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "too long or over 200 lines: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "слишком длинных или сверх 200 строк: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not remove: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not remove: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось удалить: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Add to %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавить в %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Last practised: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last practised: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя тренировка: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not practised yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not practised yet"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ещё не тренировали"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language: German": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language: German"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык: немецкий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Language: English": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language: English"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Язык: английский"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

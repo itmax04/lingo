@@ -13,6 +13,7 @@ struct MainView: View {
                 SidebarView(model: model, onNewSession: { model.showNewSession = true })
                 ColumnDivider()
                 if model.section == .conversations { center }
+                else if model.section == .dictionary { VocabularyView(model: model) }
                 else { PlannedSectionView(section: model.section) { model.section = .conversations } }
                 if model.section == .conversations && wide && model.hintsVisible {
                     ColumnDivider()
@@ -40,6 +41,7 @@ struct MainView: View {
         }
         .sheet(isPresented: $model.showNewSession) {
             NewSessionView(lang: model.langFilter, lastCorrections: model.services?.settings.lastCorrections ?? [],
+                           vocabularyCount: { l in model.vocabulary.filter { $0.lang == l }.count },
                            onStart: { s, t in model.showNewSession = false; model.section = .conversations; model.services?.createSession(s, title: t) },
                            onCancel: { model.showNewSession = false })
         }
@@ -163,6 +165,9 @@ struct SessionMenu: View {
                     }
                 }
                 Button((model.slowPace ? "✓ " : "") + String(localized: "Slow pace")) { model.services?.toggleSlowPace() }
+                if !s.settings.isVocabularyFocus {
+                    Button((s.settings.vocabularyOn ? "✓ " : "") + String(localized: "Use my vocabulary")) { model.services?.toggleVocabulary() }
+                }
                 Section(model.memoryNote ?? "") {}
             }
             Button("Lingo Settings…") { NSApp.sendAction(#selector(AppDelegate.showSettings(_:)), to: nil, from: nil) }

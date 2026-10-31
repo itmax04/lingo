@@ -122,3 +122,55 @@ struct DataSettingsView: View {
         .background(Theme.C.bgWindow)
     }
 }
+
+/// Settings → "About me" (LINGO-08 PR-01): goals and interests for the learner profile, at most 300 characters each. They reach the
+/// model in the next session (the profile is frozen per session).
+struct ProfileSettingsView: View {
+    let services: AppServices
+    @State private var goals: String
+    @State private var interests: String
+
+    init(services: AppServices) {
+        self.services = services
+        _goals = State(initialValue: services.model.profile.goals)
+        _interests = State(initialValue: services.model.profile.interests)
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.S.s24) {
+                SettingsCard(title: "Learner profile",
+                             subtitle: "Lingo uses this to choose topics and examples. Changes apply from the next conversation. At most 300 characters each.") {
+                    editor("Goals", hint: "For example: speak confidently at work, prepare for the B1 exam", text: $goals)
+                    editor("Interests", hint: "For example: hiking, cooking, jazz", text: $interests)
+                    HStack {
+                        Button("Save") { services.updateProfile(goals: goals, interests: interests) }
+                            .buttonStyle(.borderedProminent).tint(Theme.accent(services.model.studyLanguage))
+                            .disabled(goals == services.model.profile.goals && interests == services.model.profile.interests)
+                        Spacer()
+                    }
+                }
+            }
+            .padding(Theme.S.s24)
+        }
+        .background(Theme.C.bgWindow)
+    }
+
+    private func editor(_ title: LocalizedStringKey, hint: LocalizedStringKey, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: Theme.S.s4) {
+            Text(title).font(Theme.F.section).foregroundStyle(Theme.C.textSecondary)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: Binding(get: { text.wrappedValue }, set: { text.wrappedValue = String($0.prefix(300)) }))
+                    .accessibilityLabel(title).accessibilityHint(hint)
+                    .font(Theme.F.rowTitle).frame(minHeight: Theme.R.hintCardMinHeight)
+                    .scrollContentBackground(.hidden).padding(Theme.S.s4)
+                    .background(Theme.C.surfaceInput, in: RoundedRectangle(cornerRadius: Theme.R.button))
+                    .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.button))
+                if text.wrappedValue.isEmpty {
+                    Text(hint).font(Theme.F.rowTitle).foregroundStyle(Theme.C.textTertiary).padding(Theme.S.s8).allowsHitTesting(false)
+                }
+            }
+            Text("\(text.wrappedValue.count) / 300").font(Theme.F.meta).foregroundStyle(Theme.C.textTertiary)
+        }
+    }
+}
