@@ -62,6 +62,7 @@ extension AppServices {
             if m.levels.count > 160 { m.levels.removeFirst(m.levels.count - 160) }
         }
         tc.onNotice = { n in m.banner = n }
+        tc.onFinishCommand = { [weak self] in Task { @MainActor in self?.finishedByVoice() } }
         tc.onTurn = { [weak self] e in self?.turnEvent(e) }
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
@@ -116,6 +117,7 @@ extension AppServices {
     /// Microphone button: push-to-talk — start/finish the utterance (S-02); in continuous mode — stop the speech (R-12).
     func micTapped() {
         Task {
+            await resumeIfEnded()
             guard let t = await ensureVoice() else { return }
             voiceIO?.checkHealth(stallSeconds: 0.5)
             if t.mode == .continuous {
@@ -128,6 +130,7 @@ extension AppServices {
 
     func toggleContinuous() {
         Task {
+            await resumeIfEnded()
             guard let t = await ensureVoice() else { return }
             if t.mode == .continuous { t.stopVoice() } else { t.startContinuous() }
             model.continuous = t.mode == .continuous
@@ -136,9 +139,10 @@ extension AppServices {
 
     func pauseTapped() { turn?.togglePause() }
 
-    /// "Finish" (R-07, R-22): goodbye, a recap in the "after" mode, voice turns off.
+    /// "Finish" (R-07, R-22): everything in flight stops, a fixed goodbye is spoken, the session ends, voice turns off.
+    /// A second click (or a click on a finished session) does nothing.
     func endTapped() {
-        guard let sid = model.selectedSessionID, !ending else { return }
+        guard let sid = model.selectedSessionID, !ending, model.selectedSession?.state != .ended else { return }
         ending = true
         // Nothing may go on generating or speaking after "Finish": cancel the voice turn and the text turn that are in flight.
         turn?.stopVoice(cancelTurn: true)
@@ -149,17 +153,34 @@ extension AppServices {
         model.streaming = nil
         Task {
             defer { ending = false }
-            for await e in engine.respond(session: sid, command: .finish) { turnEvent(e)
-                if case .speak(let l, let t) = e, let io = voiceIO {
-                    io.speak(t, lang: l, voiceID: settings.voice.voiceIDs[l], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
-                }
+            if let bye = await engine.farewell(session: sid), let io = voiceIO {
+                io.speak(bye.text, lang: bye.lang, voiceID: settings.voice.voiceIDs[bye.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
             }
             await engine.end(sid)
             await scheduler?.trigger(.sessionEnded)
         }
     }
 
-    func spaceDown() { Task { guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown() } else { t.cancel() } } }
+    /// The learner said "that's all" by voice (R-22): the model's goodbye has been spoken; end the session like the button does, without a second goodbye.
+    func finishedByVoice() {
+        guard let sid = model.selectedSessionID, !ending, model.selectedSession?.state != .ended else { return }
+        ending = true
+        turn?.stopVoice()
+        model.continuous = false
+        Task {
+            defer { ending = false }
+            await engine.end(sid)
+            await scheduler?.trigger(.sessionEnded)
+        }
+    }
+
+    /// Speaking in a finished session continues it (R-01), like sending text does.
+    func resumeIfEnded() async {
+        guard let sid = model.selectedSessionID, model.selectedSession?.state == .ended else { return }
+        try? await engine.resume(sid)
+    }
+
+    func spaceDown() { Task { await resumeIfEnded(); guard let t = await ensureVoice() else { return }; if t.mode == .pushToTalk { t.pushDown() } else { t.cancel() } } }
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
     func escape() { turn?.cancel() }
     func toggleRussian() {

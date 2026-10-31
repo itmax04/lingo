@@ -44,6 +44,8 @@ public final class TurnController {
     public var onLevel: ((Float) -> Void)?
     public var onTurn: ((TurnEvent) -> Void)?
     public var onNotice: ((String) -> Void)?
+    /// The learner said "that's all" (R-22): the reply (the goodbye) has been spoken, the app should now end the session.
+    public var onFinishCommand: (() -> Void)?
     public private(set) var mode: Mode = .pushToTalk
     /// "I'm speaking Russian" (R-09): the next single utterance is recognized as Russian.
     public var forceRussianOnce = false
@@ -283,6 +285,7 @@ public final class TurnController {
             }
             if c(cmd) != .slower { self.slowStep = 0 }
             await self.runTurn(self.engine.send(session: ctx.session.id, text: text, lang: tr.lang, command: cmd?.kind), turnID: turnID, ctx: ctx)
+            if cmd?.kind == .finish, !Task.isCancelled { self.onFinishCommand?() }
         }
     }
 

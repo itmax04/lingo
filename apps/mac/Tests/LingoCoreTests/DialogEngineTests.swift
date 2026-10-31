@@ -144,3 +144,24 @@ import Testing
         #expect(user.hasPrefix("<text>\n") && user.components(separatedBy: "</text>").count == 2)  // the injected closing tag is removed
     }
 }
+
+@Suite struct FarewellTests {
+    @Test func farewellIsLocalWritesOneMessageAndOnlyOnce() async throws {
+        let store = try JournalStore(base: tempDir("fw"), deviceName: "Mac", deviceID: "mac-fw")
+        let log = CallLog()
+        let p = MockProvider(id: .groq, behavior: { _, _ in .text(["@say de: should never be asked"]) }, calls: log)
+        let settings = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 2)
+        let e = DialogEngine(store: store) {
+            ChainFactory.chain(settings: settings, secrets: InMemorySecretStore(["k": "synthetic"]), health: ProviderHealth(), providers: [.groq: p])
+        }
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, topic: "Wohnort", corrections: [.inline]))
+        let bye = try #require(await e.farewell(session: sid))
+        #expect(bye.lang == .de && bye.text.contains("Bis zum nächsten Mal"))
+        #expect(log.all.isEmpty)  // no model call: a model asked to finish answered the last utterance instead
+        let msgs = await store.state.messages[sid] ?? []
+        #expect(msgs.count == 1 && msgs[0].role == .assistant && msgs[0].spokenText == bye.text)
+        await e.end(sid)
+        #expect(await e.farewell(session: sid) == nil)  // a second click on a finished session adds nothing
+        #expect((await store.state.messages[sid] ?? []).count == 1)
+    }
+}

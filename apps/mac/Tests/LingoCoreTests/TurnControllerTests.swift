@@ -259,3 +259,36 @@ extension TurnControllerTests {
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
     }
 }
+
+@MainActor @Suite struct VoiceFinishTests {
+    /// "That's all" by voice: the model's goodbye is spoken first, then the app is asked to end the session.
+    @Test func finishCommandByVoiceEndsAfterTheGoodbyeIsSpoken() async throws {
+        let h = TurnControllerTests()
+        let e = try await h.env(texts: ["That's all."], reply: { _ in .text(["@say de: Bis bald! Das war gut."]) })
+        var finished = false
+        e.tc.onFinishCommand = { finished = true }
+        e.tc.pushDown()
+        await e.feed(1200, speech: true)
+        e.tc.pushUp()
+        await e.settle()
+        #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Bis bald! Das war gut.")
+        #expect(!finished)  // still speaking
+        e.sink.finish()
+        await e.settle(0.3)
+        #expect(finished)
+    }
+
+    @Test func anOrdinaryUtteranceDoesNotEndTheSession() async throws {
+        let h = TurnControllerTests()
+        let e = try await h.env(texts: ["Ich wohne in Hamburg."])
+        var finished = false
+        e.tc.onFinishCommand = { finished = true }
+        e.tc.pushDown()
+        await e.feed(1200, speech: true)
+        e.tc.pushUp()
+        await e.settle()
+        e.sink.finish()
+        await e.settle(0.3)
+        #expect(!finished)
+    }
+}
