@@ -132,7 +132,9 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         e.tc.startContinuous()
         await e.feed(1200, speech: true)
         await e.feed(1600, speech: false)
-        await e.settle()
+        // The whole reply must be written (and spoken) before the barge-in, so wait for its last sentence, not only for the first sound.
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }
+        await e.settle(0.1)
         #expect(e.sink.isSpeaking)
         // The user barges in: the time from speech start to speech stop is measured in audio (samples), not by the test clock.
         var fedMs = 0
@@ -197,19 +199,19 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         await e.settle(); e.sink.finish(); await e.settle(0.2)
         await e.holder?.refresh?()
         e.sink.spoken = []
-        e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.settle(0.3)
+        e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.waitUntil { e.sink.spoken.count >= 2 }
         let first = e.sink.spoken
         #expect(first.count >= 2 && first.allSatisfy { $0.2 == 0.6 })
         e.sink.finish(); await e.settle(0.2)
         e.sink.spoken = []
-        e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.settle(0.3)
+        e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.waitUntil { !e.sink.spoken.isEmpty }
         #expect(e.sink.spoken.first!.1 < first.first!.1, "the second time is slower (×0.6)")
     }
 
     @Test func escapeStopsSpeech() async throws {
         let e = try await env(texts: ["Ich wohne in Hamburg."])
         e.tc.pushDown(); await e.feed(1000, speech: true); e.tc.pushUp()
-        await e.settle()
+        await e.waitUntil { e.sink.isSpeaking }
         #expect(e.sink.isSpeaking)
         e.tc.cancel()
         #expect(!e.sink.isSpeaking && e.tc.state == .idle)
@@ -230,7 +232,7 @@ extension TurnControllerTests {
         e.tc.pushDown()
         await e.feed(1200, speech: true)
         await e.feed(1700, speech: false)   // without a second press
-        await e.settle()
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
     }
 }
@@ -275,7 +277,8 @@ extension TurnControllerTests {
         e.tc.pushDown()
         await e.feed(1200, speech: true)
         e.tc.pushUp()
-        await e.settle()
+        await e.waitUntil { endedSession != nil }
+        await e.settle(0.1)
         #expect(endedSession == e.sid)
         #expect(e.log.all.isEmpty)           // no model call
         #expect(e.sink.spoken.isEmpty)       // nothing spoken by the turn itself
