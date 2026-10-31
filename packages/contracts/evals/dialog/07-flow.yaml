@@ -1,0 +1,89 @@
+# Eval `dialog`: conversation flow (LINGO-08 PR-04, PR-05, PR-06, PR-10). Synthetic data only (evals/README.md).
+# repeat_loop >= 4 (the learner repeated the corrected phrase correctly: no second request), opening >= 4 (empty transcript,
+# the assistant opens), continue_thread >= 4 (the continue command or an assistant-last transcript: the next step, no filler).
+- id: en-loop-lived
+  category: repeat_loop
+  session: { lang: en, mode: free, level: B1, topic: "Home", corrections: [inline] }
+  history:
+    - { role: user, text: "I live in Hamburg since two years." }
+    - { role: assistant, text: "@say en: Almost! More natural: “I have lived in Hamburg for two years.”\n@say en: Please say it again." }
+  user: "I have lived in Hamburg for two years."
+  expect: { no_repeat_request: true, no_inline_correction: true, one_question: true }
+- id: en-loop-went
+  category: repeat_loop
+  session: { lang: en, mode: questions, level: A2, topic: "Weekend", corrections: [inline] }
+  history:
+    - { role: user, text: "Yesterday I go to the cinema." }
+    - { role: assistant, text: "@say en: Good try! More natural: “Yesterday I went to the cinema.”\n@say en: Please say it again." }
+  user: "Yesterday I went to the cinema."
+  expect: { no_repeat_request: true, no_inline_correction: true }
+- id: de-loop-seit
+  category: repeat_loop
+  session: { lang: de, mode: free, level: A2, topic: "Wohnort", corrections: [inline] }
+  history:
+    - { role: user, text: "Ich wohne in Hamburg seit zwei Jahre." }
+    - { role: assistant, text: "@say de: Fast! Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“\n@say de: Sag das bitte noch einmal." }
+  user: "Ich wohne seit zwei Jahren in Hamburg."
+  expect: { no_repeat_request: true, no_inline_correction: true, one_question: true }
+- id: de-loop-perfekt
+  category: repeat_loop
+  session: { lang: de, mode: questions, level: A2, topic: "Alltag", corrections: [inline] }
+  history:
+    - { role: user, text: "Ich habe gestern nach Hause gegeht." }
+    - { role: assistant, text: "@say de: Gut! Natürlicher: „Ich bin gestern nach Hause gegangen.“\n@say de: Sag das bitte noch einmal." }
+  user: "Ich bin gestern nach Hause gegangen."
+  expect: { no_repeat_request: true, no_inline_correction: true }
+- id: en-open-films
+  category: opening
+  session: { lang: en, mode: free, level: B1, topic: "Films", corrections: [inline], starter: assistant }
+  expect: { concrete_opening: true }
+- id: en-open-interests
+  category: opening
+  session: { lang: en, mode: free, level: A2, topic: "", corrections: [after], starter: assistant }
+  profile: { goals: "Talk about my hobbies with colleagues", interests: "hiking, jazz, cooking" }
+  expect: { concrete_opening: true }
+- id: de-open-arbeit
+  category: opening
+  session: { lang: de, mode: questions, level: A2, topic: "Arbeit", role: "Kollege im Büro", corrections: [inline], starter: assistant }
+  expect: { concrete_opening: true }
+- id: de-open-vocabulary
+  category: opening
+  session: { lang: de, mode: free, level: B1, topic: "", corrections: [inline], starter: assistant }
+  vocabulary: [{ text: "Feierabend", translation: "конец рабочего дня", status: new }, { text: "sich verabreden", translation: "договориться о встрече", status: new }]
+  expect: { concrete_opening: true }
+- id: en-continue-command
+  category: continue_thread
+  session: { lang: en, mode: questions, level: B1, topic: "Travel", corrections: [inline] }
+  history:
+    - { role: assistant, text: "Where did you go on your last holiday?" }
+    - { role: user, text: "I went to Portugal with my family." }
+    - { role: assistant, text: "Lovely! Portugal is beautiful in summer." }
+  user: "let's continue"
+  command: continue
+  expect: { no_filler: true, one_question: true }
+- id: de-continue-command
+  category: continue_thread
+  session: { lang: de, mode: questions, level: A2, topic: "Familie", corrections: [inline] }
+  history:
+    - { role: assistant, text: "Haben Sie Geschwister?" }
+    - { role: user, text: "Ja, ich habe eine Schwester." }
+    - { role: assistant, text: "Schön!" }
+  user: "weiter"
+  command: continue
+  expect: { no_filler: true, one_question: true }
+- id: en-assistant-last
+  category: continue_thread
+  session: { lang: en, mode: free, level: B1, topic: "Cooking", corrections: [after] }
+  history:
+    - { role: assistant, text: "Do you cook at home?" }
+    - { role: user, text: "Yes, mostly pasta and soups." }
+    - { role: assistant, text: "Soups are great in winter." }
+  expect: { no_filler: true, one_question: true }
+- id: de-assistant-last
+  category: continue_thread
+  session: { lang: de, mode: free, level: A2, topic: "Sport", corrections: [after] }
+  history:
+    - { role: assistant, text: "Machen Sie Sport?" }
+    - { role: user, text: "Ich gehe zweimal pro Woche schwimmen." }
+    - { role: assistant, text: "Schwimmen ist sehr gesund." }
+  expect: { no_filler: true, one_question: true }

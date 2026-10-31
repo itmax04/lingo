@@ -33,7 +33,7 @@ enum BlindReview {
 
             ## \(i + 1). \(s.lang.nativeName) · \(s.mode.title) · level \(s.level ?? "not set") · corrections: \(s.corrections.map(\.title).joined(separator: ", "))
             \(s.custom_prompt.map { "Custom prompt: “\($0)”\n" } ?? "")Assistant before this: “\(last)”
-            User: “\(c.user)”
+            User: “\(c.user ?? "(none: the assistant speaks next)")”
 
             Reply:
             ```
