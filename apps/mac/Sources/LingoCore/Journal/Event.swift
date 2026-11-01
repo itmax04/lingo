@@ -53,11 +53,14 @@ public enum EventType {
     public static let vocabRemoved = "vocab.removed"
     public static let vocabUsed = "vocab.used"
     public static let profileUpdated = "profile.updated"
+    /// The teacher (LINGO-05 CR-02): one review of a card, and suspending or resuming a card.
+    public static let cardReviewed = "card.reviewed"
+    public static let cardSuspended = "card.suspended"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
                                          hintAdded, phraseStarred, phraseUnstarred,
-                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated]
+                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended]
 }
 
 // MARK: - JSON Lines row

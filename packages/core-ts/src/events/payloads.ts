@@ -1,4 +1,4 @@
-import { array, attempt, field, int, object, oneOf, optional, str, type Decoder } from "../model/decode.js";
+import { array, attempt, bool, field, int, object, oneOf, optional, str, type Decoder } from "../model/decode.js";
 import {
   decodeFix, decodePhrase, decodeSegment, decodeSettings, LANGS, MESSAGE_KINDS, ROLES, type Fix, type Lang, type MessageKind,
   type Phrase, type ReplySegment, type Role, type SessionSettings,
@@ -47,6 +47,12 @@ const vocabRemoved = shape((o, p) => ({ item: str(field(o, "item"), `${p}.item`)
 const vocabUsed = shape((o, p) => ({ item: str(field(o, "item"), `${p}.item`), message: str(field(o, "message"), `${p}.message`),
   by: oneOf(["learner", "assistant"] as const)(field(o, "by"), `${p}.by`), outcome: oneOf(["ok", "mistake"] as const)(field(o, "outcome"), `${p}.outcome`) }));
 
+// Card events (LINGO-05 CR-02): decoded so that the unknown-event count matches Swift; the schedule port comes with the web teacher (D-01).
+const cardReviewed = shape((o, p) => ({ card: str(field(o, "card"), `${p}.card`),
+  rating: oneOf(["again", "hard", "good", "easy"] as const)(field(o, "rating"), `${p}.rating`),
+  source: oneOf(["warmup"] as const)(field(o, "source"), `${p}.source`), message: str(field(o, "message"), `${p}.message`) }));
+const cardSuspended = shape((o, p) => ({ card: str(field(o, "card"), `${p}.card`), suspended: bool(field(o, "suspended"), `${p}.suspended`) }));
+
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
   sessionUpdated: (v: JSONValue) => attempt(sessionUpdated, v),
@@ -61,4 +67,6 @@ export const Payload = {
   vocabUpdated: (v: JSONValue) => attempt(vocabUpdated, v),
   vocabRemoved: (v: JSONValue) => attempt(vocabRemoved, v),
   vocabUsed: (v: JSONValue) => attempt(vocabUsed, v),
+  cardReviewed: (v: JSONValue) => attempt(cardReviewed, v),
+  cardSuspended: (v: JSONValue) => attempt(cardSuspended, v),
 };

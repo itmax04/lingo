@@ -66,7 +66,9 @@
         "vocab.updated",
         "vocab.removed",
         "vocab.used",
-        "profile.updated"
+        "profile.updated",
+        "card.reviewed",
+        "card.suspended"
       ]
     },
     "session": {
@@ -303,6 +305,38 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/ProfileUpdated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "card.reviewed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/CardReviewed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "card.suspended"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/CardSuspended"
           }
         }
       }
@@ -815,6 +849,55 @@
         "interests": {
           "type": "string",
           "maxLength": 300
+        }
+      }
+    },
+    "CardReviewed": {
+      "type": "object",
+      "description": "card.reviewed (LINGO-05 CR-02): one review of a card in a warm-up; only the first per (session, card) counts. The schedule is derived from these events (FSRS-5, CR-03).",
+      "required": [
+        "card",
+        "rating",
+        "source",
+        "message"
+      ],
+      "properties": {
+        "card": {
+          "type": "string",
+          "description": "`word:<lang>:<normalised text>` or `mistake:<lang>:<normalised rule, at most 60 Characters>`"
+        },
+        "rating": {
+          "enum": [
+            "again",
+            "hard",
+            "good",
+            "easy"
+          ]
+        },
+        "source": {
+          "enum": [
+            "warmup"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "description": "id of the graded learner message; empty when the card was skipped"
+        }
+      }
+    },
+    "CardSuspended": {
+      "type": "object",
+      "description": "card.suspended (LINGO-05 CR-02): a card is suspended (never queued) or resumed; last writer wins per card.",
+      "required": [
+        "card",
+        "suspended"
+      ],
+      "properties": {
+        "card": {
+          "type": "string"
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     }

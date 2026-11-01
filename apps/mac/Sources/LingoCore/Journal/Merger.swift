@@ -58,6 +58,13 @@ public struct HistoryState: Sendable {
     public var profile = LearnerProfile()
     /// All `profile.updated` events with their versions, for the profile as it was before a session (PR-01).
     public var profileUpdates: [ProfileUpdate] = []
+    /// Counted card reviews (LINGO-05 CR-02) by card id in traversal order: only the first per (session, card). Reviews of unknown
+    /// cards are kept here and ignored by the queue.
+    public var cardReviews: [String: [CardReview]] = [:]
+        /// Suspended cards (CR-02, last writer wins).
+    public var suspendedCards: Set<String> = []
+    /// The earliest `phrase.starred` per vocabulary key (`VocabularyText.key`), so a word card keeps its first date (CR-01).
+    public var firstStarred: [String: Date] = [:]
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -160,6 +167,7 @@ public enum Merger {
         var vocabUseEvents: [(Event, Payload.VocabUsed)] = []
         var starTime: [String: Date] = [:]
         var goals = LWW(""), interests = LWW("")
+        var reviewed: Set<String> = [], suspended: [String: LWW<Bool>] = [:]
 
         for e in events {
             st.maxLamport = max(st.maxLamport, e.lamport)
@@ -219,6 +227,10 @@ public enum Merger {
                 reg.apply(e.type == EventType.phraseStarred, ver)
                 stars[key] = reg
                 if reg.version == ver { starPhrase[key] = p.phrase; if e.type == EventType.phraseStarred { starTime[key] = e.ts } }
+                if e.type == EventType.phraseStarred {
+                    let vk = VocabularyText.key(lang: p.phrase.lang, text: p.phrase.text)
+                    st.firstStarred[vk] = min(st.firstStarred[vk] ?? e.ts, e.ts)
+                }
             case EventType.vocabAdded:
                 guard let p = try? e.payload.decode(Payload.VocabAdded.self) else { st.unknownEvents += 1; continue }
                 let d = p.item
@@ -233,6 +245,13 @@ public enum Merger {
             case EventType.vocabUsed:
                 guard let p = try? e.payload.decode(Payload.VocabUsed.self) else { st.unknownEvents += 1; continue }
                 vocabUseEvents.append((e, p))
+            case EventType.cardReviewed:
+                guard let p = try? e.payload.decode(Payload.CardReviewed.self) else { st.unknownEvents += 1; continue }
+                guard reviewed.insert(e.session + "\u{0}" + p.card).inserted else { continue }
+                st.cardReviews[p.card, default: []].append(CardReview(rating: p.rating, at: e.ts, session: e.session, message: p.message))
+            case EventType.cardSuspended:
+                guard let p = try? e.payload.decode(Payload.CardSuspended.self) else { st.unknownEvents += 1; continue }
+                suspended[p.card, default: LWW(false)].apply(p.suspended, ver)
             case EventType.profileUpdated:
                 guard let p = try? e.payload.decode(Payload.ProfileUpdated.self) else { st.unknownEvents += 1; continue }
                 if let g = p.goals { goals.apply(g, ver) }
@@ -335,6 +354,7 @@ public enum Merger {
             if use.by == .learner, use.outcome == .ok, !use.session.isEmpty { st.vocabUsedInSession[use.session, default: []].insert(use.item) }
         }
         st.profile = LearnerProfile(goals: goals.value, interests: interests.value)
+        st.suspendedCards = Set(suspended.filter(\.value.value).keys)
         return st
     }
 }
