@@ -1,12 +1,12 @@
 # LINGO-05 handoff
 
-Status: documents v1.1 written (answers to the AI review of v1), in re-review. Updated 2026-11-01.
+Status: documents v1.1 approved by the AI re-review; notes applied. Updated 2026-11-01.
 
 ## Done
 | Step | PR | Checks | Notes |
 |---|---|---|---|
 | Documents v1 | #67 | AI review: changes-required (F-01…F-18) | Owner decisions Q-01…Q-03 in intent.md (2026-11-01): Mac now, all four blocks plus useful additions, no night evals |
-| Documents v1.1 | #67 | AI re-review pending | All findings answered (the spec v1.1 header lists where); Q-04: the teacher goes before the new HFL / Stand Your Ground modes |
+| Documents v1.1 | #67 | AI re-review: approve-with-notes (no P0/P1); notes N-01…N-18 applied | All findings answered (the spec v1.1 header lists where); Q-04: the teacher goes before the new HFL / Stand Your Ground modes |
 
 ## Executor decisions
 - D-01 (intent): TS ports of cards, FSRS, statistics and memory deferred to the web work; contracts and core-ts event/tag support now.
@@ -15,4 +15,4 @@ Status: documents v1.1 written (answers to the AI review of v1), in re-review. U
   vectors produced by the reference itself. Optional for the owner: `pip install fsrs==5.1.3` and compare `fsrs.json`.
 
 ## Next step
-Re-review of intent/spec/plan v1.1, merge, then T-1 (cards and FSRS; the port and its py-fsrs checks already pass in the T-1 worktree).
+Merge PR #67, then T-1 (cards and FSRS; the port and its py-fsrs checks already pass in the T-1 worktree).
