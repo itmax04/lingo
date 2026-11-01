@@ -32,7 +32,7 @@ Status: documents (#50), V-1 (#51), V-2 (#52), P-1 (#53) and P-1b (#54) merged; 
 - D-02 (PR-09): the prompt compaction open in LINGO-03 (P-02b) is done inside P-1, against the MR-02 target, measured by provider tokens.
 
 ## E-1 status
-NOT RUN: the owner cancelled the 23:00 batch (2026-10-31). PAC-03 (eval effect of prompting v2) and PAC-04 (provider tokens) stay open;
+NOT RUN: the owner cancelled the 23:00 batch (2026-10-31) and decided on 2026-11-01 not to run the night evals ("don't run them", translated from Russian). PAC-03 (eval effect of prompting v2) and PAC-04 (provider tokens) stay open;
 the prepared portions (28 new cases, 34 regression ids, 2 budget cases) can be run on a later night.
 
 ## Mac polish after LINGO-08 (2026-11-01, owner: "Mac app first, no web yet")

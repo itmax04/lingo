@@ -75,3 +75,7 @@ This is regression evidence only; no new geometry acceptance or ImageGen referen
 Next step: **WAIT for the owner's explicit instruction to continue STEP 3–5.** ImageGen was not called. Earliest generation time remains
 2026-10-28 07:45 Europe/Berlin. No scheduled resume. PR #33 remains draft; do not merge or mark it ready during this partial run.
 The app stays at `/Users/macbook/Developer/lingo-redesign/dist/Lingo.app`; nothing was written to the Desktop deliverable folder.
+
+## Owner decision 2026-11-01
+07-d (aligning every Mac screen to the ImageGen references within 4 pt) is skipped: the owner answered "skip it" (translated from Russian)
+when asked whether the mostly cosmetic geometry pass is worth about ten PRs. The current Mac UI stays as merged.
