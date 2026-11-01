@@ -34,6 +34,15 @@ def contrast_checks(tokens):
     return [{('pass' if k == 'pass_' else k): v for k, v in row.items()} for row in checks]
 
 
+def forms(en, ru, name, key):
+    """Pairs of (English, Russian) texts to compare: the plain strings, or every plural form (English one/other, Russian one/few/many/other)."""
+    if 'stringUnit' in en and 'stringUnit' in ru:
+        return [(en['stringUnit']['value'], ru['stringUnit']['value'])]
+    pe, pr = en['variations']['plural'], ru['variations']['plural']
+    assert set(pe) == {'one', 'other'} and set(pr) == {'one', 'few', 'many', 'other'}, (name, key, 'plural categories')
+    return [(pe['other']['stringUnit']['value'], pr[cat]['stringUnit']['value']) for cat in pr] + [(pe['one']['stringUnit']['value'], pr['one']['stringUnit']['value'])]
+
+
 def validate(root):
     system = root / 'design/redesign-2026/design-system'
     tokens = json.loads((system / 'tokens.json').read_text())
@@ -52,10 +61,9 @@ def validate(root):
         for key, entry in catalog['strings'].items():
             languages = entry['localizations']
             assert {'en', 'ru'} <= languages.keys(), (path.name, key)
-            english = languages['en']['stringUnit']['value']
-            russian = languages['ru']['stringUnit']['value']
             pattern = r'%(?:\d+\$)?(?:lld|ld|@|d|f|s)'
-            assert re.findall(pattern, english) == re.findall(pattern, russian), (path.name, key, 'format parameters')
+            for english, russian in forms(languages['en'], languages['ru'], path.name, key):
+                assert re.findall(pattern, english) == re.findall(pattern, russian), (path.name, key, 'format parameters')
             count += 1
     print(f'design: PASS ({len(actual)} exact color tokens, {len(checks)} computed contrast pairs, {count} bilingual strings)')
 

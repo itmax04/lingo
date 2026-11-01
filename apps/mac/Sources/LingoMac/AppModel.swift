@@ -32,6 +32,8 @@ final class AppModel {
     /// "Translate to Russian" results by message id (memory only: not part of the journal).
     var translations: [String: MessageTranslation] = [:]
     var banner: String?
+    /// Languages whose warm-up is being started (a repeated click is ignored).
+    var startingWarmup: Set<Lang> = []
     var readOnly = false
     var memoryNote: String?
     var showNewSession = false

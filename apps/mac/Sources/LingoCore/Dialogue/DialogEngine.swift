@@ -256,6 +256,28 @@ public actor DialogEngine {
         return try await createSession(Warmup.settings(lang: lang, cards: Array(queue), corrections: corrections, level: level))
     }
 
+    /// Whether the warm-up is over, by the engine's own state (it remembers the card it set up before the time limit).
+    public func warmupFinished(_ session: String) async -> Bool {
+        await store.state.warmupState(session: session, now: Date(), namedNext: warmupNamedNext[session])?.finished ?? false
+    }
+
+    /// A live warm-up of the language that nothing was reviewed in and whose time has not run out: starting again opens it instead
+    /// of creating a duplicate (a double click, or coming back to an abandoned warm-up).
+    public func reusableWarmup(lang: Lang, now: Date = Date()) async -> String? {
+        let st = await store.state
+        return st.sessions.values.filter { $0.settings.lang == lang && !$0.deleted && $0.state == .active }
+            .sorted { $0.createdAt > $1.createdAt }
+            .first { s in
+                guard let w = st.warmupState(session: s.id, now: now) else { return false }
+                return w.reviewed.isEmpty && !w.timeUp
+            }?.id
+    }
+
+    /// "Don't practise this card" and its undo (WR-05); last writer wins.
+    public func setCardSuspended(_ card: String, _ suspended: Bool) async {
+        _ = try? await store.append(EventType.cardSuspended, session: "", Payload.CardSuspended(card: card, suspended: suspended))
+    }
+
     /// The `<card>` / `<next_card>` of the next request; nil outside a warm-up. "Reply again" on an answer that already rated a card
     /// names that card again (and rates nothing). Remembers the named next card, so the time limit is decided when it was asked.
     func warmupPrompt(_ session: String, followUp: Bool, replyTo: String? = nil) async -> PromptBuilder.WarmupPrompt? {
