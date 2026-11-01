@@ -7,14 +7,18 @@ public enum WhisperError: Error, CustomStringConvertible {
     case modelNotFound(String)
     case loadFailed(String)
     case inferenceFailed(Int32)
-    case cancelled
+        case cancelled
+    case closed
+
+
 
     public var description: String {
         switch self {
         case .modelNotFound(let path): String(localized: "Model not found: \(path)")
         case .loadFailed(let path): String(localized: "Could not load the model: \(path)")
         case .inferenceFailed(let code): "whisper_full returned \(code)"
-        case .cancelled: String(localized: "Speech recognition cancelled")
+                case .cancelled: String(localized: "Speech recognition cancelled")
+        case .closed: String(localized: "Speech recognition stopped")
         }
     }
 }
@@ -65,8 +69,10 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
     public let modelPath: String
     private let ctx: OpaquePointer
     private let detectState: OpaquePointer
-    private let lock = NSLock()
+        private let lock = NSLock()
     private let abortFlag = AbortFlag()
+    /// Set by `close()` (under `lock`): the context is freed and every later call throws `closed`.
+    private var closed = false
     public let threads: Int32
 
     final class AbortFlag: @unchecked Sendable {
@@ -92,12 +98,44 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         self.modelPath = modelPath
         self.threads = threads
         self.id = "whisper:" + ((modelPath as NSString).lastPathComponent as String)
-        Log.speech.notice("whisper model loaded: \((modelPath as NSString).lastPathComponent, privacy: .public) gpu=\(useGPU)")
+                Log.speech.notice("whisper model loaded: \((modelPath as NSString).lastPathComponent, privacy: .public) gpu=\(useGPU)")
+        Self.open.add(self)
     }
 
     deinit {
+        if !closed { freeContext() }
+    }
+
+    /// Frees the context now: a running recognition is cancelled and waited for. Idempotent.
+    public func close() {
+        cancel()
+        lock.lock()
+        defer { lock.unlock() }
+        guard !closed else { return }
+        closed = true
+        freeContext()
+    }
+
+    private func freeContext() {
         whisper_free_state(detectState)
         whisper_free(ctx)
+    }
+
+    /// Closes every engine still alive. Called when the app quits: ggml frees its static Metal devices in `exit`, and doing that while
+    /// a context still holds GPU buffers aborts the process (`ggml_metal_rsets_free`), so the contexts must go first.
+    public static func closeAll() {
+        for engine in open.alive() { engine.close() }
+    }
+
+    /// Engines created and not yet deallocated (weak, so the registry never keeps a model in memory).
+    private static let open = Registry()
+
+    final class Registry: @unchecked Sendable {
+        private struct Weak { weak var engine: WhisperEngine? }
+        private let lock = NSLock()
+        private var items: [Weak] = []
+        func add(_ e: WhisperEngine) { lock.withLock { items.removeAll { $0.engine == nil }; items.append(Weak(engine: e)) } }
+        func alive() -> [WhisperEngine] { lock.withLock { items.compactMap(\.engine) } }
     }
 
     /// whisper.cpp/ggml logs are not written to the app's stderr (and must not contain speech text, R-49).
@@ -119,9 +157,10 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
         try transcribeSync(samples, candidates: candidates, forced: forced, context: context)
     }
 
-    public func transcribeSync(_ input: [Float], candidates: [Lang], forced: Lang?, context: String? = nil) throws -> Transcription {
+        public func transcribeSync(_ input: [Float], candidates: [Lang], forced: Lang?, context: String? = nil) throws -> Transcription {
         lock.lock()
         defer { lock.unlock() }
+        guard !closed else { throw WhisperError.closed }
         abortFlag.set(false)
         let started = DispatchTime.now()
         var samples = Self.normalized(input)
@@ -333,9 +372,10 @@ public final class WhisperEngine: SpeechRecognizer, @unchecked Sendable {
     }
 
     /// Language detection only (for `.smallDetect` with the main model).
-    public func detectLanguage(_ input: [Float], candidates: [Lang]) throws -> [Lang: Float] {
+        public func detectLanguage(_ input: [Float], candidates: [Lang]) throws -> [Lang: Float] {
         lock.lock()
         defer { lock.unlock() }
+        guard !closed else { throw WhisperError.closed }
         var samples = Self.normalized(input)
         if samples.count < 17_600 { samples += [Float](repeating: 0, count: 17_600 - samples.count) }
         return try detectLocked(samples, candidates: candidates)

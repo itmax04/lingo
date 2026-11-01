@@ -125,6 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             exit(AudioDiag.stability(to: CommandLine.arguments[i + 1], seconds: seconds))
         }
         if let i = CommandLine.arguments.firstIndex(of: "--audio-diag"), i + 1 < CommandLine.arguments.count { AudioDiag.step(CommandLine.arguments[i + 1], "didFinishLaunching") }
+        if CommandLine.arguments.contains("--quit-check") { QuitCheck.run(); return }
         do {
             let svc = try AppServices(model: model)
             services = svc
@@ -152,7 +153,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate()
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+        func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
+    /// Free the whisper contexts before AppKit calls `exit`, otherwise ggml aborts while tearing down its Metal devices (crash on ⌘Q).
+    func applicationWillTerminate(_ notification: Notification) {
+        services?.turn?.stopVoice(cancelTurn: true)
+        WhisperEngine.closeAll()
+    }
 }
 
 @MainActor
