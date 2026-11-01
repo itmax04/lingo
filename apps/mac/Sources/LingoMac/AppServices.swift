@@ -27,6 +27,7 @@ final class AppServices {
     var memoryTimer: Task<Void, Never>?
     var healthTimer: Task<Void, Never>?
     var scheduler: SyncScheduler?
+    var backup: BackupScheduler?
     let reachability = Reachability()
 
     init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil) throws {
@@ -82,6 +83,7 @@ final class AppServices {
         if Permissions.microphone == .granted { prepareVoice() }
         startSyncAndNetwork()
         if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }
+        startDailyBackup()
     }
 
     // MARK: Sessions

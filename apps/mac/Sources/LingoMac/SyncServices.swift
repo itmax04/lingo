@@ -74,6 +74,67 @@ extension AppServices {
         }
     }
 
+    // MARK: Daily backup (MR-04, P-04b)
+
+    func startDailyBackup() {
+        let b = BackupScheduler(base: store.base)
+        let m = model
+        b.onStatus = { s in
+            let wasFailed = m.backupFailed
+            m.backupRunning = s == .running
+            switch s {
+            case .off: m.backupStatus = String(localized: "Off"); m.backupFailed = false
+            case .running: m.backupStatus = String(localized: "Backing up…")
+            case .done(let day): m.backupStatus = String(localized: "Last backup: \(day)"); m.backupFailed = false
+            case .failed(let why):
+                m.backupStatus = String(localized: "Backup failed: \(why)")
+                // The banner only when the backup starts failing, not again on every hourly retry.
+                if !wasFailed { m.banner = String(localized: "Daily backup failed: \(why). Check the folder in Settings → Data.") }
+                m.backupFailed = true
+            }
+        }
+        backup = b
+        if let data = settings.backupBookmark {
+            if let r = try? SyncFolder.resolve(bookmark: data) {
+                if r.stale, let fresh = try? r.folder.bookmark() { updateSettings { $0.backupBookmark = fresh } }
+                model.backupFolderPath = r.folder.picked.path
+            } else {
+                model.backupFolderPath = String(localized: "Saved folder (not available now)")
+            }
+        }
+        b.setBookmark(settings.backupBookmark)
+        b.start()
+    }
+
+    func chooseBackupFolder() {
+        let p = NSOpenPanel()
+        p.canChooseDirectories = true
+        p.canChooseFiles = false
+        p.canCreateDirectories = true
+        p.allowsMultipleSelection = false
+        p.prompt = String(localized: "Choose")
+        p.message = String(localized: "Choose a folder for the daily backup of your history (for example in iCloud Drive or on an external disk).")
+        guard p.runModal() == .OK, let url = p.url else { return }
+        let f = SyncFolder(picked: url)
+        do {
+            let data = try f.bookmark()
+            updateSettings { $0.backupBookmark = data }
+            backup?.setFolder(f)
+            model.backupFolderPath = url.path
+            Task { await backup?.runIfDue() }
+        } catch {
+            model.banner = String(localized: "Backup folder: \(error.localizedDescription)")
+        }
+    }
+
+    func backupNow() { Task { await backup?.runIfDue(force: true) } }
+
+    func turnOffDailyBackup() {
+        updateSettings { $0.backupBookmark = nil }
+        backup?.setFolder(nil)
+        model.backupFolderPath = nil
+    }
+
     /// Restore from a ZIP made by `exportHistory`: merges journals, never overwrites a file (MR-04).
     func restoreHistory() {
         let p = NSOpenPanel()

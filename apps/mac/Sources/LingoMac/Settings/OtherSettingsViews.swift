@@ -113,6 +113,18 @@ struct DataSettingsView: View {
                         Button("Delete local history…", role: .destructive) { services.deleteLocalHistory() }
                     }
                 }
+                SettingsCard(title: "Daily backup", subtitle: "Once a day, a ZIP of your history goes into the chosen folder (the newest 14 are kept). It runs while Lingo is open, or at the next launch.") {
+                    Text(services.model.backupFolderPath ?? String(localized: "No folder chosen")).font(Theme.F.rowTitle)
+                        .foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
+                    if !services.model.backupStatus.isEmpty {
+                        Text(services.model.backupStatus).font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                    }
+                    HStack(spacing: Theme.S.s12) {
+                        Button(services.model.backupFolderPath == nil ? "Choose a folder…" : "Choose another…") { services.chooseBackupFolder() }
+                        Button("Back up now") { services.backupNow() }.disabled(services.model.backupFolderPath == nil || services.model.backupRunning)
+                        if services.model.backupFolderPath != nil { Button("Turn off") { services.turnOffDailyBackup() } }
+                    }
+                }
                 SettingsCard(title: "Voice loop metrics", subtitle: "Turn timing and memory (without utterance text) — for checking latency and resources.") {
                     Text(services.store.base.appendingPathComponent("metrics").path).font(Theme.F.meta).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
                 }
