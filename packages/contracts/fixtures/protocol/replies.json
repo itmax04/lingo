@@ -1013,6 +1013,62 @@
       "studyLang" : "en",
       "text" : "@say en: 👍🏽 Yes! Go on.",
       "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Hi."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Bold there."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "End"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Hi. Bold there. End"
+            }
+          }
+        }
+      ],
+      "name" : "bold inside a streamed sentence",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Hi. Bold there. End"
+          }
+        }
+      ],
+      "spokenText" : "Hi. Bold there. End",
+      "studyLang" : "en",
+      "text" : "@say en: Hi. **Bold** there. End",
+      "violations" : 0
+    },
+    {
+      "items" : [
+
+      ],
+      "name" : "no segments at all",
+      "segments" : [
+
+      ],
+      "spokenText" : "<think>only reasoning</think>\n@say en:",
+      "studyLang" : "en",
+      "text" : "<think>only reasoning</think>\n@say en:",
+      "violations" : 1
     }
   ],
   "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1). Streamed items are checked for every split at a Character boundary (a split inside a grapheme cluster is not covered)."

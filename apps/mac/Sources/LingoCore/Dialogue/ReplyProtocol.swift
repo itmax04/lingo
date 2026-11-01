@@ -188,7 +188,8 @@ public struct ReplyStreamParser: Sendable {
         var lastCut = spokenUpTo
         while i < chars.count - 1 {
             if ".!?…".contains(chars[i]) && chars[i + 1] == " " {
-                let sentence = String(chars[lastCut...i]).trimmingCharacters(in: .whitespaces)
+                // `**` is removed as `parseLine` removes it, so a spoken sentence matches the displayed segment text.
+                let sentence = String(chars[lastCut...i]).replacingOccurrences(of: "**", with: "").trimmingCharacters(in: .whitespaces)
                 if !sentence.isEmpty { out.append(.speak(lang, sentence)) }
                 lastCut = i + 1
             }

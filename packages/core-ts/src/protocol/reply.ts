@@ -188,7 +188,8 @@ export class ReplyStreamParser {
     let lastCut = this.spokenUpTo;
     for (let i = this.spokenUpTo; i < chars.length - 1; i++) {
       if (".!?…".includes(chars[i] as string) && chars[i + 1] === " ") {
-        const sentence = trimSpaces(chars.slice(lastCut, i + 1).join(""));
+        // `**` is removed as `parseLine` removes it, so a spoken sentence matches the displayed segment text.
+        const sentence = trimSpaces(chars.slice(lastCut, i + 1).join("").replaceAll("**", ""));
         if (sentence !== "") out.push({ speak: [l, sentence] });
         lastCut = i + 1;
       }
