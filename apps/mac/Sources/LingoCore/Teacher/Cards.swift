@@ -98,7 +98,7 @@ public extension HistoryState {
         }.count
         for c in cards(lang: lang) where !suspendedCards.contains(c.id) {
             guard let st = cardState(c.id) else { fresh.append(c); continue }
-            guard calendar.startOfDay(for: st.lastReview) < today, calendar.startOfDay(for: st.due) <= today else { continue }
+            guard Self.isDue(st, today: today, calendar: calendar) else { continue }
             due.append((c, FSRS.retrievability(days: FSRS.elapsedDays(from: st.lastReview, to: now), stability: st.stability)))
         }
         due.sort { a, b in

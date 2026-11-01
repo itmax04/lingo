@@ -1,5 +1,5 @@
 {
-  "eventCount" : 33,
+  "eventCount" : 35,
   "fixes" : {
     "s-edge" : [
       {
@@ -24,10 +24,10 @@
     ]
   },
   "lastSeq" : {
-    "mac-edge0001" : 31,
+    "mac-edge0001" : 33,
     "web-edge0002" : 2
   },
-  "maxLamport" : 33,
+  "maxLamport" : 35,
   "messages" : {
     "s-edge" : [
       {
@@ -166,7 +166,7 @@
       "translation" : "удачи"
     }
   },
-  "unknownEvents" : 9,
+  "unknownEvents" : 10,
   "visibleSessions" : [
     "s-edge"
   ]

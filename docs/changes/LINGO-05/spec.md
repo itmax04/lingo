@@ -11,7 +11,8 @@ v1.1 answers the AI review of v1 (findings F-01…F-18): silent tags (F-01), the
 (F-03, F-04), review de-duplication (F-05), stable card ids and suspension (F-06), warm-up prompt parts (F-07), prompt blocks and token
 limits (F-08), the exam voice flow (F-09), the pronunciation filter (F-10), memory facts (F-11), journal-stored goal and memory switch
 (F-12), activity compatibility (F-13), the quota table (F-14), statistics definitions (F-15), missing TACs (F-16), the plan split (F-17)
-and superseded decisions (F-18, in the intent).
+and superseded decisions (F-18, in the intent). In T-2, GR-01 gained the 600 s break rule and portable definitions of words, uses,
+mistakes and weeks (review of PR #70).
 
 Common definitions: **live session** — a session without `session.deleted`. **Counted message** — a `message.created` with kind `normal`
 in a live session (summary, error and system kinds never count). **Local day** — the calendar day in the Mac's current time zone
@@ -159,18 +160,25 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 
 ## 5. Progress, Today and memory
 - **GR-01. Statistics** — pure functions of the journal state and a calendar, per language and in total:
-  - **practice seconds** per local day: per live session, the counted messages in event order; each gap between consecutive messages adds
-    `min(gap, 120 s)` to the local day of the later message; minutes are shown rounded down;
+  - **practice seconds** per local day: per live session, the counted messages in event order; each gap between consecutive messages (whole
+    milliseconds of the timestamps) adds `min(gap, 120 s)` to the local day of the later message; a gap longer than 600 s is a break
+    that adds nothing (exactly 600 s still counts), so a session resumed days later gives no phantom minutes; minutes are shown rounded
+    down;
   - **sessions** per local day: live sessions with at least one counted learner message that day;
-  - **learner words**: learner counted messages split on Unicode whitespace; a token counts when it contains a letter;
-  - **vocabulary used**: learner `vocab.used` events of live sessions per local day;
-  - **mistakes**: `fix.recorded` of live sessions, distinct by (message, normalised original, normalised corrected); **per 100 learner
-    words per ISO week** (Monday–Sunday, local);
-  - **cards**: new (never reviewed), learning (S < 21), mature (S ≥ 21), due today (CR-04); suspended cards are excluded.
-  Golden fixture `packages/contracts/fixtures/teacher/stats.json` (a synthetic journal with a gap over midnight, a DST change, a deleted
-  session, a duplicate fix, summary messages → the expected numbers), written by Swift.
+  - **learner words**: the current (edited) text of learner counted messages, split on Unicode `White_Space` scalars; a token counts
+    when it contains a scalar of General Category L (JavaScript `\p{White_Space}`, `\p{L}`; "Ⅻ" is not a word);
+  - **vocabulary used**: learner uses (outcome ok or mistake) of live sessions per local day, after the LINGO-08 merge of uses (one per
+    item, actor and message, duplicates counted for the canonical item; uses of a removed item are dropped, so removal changes past days);
+  - **mistakes**: `fix.recorded` of live sessions, distinct by (message, normalised original, normalised corrected), counted on the local
+    day of the first one; **per 100 learner words per ISO week** (Monday–Sunday, local; the key is the Monday's date; weeks without
+    learner words are left out);
+  - **cards**: new (never reviewed), learning (S < 21), mature (S ≥ 21), due today (the due part of CR-04: last reviewed before today and
+    due on or before today); suspended cards are excluded.
+  Golden fixture `packages/contracts/fixtures/teacher/stats.input.jsonl` → `stats.json` (Berlin: a gap over midnight, the DST change,
+  gaps of exactly 600 s and 601 s, a deleted session, a duplicate fix, a summary message, a letter-number token, goals clamped on read,
+  a last writer by lamport against a later ts, card counts), written by Swift.
 - **GR-02. Daily goal and streak.** The goal is a journal event `goal.set` `{ minutes }` (5–120; default 15 until the first event; last
-  writer wins by lamport, device). A local day **counts** when its practice minutes reach the goal in force at the end of that day (among
+  writer wins by lamport, device; values outside 5–120 are clamped when read). A local day **counts** when its practice minutes reach the goal in force at the end of that day (among
   the `goal.set` events with ts before the next local midnight, the last writer by lamport, device), so a goal change never rewrites
   past days. The streak is the number of consecutive counted days up to today (today counts once reached,
   otherwise the streak runs to yesterday).

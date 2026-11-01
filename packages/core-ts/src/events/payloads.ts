@@ -52,6 +52,8 @@ const cardReviewed = shape((o, p) => ({ card: str(field(o, "card"), `${p}.card`)
   rating: oneOf(["again", "hard", "good", "easy"] as const)(field(o, "rating"), `${p}.rating`),
   source: oneOf(["warmup"] as const)(field(o, "source"), `${p}.source`), message: str(field(o, "message"), `${p}.message`) }));
 const cardSuspended = shape((o, p) => ({ card: str(field(o, "card"), `${p}.card`), suspended: bool(field(o, "suspended"), `${p}.suspended`) }));
+// The daily goal (LINGO-05 GR-02); statistics come with the web teacher (D-01).
+const goalSet = shape((o, p) => ({ minutes: int(field(o, "minutes"), `${p}.minutes`) }));
 
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
@@ -69,4 +71,5 @@ export const Payload = {
   vocabUsed: (v: JSONValue) => attempt(vocabUsed, v),
   cardReviewed: (v: JSONValue) => attempt(cardReviewed, v),
   cardSuspended: (v: JSONValue) => attempt(cardSuspended, v),
+  goalSet: (v: JSONValue) => attempt(goalSet, v),
 };

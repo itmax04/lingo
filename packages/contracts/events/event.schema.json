@@ -68,7 +68,8 @@
         "vocab.used",
         "profile.updated",
         "card.reviewed",
-        "card.suspended"
+        "card.suspended",
+        "goal.set"
       ]
     },
     "session": {
@@ -337,6 +338,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/CardSuspended"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "goal.set"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/GoalSet"
           }
         }
       }
@@ -898,6 +915,18 @@
         },
         "suspended": {
           "type": "boolean"
+        }
+      }
+    },
+    "GoalSet": {
+      "type": "object",
+      "description": "goal.set (LINGO-05 GR-02): the daily goal in minutes; readers clamp it to 5–120. The goal of a day is the last writer (lamport, device) among the events before the next local midnight.",
+      "required": [
+        "minutes"
+      ],
+      "properties": {
+        "minutes": {
+          "type": "integer"
         }
       }
     }

@@ -130,6 +130,12 @@ public enum Payload {
         }
     }
 
+    /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
+    public struct GoalSet: Codable, Sendable, Hashable {
+        public var minutes: Int
+        public init(minutes: Int) { self.minutes = minutes }
+    }
+
     /// LINGO-05 CR-02: a card is suspended (never queued) or resumed; last writer wins.
     public struct CardSuspended: Codable, Sendable, Hashable {
         public var card: String
