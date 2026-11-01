@@ -167,6 +167,8 @@ func created(_ title: String = "Free conversation: Wohnort") -> JSONValue {
             #expect(ab.messages == ba.messages, "round \(round)")
             #expect(ab.sessions == ba.sessions, "round \(round)")
             #expect(ab.messages == aab.messages && ab.sessions == aab.sessions, "round \(round)")
+            #expect(ab.cardReviews == ba.cardReviews && ab.cardReviews == aab.cardReviews, "round \(round)")
+            #expect(ab.suspendedCards == ba.suspendedCards && ab.suspendedCards == aab.suspendedCards, "round \(round)")
             let merged: Int = ab.messages.values.reduce(0) { $0 + $1.count }
             let expected: Int = (a + b).filter { $0.type == EventType.messageCreated }.count
             #expect(merged == expected)
@@ -178,9 +180,18 @@ func created(_ title: String = "Free conversation: Wohnort") -> JSONValue {
         for i in 2...count {
             let ms = Int64(1000 + Int.random(in: 0..<50, using: &rng) * 100) // frequent equal ts
             let lam = Int.random(in: 1..<20, using: &rng)
-            if Int.random(in: 0..<5, using: &rng) == 0 {
+            let kind = Int.random(in: 0..<7, using: &rng)
+            let card = "word:de:c\(Int.random(in: 0..<3, using: &rng))"
+            if kind == 0 {
                 out.append(ev("\(device)-\(i)", device: device, seq: i, lamport: lam, ms: ms, type: EventType.sessionUpdated,
                               payload: try! JSONValue.from(Payload.SessionUpdated(title: "T\(i)"))))
+            } else if kind == 1 {  // LINGO-05: reviews, deduplicated per (session, card)
+                let rating = CardRating.allCases[Int.random(in: 0..<4, using: &rng)]
+                out.append(ev("\(device)-\(i)", device: device, seq: i, lamport: lam, ms: ms, type: EventType.cardReviewed,
+                              payload: try! JSONValue.from(Payload.CardReviewed(card: card, rating: rating, message: "m\(i)"))))
+            } else if kind == 2 {  // LINGO-05: suspend / resume, last writer wins (equal lamports are frequent)
+                out.append(ev("\(device)-\(i)", device: device, seq: i, lamport: lam, ms: ms, type: EventType.cardSuspended,
+                              session: "", payload: try! JSONValue.from(Payload.CardSuspended(card: card, suspended: Bool.random(using: &rng)))))
             } else {
                 out.append(ev("\(device)-\(i)", device: device, seq: i, lamport: lam, ms: ms, type: EventType.messageCreated, payload: msg("m\(i)")))
             }

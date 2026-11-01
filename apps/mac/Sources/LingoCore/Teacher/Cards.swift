@@ -40,16 +40,15 @@ public extension HistoryState {
     func wordCards(lang: Lang) -> [Card] {
         var byKey: [String: [VocabItem]] = [:]
         for item in vocabulary(lang: lang) { byKey[VocabularyText.key(lang: lang, text: item.text), default: []].append(item) }
-        // The ★ phrase hidden by an own item still dates the card.
-        let starred = starredStats.values.filter { $0.lang == lang }
         return byKey.map { key, items in
             let shown = items.min { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }!
-            let dates = items.map(\.createdAt) + starred.filter { VocabularyText.key(lang: lang, text: $0.text) == key }.map(\.createdAt)
-            return Card(id: "word:" + key, lang: lang, kind: .word, front: shown.text, hint: shown.translation, createdAt: dates.min()!)
+            // The earliest ★ of the key dates the card too, also when an own item hides it or it was starred again later.
+            let created = min(items.map(\.createdAt).min()!, firstStarred[key] ?? .distantFuture)
+            return Card(id: "word:" + key, lang: lang, kind: .word, front: shown.text, hint: shown.translation, createdAt: created)
         }
     }
 
-        /// Recurring mistakes (CR-01, best effort): fixes of live sessions of the language, in (ts, session, message, rule, original) order,
+    /// Recurring mistakes (CR-01, best effort): fixes of live sessions of the language, in (ts, session, message, rule, original) order,
     /// grouped by the normalised rule cut to 60 Characters (an empty rule is not grouped); the same (session, normalised original) counts
     /// once; at least two counted fixes make a card.
     func mistakeCards(lang: Lang) -> [Card] {
@@ -85,19 +84,21 @@ public extension HistoryState {
         FSRS.schedule((cardReviews[id] ?? []).map { ($0.rating, $0.at) })
     }
 
-        /// Cards to practise now (CR-04): due cards (last reviewed before today, due on or before today's local day) by retrievability
-    /// ascending, mistakes first,
-    /// oldest first, id; then new cards by (createdAt, id) up to 5 per language per local day, minus cards first reviewed today.
-    /// Suspended cards are left out.
+    /// Cards to practise now (CR-04): due cards (last reviewed before today, due on or before today's local day) by retrievability
+    /// ascending, mistakes first, oldest first, id; then new cards by (createdAt, id) up to 5 per language per local day, minus the
+    /// cards first reviewed today. Suspended cards are left out.
     func dueCards(lang: Lang, now: Date, calendar: Calendar = .autoupdatingCurrent) -> [Card] {
         let today = calendar.startOfDay(for: now)
         var due: [(card: Card, r: Double)] = []
         var fresh: [Card] = []
-        var newToday = 0
+        // Every card of the language first reviewed today counts, also one suspended or gone since (CR-04).
+        let newToday = cardReviews.filter { id, reviews in
+            (id.hasPrefix("word:\(lang.rawValue):") || id.hasPrefix("mistake:\(lang.rawValue):"))
+                && reviews.first.map { calendar.startOfDay(for: $0.at) == today } == true
+        }.count
         for c in cards(lang: lang) where !suspendedCards.contains(c.id) {
             guard let st = cardState(c.id) else { fresh.append(c); continue }
-            if let first = cardReviews[c.id]?.first, calendar.startOfDay(for: first.at) == today { newToday += 1 }
-                        guard calendar.startOfDay(for: st.lastReview) < today, calendar.startOfDay(for: st.due) <= today else { continue }
+            guard calendar.startOfDay(for: st.lastReview) < today, calendar.startOfDay(for: st.due) <= today else { continue }
             due.append((c, FSRS.retrievability(days: FSRS.elapsedDays(from: st.lastReview, to: now), stability: st.stability)))
         }
         due.sort { a, b in

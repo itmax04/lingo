@@ -61,8 +61,10 @@ public struct HistoryState: Sendable {
     /// Counted card reviews (LINGO-05 CR-02) by card id in traversal order: only the first per (session, card). Reviews of unknown
     /// cards are kept here and ignored by the queue.
     public var cardReviews: [String: [CardReview]] = [:]
-    /// Suspended cards (CR-02, last writer wins).
+        /// Suspended cards (CR-02, last writer wins).
     public var suspendedCards: Set<String> = []
+    /// The earliest `phrase.starred` per vocabulary key (`VocabularyText.key`), so a word card keeps its first date (CR-01).
+    public var firstStarred: [String: Date] = [:]
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -225,6 +227,10 @@ public enum Merger {
                 reg.apply(e.type == EventType.phraseStarred, ver)
                 stars[key] = reg
                 if reg.version == ver { starPhrase[key] = p.phrase; if e.type == EventType.phraseStarred { starTime[key] = e.ts } }
+                if e.type == EventType.phraseStarred {
+                    let vk = VocabularyText.key(lang: p.phrase.lang, text: p.phrase.text)
+                    st.firstStarred[vk] = min(st.firstStarred[vk] ?? e.ts, e.ts)
+                }
             case EventType.vocabAdded:
                 guard let p = try? e.payload.decode(Payload.VocabAdded.self) else { st.unknownEvents += 1; continue }
                 let d = p.item

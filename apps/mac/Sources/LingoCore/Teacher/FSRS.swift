@@ -18,7 +18,7 @@ public struct CardState: Sendable, Hashable {
     public var difficulty: Double
     public var lastReview: Date
     public var due: Date
-        public var reviews: Int
+    public var reviews: Int
     /// `again` ratings after the first review (CR-03).
     public var lapses: Int
 }
@@ -48,7 +48,7 @@ public enum FSRS {
     static func initialStability(_ g: Int) -> Double { max(w[g - 1], 0.1) }
     static func initialDifficulty(_ g: Int) -> Double { clampD(w[4] - exp(w[5] * Double(g - 1)) + 1) }
 
-        /// Whole days between two reviews, rounded down like Python's `timedelta.days`, on whole milliseconds (journal precision), so an
+    /// Whole days between two reviews, rounded down like Python's `timedelta.days`, on whole milliseconds (journal precision), so an
     /// exact multiple of a day never comes out one short.
     public static func elapsedDays(from: Date, to: Date) -> Int {
         let ms = Int64((to.timeIntervalSince1970 * 1000).rounded()) - Int64((from.timeIntervalSince1970 * 1000).rounded())

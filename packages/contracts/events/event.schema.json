@@ -864,7 +864,6 @@
       "properties": {
         "card": {
           "type": "string",
-          "minLength": 1,
           "description": "`word:<lang>:<normalised text>` or `mistake:<lang>:<normalised rule, at most 60 Characters>`"
         },
         "rating": {
@@ -895,8 +894,7 @@
       ],
       "properties": {
         "card": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "suspended": {
           "type": "boolean"

@@ -64,7 +64,7 @@ import Testing
             #expect(FSRS.elapsedDays(from: first.lastReview, to: first.due) >= 1)
         }
         let lapse = try #require(FSRS.schedule([(.good, Self.t0), (.good, Self.days(3)), (.again, Self.days(20))]))
-                #expect(lapse.phase == .review && lapse.lapses == 1 && FSRS.elapsedDays(from: lapse.lastReview, to: lapse.due) >= 1)
+        #expect(lapse.phase == .review && lapse.lapses == 1 && FSRS.elapsedDays(from: lapse.lastReview, to: lapse.due) >= 1)
         #expect(FSRS.review(nil, rating: .again, at: Self.t0).lapses == 0)  // a first `again` is not a lapse
         // Exact multiples of a day are never one short; negative spans round down like Python.
         #expect(FSRS.elapsedDays(from: Self.t0.addingTimeInterval(0.1), to: Self.t0.addingTimeInterval(0.1 + 3 * 86_400)) == 3)
@@ -166,7 +166,7 @@ import Testing
         try await fix(store, sid, "weil ich habe", "weil ich habe Zeit", long, at: t.addingTimeInterval(200))
         try await fix(store, sid, "dass er ist", "dass er krank ist", long + "!", at: t.addingTimeInterval(210))
         let longCard = try #require(await store.state.mistakeCards(lang: .de).first { $0.hint.hasPrefix("Wortstellung") })
-                #expect(longCard.id.count == "mistake:de:".count + HistoryState.mistakeKeyLimit && longCard.hint.count <= HistoryState.mistakeHintLimit)
+        #expect(longCard.id.count == "mistake:de:".count + HistoryState.mistakeKeyLimit && longCard.hint.count <= HistoryState.mistakeHintLimit)
         // Fixes without a rule are not grouped.
         try await fix(store, sid, "ein Haus", "das Haus", "", at: t.addingTimeInterval(220))
         try await fix(store, sid, "ein Auto", "das Auto", "", at: t.addingTimeInterval(230))
@@ -177,7 +177,8 @@ import Testing
         try await e.removeVocabulary(item.id)
         #expect(await !store.state.cards(lang: .de).contains { $0.kind == .word })
         try await e.addVocabulary(lang: .de, entries: [("feierabend", "")], source: .manual)
-        #expect(await store.state.cardState("word:de:feierabend")?.reviews == 1)
+        let back = await store.state
+        #expect(back.cards(lang: .de).contains { $0.id == "word:de:feierabend" } && back.cardState("word:de:feierabend")?.reviews == 1)
     }
 
     @Test func starredPhraseAndOwnItemShareOneCard() async throws {
@@ -210,15 +211,16 @@ import Testing
         #expect(st.cardReviews[ids[1]]?.map(\.rating) == [.again])
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "Europe/Berlin")!
-        // Right after: `again` is due tomorrow and `good` in 3 days; 2 new cards were started today → 3 more new cards.
+        // Right after: `again` is due tomorrow and `good` in 3 days; 3 cards of the language were first reviewed today (incl. the card
+        // that no longer exists) → 2 more new cards.
         let now = t.addingTimeInterval(11 * 60)
         let q = st.dueCards(lang: .de, now: now, calendar: cal)
-        #expect(!q.contains { $0.id == ids[0] || $0.id == ids[1] } && q.count == 3)
-        #expect(q.map(\.id) == Array(ids[2...4]))
+        #expect(!q.contains { $0.id == ids[0] || $0.id == ids[1] } && q.count == 2)
+        #expect(q.map(\.id) == Array(ids[2...3]))
         // Due on its local day: the `again` card is due all day tomorrow, even before its exact due time.
         let tomorrowMorning = cal.startOfDay(for: t.addingTimeInterval(86_400)).addingTimeInterval(60)
         #expect(st.dueCards(lang: .de, now: tomorrowMorning, calendar: cal).first?.id == ids[1])
-                // The 25-hour DST day (Berlin, 2026-10-25): reviewed at 00:30, due 24 h later at 23:30 the same local day — not due again today.
+        // The 25-hour DST day (Berlin, 2026-10-25): reviewed at 00:30, due 24 h later at 23:30 the same local day — not due again today.
         let dst = cal.date(from: DateComponents(year: 2026, month: 10, day: 25, hour: 0, minute: 30))!
         try await review(store, ids[7], .again, session: "dst", at: dst)
         let dstState = await store.state
@@ -243,5 +245,50 @@ import Testing
         #expect(await store.state.dueCards(lang: .de, now: t).map(\.id) == [ids[1]])
         try await store.append(EventType.cardSuspended, session: "", Payload.CardSuspended(card: ids[0], suspended: false), at: t.addingTimeInterval(1))
         #expect(await store.state.dueCards(lang: .de, now: t).map(\.id) == ids)
+    }
+
+    @Test func queueOrderTieBreaksAndTheNewCardLimit() async throws {
+        let (e, store) = try engine("cards-4")
+        let t = FSRSTests.t0
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        // New cards come by createdAt, not by id: "zebra" was added first.
+        try await store.append(EventType.vocabAdded, session: "", Payload.VocabAdded(item: .init(lang: .de, text: "zebra")), at: t)
+        try await store.append(EventType.vocabAdded, session: "", Payload.VocabAdded(item: .init(lang: .de, text: "apfel")), at: t.addingTimeInterval(60))
+        #expect(await store.state.dueCards(lang: .de, now: t, calendar: cal).map(\.id) == ["word:de:zebra", "word:de:apfel"])
+        // Fixes of deleted and other-language sessions make no card.
+        let gone = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
+        let english = try await e.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.after]))
+        for (i, sid) in [gone, english].enumerated() {
+            try await fix(store, sid, "a\(i)", "b\(i)", "Regel", at: t)
+            try await fix(store, sid, "c\(i)", "d\(i)", "Regel", at: t.addingTimeInterval(1))
+        }
+        try await e.delete(gone)
+        #expect(await store.state.mistakeCards(lang: .de).isEmpty)
+        // Equal retrievability: the mistake card first, then older cards first.
+        let live = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
+        try await fix(store, live, "a", "b", "Regel", at: t)
+        try await fix(store, live, "c", "d", "Regel", at: t.addingTimeInterval(1))
+        for id in ["word:de:apfel", "word:de:zebra", "mistake:de:regel"] { try await review(store, id, .good, at: t.addingTimeInterval(120)) }
+        let later = t.addingTimeInterval(10 * 86_400)
+        #expect(await store.state.dueCards(lang: .de, now: later, calendar: cal).map(\.id) == ["mistake:de:regel", "word:de:zebra", "word:de:apfel"])
+        // A card first reviewed today still counts against the new-card limit after it is suspended.
+        try await e.addVocabulary(lang: .de, entries: (1...6).map { ("neu\($0)", "") }, source: .list)
+        let today = later
+        try await review(store, "word:de:neu1", .good, session: "w9", at: today)
+        try await store.append(EventType.cardSuspended, session: "", Payload.CardSuspended(card: "word:de:neu1", suspended: true), at: today)
+        let fresh = await store.state.dueCards(lang: .de, now: today, calendar: cal).filter { $0.id.hasPrefix("word:de:neu") }
+        #expect(fresh.count == HistoryState.newCardsPerDay - 1 && !fresh.contains { $0.id == "word:de:neu1" })
+    }
+
+    /// The shared edge journal: one counted review; each malformed card event (bad source, no message, bad rating, non-bool) is unknown.
+    @Test func edgeFixtureCardState() throws {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("packages/contracts/fixtures/events/edge.jsonl")
+        let events = try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map { try Event(line: $0) }
+        let st = Merger.build(events)
+        #expect(st.cardReviews["word:de:hallo"]?.map(\.rating) == [.good] && st.suspendedCards == ["word:de:hallo"])
+        let malformed = events.filter { $0.type.hasPrefix("card.") }.count - 2
+        #expect(malformed == 4)
     }
 }
