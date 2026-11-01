@@ -51,7 +51,7 @@ Status: **documents v2 accepted at H-0 in DG-02 on 2026-10-29; implementation no
   (Swift decodes them through Double); event `seq`/`lamport` stay safe integers (D-03).
 - D-05 (P-07d): interruption offsets (R-12) are read as Characters of the spoken text (`spokenText.prefix(at)`, the fixture
   checks this), but the Mac `TurnController` writes them in UTF-16 units plus one per part, so emoji and double spaces shift them by a
-  few positions. Fixed on 2026-11-01 (branch `fix/mac-polish-1`): `TurnController.interruptionOffset` converts the UTF-16 position to Characters. The speech
+  few positions. Emoji part fixed on 2026-11-01 (PR #63): `TurnController.interruptionOffset` converts the UTF-16 position to whole Characters; stopping a replayed bubble no longer marks the reply interrupted. Still open: extra spaces between sentences and list markup stripped from the last part shift the mark by one Character each (the parser trims spoken parts). The speech
   invariant in the parser tests joins parts with single spaces, so a double space after a sentence is part of the same drift.
 
 ## Owner acceptance H-1 (2026-10-31)

@@ -12,8 +12,11 @@ final class FakeSink: SpeechSink {
     var micMuted = false
     var isSpeaking: Bool { playing }
     var firstSpeakAt: Double?
+    /// The first part queued since the last stop: "playback" stops 4 characters into it.
+    var currentTag: Int?
     func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double, tag: Int) {
         spoken.append((text, rate, pauseAfter))
+        if currentTag == nil { currentTag = tag }
         if firstSpeakAt == nil { firstSpeakAt = MetricsRecorder.now() }
         playing = true
     }
@@ -22,9 +25,10 @@ final class FakeSink: SpeechSink {
         playing = false
         stops += 1
         stopTimes.append(MetricsRecorder.now())
-        return (1, 4)
+        defer { currentTag = nil }
+        return (currentTag ?? 1, 4)
     }
-    func finish() { playing = false }
+    func finish() { playing = false; currentTag = nil }
 }
 
 /// Recognition returns the given texts in turn.
@@ -127,6 +131,23 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         #expect(msgs.map(\.role) == [.user, .assistant] && msgs[0].text == "Ich wohne in Hamburg.")
     }
 
+    @Test func stoppingAReplayNeverMarksTheReplyInterrupted() async throws {
+        let e = try await env(texts: ["Ich wohne in Hamburg."])
+        e.tc.startContinuous()
+        await e.feed(1200, speech: true)
+        await e.feed(1600, speech: false)
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }
+        e.sink.finish()  // the reply was heard in full
+        await e.waitUntil { e.tc.state == .listening }
+        let reply = try #require(await e.store.state.messages[e.sid]?.first { $0.role == .assistant })
+        e.tc.replay(reply)  // a click on the bubble, then the learner speaks over the replay
+        #expect(e.sink.isSpeaking)
+        var fed = 0
+        while e.sink.isSpeaking && fed < 1000 { await e.feed(20, speech: true); fed += 20 }
+        await e.settle(0.3)
+        #expect(await e.store.state.messages[e.sid]?.first { $0.role == .assistant }?.interruptedAt == nil)
+    }
+
     @Test func interruptionOffsetCountsCharacters() {
         // "👍🏽" is 4 UTF-16 units but one Character; the reader cuts `spokenText` by Characters.
         let parts = [(tag: 1, text: "👍🏽 Yes!"), (tag: 2, text: "Go on.")]
@@ -135,6 +156,9 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         let spoken = parts.map(\.text).joined(separator: " ")
         #expect(String(spoken.prefix(10)) == "👍🏽 Yes! Go ")
         #expect(TurnController.interruptionOffset(parts: parts, stopTag: 9, utf16Offset: 1) == 14)  // unknown tag: the whole text plus separators
+        // Inside a surrogate pair or a flag: round down to a whole Character, never past the part.
+        #expect([0, 1, 2, 3, 4].map { TurnController.interruptionOffset(parts: parts, stopTag: 1, utf16Offset: $0) } == [0, 0, 0, 0, 1])
+        #expect(TurnController.interruptionOffset(parts: [(tag: 1, text: "🇩🇪 ok")], stopTag: 1, utf16Offset: 3) == 0)
     }
 
     @Test func bargeInStopsWithinHalfSecondAndMarksInterrupted() async throws {
