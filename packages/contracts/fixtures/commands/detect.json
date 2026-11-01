@@ -1,0 +1,712 @@
+[
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Nochmal, bitte"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Äh, nochmal bitte."
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Noch einmal"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Wiederhol das"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Wie bitte?"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "noch mall"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Langsamer"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Langsam bitte"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Kannst du bitte langsamer sprechen"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Etwas langsamer"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "langsammer"
+  },
+  {
+    "argument" : "Rabatt“ auf Deutsch",
+    "kind" : "how_to_say",
+    "text" : "Wie sagt man „Rabatt“ auf Deutsch?"
+  },
+  {
+    "argument" : "ich habe ferien",
+    "kind" : "how_to_say",
+    "text" : "wie sagt man ich habe ferien"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "Erklär mal"
+  },
+  {
+    "argument" : "Feierabend",
+    "kind" : "explain",
+    "text" : "Was bedeutet „Feierabend“?"
+  },
+  {
+    "argument" : "das",
+    "kind" : "explain",
+    "text" : "Was heißt das?"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Weiter"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Machen wir weiter"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Nein, machen wir weiter"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Lass uns weitermachen"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "weiter bitte"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Korrigiere mich"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Gab es Fehler?"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Hab ich Fehler gemacht?"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Das war's"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Das war es für heute"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Schluss für heute"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "das wars"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Langsam wird es kalt"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Wir gehen weiter in den Park"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Ich wiederhole die Vokabeln jeden Tag"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Ich mache oft Fehler beim Sprechen"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Am Wochenende gehe ich spazieren"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Mir gefällt in Rostock, dass Meer hier hast"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Das war ein schöner Tag"
+  },
+  {
+    "argument" : "das in deiner Familie, weiß ich nicht",
+    "kind" : "how_to_say",
+    "text" : "Wie sagt man das in deiner Familie, weiß ich nicht"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Noch einmal so ein Wetter und ich ziehe um"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Dann musste, ой, не, не, с самого начала. Dann muss ich zu Hause bleiben"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Ich bin noch nicht fertig, weiter geht es morgen"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Das reicht mir nicht"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Again"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Say it again, please"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Repeat that"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Sorry, what?"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Could you repeat please"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "say it agin"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Slower"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "More slowly, please"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Can you speak more slowly?"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "slow down"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "slover"
+  },
+  {
+    "argument" : "скидка» in English",
+    "kind" : "how_to_say",
+    "text" : "How do I say «скидка» in English?"
+  },
+  {
+    "argument" : "I'm on holiday",
+    "kind" : "how_to_say",
+    "text" : "How do you say I'm on holiday"
+  },
+  {
+    "argument" : "I missed the train",
+    "kind" : "how_to_say",
+    "text" : "how to say I missed the train"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "Explain"
+  },
+  {
+    "argument" : "that, please",
+    "kind" : "explain",
+    "text" : "Explain that, please"
+  },
+  {
+    "argument" : "commute' mean",
+    "kind" : "explain",
+    "text" : "What does 'commute' mean?"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "What did you ask?"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Let's continue"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Go on"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Next question"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "lets continue"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Any mistakes?"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Did I make any mistakes?"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Correct me"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "That's all"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "That's it for today"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Let's stop"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "I repeated the exam last year"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "The next station is far from here"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "I like to walk slowly in the park"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "We should go on holiday together"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "All mistakes are human"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "That's all I wanted to say about my job"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Hi, I'm Alex. Nice to meet you."
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "When es regnet, I stay at home"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Again and again I forget the words"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Continue to the next street and turn left"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "I am ready for my trip to Vienna"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Повтори"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "повтори, пожалуйста"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Ещё раз"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Ну, ещё раз, пожалуйста"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Повтори ещё раз."
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "повтор и"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Я не расслышал"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Медленнее"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "А можно медленнее?"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Помедленнее, пожалуйста"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "говори медленее"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "Чуть медленнее"
+  },
+  {
+    "argument" : "у меня сейчас каникулы",
+    "kind" : "how_to_say",
+    "text" : "Как сказать «у меня сейчас каникулы»?"
+  },
+  {
+    "argument" : "я опоздал на поезд",
+    "kind" : "how_to_say",
+    "text" : "Как будет «я опоздал на поезд»?"
+  },
+  {
+    "argument" : "что мне нравится море",
+    "kind" : "how_to_say",
+    "text" : "Как ещё можно сказать, что мне нравится море?"
+  },
+  {
+    "argument" : "я живу здесь два года",
+    "kind" : "how_to_say",
+    "text" : "ну как сказать я живу здесь два года"
+  },
+  {
+    "argument" : "скидка",
+    "kind" : "how_to_say",
+    "text" : "Как по-немецки «скидка»?"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "Объясни"
+  },
+  {
+    "argument" : "по-русски",
+    "kind" : "explain",
+    "text" : "Объясни по-русски"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "По-русски, пожалуйста"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "Что ты спросил?"
+  },
+  {
+    "argument" : "Feierabend",
+    "kind" : "explain",
+    "text" : "Что значит «Feierabend»?"
+  },
+  {
+    "argument" : "так",
+    "kind" : "explain",
+    "text" : "Почему так?"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "Переведи"
+  },
+  {
+    "argument" : null,
+    "kind" : "explain",
+    "text" : "что ты спросил"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Продолжим"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Давай продолжаем"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Дальше"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Готов"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "Давай дальше."
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "продолжи м"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Были ошибки?"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Проверь меня"
+  },
+  {
+    "argument" : null,
+    "kind" : "mistakes",
+    "text" : "Какие были ошибки?"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "На этом всё"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Я думаю, на это всё"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "Закончим"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "на этом все"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Я вчера повторил весь урок"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Нет, я хочу сказать, что у меня каникулы"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Мне нравится, когда говорят медленно"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Как сказал мой друг, Гамбург красивый"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Дальше по улице есть кафе"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Я не готов к экзамену"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Почему ты живёшь в Гамбурге уже так долго?"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Ошибки бывают у всех"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Давай поговорим о погоде"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Ой, не, не, с самого начала"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Медленно, но верно я учу немецкий"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "я повторил урок"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "Повтори, что ты сказал!"
+  },
+  {
+    "argument" : "Feierabend",
+    "kind" : "how_to_say",
+    "text" : "ну, как сказать «Feierabend»?"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Как сказал мой друг, всё хорошо"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "почему ты так думаешь о фильмах"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "объясни мне пожалуйста разницу между словами das und dass"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "  "
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "..."
+  },
+  {
+    "argument" : "Schlüssel",
+    "kind" : "how_to_say",
+    "text" : "Wie sagt man „Schlüssel“?"
+  },
+  {
+    "argument" : "spot on” mean",
+    "kind" : "explain",
+    "text" : "What does “spot on” mean?"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "nochmall"
+  },
+  {
+    "argument" : null,
+    "kind" : "slower",
+    "text" : "slowwer"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "das war’s"
+  },
+  {
+    "argument" : null,
+    "kind" : "finish",
+    "text" : "I think that's all"
+  }
+]
