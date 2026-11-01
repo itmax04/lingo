@@ -52,8 +52,9 @@ import LingoCore
         b.onStatus = { reported.append($0) }
         b.setFolder(SyncFolder(picked: folder.appendingPathComponent("missing")))
         #expect(await b.runIfDue() == nil)  // a revoked or removed folder is reported, never thrown
-        guard case .failed = b.status else { Issue.record("expected a failure, got \(b.status)"); return }
-        #expect(reported.count == 1)
+        guard case .failed(let why) = b.status else { Issue.record("expected a failure, got \(b.status)"); return }
+        #expect(why == String(localized: "folder not found"))  // the reason, not "The operation couldn't be completed"
+        #expect(reported == [.running, .failed(why)])
         #expect(names(folder).isEmpty)
     }
 
@@ -67,5 +68,36 @@ import LingoCore
         let after = try FileManager.default.attributesOfItem(atPath: first.path)[.modificationDate] as? Date
         #expect(after != before)
         #expect(names(folder).count == 1)
+    }
+
+    @Test func twoRunsAtOnceWriteOneFileWithoutAFalseFailure() async throws {
+        let (b, _, folder) = try await scheduler("twice", at: Date(timeIntervalSince1970: 1_793_485_800))
+        b.setFolder(SyncFolder(picked: folder))
+        async let first = b.runIfDue()
+        async let second = b.runIfDue(force: true)
+        let results = await [first, second]
+        #expect(results.compactMap { $0 }.count >= 1)
+        #expect(b.status == .done(day: "2026-10-31"))
+        #expect(names(folder) == [HistoryBackup.dailyName(for: "2026-10-31")])
+    }
+
+    @Test func aSavedFolderThatCannotBeResolvedIsReportedAndRetried() async throws {
+        let (b, _, _) = try await scheduler("lost", at: Date(timeIntervalSince1970: 1_793_485_800))
+        b.setBookmark(Data([0, 1, 2, 3]))  // like an unplugged disk: the bookmark does not resolve
+        guard case .failed = b.status else { Issue.record("expected a failure, got \(b.status)"); return }
+        #expect(await b.runIfDue() == nil)
+        guard case .failed = b.status else { Issue.record("still expected a failure, got \(b.status)"); return }
+        b.setBookmark(nil)
+        #expect(b.status == .off)
+    }
+
+    @Test func pruningKeepsOtherFiles() throws {
+        let folder = tmp("prune")
+        for n in ["Lingo-history-2026-10-01.zip", "Lingo-history-2026-10-02.zip", "Lingo-history-2026-10-03.zip", "Lingo-history-old.zip", "notes.txt"] {
+            try Data().write(to: folder.appendingPathComponent(n))
+        }
+        HistoryBackup.prune(folder: folder, keep: 2)
+        let left = try FileManager.default.contentsOfDirectory(atPath: folder.path).sorted()
+        #expect(left == ["Lingo-history-2026-10-02.zip", "Lingo-history-2026-10-03.zip", "Lingo-history-old.zip", "notes.txt"])
     }
 }

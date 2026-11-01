@@ -80,22 +80,29 @@ extension AppServices {
         let b = BackupScheduler(base: store.base)
         let m = model
         b.onStatus = { s in
+            let wasFailed = m.backupFailed
+            m.backupRunning = s == .running
             switch s {
-            case .off: m.backupStatus = String(localized: "Off")
-            case .done(let day): m.backupStatus = String(localized: "Last backup: \(day)")
+            case .off: m.backupStatus = String(localized: "Off"); m.backupFailed = false
+            case .running: m.backupStatus = String(localized: "Backing up…")
+            case .done(let day): m.backupStatus = String(localized: "Last backup: \(day)"); m.backupFailed = false
             case .failed(let why):
                 m.backupStatus = String(localized: "Backup failed: \(why)")
-                m.banner = String(localized: "Daily backup failed: \(why). Check the folder in Settings → Data.")
+                // The banner only when the backup starts failing, not again on every hourly retry.
+                if !wasFailed { m.banner = String(localized: "Daily backup failed: \(why). Check the folder in Settings → Data.") }
+                m.backupFailed = true
             }
         }
         backup = b
-        if let data = settings.backupBookmark, let r = try? SyncFolder.resolve(bookmark: data) {
-            if r.stale, let fresh = try? r.folder.bookmark() { updateSettings { $0.backupBookmark = fresh } }
-            b.setFolder(r.folder)
-            model.backupFolderPath = r.folder.picked.path
-        } else {
-            b.setFolder(nil)
+        if let data = settings.backupBookmark {
+            if let r = try? SyncFolder.resolve(bookmark: data) {
+                if r.stale, let fresh = try? r.folder.bookmark() { updateSettings { $0.backupBookmark = fresh } }
+                model.backupFolderPath = r.folder.picked.path
+            } else {
+                model.backupFolderPath = String(localized: "Saved folder (not available now)")
+            }
         }
+        b.setBookmark(settings.backupBookmark)
         b.start()
     }
 

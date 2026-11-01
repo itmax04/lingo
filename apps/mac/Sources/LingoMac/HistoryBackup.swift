@@ -108,10 +108,17 @@ enum HistoryBackup {
         let dest = folder.appendingPathComponent(dailyName(for: today))
         guard !fm.fileExists(atPath: dest.path) else { return nil }
         try export(base: base, to: dest)
-        let daily = ((try? fm.contentsOfDirectory(atPath: folder.path)) ?? [])
-            .filter { $0.hasPrefix(dailyPrefix) && $0.hasSuffix(".zip") }.sorted()
-        for old in daily.dropLast(max(keep, 1)) where old != dest.lastPathComponent { try? fm.removeItem(at: folder.appendingPathComponent(old)) }
+        prune(folder: folder, keep: keep, except: dest.lastPathComponent)
         return dest
+    }
+
+    /// Keeps the newest `keep` daily files. Only names of the exact daily form (`Lingo-history-yyyy-mm-dd.zip`) are touched, so other
+    /// files in the folder (a renamed manual export) are never deleted and never take a slot.
+    static func prune(folder: URL, keep: Int = 14, except: String? = nil) {
+        let fm = FileManager.default
+        let daily = ((try? fm.contentsOfDirectory(atPath: folder.path)) ?? [])
+            .filter { $0.range(of: #"^Lingo-history-\d{4}-\d{2}-\d{2}\.zip$"#, options: .regularExpression) != nil }.sorted()
+        for old in daily.dropLast(max(keep, 1)) where old != except { try? fm.removeItem(at: folder.appendingPathComponent(old)) }
     }
 
     // MARK: Helpers

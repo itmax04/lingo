@@ -35,11 +35,13 @@ public struct SyncFolder: Sendable {
     public var devicesDir: URL { root.appendingPathComponent("v1/devices", isDirectory: true) }
     public func deviceDir(_ id: String) -> URL { devicesDir.appendingPathComponent(id, isDirectory: true) }
 
-    public enum SyncError: Error, Equatable, CustomStringConvertible {
+    public enum SyncError: Error, Equatable, CustomStringConvertible, LocalizedError {
         case unavailable(String)
         public var description: String {
             switch self { case .unavailable(let s): return s }
         }
+        /// `localizedDescription` shows the reason ("folder not found"), not "The operation couldn't be completed".
+        public var errorDescription: String? { description }
     }
 
     // MARK: Security-scoped bookmark

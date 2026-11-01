@@ -121,7 +121,7 @@ struct DataSettingsView: View {
                     }
                     HStack(spacing: Theme.S.s12) {
                         Button(services.model.backupFolderPath == nil ? "Choose a folder…" : "Choose another…") { services.chooseBackupFolder() }
-                        Button("Back up now") { services.backupNow() }.disabled(services.model.backupFolderPath == nil)
+                        Button("Back up now") { services.backupNow() }.disabled(services.model.backupFolderPath == nil || services.model.backupRunning)
                         if services.model.backupFolderPath != nil { Button("Turn off") { services.turnOffDailyBackup() } }
                     }
                 }

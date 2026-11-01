@@ -7854,6 +7854,57 @@
         }
       },
       "extractionState": "manual"
+    },
+    "the backup folder is not available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the backup folder is not available"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "папка для копий недоступна"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Backing up…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backing up…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создаю копию…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Saved folder (not available now)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved folder (not available now)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранённая папка (сейчас недоступна)"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

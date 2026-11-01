@@ -43,6 +43,8 @@ final class AppModel {
     /// Daily backup (MR-04): the chosen folder and the last result shown in Settings → Data.
     var backupFolderPath: String?
     var backupStatus = ""
+    var backupRunning = false
+    var backupFailed = false
     var russianOnce = false
     var slowPace = false
     /// Transcript edit (R-09).
