@@ -263,7 +263,7 @@ extension AppServices {
     func replay(_ m: ChatMessage) {
         if model.selectedSession?.state == .ended || ending {
             // A finished session must not switch the microphone back on just to replay a line.
-            let parts: [(Lang, String)] = (m.segments.isEmpty ? [.say(m.lang, m.text)] : m.segments).compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
+            let parts: [(Lang, String)] = (m.segments.isEmpty ? [.say(m.lang, m.spokenText)] : m.segments).compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
             if let io = voiceIO {
                 // The goodbye is still playing through the audio engine: queue behind it.
                 for (l, t) in parts { io.speak(t, lang: l, voiceID: settings.voice.voiceIDs[l], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: model.slowPace ? 0.75 : 1), tag: 9_100) }

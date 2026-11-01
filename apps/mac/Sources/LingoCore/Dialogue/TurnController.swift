@@ -418,7 +418,7 @@ public final class TurnController {
         if slower { slowStep = min(SpeechPace.slowSteps.count - 1, slowStep + 1) } else { slowStep = 0 }
         let mult = SpeechPace.slowSteps[slowStep]
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slower ? mult : (slowPace ? 0.75 : 1))
-        let segs: [(Lang, String)] = last.segments.isEmpty ? [(last.lang, last.text)]
+        let segs: [(Lang, String)] = last.segments.isEmpty ? [(last.lang, last.spokenText)]
             : last.segments.compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
         spokenParts = []
         interruptedAt = nil

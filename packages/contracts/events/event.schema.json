@@ -436,6 +436,40 @@
         "pinnedVocab": {
           "type": "string",
           "description": "LINGO-08 VR-11: the item chosen with Practise; the first target while it is a candidate."
+        },
+        "activity": {
+          "type": "object",
+          "description": "LINGO-05 PX-05: a teacher activity. Readers decode it tolerantly: an unknown kind or malformed content is ignored and the session opens as its stored mode.",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "description": "warmup | scenario | exam (other values: ignored)"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "warmup: the frozen queue of card ids (at most 8)"
+            },
+            "id": {
+              "type": "string",
+              "description": "scenario: the catalogue id"
+            },
+            "exam": {
+              "type": "string",
+              "description": "exam: goethe_b1 | ielts"
+            },
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
       },
       "additionalProperties": true

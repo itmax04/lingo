@@ -15,9 +15,11 @@ public struct Session: Sendable, Hashable, Identifiable {
     public var summary: String
     /// The last message included in the summary.
     public var summaryThrough: String?
+    /// The latest `session.resumed` (LINGO-05 WR-01: a resumed warm-up gets a new time budget).
+    public var resumedAt: Date?
 
     public init(id: String, title: String, settings: SessionSettings, createdAt: Date, lastActivity: Date,
-                state: State = .active, deleted: Bool = false, summary: String = "", summaryThrough: String? = nil) {
+                state: State = .active, deleted: Bool = false, summary: String = "", summaryThrough: String? = nil, resumedAt: Date? = nil) {
         self.id = id
         self.title = title
         self.settings = settings
@@ -27,6 +29,7 @@ public struct Session: Sendable, Hashable, Identifiable {
         self.deleted = deleted
         self.summary = summary
         self.summaryThrough = summaryThrough
+        self.resumedAt = resumedAt
     }
 }
 
