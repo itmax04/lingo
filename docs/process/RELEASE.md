@@ -56,4 +56,8 @@ A backup is a ZIP with one folder `Lingo-history/` that holds only journals (`de
 - **Restore:** Lingo → Settings → Data → "Restore from ZIP…" and pick the file. Journals of this Mac go back to `devices/<this device>`; journals of any other device become cache copies. Existing files are never overwritten: when the same monthly file is already there, only the events it lacks are appended, so restoring twice changes nothing. The banner reports restored, already-present and skipped files.
 - **New Mac or wiped history:** install Lingo, open it once (creates the device), restore the ZIP, then connect the sync folder. The old Mac's history appears as another device's cache and merges by event id.
 - **Test it without touching real data:** `swift test --package-path apps/mac --filter HistoryBackupTests` exports a store, restores it into a fresh base and compares the state.
-- **Daily automatic backup:** `HistoryBackup.dailyBackupIfDue` writes one ZIP per day and keeps the newest 14. It is not scheduled yet: the owner chooses the folder first (P-04b). Use a dedicated folder: retention removes the oldest `Lingo-history-*.zip` files in it.
+- **Daily automatic backup (P-04b):** Lingo → Settings → Data → "Daily backup" → "Choose a folder…". Once a day (checked at launch
+  and every hour while Lingo is open, so a Mac that slept past midnight catches up within the hour) one `Lingo-history-<day>.zip` is
+  written there and the newest 14 are kept. "Back up now" replaces today's file atomically; "Turn off" forgets the folder. A missing
+  or revoked folder shows "Backup failed: …" in Settings and a banner, and nothing is written. Use a dedicated folder: retention removes
+  the oldest `Lingo-history-*.zip` files in it.

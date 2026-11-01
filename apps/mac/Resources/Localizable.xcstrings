@@ -7667,6 +7667,193 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Last backup: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last backup: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя копия: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Backup failed: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup failed: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Копия не создана: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Daily backup failed: %@. Check the folder in Settings → Data.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily backup failed: %@. Check the folder in Settings → Data."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ежедневная копия не создана: %@. Проверьте папку в Настройках → Данные."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose a folder for the daily backup of your history (for example in iCloud Drive or on an external disk).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a folder for the daily backup of your history (for example in iCloud Drive or on an external disk)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите папку для ежедневной копии истории (например, в iCloud Drive или на внешнем диске)."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Backup folder: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup folder: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка для копий: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Daily backup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily backup"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ежедневная копия"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Once a day, a ZIP of your history goes into the chosen folder (the newest 14 are kept). It runs while Lingo is open, or at the next launch.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once a day, a ZIP of your history goes into the chosen folder (the newest 14 are kept). It runs while Lingo is open, or at the next launch."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Раз в день ZIP-архив вашей истории сохраняется в выбранную папку (хранятся 14 последних). Копия делается, пока Lingo открыт, или при следующем запуске."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No folder chosen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No folder chosen"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Папка не выбрана"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Back up now": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back up now"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сделать копию сейчас"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Turn off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выключить"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"
