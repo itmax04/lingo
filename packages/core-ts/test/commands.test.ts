@@ -16,7 +16,13 @@ describe("command vocabulary", () => {
 
 describe("detections written by Swift", () => {
   const rows = readJSON<{ text: string; kind: string | null; argument: string | null }[]>("fixtures/commands/detect.json");
-  it("covers the eval set and the edge cases", () => expect(rows.length).toBeGreaterThanOrEqual(130));
+  it("covers every eval phrase and the edge cases", () => {
+    const texts = new Set(rows.map((r) => r.text));
+    const evalTexts = readdirSync(contractPath("evals/commands")).filter((f) => f.endsWith(".yaml"))
+      .flatMap((f) => (parse(readContract(`evals/commands/${f}`)) as { text: string }[]).map((c) => c.text));
+    expect(evalTexts.filter((t) => !texts.has(t))).toEqual([]);
+    expect(rows.length).toBeGreaterThan(evalTexts.length);
+  });
   it.each(rows.map((r) => [r.text, r] as const))("%j", (_t, r) => {
     const m = detectCommand(r.text);
     expect(m?.kind ?? null).toBe(r.kind);

@@ -708,5 +708,30 @@
     "argument" : null,
     "kind" : "finish",
     "text" : "I think that's all"
+  },
+  {
+    "argument" : "den Unterschied",
+    "kind" : "explain",
+    "text" : "Erklär mir den Unterschied"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "ёще раз"
+  },
+  {
+    "argument" : null,
+    "kind" : null,
+    "text" : "Können Sie langsamer sprechen"
+  },
+  {
+    "argument" : null,
+    "kind" : "continue",
+    "text" : "lets soon"
+  },
+  {
+    "argument" : null,
+    "kind" : "repeat",
+    "text" : "eier bitte"
   }
 ]

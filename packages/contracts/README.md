@@ -28,4 +28,6 @@ Rules
 - Fixtures are synthetic. No personal data, no keys, no real conversations.
 - Never edit a golden fixture by hand to make a test pass; regenerate it from the reference implementation and explain why in the PR.
 - The `ReplySegment` encoding (`{"say":{"_0":"de","_1":"…"}}`) is Swift's synthesized Codable format and is part of the contract.
+- Swift and TS use their platform's Unicode data (Foundation vs Node/ICU); code points added in recent Unicode versions and a few
+  lower-case mappings may differ. The fixtures use ru/de/en text where both agree.
 - Golden fixtures were generated on 2026-10-26 from commit `1e254e7` with a temporary Swift test that used `JournalStore` and `Merger`.

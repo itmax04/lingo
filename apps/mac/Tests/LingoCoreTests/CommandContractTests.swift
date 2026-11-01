@@ -9,7 +9,9 @@ import Testing
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("packages/contracts")
     static let extra = ["я повторил урок", "Повтори, что ты сказал!", "ну, как сказать «Feierabend»?", "Как сказал мой друг, всё хорошо",
                         "почему ты так думаешь о фильмах", "объясни мне пожалуйста разницу между словами das und dass", "  ", "...",
-                        "Wie sagt man „Schlüssel“?", "What does “spot on” mean?", "nochmall", "slowwer", "das war’s", "I think that's all"]
+                        "Wie sagt man „Schlüssel“?", "What does “spot on” mean?", "nochmall", "slowwer", "das war’s", "I think that's all",
+                        // NFD input (decomposed umlaut and ё) and distance ties between kinds, decided by `CommandKind.allCases` order.
+                        "Erkla\u{308}r mir den Unterschied", "е\u{308}ще раз", "Ko\u{308}nnen Sie langsamer sprechen", "lets soon", "eier bitte"]
 
     static func encode(_ value: JSONValue) throws -> String {
         let enc = JSONEncoder()

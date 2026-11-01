@@ -11,7 +11,8 @@ const KEEP = /[\p{L}\p{M}\p{Nd}']/u;
 
 /** As Swift `CommandDetector.normalize`: lower case, umlauts folded, punctuation to spaces, inner apostrophes kept. */
 export function normalizeCommand(s: string): string {
-  const mapped = characters(s.toLowerCase()).map((c) => CHAR_MAP[c] ?? c).join("");
+  // NFC: Swift compares Characters by canonical equivalence, so a decomposed "ä" (a + U+0308) folds like a composed one.
+  const mapped = characters(s.normalize("NFC").toLowerCase().normalize("NFC")).map((c) => CHAR_MAP[c] ?? c).join("");
   const kept = Array.from(mapped, (c) => (KEEP.test(c) ? c : " ")).join("");
   return kept.replaceAll(" '", " ").replaceAll("' ", " ").split(" ").filter((w) => w !== "").join(" ").replace(/^[' ]+|[' ]+$/g, "");
 }

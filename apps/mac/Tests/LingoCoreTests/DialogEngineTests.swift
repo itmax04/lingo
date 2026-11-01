@@ -53,6 +53,8 @@ import Testing
         let (e, store) = try engine { _, _ in .text(["@say en: Nice! And then?"]) }
         let sid = try await e.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.inline]))
         for i in 0..<10 { for await _ in e.send(session: sid, text: "Turn \(i)", lang: .en) {} }
+        // The summary is a detached background request after the turn: wait for it (a slow CI runner lost the race).
+        for _ in 0..<500 where await store.state.sessions[sid]?.summaryThrough == nil { try await Task.sleep(for: .milliseconds(10)) }
         let st = await store.state
         #expect(st.sessions[sid]?.summary == "@say en: Nice! And then?" || !(st.sessions[sid]?.summary.isEmpty ?? true))
         #expect(st.sessions[sid]?.summaryThrough != nil)
