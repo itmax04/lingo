@@ -35,6 +35,11 @@ Status: documents (#50), V-1 (#51), V-2 (#52), P-1 (#53) and P-1b (#54) merged; 
 NOT RUN: the owner cancelled the 23:00 batch (2026-10-31). PAC-03 (eval effect of prompting v2) and PAC-04 (provider tokens) stay open;
 the prepared portions (28 new cases, 34 regression ids, 2 budget cases) can be run on a later night.
 
+## Mac polish after LINGO-08 (2026-11-01, owner: "Mac app first, no web yet")
+| Item | PR | Checks | Notes |
+|---|---|---|---|
+| Launch on Conversations; interruption offsets in Characters; engine and list tests | PR (branch `fix/mac-polish-1`) | PASS: `swift test` 200 tests in 57 suites (2 runs; new: `interruptionOffsetCountsCharacters`, `theLearnerUseCountsWhenTheTurnIsCancelled`, `VocabularyListTests`); `check-core-ios`; `build-app.sh`; `--ui-click-test`; `check-design` 453 strings | LINGO-07 F1: the app opened on the "Today" placeholder, now on Conversations. LINGO-03 D-05: the barge-in mark was written in UTF-16 units and read in Characters, so emoji shifted it. V-2 review N2 (cancelled turn) and V-3 review F4 (list logic) covered by tests; the click test still covers only the voice panel. |
+
 ## Next step
 Review and merge P-1 (code); P-1b eval format, rules and cases (PR-10); tonight E-1 measures provider tokens (PAC-04) and runs the new
 categories and the regression sample; then V-3 (Mac UI).

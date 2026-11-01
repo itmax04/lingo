@@ -127,6 +127,16 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         #expect(msgs.map(\.role) == [.user, .assistant] && msgs[0].text == "Ich wohne in Hamburg.")
     }
 
+    @Test func interruptionOffsetCountsCharacters() {
+        // "👍🏽" is 4 UTF-16 units but one Character; the reader cuts `spokenText` by Characters.
+        let parts = [(tag: 1, text: "👍🏽 Yes!"), (tag: 2, text: "Go on.")]
+        #expect(TurnController.interruptionOffset(parts: parts, stopTag: 1, utf16Offset: 5) == 2)  // after "👍🏽 "
+        #expect(TurnController.interruptionOffset(parts: parts, stopTag: 2, utf16Offset: 3) == 10)  // "👍🏽 Yes! " (7) + "Go " (3)
+        let spoken = parts.map(\.text).joined(separator: " ")
+        #expect(String(spoken.prefix(10)) == "👍🏽 Yes! Go ")
+        #expect(TurnController.interruptionOffset(parts: parts, stopTag: 9, utf16Offset: 1) == 14)  // unknown tag: the whole text plus separators
+    }
+
     @Test func bargeInStopsWithinHalfSecondAndMarksInterrupted() async throws {
         let e = try await env(texts: ["Ich wohne in Hamburg.", "Seit zwei Jahren."])
         e.tc.startContinuous()

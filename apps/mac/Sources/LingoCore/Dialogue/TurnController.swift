@@ -368,14 +368,25 @@ public final class TurnController {
         metrics?.mark(t, "first_audio", at: Double(uptimeNs) / 1e9)
     }
 
+    /// Where speech stopped, in Characters of the spoken text (R-12), the unit the readers use (`spokenText.prefix(at)`; LINGO-03
+    /// D-05). The speech engine reports a UTF-16 position inside the part (word markers and `NSString` lengths), so emoji no longer
+    /// shift the mark; parts are joined by one space, as in `spokenText`.
+    static func interruptionOffset(parts: [(tag: Int, text: String)], stopTag: Int, utf16Offset: Int) -> Int {
+        var offset = 0
+        for p in parts {
+            if p.tag == stopTag {
+                let units = Array(p.text.utf16.prefix(max(0, utf16Offset)))
+                return offset + String(decoding: units, as: UTF16.self).count
+            }
+            offset += p.text.count + 1
+        }
+        return offset
+    }
+
     /// Stop speech; remember where it was interrupted (R-12).
     private func interrupt(reason: String) {
         guard let stop = sink.stopSpeaking() else { return }
-        var offset = 0
-        for p in spokenParts {
-            if p.tag == stop.tag { offset += stop.charOffset; break }
-            offset += (p.text as NSString).length + 1
-        }
+        let offset = Self.interruptionOffset(parts: spokenParts, stopTag: stop.tag, utf16Offset: stop.charOffset)
         interruptedAt = offset
         if let t = speakingTurn { metrics?.note(t, "interrupt", reason) }
         // The reply is already in the journal — mark it "interrupted" now (R-12); otherwise — when the reply is written.

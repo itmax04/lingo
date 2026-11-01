@@ -6,7 +6,7 @@ import Observation
 @MainActor
 @Observable
 final class AppModel {
-    var section: AppSection = .today
+    var section: AppSection = .conversations
     var sessionSearch = ""
     var sessions: [Session] = []
     var selectedSessionID: String?
