@@ -65,7 +65,7 @@ public struct SyncFolder: Sendable {
         return (SyncFolder(picked: url), stale)
     }
 
-    func withAccess<T>(_ body: () throws -> T) rethrows -> T {
+    public func withAccess<T>(_ body: () throws -> T) rethrows -> T {
         let ok = picked.startAccessingSecurityScopedResource()
         defer { if ok { picked.stopAccessingSecurityScopedResource() } }
         return try body()
