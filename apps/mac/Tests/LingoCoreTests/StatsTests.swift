@@ -17,9 +17,9 @@ import Testing
     /// The synthetic journal, built from explicit events (fixed ids), so the fixture is byte-stable.
     static func journal() -> [Event] {
         var out: [Event] = []
-        func add(_ type: String, _ session: String, _ at: Date, _ payload: some Encodable) {
+        func add(_ type: String, _ session: String, _ at: Date, _ payload: some Encodable, device: String = "mac-stats0001", lamport: Int? = nil) {
             let n = out.count + 1
-            out.append(Event(id: String(format: "01M5STATS%017d", n), device: "mac-stats0001", seq: n, lamport: n, ts: at, type: type,
+            out.append(Event(id: String(format: "01M5STATS%017d", n), device: device, seq: n, lamport: lamport ?? n, ts: at, type: type,
                              session: session, payload: try! JSONValue.from(payload)))
         }
         func session(_ id: String, _ lang: Lang, _ at: Date) {
@@ -36,10 +36,13 @@ import Testing
         session("s-de", .de, local(23, 19, 59))
         session("s-en", .en, local(24, 23, 58))
         session("s-gone", .de, local(26, 7, 59))
-        add(EventType.goalSet, "", local(24, 9, 0), Payload.GoalSet(minutes: 5))
-        add(EventType.goalSet, "", local(26, 7, 0), Payload.GoalSet(minutes: 60))
-        add(EventType.goalSet, "", local(26, 7, 1), Payload.GoalSet(minutes: 500))  // clamped to 120 when read; the later event wins
-        add(EventType.goalSet, "", local(26, 7, 2), Payload.GoalSet(minutes: 60))
+        add(EventType.goalSet, "", local(24, 9, 0), Payload.GoalSet(minutes: 1))  // clamped to 5 when read
+        // Oct 25: the last writer is the higher lamport (another device, earlier ts), not the later ts (500 would read as 120).
+        add(EventType.goalSet, "", local(25, 10, 0), Payload.GoalSet(minutes: 3), device: "web-stats0002", lamport: 100)
+        add(EventType.goalSet, "", local(25, 11, 0), Payload.GoalSet(minutes: 500), lamport: 50)
+        add(EventType.goalSet, "", local(26, 7, 0), Payload.GoalSet(minutes: 60), lamport: 201)
+        add(EventType.goalSet, "", local(26, 7, 1), Payload.GoalSet(minutes: 500), lamport: 202)
+        add(EventType.goalSet, "", local(26, 7, 2), Payload.GoalSet(minutes: 60), lamport: 203)
         run("s-de", .de, from: local(23, 20, 0), count: 7)                                   // Oct 23: 6 min, goal 15 → not counted
         run("s-de", .de, from: local(24, 20, 0), count: 7)                                   // Oct 24: 6 min, goal 5 → counted
         add(EventType.messageCreated, "s-de", local(24, 20, 2, 30),
@@ -57,7 +60,18 @@ import Testing
         run("s-en", .en, from: local(24, 23, 58, 30), count: 4)                              // over midnight: 1 min Oct 24, 2 min Oct 25
         // The DST change: 02:58 CEST … 02:04 CET are one local day, 6 minutes apart in real time.
         run("s-en", .en, from: Date(timeIntervalSince1970: 1_792_889_880), count: 7)        // 2026-10-25T00:58:00Z
-        run("s-de", .de, from: local(26, 8, 0), count: 7)                                    // Oct 26: 6 min, goal 60 → not counted
+        run("s-de", .de, from: local(26, 8, 0), count: 7)                                    // Oct 26: 6 min …
+        // … + exactly 10 minutes (still counts, capped at 2 min) + 10 min 1 s (a break): 8 min, goal 60 → not counted.
+        // "Ⅻ" (a letter number) is not a word; U+00A0 separates tokens.
+        add(EventType.messageCreated, "s-de", local(26, 8, 16), Payload.MessageCreated(role: .user, text: "Ⅻ\u{00A0}Mal", lang: .de))
+        add(EventType.messageCreated, "s-de", local(26, 8, 26, 1), Payload.MessageCreated(role: .assistant, text: "Gut.", lang: .de))
+        // Cards: one learning, one due today, one suspended, one new.
+        add(EventType.vocabAdded, "", local(23, 19, 1), Payload.VocabAdded(item: .init(lang: .de, text: "kaufen")))
+        add(EventType.vocabAdded, "", local(23, 19, 2), Payload.VocabAdded(item: .init(lang: .de, text: "rufen")))
+        add(EventType.vocabAdded, "", local(23, 19, 3), Payload.VocabAdded(item: .init(lang: .de, text: "laufen")))
+        add(EventType.cardReviewed, "s-de", local(24, 20, 5), Payload.CardReviewed(card: "word:de:einkaufen", rating: .good, message: "m"))
+        add(EventType.cardReviewed, "s-de", local(23, 20, 5), Payload.CardReviewed(card: "word:de:rufen", rating: .good, message: "m"))
+        add(EventType.cardSuspended, "", local(23, 20, 6), Payload.CardSuspended(card: "word:de:laufen", suspended: true))
         run("s-gone", .de, from: local(26, 9, 0), count: 4)
         add(EventType.fixRecorded, "s-gone", local(26, 9, 1), Payload.FixRecorded(message: "x", fix: fix))
         add(EventType.sessionDeleted, "s-gone", local(26, 10, 0), JSONValue.object([:]))
@@ -87,6 +101,11 @@ import Testing
             "mistakesPer100WordsByWeek": .object(Dictionary(uniqueKeysWithValues: rates.map { (dayKey($0.key), JSONValue.number(($0.value * 1e6).rounded() / 1e6)) })),
             "goalByDay": .object(Dictionary(uniqueKeysWithValues: goalDays.map { (dayKey($0), JSONValue.number(Double(st.goalMinutes(on: $0, calendar: cal)))) })),
             "streak": .number(Double(st.streak(now: now, calendar: cal))),
+            "cardCounts": .object(Dictionary(uniqueKeysWithValues: [Lang.de, .en].map { lang in
+                let c = st.cardCounts(lang: lang, now: now, calendar: cal)
+                return (lang.rawValue, JSONValue.object(["new": .number(Double(c.new)), "learning": .number(Double(c.learning)),
+                                                         "mature": .number(Double(c.mature)), "dueToday": .number(Double(c.dueToday))]))
+            })),
         ])
     }
 
@@ -118,12 +137,22 @@ import Testing
         #expect(day(24).practiceSeconds == 360 + 120 + 60 + 60)
         // Oct 25: 2 min after midnight + 6 min across the DST change.
         #expect(day(25).practiceSeconds == 120 + 360 && day(25).practiceMinutes == 8)
-        #expect(day(26).practiceSeconds == 360)  // the deleted session does not count
+        #expect(day(26).practiceSeconds == 360 + 120)  // the 600 s gap counts (capped), the 601 s gap does not; the deleted session neither
         #expect(day(24).sessions == 2 && day(25).sessions == 1)
         #expect(day(24).learnerWords == 6 * 6)  // 6 learner messages of 6 words ("2" has no letter)
         #expect(day(24).vocabularyUsed == 1 && day(24).mistakes == 2 && day(26).mistakes == 0)
         #expect(st.dayStats(lang: .en, calendar: Self.cal)[Self.cal.startOfDay(for: Self.local(24, 12, 0))]?.practiceSeconds == 60)
         #expect(HistoryState.wordCount("Ich gehe heute 2 Mal einkaufen, ok?") == 6)
+        #expect(day(26).learnerWords == 4 * 6 + 1 && HistoryState.wordCount("Ⅻ\u{00A0}Mal") == 1 && HistoryState.wordCount("  é\u{0085}ß ") == 2)
+        // Order-independent: a shuffled journal with duplicates gives the same days, goals and cards.
+        var rng = SeededRNG(seed: 70)
+        let events = Self.journal()
+        for _ in 0..<10 {
+            let other = Merger.build((events + events.prefix(5)).shuffled(using: &rng))
+            #expect(other.dayStats(calendar: Self.cal) == total)
+            #expect((23...26).map { other.goalMinutes(on: Self.local($0, 12, 0), calendar: Self.cal) } == [15, 5, 5, 60])
+            #expect(other.cardCounts(lang: .de, now: Self.now, calendar: Self.cal) == st.cardCounts(lang: .de, now: Self.now, calendar: Self.cal))
+        }
     }
 
     @Test func goalPerDayAndStreak() async throws {
@@ -137,6 +166,37 @@ import Testing
         #expect(await store.state.goalMinutes(on: Date()) == 5)
         try await e.setDailyGoal(minutes: 999)
         #expect(await store.state.goalMinutes(on: Date()) == 120)
+    }
+
+    @Test func streakIncludesTodayOnceReachedAndStopsAtAnEmptyDay() async throws {
+        let store = try JournalStore(base: tempDir("streak"), deviceName: "Mac", deviceID: "mac-streak")
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
+        try await store.append(EventType.goalSet, session: "", Payload.GoalSet(minutes: 5), at: Self.local(20, 8, 0))
+        for d in [21, 23, 24, 25] {  // Oct 22 is empty
+            for i in 0..<7 {
+                try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: i % 2 == 0 ? .user : .assistant, text: "Hallo", lang: .de),
+                                       at: Self.local(d, 9, i))
+            }
+        }
+        let st = await store.state
+        #expect(st.streak(now: Self.local(25, 20, 0), calendar: Self.cal) == 3)  // today reached: Oct 25, 24, 23
+        #expect(st.streak(now: Self.local(26, 8, 0), calendar: Self.cal) == 3)   // today not yet: from yesterday
+        #expect(st.streak(now: Self.local(27, 8, 0), calendar: Self.cal) == 0)   // yesterday missed
+    }
+
+    @Test func dueTodayMatchesTheQueueOnTheDSTDay() async throws {
+        let store = try JournalStore(base: tempDir("dst-due"), deviceName: "Mac", deviceID: "mac-dst")
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }
+        try await e.addVocabulary(lang: .de, entries: [("eins", "")], source: .list)
+        // Reviewed at 00:30 on the 25-hour day: due 24 h later at 23:30 the same local day — not due today, in the count or the queue.
+        try await store.append(EventType.cardReviewed, session: "w", Payload.CardReviewed(card: "word:de:eins", rating: .again, message: "m"),
+                               at: Self.local(25, 0, 30))
+        let st = await store.state
+        let late = Self.local(25, 23, 45)
+        #expect(st.cardCounts(lang: .de, now: late, calendar: Self.cal).dueToday == 0)
+        #expect(st.dueCards(lang: .de, now: late, calendar: Self.cal).isEmpty)
+        #expect(st.cardCounts(lang: .de, now: Self.local(26, 8, 0), calendar: Self.cal).dueToday == 1)
     }
 
     @Test func cardCountsByState() async throws {

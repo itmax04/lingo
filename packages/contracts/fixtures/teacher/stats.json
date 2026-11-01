@@ -1,5 +1,19 @@
 {
   "calendar" : "Europe/Berlin",
+  "cardCounts" : {
+    "de" : {
+      "dueToday" : 1,
+      "learning" : 2,
+      "mature" : 0,
+      "new" : 1
+    },
+    "en" : {
+      "dueToday" : 0,
+      "learning" : 0,
+      "mature" : 0,
+      "new" : 0
+    }
+  },
   "days" : {
     "de" : {
       "2026-10-23" : {
@@ -19,10 +33,10 @@
         "vocabularyUsed" : 1
       },
       "2026-10-26" : {
-        "learnerWords" : 24,
+        "learnerWords" : 25,
         "mistakes" : 0,
-        "practiceMinutes" : 6,
-        "practiceSeconds" : 360,
+        "practiceMinutes" : 8,
+        "practiceSeconds" : 480,
         "sessions" : 1,
         "vocabularyUsed" : 0
       }
@@ -71,10 +85,10 @@
         "vocabularyUsed" : 0
       },
       "2026-10-26" : {
-        "learnerWords" : 24,
+        "learnerWords" : 25,
         "mistakes" : 0,
-        "practiceMinutes" : 6,
-        "practiceSeconds" : 360,
+        "practiceMinutes" : 8,
+        "practiceSeconds" : 480,
         "sessions" : 1,
         "vocabularyUsed" : 0
       }

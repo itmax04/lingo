@@ -2,13 +2,15 @@ import Foundation
 
 /// Practice of one local day (LINGO-05 GR-01).
 public struct DayStats: Sendable, Hashable {
-    public var practiceSeconds: Double = 0
+    /// Whole milliseconds, so the sum does not depend on summation order (journal timestamps have millisecond precision).
+    public var practiceMs: Int64 = 0
     public var sessions = 0
     public var learnerWords = 0
     public var vocabularyUsed = 0
     public var mistakes = 0
+    public var practiceSeconds: Double { Double(practiceMs) / 1000 }
     /// Shown minutes are rounded down.
-    public var practiceMinutes: Int { Int(practiceSeconds / 60) }
+    public var practiceMinutes: Int { Int(practiceMs / 60_000) }
     public init() {}
 }
 
@@ -25,9 +27,9 @@ public struct GoalSet: Sendable, Hashable {
 }
 
 public extension HistoryState {
-    static let gapCap: TimeInterval = 120
-    /// A longer gap is a break (e.g. a session resumed days later) and adds nothing.
-    static let breakGap: TimeInterval = 600
+    static let gapCapMs: Int64 = 120_000
+    /// A longer gap is a break (e.g. a session resumed days later) and adds nothing; exactly 10 minutes still counts.
+    static let breakGapMs: Int64 = 600_000
     static let defaultGoalMinutes = 15
     static let goalRange = 5...120
     static let matureStability = 21.0
@@ -42,8 +44,8 @@ public extension HistoryState {
             let counted = (messages[s.id] ?? []).filter { $0.kind == .normal }
             // Each gap between consecutive messages, capped at 2 minutes, belongs to the day of the later message; a break adds nothing.
             for (a, b) in zip(counted, counted.dropFirst()) {
-                let gap = max(0, b.createdAt.timeIntervalSince(a.createdAt))
-                out[day(b.createdAt), default: DayStats()].practiceSeconds += gap > Self.breakGap ? 0 : min(Self.gapCap, gap)
+                let gap = max(0, Self.ms(b.createdAt) - Self.ms(a.createdAt))
+                out[day(b.createdAt), default: DayStats()].practiceMs += gap > Self.breakGapMs ? 0 : min(Self.gapCapMs, gap)
             }
             var days: Set<Date> = []
             for m in counted where m.role == .user {
@@ -84,7 +86,7 @@ public extension HistoryState {
         for card in cards(lang: lang) where !suspendedCards.contains(card.id) {
             guard let st = cardState(card.id) else { c.new += 1; continue }
             if st.stability < Self.matureStability { c.learning += 1 } else { c.mature += 1 }
-            if calendar.startOfDay(for: st.due) <= today { c.dueToday += 1 }
+            if Self.isDue(st, today: today, calendar: calendar) { c.dueToday += 1 }
         }
         return c
     }
@@ -101,18 +103,41 @@ public extension HistoryState {
     func streak(now: Date, calendar: Calendar = .autoupdatingCurrent) -> Int {
         let stats = dayStats(calendar: calendar)
         func counted(_ d: Date) -> Bool { (stats[d]?.practiceMinutes ?? 0) >= goalMinutes(on: d, calendar: calendar) }
+        // Snap to the start of day after each step: where DST starts at midnight, "minus one day" does not land on 00:00.
+        func previous(_ d: Date) -> Date { calendar.startOfDay(for: calendar.date(byAdding: .day, value: -1, to: d)!) }
         var d = calendar.startOfDay(for: now)
-        if !counted(d) { d = calendar.date(byAdding: .day, value: -1, to: d)! }
+        if !counted(d) { d = previous(d) }
         var n = 0
         while counted(d) {
             n += 1
-            d = calendar.date(byAdding: .day, value: -1, to: d)!
+            d = previous(d)
         }
         return n
     }
 
-    /// Words of a learner message: tokens split on Unicode whitespace that contain a letter.
+    /// Words of a learner message: tokens split on Unicode `White_Space` scalars that contain a scalar of General Category L (the same
+    /// sets as JavaScript's `\p{White_Space}` and `\p{L}`, so "Ⅻ", a letter number, is not a word).
     static func wordCount(_ text: String) -> Int {
-        text.split(whereSeparator: { $0.isWhitespace }).filter { $0.contains(where: \.isLetter) }.count
+        var count = 0, hasLetter = false, inToken = false
+        for s in text.unicodeScalars {
+            if s.properties.isWhitespace {
+                if inToken && hasLetter { count += 1 }
+                inToken = false; hasLetter = false
+            } else {
+                inToken = true
+                switch s.properties.generalCategory {
+                case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter: hasLetter = true
+                default: break
+                }
+            }
+        }
+        return count + (inToken && hasLetter ? 1 : 0)
     }
+
+    /// A reviewed card is due today (CR-04): last reviewed before today's local day and due on or before it.
+    static func isDue(_ st: CardState, today: Date, calendar: Calendar) -> Bool {
+        calendar.startOfDay(for: st.lastReview) < today && calendar.startOfDay(for: st.due) <= today
+    }
+
+    static func ms(_ d: Date) -> Int64 { Int64((d.timeIntervalSince1970 * 1000).rounded()) }
 }
