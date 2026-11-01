@@ -78,7 +78,10 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 - **WR-02. Turn.** **Current card** = the first id in `activity.cards` without a counted review in this session and not skipped; **next
   card** = the one after it, or none. Every request carries, after `</transcript>`, `<card>` (front, hint, kind of the current card) and
   `<next_card>` (the same for the next card, or `none`; also `none` once the time limit is reached). Front and hint pass `oneLine` and
-  are cut to 60 Characters each. The warm-up mode text (PX-02) tells the model: on the opening turn, set up a short
+  are cut to 60 Unicode scalars each. A card whose source disappeared is passed over without a review. "Reply again" names the card
+  that answer was about and rates nothing; only the card a request named can be rated by its reply. A reply that only grades is
+  followed by a follow-up request. A `@grade` keeps only its leading letters in any case ("Good!" is `good`); silent tags are silent
+  also without a colon. After a barge-in the follow-up reply counts as heard from 0. The warm-up mode text (PX-02) tells the model: on the opening turn, set up a short
   realistic situation or question that needs the current card (never say its front first); after the learner's answer give a short
   natural reaction, at most one correction sentence, the silent `@grade` for the current card, then set up the next card in the same turn
   (still one question per turn); with no next card, a short closing line without a question. The engine, not the model, decides which
@@ -91,7 +94,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   | an answer, no valid `@grade` line | word card used by the local matching (LINGO-08 VR-07b, run in a warm-up regardless of the vocabulary switch) → `good`, else none; a mistake card → none | only when rated |
   | a Russian utterance (rule 5: the model gives a version and asks for a repeat) | none now; the next graded answer on this card is capped at `hard` | no |
   | a local command ("repeat", "slower", "how do I say …") | none | no |
-  | the `continue` command | skip: `again`, `message` = "" | yes |
+  | the `continue` command | skip: `again`, `message` = "" before the request, which then names the next card (no extra request) | yes |
   | the second consecutive answer without a rating (only the "no valid `@grade`" row counts; `wait`, Russian and commands do not) | skip: `again`, `message` = "" | yes |
   The first valid `@grade` line of a reply wins; one received before a barge-in still counts. Only the first review per (session, card)
   counts (CR-02). When the engine advances on its own after the reply was generated (local-match `good`, the `continue` command, the

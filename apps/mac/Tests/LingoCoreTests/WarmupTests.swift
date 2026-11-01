@@ -154,6 +154,10 @@ final class ScriptProvider: LLMProvider, @unchecked Sendable {
         let t0 = Date(timeIntervalSince1970: 1_793_000_000)
         let settings = Warmup.settings(lang: .de, cards: ["word:de:a", "word:de:b"], corrections: [.inline])
         let events = [
+            ev("01M5WU00000000000000000003", device: "mac-wu", seq: 3, lamport: 3, ms: Int64(t0.timeIntervalSince1970 * 1000) - 2000, type: EventType.vocabAdded,
+               session: "", payload: try JSONValue.from(Payload.VocabAdded(item: .init(lang: .de, text: "a")))),
+            ev("01M5WU00000000000000000004", device: "mac-wu", seq: 4, lamport: 4, ms: Int64(t0.timeIntervalSince1970 * 1000) - 1000, type: EventType.vocabAdded,
+               session: "", payload: try JSONValue.from(Payload.VocabAdded(item: .init(lang: .de, text: "b")))),
             ev("01M5WU00000000000000000001", device: "mac-wu", seq: 1, lamport: 1, ms: Int64(t0.timeIntervalSince1970 * 1000), type: EventType.sessionCreated,
                session: "w", payload: try JSONValue.from(Payload.SessionCreated(title: "W", settings: settings))),
             ev("01M5WU00000000000000000002", device: "mac-wu", seq: 2, lamport: 2, ms: Int64(t0.timeIntervalSince1970 * 1000) + 600_000,
@@ -194,4 +198,148 @@ final class ScriptProvider: LLMProvider, @unchecked Sendable {
         let b = PromptBuilder.cardBlock("card", evil)
         #expect(b.components(separatedBy: "</card>").count == 2 && !b.contains("<next_card>"))
     }
+
+    @Test func replyAgainAfterAGradeAndAStaleTurnRateNothingElse() async throws {
+        let (e, store, p, sid, cards) = try await start("wu-again", words: ["eins", "zwei", "drei"], replies: ["@say de: Los!"])
+        p.push("@say de: Richtig!\n@grade: good\n@say de: Nächste?")
+        await say(e, sid, "eins")
+        let learner = try #require(await store.state.messages[sid]?.last { $0.role == .user }?.id)
+        p.push("@say de: Sehr gut!\n@grade: easy\n@say de: Weiter?")
+        for await _ in e.respond(session: sid, replyTo: learner) {}
+        let front0 = try #require(await store.state.card(cards[0], lang: .de)?.front)
+        #expect(lastUser(p).contains("<card>\n\(front0) |"))  // "Reply again" names the card that answer was about
+        var st = await store.state
+        #expect(st.cardReviews[cards[0]]?.map(\.rating) == [.good] && st.cardReviews[cards[1]] == nil)
+        // A turn whose request still named the first card (overlapping turns) cannot rate the next one.
+        #expect(await e.rateWarmupCard(sid, named: cards[0], learnerMessage: learner, command: nil, reply: "@grade: good", said: true) == false)
+        st = await store.state
+        #expect(st.cardReviews[cards[1]] == nil)
+    }
+
+    @Test func gradesAreNormalisedAndTheFirstValidOneWins() {
+        #expect(Warmup.grade(in: "@grade: perfect\n@grade: Good!") == "good")
+        #expect(Warmup.grade(in: "@say de: Ja.\n@grade good.") == "good")
+        #expect(Warmup.grade(in: "@grade: wait\n@grade: easy") == "wait")
+        #expect(Warmup.grade(in: "@say de: Ja.") == nil)
+        #expect(ReplyProtocol.parse("@grade good\n@say de: Ja.", studyLang: .de).segments == [.say(.de, "Ja.")])  // never spoken
+    }
+
+    @Test func aMistakeCardWithoutAGradeIsNotRated() async throws {
+        let p = ScriptProvider(["@say de: Los!"])
+        let (e, store) = try engine("wu-mistake", p)
+        let other = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
+        for (o, c) in [("seit zwei Jahre", "seit zwei Jahren"), ("seit drei Monate", "seit drei Monaten")] {
+            try await store.append(EventType.fixRecorded, session: other, Payload.FixRecorded(message: o, fix: Fix(original: o, corrected: c, rule: "seit + Dativ")))
+        }
+        let sid = try #require(try await e.startWarmup(lang: .de, corrections: [.inline]))
+        for await _ in e.respond(session: sid) {}
+        let card = try #require(await store.state.sessions[sid]?.settings.warmupCards?.first)
+        #expect(card.hasPrefix("mistake:"))
+        p.push("@say de: Hm.")
+        await say(e, sid, "seit zwei Jahren")  // the front itself, but no grade: only word cards use the local match
+        #expect(await store.state.cardReviews[card] == nil)
+    }
+
+    @Test func aGradedReplyThatSaysNothingGetsAFollowUp() async throws {
+        let (e, store, p, sid, cards) = try await start("wu-silent", words: ["eins", "zwei"], replies: ["@say de: Los!"])
+        p.push("@grade: good")
+        p.push("@say de: Und zwei?")
+        await say(e, sid, "eins")
+        #expect(await store.state.cardReviews[cards[0]]?.map(\.rating) == [.good] && lastUser(p).contains("The warm-up moves on"))
+    }
+
+    @Test func aCardWhoseSourceIsGoneIsPassedOverWithoutAReview() async throws {
+        let (e, store, p, sid, cards) = try await start("wu-gone", words: ["eins", "zwei", "drei"], replies: ["@say de: Los!"])
+        let st0 = await store.state
+        let gone = try #require(st0.vocabulary(lang: .de).first { "word:" + VocabularyText.key(lang: .de, text: $0.text) == cards[1] })
+        try await e.removeVocabulary(gone.id)
+        p.push("@say de: Gut!\n@grade: good\n@say de: Weiter.")
+        await say(e, sid, "eins")
+        let st = await store.state
+        let front2 = try #require(st.card(cards[2], lang: .de)?.front)
+        // The request that rated card 0 already named card 2 as next (card 1 is gone); nothing was written for card 1.
+        #expect(lastUser(p).contains("<next_card>\n\(front2) |") && st.cardReviews[cards[1]] == nil)
+        #expect(st.warmupState(session: sid, now: Date())?.current == cards[2])
+    }
+
+    @Test func afterTheLimitACardAlreadySetUpIsStillPractised() async throws {
+        let p = ScriptProvider([])
+        let (e, store) = try engine("wu-limit", p)
+        try await e.addVocabulary(lang: .de, entries: [("eins", ""), ("zwei", ""), ("drei", "")], source: .list)
+        let cards = await store.state.dueCards(lang: .de, now: Date()).map(\.id)
+        let sid = "wu-limit-session"
+        let created = Date().addingTimeInterval(-Warmup.duration - 60)
+        try await store.append(EventType.sessionCreated, session: sid, Payload.SessionCreated(title: "W", settings: Warmup.settings(lang: .de, cards: cards, corrections: [.inline])), at: created)
+        // The request before the deadline named card 1 as next and the model set it up; card 0 was graded after the deadline.
+        try await store.append(EventType.cardReviewed, session: sid, Payload.CardReviewed(card: cards[0], rating: .good, message: "m"),
+                               at: created.addingTimeInterval(Warmup.duration + 30))
+        let st = await store.state
+        #expect(st.warmupState(session: sid, now: Date())?.finished == true)  // not known (e.g. after a restart): the warm-up ends
+        let w = try #require(st.warmupState(session: sid, now: Date(), namedNext: .some(cards[1])))
+        #expect(w.current == cards[1] && w.next == nil && w.timeUp)
+        #expect(st.warmupState(session: sid, now: Date(), namedNext: .some(nil))?.finished == true)
+    }
+
+    @Test func resumeThroughTheEngineNamesTheNextCardAgain() async throws {
+        let p = ScriptProvider([])
+        let (e, store) = try engine("wu-resume", p)
+        try await e.addVocabulary(lang: .de, entries: [("eins", ""), ("zwei", "")], source: .list)
+        let cards = await store.state.dueCards(lang: .de, now: Date()).map(\.id)
+        let sid = "wu-resume-session"
+        try await store.append(EventType.sessionCreated, session: sid, Payload.SessionCreated(title: "W", settings: Warmup.settings(lang: .de, cards: cards, corrections: [.inline])),
+                               at: Date().addingTimeInterval(-3600))
+        #expect(await e.warmupPrompt(sid, followUp: false)?.next == nil)  // time is up
+        try await store.append(EventType.sessionResumed, session: sid, payload: .object([:]))
+        #expect(await e.warmupPrompt(sid, followUp: false)?.next?.id == cards[1])
+    }
+
+    @Test func theFixedClosingLineIsSpokenAndStored() async throws {
+        let (e, store, _, sid, _) = try await start("wu-close", words: ["eins"], replies: ["@say de: Los!"])
+        let (stream, cont) = AsyncStream.makeStream(of: TurnEvent.self)
+        await e.sayWarmupClosing(sid, cont: cont)
+        cont.finish()
+        var spoken: [String] = []
+        for await ev in stream { if case .speak(_, let t) = ev { spoken.append(t) } }
+        #expect(spoken == [Warmup.closingLine(.de)])
+        #expect(await store.state.messages[sid]?.last?.spokenText == Warmup.closingLine(.de))
+    }
+
+    @Test func aWarmUpNeverRequestsTopicPhrasesARecapOrASummary() async throws {
+        let (e, _, p, sid, _) = try await start("wu-quiet", words: ["eins", "zwei"], replies: ["@say de: Los!"])
+        await say(e, sid, "eins")
+        let before = p.all.count
+        await e.generateTopicPhrases(sid)
+        await e.finalizeEnded(sid)
+        await e.maybeSummarize(sid, force: true)
+        #expect(p.all.count == before)
+    }
+
+    @Test func activityWithoutItsFieldsIsNoActivity() throws {
+        func decode(_ activity: String) throws -> SessionSettings {
+            let json = #"{"lang":"de","mode":"questions","topic":"","role":"","level":"","customPrompt":"","corrections":["inline"],"starter":"assistant","activity":"# + activity + "}"
+            return try JSONDecoder().decode(SessionSettings.self, from: Data(json.utf8))
+        }
+        #expect(try decode(#"{"kind":"warmup"}"#).activity == nil)
+        #expect(try decode(#"{"kind":"warmup","cards":[]}"#).activity == nil)
+        #expect(try decode(#"{"kind":"scenario"}"#).activity == nil)
+        #expect(try decode(#"{"kind":"exam","exam":"ielts"}"#).activity == nil)
+        #expect(try decode(#"{"kind":"scenario","id":"de-doctor"}"#).activity?.id == "de-doctor")
+    }
+
+    /// Snapshots of the warm-up system part and an opening request (PX-03); re-record with LINGO_RECORD_SNAPSHOTS=1.
+    @Test func warmupPromptSnapshots() throws {
+        let dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("packages/contracts/prompts")
+        let s = Warmup.settings(lang: .de, cards: ["word:de:feierabend", "mistake:de:seit dativ"], corrections: [.inline, .after], level: "A2")
+        let card = Card(id: "word:de:feierabend", lang: .de, kind: .word, front: "Feierabend", hint: "конец рабочего дня", createdAt: Date())
+        let next = Card(id: "mistake:de:seit dativ", lang: .de, kind: .mistake, front: "seit zwei Jahren", hint: "seit + Dativ", createdAt: Date())
+        let req = PromptBuilder.dialogRequest(settings: s, summary: "", messages: [], warmup: .init(card: card, next: next))
+        let files = ["prompt-warmup-inline+after.txt": req.system, "request-warmup-opening.txt": req.messages[0].text]
+        for (name, text) in files {
+            let url = dir.appendingPathComponent(name)
+            if ProcessInfo.processInfo.environment["LINGO_RECORD_SNAPSHOTS"] == "1" { try text.write(to: url, atomically: true, encoding: .utf8); continue }
+            #expect(try String(contentsOf: url, encoding: .utf8) == text, "snapshot \(name) changed")
+        }
+    }
 }
+

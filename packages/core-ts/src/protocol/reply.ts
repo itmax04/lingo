@@ -26,7 +26,14 @@ function tagged(raw: string): { tag: string; body: string } | null {
   line = line.replaceAll("**", "");
   if (characters(line)[0] !== "@") return null;
   const colon = indexOfCharacter(line, ":");
-  if (colon < 0) return null;
+  if (colon < 0) {
+    // No colon: the first word is the tag, the rest the body ("@grade good").
+    const rest = line.slice(1);
+    const space = rest.indexOf(" ");
+    const first = space < 0 ? rest : rest.slice(0, space);
+    if (first === "") return null;
+    return { tag: first.toLowerCase(), body: space < 0 ? "" : trimSpaces(rest.slice(space + 1)) };
+  }
   const tag = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "")[0] ?? "";
   return { tag, body: trimSpaces(line.slice(colon + 1)) };
 }
@@ -73,6 +80,9 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
   if (line === "") return [null, false];
   // Character comparisons, as Swift: "@" followed by a combining mark is a different Character.
   if (characters(line)[0] !== "@") return [say(studyLang, line), true];
+  // A silent tag stays silent even without its colon ("@grade good").
+  const silent = tagged(line);
+  if (silent !== null && SILENT_TAGS.has(silent.tag)) return [null, false];
   const colon = indexOfCharacter(line, ":");
   if (colon < 0) return [say(studyLang, line.slice(1)), true];
   const head = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "");

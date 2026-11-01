@@ -171,4 +171,23 @@ public struct Activity: Codable, Sendable, Hashable {
     }
 
     public static func warmup(_ cards: [String]) -> Activity { Activity(kind: .warmup, cards: cards) }
+
+    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks }
+
+    /// Malformed content for its kind throws, so `SessionSettings` decodes it as no activity (PX-05).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try c.decode(Kind.self, forKey: .kind)
+        cards = try c.decodeIfPresent([String].self, forKey: .cards)
+        id = try c.decodeIfPresent(String.self, forKey: .id)
+        exam = try c.decodeIfPresent(String.self, forKey: .exam)
+        tasks = try c.decodeIfPresent([String].self, forKey: .tasks)
+        let valid: Bool
+        switch kind {
+        case .warmup: valid = !(cards ?? []).isEmpty
+        case .scenario: valid = !(id ?? "").isEmpty
+        case .exam: valid = !(exam ?? "").isEmpty && !(tasks ?? []).isEmpty
+        }
+        guard valid else { throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "activity without its fields") }
+    }
 }

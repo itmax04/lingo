@@ -1,0 +1,13 @@
+<transcript>
+
+</transcript>
+
+<card>
+Feierabend | конец рабочего дня | word
+</card>
+
+<next_card>
+seit zwei Jahren | seit + Dativ | mistake
+</next_card>
+
+The transcript is empty: open the warm-up with one short greeting and set up <card>.

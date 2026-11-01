@@ -45,10 +45,11 @@ public enum Warmup {
         lang == .de ? "Das war's für heute. Gut gemacht!" : "That's it for today. Well done!"
     }
 
-    /// The rating in a reply: the first valid `@grade` line ("wait" included), nil when there is none (WR-03).
+    /// The rating in a reply: the first valid `@grade` line ("wait" included), nil when there is none (WR-03). Only the leading letters
+    /// count, in any case: "Good!" and "good." are `good`.
     public static func grade(in reply: String) -> String? {
         let valid = Set(CardRating.allCases.map(\.rawValue) + ["wait"])
-        return ReplyProtocol.silentValues(reply, tag: "grade").map { $0.lowercased() }.first { valid.contains($0) }
+        return ReplyProtocol.silentValues(reply, tag: "grade").map { String($0.lowercased().prefix { $0.isLetter }) }.first { valid.contains($0) }
     }
 
     /// A rating capped at `hard` after a Russian turn on the card.
@@ -58,8 +59,9 @@ public enum Warmup {
 }
 
 public extension HistoryState {
-    /// The state of a warm-up session at `now`; nil for other sessions.
-    func warmupState(session sid: String, now: Date) -> WarmupState? {
+    /// The state of a warm-up session at `now`; nil for other sessions. `namedNext` is the `<next_card>` of the last request (`.some(nil)`
+    /// = none; `.none` = not known, e.g. after a restart): after the time limit a card already set up is still practised.
+    func warmupState(session sid: String, now: Date, namedNext: String?? = .none) -> WarmupState? {
         guard let s = sessions[sid], let cards = s.settings.warmupCards else { return nil }
         var reviewed: [String: CardRating] = [:]
         var lastReview: Date?
@@ -71,11 +73,15 @@ public extension HistoryState {
         let startedAt = max(s.createdAt, s.resumedAt ?? s.createdAt)
         let deadline = startedAt.addingTimeInterval(Warmup.duration)
         let timeUp = now >= deadline
-        let open = cards.filter { reviewed[$0] == nil }
-        // After the limit, the card in progress is finished and the warm-up ends with its review.
-        let doneAfterLimit = timeUp && (lastReview.map { $0 >= deadline } ?? false)
-        let current = doneAfterLimit ? nil : open.first
-        let next = timeUp || current == nil ? nil : open.dropFirst().first
+        // A card whose source disappeared (item removed, session deleted) is passed over without a review (CR-01 keeps reviews meaningful).
+        let existing = Set(self.cards(lang: s.settings.lang).map(\.id))
+        let open = cards.filter { reviewed[$0] == nil && existing.contains($0) }
+        // After the limit: the card in progress is finished — and a next card the last request already set up — then the warm-up ends.
+        var current = open.first
+        if timeUp, lastReview.map({ $0 >= deadline }) ?? false {
+            if case .some(.some(let x)) = namedNext, open.contains(x) { current = x } else { current = nil }
+        }
+        let next = timeUp || current == nil ? nil : open.drop { $0 != current }.dropFirst().first
         // Learner turns on the current card: after the last review of this session.
         var unrated = 0, russian = false
         let msgs = (messages[sid] ?? []).filter { $0.kind == .normal }

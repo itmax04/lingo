@@ -314,6 +314,9 @@ public final class TurnController {
         speakingMessageID = nil
         speakingSessionID = ctx.session.id
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        // A turn can carry a second reply (the warm-up follow-up, LINGO-05 WR-03): after a barge-in it is not spoken, so it was heard
+        // from 0, not from the first reply's offset.
+        var markedInterrupted = false
         for await e in stream {
             onTurn?(e)
             switch e {
@@ -338,8 +341,9 @@ public final class TurnController {
             case .finished(let mid, _, _, _):
                 if speakingTurn == turnID { speakingMessageID = mid }
                 if let at = interruptedAt, speakingTurn == turnID || speakingTurn == nil {
-                    try? await engine.markInterrupted(mid, session: ctx.session.id, at: at)
-                    metrics?.note(turnID, "interrupted_at", String(at))
+                    try? await engine.markInterrupted(mid, session: ctx.session.id, at: markedInterrupted ? 0 : at)
+                    if !markedInterrupted { metrics?.note(turnID, "interrupted_at", String(at)) }
+                    markedInterrupted = true
                 }
                 metrics?.note(turnID, "message", mid)
             case .failed(let reason, _):

@@ -49,6 +49,8 @@ public enum ReplyProtocol {
         line = line.replacingOccurrences(of: "**", with: "")
         guard !line.isEmpty else { return (nil, false) }
         guard line.hasPrefix("@") else { return (.say(studyLang, line), true) }
+        // A silent tag stays silent even without its colon ("@grade good"): it must never be spoken.
+        if let t = tagged(line), silentTags.contains(t.tag) { return (nil, false) }
         guard let colon = line.firstIndex(of: ":") else { return (.say(studyLang, String(line.dropFirst())), true) }
         let head = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ")
         let body = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
@@ -84,9 +86,15 @@ public enum ReplyProtocol {
         var line = Substring(raw).trimmingCharacters(in: .whitespaces)
         while let f = line.first, "-*•>".contains(f) { line.removeFirst(); line = line.trimmingCharacters(in: .whitespaces) }
         line = line.replacingOccurrences(of: "**", with: "")
-        guard line.hasPrefix("@"), let colon = line.firstIndex(of: ":") else { return nil }
-        let tag = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ").first.map(String.init) ?? ""
-        return (tag, line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces))
+        guard line.hasPrefix("@") else { return nil }
+        if let colon = line.firstIndex(of: ":") {
+            let tag = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ").first.map(String.init) ?? ""
+            return (tag, line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces))
+        }
+        // No colon: the first word is the tag, the rest the body ("@grade good").
+        let words = line.dropFirst().split(separator: " ", maxSplits: 1)
+        guard let first = words.first else { return nil }
+        return (first.lowercased(), words.count > 1 ? words[1].trimmingCharacters(in: .whitespaces) : "")
     }
 
     /// Bodies of the silent `tag` lines in order (`@grade: good` → "good"), from the raw reply text.
