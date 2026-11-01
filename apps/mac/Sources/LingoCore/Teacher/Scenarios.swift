@@ -58,8 +58,8 @@ public enum ScenarioCatalog {
                   "Fragen Sie, wann und wie Sie die Meldebescheinigung bekommen."],
           phrases: [("Ich möchte meinen neuen Wohnsitz anmelden.", "Я хочу зарегистрировать новое место жительства."),
                     ("Die Wohnungsgeberbestätigung habe ich leider vergessen.", "Подтверждение от арендодателя я, к сожалению, забыл."),
-                    ("Kann ich das Dokument per E-Mail nachreichen?", "Могу я донести документ по электронной почте?"),
-                    ("Ich bin am ersten Oktober eingezogen.", "Я въехал первого октября.")]),
+                    ("Kann ich das Dokument per E-Mail nachreichen?", "Можно прислать документ позже по электронной почте?"),
+                    ("Ich bin letzte Woche eingezogen.", "Я въехал на прошлой неделе.")]),
         s("de-auslaenderbehoerde", .de, "B1", "Aufenthaltstitel verlängern", en: "Extending a residence permit", ru: "Продление вида на жительство",
           role: "Sachbearbeiterin in der Ausländerbehörde",
           situation: "Ihr Aufenthaltstitel läuft in drei Wochen ab. Sie haben einen Termin, aber der aktuelle Gehaltsnachweis fehlt noch, weil Ihr Arbeitgeber ihn erst nächste Woche schickt.",
@@ -68,9 +68,9 @@ public enum ScenarioCatalog {
                   "Fragen Sie nach der Frist für die fehlenden Unterlagen.",
                   "Fragen Sie, ob Sie bis zur Entscheidung eine Fiktionsbescheinigung bekommen."],
           phrases: [("Ich möchte meinen Aufenthaltstitel verlängern.", "Я хочу продлить вид на жительство."),
-                    ("Mein Titel läuft am 20. November ab.", "Мой ВНЖ истекает 20 ноября."),
+                    ("Mein Titel läuft in drei Wochen ab.", "Мой ВНЖ истекает через три недели."),
                     ("Bis wann muss ich die Unterlagen nachreichen?", "До какого срока нужно донести документы?"),
-                    ("Bekomme ich eine Fiktionsbescheinigung?", "Я получу фикционсбешайнигунг (временный документ)?")]),
+                    ("Bekomme ich eine Fiktionsbescheinigung?", "Мне выдадут временное удостоверение (Fiktionsbescheinigung)?")]),
         s("de-besichtigung", .de, "B1", "Wohnungsbesichtigung", en: "Flat viewing", ru: "Осмотр квартиры",
           role: "Vermieterin einer Zweizimmerwohnung",
           situation: "Sie besichtigen eine Zweizimmerwohnung in Ihrer Stadt. Es gibt viele Interessenten, und die Vermieterin möchte schnell entscheiden.",
@@ -95,7 +95,7 @@ public enum ScenarioCatalog {
                     ("Wann bekomme ich die Bankkarte?", "Когда я получу банковскую карту?")]),
         s("de-reklamation", .de, "B1", "Reklamation im Geschäft", en: "Returning a faulty product", ru: "Возврат неисправного товара",
           role: "Verkäufer in einem Elektronikmarkt",
-          situation: "Sie haben vor einer Woche Kopfhörer gekauft. Seitdem funktioniert die linke Seite nicht mehr. Den Kassenbon haben Sie dabei.",
+          situation: "Sie haben vor einer Woche Kopfhörer gekauft. Seit gestern funktioniert die linke Seite nicht mehr. Den Kassenbon haben Sie dabei.",
           tasks: ["Beschreiben Sie das Problem genau.",
                   "Zeigen Sie den Kassenbon und sagen Sie, wann Sie gekauft haben.",
                   "Verlangen Sie einen Umtausch oder Ihr Geld zurück.",
@@ -106,7 +106,7 @@ public enum ScenarioCatalog {
                     ("Ich hätte lieber mein Geld zurück.", "Я бы предпочёл вернуть деньги.")]),
         s("de-zug", .de, "B1", "Zug fällt aus", en: "A cancelled train", ru: "Поезд отменили",
           role: "Mitarbeiterin im Reisezentrum am Bahnhof",
-          situation: "Ihr Zug nach München ist ausgefallen, und Sie verpassen den Anschluss zu einem wichtigen Termin. Sie gehen ins Reisezentrum.",
+          situation: "Ihr Zug nach München ist ausgefallen, und Sie verpassen Ihren Anschlusszug zu einem wichtigen Termin. Sie gehen ins Reisezentrum.",
           tasks: ["Erklären Sie die Situation und wohin Sie müssen.",
                   "Fragen Sie nach der schnellsten Alternative.",
                   "Fragen Sie, ob Sie eine Entschädigung bekommen.",
@@ -137,7 +137,7 @@ public enum ScenarioCatalog {
           phrases: [("Kurz zum Stand meines Projekts:", "Коротко о статусе моего проекта:"),
                     ("Leider hat sich die Lieferung verzögert.", "К сожалению, поставка задержалась."),
                     ("Ich schlage vor, dass wir …", "Я предлагаю, чтобы мы …"),
-                    ("Ich kümmere mich darum bis Freitag.", "Я займусь этим до пятницы.")]),
+                    ("Ich kümmere mich bis Freitag darum.", "Я займусь этим до пятницы.")]),
         // English: work and travel.
         s("en-interview", .en, "B1", "Job interview", en: "Job interview", ru: "Собеседование",
           role: "hiring manager at a software company",
@@ -217,6 +217,7 @@ public extension Scenario {
 
     /// A completed task number from a reply's `@task` lines: the leading digits, within 1…tasks.count.
     func completedTasks(in reply: String) -> [Int] {
+        // "@task: 0" and negative numbers are not tasks.
         ReplyProtocol.silentValues(reply, tag: "task").compactMap { Int($0.prefix { $0.isNumber }) }.filter { (1...tasks.count).contains($0) }
     }
 }
@@ -230,10 +231,18 @@ public extension HistoryState {
         }
     }
 
-    /// The learner's level in a language (GR-03): the CEFR level of the latest live session; A1, empty or custom text → A2, C1/C2 → B2.
+    /// The level the learner chose last in a language: the newest live ordinary session (not a warm-up, scenario or exam) with a level;
+    /// "" when none. Teacher sessions store levels the learner did not choose, so they never count.
+    func learnerChosenLevel(lang: Lang) -> String {
+        sessions.values.filter { !$0.deleted && $0.settings.lang == lang && $0.settings.activity == nil
+            && !$0.settings.level.trimmingCharacters(in: .whitespaces).isEmpty }
+            .max { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }?.settings.level ?? ""
+    }
+
+    /// The learner's level in a language (GR-03): the chosen level (above) on the catalogue scale; A1, none or custom text → A2,
+    /// C1/C2 → B2.
     func learnerLevel(lang: Lang) -> String {
-        let latest = sessions.values.filter { !$0.deleted && $0.settings.lang == lang }.max { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
-        switch latest?.settings.level.trimmingCharacters(in: .whitespaces).uppercased() {
+        switch learnerChosenLevel(lang: lang).trimmingCharacters(in: .whitespaces).uppercased() {
         case "B1": return "B1"
         case "B2", "C1", "C2": return "B2"
         default: return "A2"

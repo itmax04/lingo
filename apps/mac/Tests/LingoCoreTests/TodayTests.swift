@@ -10,7 +10,7 @@ import Testing
         return (DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }, store)
     }
 
-    @Test func emptyJournalPlansBothLanguagesWithFreeConversation() async throws {
+    @Test func emptyJournalPlansBothLanguagesWithTheFirstScenario() async throws {
         let (_, store) = try engine("today-empty")
         let t = await store.state.todaySummary(now: StatsTests.now, calendar: Self.cal)
         #expect(t.plans.map(\.lang) == [.de, .en] && t.plans.map(\.next) == [.scenario(id: "de-doctor"), .scenario(id: "en-small-talk")])

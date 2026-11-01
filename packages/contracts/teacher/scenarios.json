@@ -50,11 +50,11 @@
         },
         {
           "text" : "Kann ich das Dokument per E-Mail nachreichen?",
-          "translation" : "Могу я донести документ по электронной почте?"
+          "translation" : "Можно прислать документ позже по электронной почте?"
         },
         {
-          "text" : "Ich bin am ersten Oktober eingezogen.",
-          "translation" : "Я въехал первого октября."
+          "text" : "Ich bin letzte Woche eingezogen.",
+          "translation" : "Я въехал на прошлой неделе."
         }
       ],
       "role" : "Sachbearbeiter im Bürgeramt",
@@ -79,8 +79,8 @@
           "translation" : "Я хочу продлить вид на жительство."
         },
         {
-          "text" : "Mein Titel läuft am 20. November ab.",
-          "translation" : "Мой ВНЖ истекает 20 ноября."
+          "text" : "Mein Titel läuft in drei Wochen ab.",
+          "translation" : "Мой ВНЖ истекает через три недели."
         },
         {
           "text" : "Bis wann muss ich die Unterlagen nachreichen?",
@@ -88,7 +88,7 @@
         },
         {
           "text" : "Bekomme ich eine Fiktionsbescheinigung?",
-          "translation" : "Я получу фикционсбешайнигунг (временный документ)?"
+          "translation" : "Мне выдадут временное удостоверение (Fiktionsbescheinigung)?"
         }
       ],
       "role" : "Sachbearbeiterin in der Ausländerbehörde",
@@ -194,7 +194,7 @@
         }
       ],
       "role" : "Verkäufer in einem Elektronikmarkt",
-      "situation" : "Sie haben vor einer Woche Kopfhörer gekauft. Seitdem funktioniert die linke Seite nicht mehr. Den Kassenbon haben Sie dabei.",
+      "situation" : "Sie haben vor einer Woche Kopfhörer gekauft. Seit gestern funktioniert die linke Seite nicht mehr. Den Kassenbon haben Sie dabei.",
       "tasks" : [
         "Beschreiben Sie das Problem genau.",
         "Zeigen Sie den Kassenbon und sagen Sie, wann Sie gekauft haben.",
@@ -228,7 +228,7 @@
         }
       ],
       "role" : "Mitarbeiterin im Reisezentrum am Bahnhof",
-      "situation" : "Ihr Zug nach München ist ausgefallen, und Sie verpassen den Anschluss zu einem wichtigen Termin. Sie gehen ins Reisezentrum.",
+      "situation" : "Ihr Zug nach München ist ausgefallen, und Sie verpassen Ihren Anschlusszug zu einem wichtigen Termin. Sie gehen ins Reisezentrum.",
       "tasks" : [
         "Erklären Sie die Situation und wohin Sie müssen.",
         "Fragen Sie nach der schnellsten Alternative.",
@@ -291,7 +291,7 @@
           "translation" : "Я предлагаю, чтобы мы …"
         },
         {
-          "text" : "Ich kümmere mich darum bis Freitag.",
+          "text" : "Ich kümmere mich bis Freitag darum.",
           "translation" : "Я займусь этим до пятницы."
         }
       ],

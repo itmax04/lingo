@@ -229,7 +229,7 @@ public actor DialogEngine {
             }
             if !items.isEmpty { try await store.appendBatch(items) }
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: mid, segments: full.segments)
-            await recordScenarioTasks(session, reply: parser.text, message: replyTo ?? mid)
+            if let learner = replyTo { await recordScenarioTasks(session, reply: parser.text, message: learner) }  // only the learner completes tasks
             let said = full.segments.contains { if case .say = $0 { return true }; return false }
             let moved = await rateWarmupCard(session, named: warmup?.card?.id, learnerMessage: replyTo, command: command, reply: parser.text, said: said)
             cont.yield(.finished(messageID: mid, label: label, segments: full.segments, violations: full.violations))

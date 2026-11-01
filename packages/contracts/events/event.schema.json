@@ -995,7 +995,7 @@
         },
         "message": {
           "type": "string",
-          "description": "the learner message the task was completed in (the reply's id for an assistant-opened task)"
+          "description": "the learner message the task was completed in"
         }
       }
     }

@@ -188,7 +188,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 - **GR-03. Today screen** (replaces the placeholder; reference `mac-today-overview`): a plan row per study language (languages with a
   session in the last 30 days, otherwise German and English) with the **next activity**: the warm-up if that language's queue (CR-04) is
   not empty; otherwise the first scenario in catalogue order that is not done, at the **learner's level** (the CEFR level of the latest live
-  session of that language; A1, empty or custom text → A2, C1 and C2 → B2; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
+  ordinary session of that language that has one — warm-ups, scenarios and exams never count; A1, empty or custom text → A2, C1 and C2 → B2; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
   the warm-up card (queue size, about N minutes with N = ⌈min(queue, 8) × 0.6⌉, start), the daily goal ring and the streak (7 days of dots), and
   "Continue conversation".
 - **GR-04. Progress screen** (replaces the placeholder): practice minutes of the last 7 / 30 days (bars), learner words and mistakes per

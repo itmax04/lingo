@@ -259,7 +259,7 @@ public enum Merger {
                 guard let p = try? e.payload.decode(Payload.CardSuspended.self) else { st.unknownEvents += 1; continue }
                 suspended[p.card, default: LWW(false)].apply(p.suspended, ver)
             case EventType.scenarioTask:
-                guard let p = try? e.payload.decode(Payload.ScenarioTask.self) else { st.unknownEvents += 1; continue }
+                guard let p = try? e.payload.decode(Payload.ScenarioTask.self), p.task >= 1 else { st.unknownEvents += 1; continue }
                 if !(st.scenarioTasks[e.session] ?? []).contains(p.task) { st.scenarioTasks[e.session, default: []].append(p.task) }
             case EventType.goalSet:
                 guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }

@@ -34,6 +34,7 @@ final class AppModel {
     var banner: String?
     /// Languages whose warm-up is being started (a repeated click is ignored).
     var startingWarmup: Set<Lang> = []
+    var startingScenario = false
     var readOnly = false
     var memoryNote: String?
     var showNewSession = false

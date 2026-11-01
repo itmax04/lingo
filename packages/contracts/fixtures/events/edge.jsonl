@@ -35,3 +35,4 @@
 {"device":"mac-edge0001","id":"01M5RJNTBP0000000000000013","lamport":35,"payload":{"minutes":"thirty"},"seq":33,"session":"","ts":"2026-10-25T03:46:40.118Z","type":"goal.set","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTBQ0000000000000014","lamport":36,"payload":{"message":"01M5RJNT980000000000000006","task":2},"seq":34,"session":"s-edge","ts":"2026-10-25T03:46:40.119Z","type":"scenario.task","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTBR0000000000000015","lamport":37,"payload":{"task":"two"},"seq":35,"session":"s-edge","ts":"2026-10-25T03:46:40.120Z","type":"scenario.task","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBS0000000000000016","lamport":38,"payload":{"message":"m","task":0},"seq":36,"session":"s-edge","ts":"2026-10-25T03:46:40.121Z","type":"scenario.task","v":1}

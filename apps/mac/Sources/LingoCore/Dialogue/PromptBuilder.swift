@@ -95,7 +95,7 @@ public enum PromptBuilder {
         r.append("9. You see only a summary and the last \(policy.maxTurns) turns.")
         p.append(r.joined(separator: "\n"))
 
-        p.append(protocolText(s.lang) + (s.warmupCards != nil ? "\n" + warmupProtocolLine : "") + (s.scenarioID != nil ? "\n" + scenarioProtocolLine : ""))
+        p.append(protocolText(s.lang, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (s.scenarioID != nil ? [scenarioProtocolLine] : [])))
         if let sc = s.scenarioID.flatMap(ScenarioCatalog.scenario) { p.append(scenarioBlock(sc)) }
 
         if s.mode == .customPrompt {
@@ -186,7 +186,7 @@ public enum PromptBuilder {
         }
     }
 
-    static func protocolText(_ lang: Lang) -> String {
+    static func protocolText(_ lang: Lang, extra: [String] = []) -> String {
         let L = lang.rawValue
         let example: String
         switch lang {
@@ -208,7 +208,7 @@ public enum PromptBuilder {
         @say ru: Russian, only for a requested explanation
         @fix: <learner's words> → <natural version> | <short rule in Russian>
         @hint \(L): <useful phrase> | <Russian translation> (at most 2)
-        @heard: <the learner's utterance as understood> (rule 4a)
+        @heard: <the learner's utterance as understood> (rule 4a)\(extra.map { "\n" + $0 }.joined())
         No markdown, lists or emojis. @fix, @hint and @heard are not spoken.
         Example:
         \(example)
@@ -244,7 +244,7 @@ public enum PromptBuilder {
     // MARK: Scenario (LINGO-05 SR-02, PX-02, PX-03)
 
     /// The scenario mode (≤ 150 provider tokens).
-    static let scenarioModeText = "Scenario. Play the role in <scenario> in a realistic way and lead the learner through its tasks in order, without naming them as tasks; react to what they say. When the learner has completed a task, add the silent line @task: <number>. After the last task, close the situation naturally."
+    static let scenarioModeText = "Scenario. Play the role in <scenario>; its situation and tasks are the learner's. Lead them through the tasks in order without naming them as tasks; react to what they say. <scenario_progress> lists tasks already done: never mark them again; continue with the first one not done. When the learner has completed a task, add the silent line @task: <number>. After the last task, close the situation naturally."
 
     static let scenarioProtocolLine = "@task: <number> (scenario only, once per completed task, not spoken)"
 

@@ -3,7 +3,8 @@ import SwiftUI
 
 /// A scenario title in the interface language (Russian or English).
 func scenarioTitle(_ sc: Scenario) -> String {
-    InterfacePreferences.localeIdentifier.hasPrefix("ru") ? sc.title_ru : sc.title_en
+    // The language the interface strings actually resolve to (the same bundle lookup SwiftUI uses).
+    (Bundle.main.preferredLocalizations.first ?? "en").hasPrefix("ru") ? sc.title_ru : sc.title_en
 }
 
 /// The scenario picker (LINGO-05 SR-01): the catalogue of a language with levels and done marks.

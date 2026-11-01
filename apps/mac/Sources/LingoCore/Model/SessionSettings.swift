@@ -154,7 +154,13 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     }
 
     /// Header subtitle: "<mode> in <language>" (R-40).
-    public var subtitle: String { "\(mode.title) \(lang.inLanguagePhrase)" }
+    public var subtitle: String {
+        switch activity?.kind {
+        case .warmup: "\(String(localized: "Warm-up")) \(lang.inLanguagePhrase)"
+        case .scenario: "\(String(localized: "Scenario")) \(lang.inLanguagePhrase)"
+        default: "\(mode.title) \(lang.inLanguagePhrase)"
+        }
+    }
 }
 
 /// A teacher activity of a session (LINGO-05 WR-01, SR-02, XR-02). Only the fields of its kind are set.

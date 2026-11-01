@@ -31,8 +31,8 @@ Only these tagged lines, one per line:
 @fix: <learner's words> → <natural version> | <short rule in Russian>
 @hint de: <useful phrase> | <Russian translation> (at most 2)
 @heard: <the learner's utterance as understood> (rule 4a)
+@grade: again|hard|good|easy|wait (warm-up only, one per reply, not spoken)
 No markdown, lists or emojis. @fix, @hint and @heard are not spoken.
 Example:
 @say de: Fast! Natürlicher: „Ich wohne seit zwei Jahren hier.“ Sag das bitte noch einmal.
 @fix: Ich wohne hier seit zwei Jahre → Ich wohne seit zwei Jahren hier | seit + Dativ
-@grade: again|hard|good|easy|wait (warm-up only, one per reply, not spoken)

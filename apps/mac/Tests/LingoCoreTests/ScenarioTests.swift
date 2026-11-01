@@ -97,4 +97,45 @@ import Testing
         if ProcessInfo.processInfo.environment["LINGO_RECORD_SNAPSHOTS"] == "1" { try text.write(to: url, atomically: true, encoding: .utf8); return }
         #expect(try String(contentsOf: url, encoding: .utf8) == text)
     }
+
+    @Test func theLevelComesFromTheLearnersOwnSessionsNotFromTeacherOnes() async throws {
+        let store = try JournalStore(base: tempDir("sc-level"), deviceName: "Mac", deviceID: "mac-sc3")
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }
+        _ = try await e.createSession(SessionSettings(lang: .de, mode: .free, level: "B2", corrections: [.after]))
+        try await e.addVocabulary(lang: .de, entries: [("eins", "")], source: .list)
+        _ = try await e.startWarmup(lang: .de, corrections: [.inline])  // stores no level
+        _ = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))  // no level chosen
+        let st = await store.state
+        #expect(st.learnerChosenLevel(lang: .de) == "B2" && st.learnerLevel(lang: .de) == "B2" && st.nextScenario(lang: .de)?.id == "de-meeting")
+        // A scenario keeps the chosen level, or its own level when none was chosen.
+        let sid = try #require(try await e.startScenario("de-doctor", corrections: [.inline], level: st.learnerChosenLevel(lang: .de)))
+        let en = try #require(try await e.startScenario("en-airport", corrections: [.inline], level: st.learnerChosenLevel(lang: .en)))
+        let after = await store.state
+        #expect(after.sessions[sid]?.settings.level == "B2" && after.sessions[en]?.settings.level == "A2")
+        #expect(after.learnerChosenLevel(lang: .de) == "B2")  // scenario sessions never count
+    }
+
+    @Test func onlyTheLearnerCompletesTasks() async throws {
+        let p = ScriptProvider(["@say en: Hello, how can I help?\n@task: 1"])
+        let store = try JournalStore(base: tempDir("sc-open"), deviceName: "Mac", deviceID: "mac-sc4")
+        let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 2)
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: InMemorySecretStore(["k": "synthetic"]), health: ProviderHealth(), providers: [.groq: p]) }
+        let sid = try #require(try await e.startScenario("en-airport", corrections: [.inline]))
+        for await _ in e.respond(session: sid) {}
+        #expect(await store.state.scenarioTasks[sid] == nil)  // the opening turn marks nothing
+        #expect(ScenarioCatalog.scenario("en-airport")!.completedTasks(in: "@task: 0\n@task: -1") == [])
+    }
+
+    @Test func allScenariosDoneLeavesFreeConversation() async throws {
+        let store = try JournalStore(base: tempDir("sc-all"), deviceName: "Mac", deviceID: "mac-sc5")
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }
+        for sc in ScenarioCatalog.scenarios(lang: .en) {
+            let sid = try #require(try await e.startScenario(sc.id, corrections: [.inline]))
+            for n in 1...sc.tasks.count { try await store.append(EventType.scenarioTask, session: sid, Payload.ScenarioTask(task: n, message: "m")) }
+        }
+        let st = await store.state
+        #expect(st.nextScenario(lang: .en) == nil)
+        #expect(st.todaySummary(now: Date()).plans.first { $0.lang == .en }?.next == .freeConversation)
+    }
 }
+

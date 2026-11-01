@@ -33,11 +33,14 @@ extension AppServices {
 
     /// Starts a scenario (SR-02): its own session, phrases as hints, the assistant opens in the role.
     func startScenario(_ id: String) {
+        guard !model.startingScenario else { return }  // a double click starts one scenario
+        model.startingScenario = true
         Task {
+            defer { model.startingScenario = false }
             do {
                 let corrections = settings.lastCorrections.isEmpty ? [CorrectionMode.inline] : settings.lastCorrections
                 let lang = ScenarioCatalog.scenario(id)?.lang ?? model.langFilter
-                guard let sid = try await engine.startScenario(id, corrections: corrections, level: model.history.learnerLevel(lang: lang)) else { return }
+                guard let sid = try await engine.startScenario(id, corrections: corrections, level: model.history.learnerChosenLevel(lang: lang)) else { return }
                 updateSettings { $0.lastLang = lang }
                 model.langFilter = lang
                 model.selectedSessionID = sid
