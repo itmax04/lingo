@@ -15,10 +15,13 @@ struct VocabularyView: View {
 
     private var lang: Lang { model.vocabularyFilter ?? addLang }
 
-    private var items: [VocabItem] {
-        let q = VocabularyText.normalize(model.vocabularySearch)
-        return model.vocabulary
-            .filter { model.vocabularyFilter == nil || $0.lang == model.vocabularyFilter }
+    private var items: [VocabItem] { Self.shown(model.vocabulary, filter: model.vocabularyFilter, search: model.vocabularySearch) }
+
+    /// Items of the filter language (nil = all) whose text or translation contains the search (normalised), newest first.
+    nonisolated static func shown(_ all: [VocabItem], filter: Lang?, search: String) -> [VocabItem] {
+        let q = VocabularyText.normalize(search)
+        return all
+            .filter { filter == nil || $0.lang == filter }
             .filter { q.isEmpty || VocabularyText.normalize($0.text + " " + $0.translation).contains(q) }
             .sorted { ($0.createdAt, $0.id) > ($1.createdAt, $1.id) }
     }

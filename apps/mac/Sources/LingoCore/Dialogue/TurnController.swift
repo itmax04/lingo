@@ -368,14 +368,38 @@ public final class TurnController {
         metrics?.mark(t, "first_audio", at: Double(uptimeNs) / 1e9)
     }
 
+    /// Where speech stopped, in Characters of the spoken text (R-12), the unit the readers use (`spokenText.prefix(at)`; LINGO-03
+    /// D-05). The speech engine reports a UTF-16 position inside the part (word markers and `NSString` lengths), so emoji no longer
+    /// shift the mark; parts are joined by one space, as in `spokenText`.
+    static func interruptionOffset(parts: [(tag: Int, text: String)], stopTag: Int, utf16Offset: Int) -> Int {
+        var offset = 0
+        for p in parts {
+            if p.tag == stopTag {
+                // Whole Characters only: a position inside a surrogate pair or a cluster rounds down (the proportional position of
+                // voices without word markers can land on any UTF-16 unit).
+                var units = 0, chars = 0
+                for ch in p.text {
+                    units += ch.utf16.count
+                    if units > utf16Offset { break }
+                    chars += 1
+                }
+                return offset + chars
+            }
+            offset += p.text.count + 1
+        }
+        return offset
+    }
+
     /// Stop speech; remember where it was interrupted (R-12).
     private func interrupt(reason: String) {
         guard let stop = sink.stopSpeaking() else { return }
-        var offset = 0
-        for p in spokenParts {
-            if p.tag == stop.tag { offset += stop.charOffset; break }
-            offset += (p.text as NSString).length + 1
+        // Only a part of the current reply moves the mark: stopping a replayed bubble (other tags) never marks a reply that was
+        // heard in full as interrupted.
+        guard spokenParts.contains(where: { $0.tag == stop.tag }) else {
+            Log.turns.notice("interrupt reason=\(reason, privacy: .public) replay-or-other")
+            return
         }
+        let offset = Self.interruptionOffset(parts: spokenParts, stopTag: stop.tag, utf16Offset: stop.charOffset)
         interruptedAt = offset
         if let t = speakingTurn { metrics?.note(t, "interrupt", reason) }
         // The reply is already in the journal — mark it "interrupted" now (R-12); otherwise — when the reply is written.
