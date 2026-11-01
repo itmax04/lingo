@@ -34,6 +34,7 @@ words, answers an empty "continue" with filler, and opens a free session with a 
 | Q-03 | How should the model use the items? | "Everywhere + a separate mode" | Woven into every session (per-session switch, on by default) and "My words" (a vocabulary focus of the Questions mode) |
 | Q-04 | Stage 0 (H-1) is not accepted yet | "Accept H-1 now" | H-1 recorded as accepted 2026-10-31 without the 30-minute live session, backup walk-through and RU/EN check |
 | Q-05 | Platforms of this stage | "macOS and the web version only; no iOS changes" (the stage brief) | iOS untouched |
+| Q-06 | PR-09: the compact prompt is about 1 000–1 300 tokens (estimate) against the 900 target, and the night evals were skipped | "Accept as is" (2026-11-01) | The current prompt size is accepted without the PAC-03/PAC-04 measurements; no further cut |
 
 ## Assumptions (executor, R2: recorded, not blocking)
 - A-01: An item has a language (en/de), a text, an optional Russian translation, an optional note and an optional example; a pasted
