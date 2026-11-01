@@ -251,12 +251,6 @@
           }
         },
         {
-          "speak" : [
-            "en",
-            "• @hint en: Nice to meet you."
-          ]
-        },
-        {
           "segment" : {
             "hint" : {
               "_0" : {
@@ -811,7 +805,215 @@
       "studyLang" : "en",
       "text" : "@hint en: Break a leg!",
       "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "ru",
+            "Привет. Как дела?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "ru",
+              "_1" : "Привет. Как дела?"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "Nice. Really",
+                "translation" : "x"
+              }
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Fine. Thanks"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Fine. Thanks"
+            }
+          }
+        }
+      ],
+      "name" : "markup lines are never spoken with their markup",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "ru",
+            "_1" : "Привет. Как дела?"
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "Nice. Really",
+              "translation" : "x"
+            }
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Fine. Thanks"
+          }
+        }
+      ],
+      "spokenText" : "Привет. Как дела? Fine. Thanks",
+      "studyLang" : "en",
+      "text" : "• @say ru: Привет. Как дела?\n> @hint en: Nice. Really | x\n* @say en: Fine. Thanks",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "a",
+                "translation" : "b"
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "y",
+                "original" : "x",
+                "rule" : "rule"
+              }
+            }
+          }
+        }
+      ],
+      "name" : "leading and second pipes",
+      "segments" : [
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "a",
+              "translation" : "b"
+            }
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "y",
+              "original" : "x",
+              "rule" : "rule"
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "en",
+      "text" : "@hint en: | a | b\n@fix: | x → y | rule",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "heard" : {
+              "_0" : "Ich wohne hier"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "b",
+                "original" : "a",
+                "rule" : ""
+              }
+            }
+          }
+        }
+      ],
+      "name" : "reply with only silent lines",
+      "segments" : [
+        {
+          "heard" : {
+            "_0" : "Ich wohne hier"
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "b",
+              "original" : "a",
+              "rule" : ""
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "de",
+      "text" : "@heard: Ich wohne hier\n@fix: a → b",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 4,
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "👍🏽 Yes!"
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Go on."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "👍🏽 Yes! Go on."
+            }
+          }
+        }
+      ],
+      "name" : "emoji before the interruption offset",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "👍🏽 Yes! Go on."
+          }
+        }
+      ],
+      "spokenPrefix" : "👍🏽 Ye",
+      "spokenText" : "👍🏽 Yes! Go on.",
+      "studyLang" : "en",
+      "text" : "@say en: 👍🏽 Yes! Go on.",
+      "violations" : 0
     }
   ],
-  "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1)."
+  "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1). Streamed items are checked for every split at a Character boundary (a split inside a grapheme cluster is not covered)."
 }

@@ -17,11 +17,24 @@ export function trimSpaces(s: string): string {
   return s.replace(/^[\t\p{Zs}]+|[\t\p{Zs}]+$/gu, "");
 }
 
-/** Swift `split(separator:maxSplits: 1)` with empty pieces omitted. */
+/** Swift `split(separator:maxSplits: 1)`: empty pieces are omitted and do not count, so leading separators are skipped first. */
 export function splitOnce(s: string, sep: string): string[] {
-  const i = s.indexOf(sep);
-  const parts = i < 0 ? [s] : [s.slice(0, i), s.slice(i + sep.length)];
+  let start = 0;
+  while (s.startsWith(sep, start)) start += sep.length;
+  const rest = s.slice(start);
+  const i = rest.indexOf(sep);
+  const parts = i < 0 ? [rest] : [rest.slice(0, i), rest.slice(i + sep.length)];
   return parts.filter((p) => p !== "");
+}
+
+/** Code-unit index of the first Character equal to `c` (Swift `firstIndex(of:)` compares whole Characters), or -1. */
+export function indexOfCharacter(s: string, c: string): number {
+  let at = 0;
+  for (const g of characters(s)) {
+    if (g === c) return at;
+    at += g.length;
+  }
+  return -1;
 }
 
 /** The first `n` Characters — Swift `String(s.prefix(n))`; interruption offsets (R-12) count Characters. */

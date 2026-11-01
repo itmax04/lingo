@@ -31,7 +31,9 @@ import Testing
         let record = ProcessInfo.processInfo.environment["LINGO_RECORD_FIXTURES"] == "1"
         var out: [JSONValue] = []
         for c in cases {
-            guard case .object(var o) = c, let text = o["text"]?.string, let lang = o["studyLang"]?.string.flatMap(Lang.init) else { continue }
+            guard case .object(var o) = c, let text = o["text"]?.string, let lang = o["studyLang"]?.string.flatMap(Lang.init) else {
+                Issue.record("malformed case \(c)"); out.append(c); continue
+            }
             let parsed = ReplyProtocol.parse(text, studyLang: lang)
             let whole = Self.items([text], lang)
             // Chunk boundaries never change the result: every two-way split and one character at a time.
@@ -40,6 +42,20 @@ import Testing
                 #expect(Self.items([String(chars[..<i]), String(chars[i...])], lang) == whole, "\(o["name"]?.string ?? "") split at \(i)")
             }
             #expect(Self.items(chars.map { String($0) }, lang) == whole)
+            var stream = ReplyStreamParser(studyLang: lang)
+            _ = stream.feed(text); _ = stream.finish()
+            #expect(stream.violations == parsed.violations, "\(o["name"]?.string ?? ""): streamed violations")
+            // Speech comes only from @say segments: the spoken parts before each say segment join to its text.
+            var parts: [String] = []
+            for item in whole {
+                switch item {
+                case .speak(_, let t): parts.append(t)
+                case .segment(let s):
+                    if case .say(_, let t) = s { #expect(parts.joined(separator: " ") == t, "\(o["name"]?.string ?? ""): spoken \(parts)") }
+                    else { #expect(parts.isEmpty, "\(o["name"]?.string ?? ""): speech before a non-say segment") }
+                    parts = []
+                }
+            }
             let message = ChatMessage(id: "m", session: "s", role: .assistant, text: text, lang: lang, segments: parsed.segments, createdAt: Date())
             var expected: [String: JSONValue] = ["segments": try JSONValue.from(parsed.segments), "violations": .number(Double(parsed.violations)),
                                                  "items": try Self.encode(whole), "spokenText": .string(message.spokenText)]
