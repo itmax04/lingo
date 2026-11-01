@@ -3,6 +3,12 @@ export interface VADConfig {
   sampleRate: number; frameMs: number; minSpeechDB: number; marginDB: number; attackFrames: number; hangoverMs: number; noiseWindowMs: number;
 }
 
+/** Swift `EnergyVAD.Config()` (hangover 300 ms): the default of `new EnergyVAD()`, as in Swift. */
+export const vadConfig: VADConfig = {
+  sampleRate: 16_000, frameMs: 20, minSpeechDB: -50, marginDB: 10, attackFrames: 3, hangoverMs: 300, noiseWindowMs: 3000,
+};
+
+/** Swift `VoiceDefaults.vad` (hangover 200 ms), used by the voice loop. */
 export const voiceDefaults: VADConfig = {
   sampleRate: 16_000, frameMs: 20, minSpeechDB: -50, marginDB: 10, attackFrames: 3, hangoverMs: 200, noiseWindowMs: 3000,
 };
@@ -29,17 +35,21 @@ export class EnergyVAD {
   isSpeech = false;
   noiseFloorDB = -60;
   lastFrameDB = -120;
-  /** Extra margin while the assistant speaks (R-12). */
-  extraMarginDB = 0;
+  private extraDB = 0;
   private above = 0;
   private belowMs = 0;
   private pending: number[] = [];
   private history: number[] = [];
   private historyIndex = 0;
 
-  constructor(readonly config: VADConfig = voiceDefaults) {}
+  constructor(readonly config: VADConfig = vadConfig) {}
 
-  get frameSize(): number { return (this.config.sampleRate * this.config.frameMs) / 1000; }
+  /** Extra margin while the assistant speaks (R-12); a Swift `Float`. */
+  get extraMarginDB(): number { return this.extraDB; }
+  set extraMarginDB(db: number) { this.extraDB = f(db); }
+
+  /** Samples per frame, an integer division as in Swift. */
+  get frameSize(): number { return Math.trunc((this.config.sampleRate * this.config.frameMs) / 1000); }
 
   processEvents(samples: ArrayLike<number>): VADEvent[] {
     const carried = this.pending.length;
@@ -62,8 +72,10 @@ export class EnergyVAD {
     const windowFrames = Math.max(1, Math.trunc(this.config.noiseWindowMs / this.config.frameMs));
     if (this.history.length < windowFrames) this.history.push(db);
     else { this.history[this.historyIndex] = db; this.historyIndex = (this.historyIndex + 1) % windowFrames; }
-    this.noiseFloorDB = Math.max(-90, Math.min(...this.history));
-    const threshold = f(f(Math.max(this.config.minSpeechDB, f(this.noiseFloorDB + this.config.marginDB))) + this.extraMarginDB);
+    let min = db;
+    for (const h of this.history) if (h < min) min = h;
+    this.noiseFloorDB = Math.max(-90, min);
+    const threshold = f(f(Math.max(f(this.config.minSpeechDB), f(this.noiseFloorDB + f(this.config.marginDB)))) + this.extraDB);
     if (db > threshold) {
       this.above++;
       this.belowMs = 0;

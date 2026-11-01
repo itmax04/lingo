@@ -1,4 +1,99 @@
 {
+  "randomVAD" : [
+    {
+      "blocks" : [
+        37,
+        320,
+        1000,
+        5
+      ],
+      "events" : [
+        [
+          true,
+          8960
+        ],
+        [
+          false,
+          19200
+        ],
+        [
+          true,
+          32960
+        ],
+        [
+          false,
+          43200
+        ],
+        [
+          true,
+          56960
+        ],
+        [
+          false,
+          67200
+        ],
+        [
+          true,
+          80960
+        ],
+        [
+          false,
+          91200
+        ]
+      ],
+      "extraMarginDB" : 0,
+      "frames" : 300,
+      "name" : "random levels in odd blocks",
+      "noiseFloorDB" : -73.10655975341797,
+      "seed" : 7
+    },
+    {
+      "blocks" : [
+        160,
+        700,
+        333
+      ],
+      "events" : [
+        [
+          true,
+          8960
+        ],
+        [
+          false,
+          19200
+        ],
+        [
+          true,
+          32960
+        ],
+        [
+          false,
+          43200
+        ],
+        [
+          true,
+          56960
+        ],
+        [
+          false,
+          67200
+        ],
+        [
+          true,
+          80960
+        ],
+        [
+          false,
+          91200
+        ]
+      ],
+      "extraMarginDB" : 6,
+      "frames" : 300,
+      "name" : "random levels with a barge-in margin",
+      "noiseFloorDB" : -73.39308166503906,
+      "seed" : 2026
+    }
+  ],
   "rule" : "R-10, R-11 (TurnSegmenter, TurnTimeline) and ADR-0001 §8 (EnergyVAD with VoiceDefaults.vad); written by Swift VoiceContractTests.",
   "scripts" : [
     {
@@ -43,6 +138,61 @@
           ]
         },
         {
+          "merges" : true,
+          "speechBegan" : 3000
+        },
+        {
+          "merged" : [
+            0,
+            3600
+          ],
+          "previous" : [
+            0,
+            1000
+          ]
+        }
+      ],
+      "name" : "merge within G",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "silence",
+          1000
+        ],
+        [
+          "advance",
+          2500
+        ],
+        [
+          "speech",
+          3000
+        ],
+        [
+          "silence",
+          3600
+        ],
+        [
+          "advance",
+          5100
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            1000
+          ]
+        },
+        {
           "merges" : false,
           "speechBegan" : 3500
         },
@@ -53,7 +203,7 @@
           ]
         }
       ],
-      "name" : "merge within G",
+      "name" : "no merge beyond G",
       "ops" : [
         [
           "speech",
@@ -78,6 +228,65 @@
         [
           "advance",
           5600
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            1000
+          ]
+        },
+        {
+          "merges" : true,
+          "speechBegan" : 3000
+        },
+        {
+          "merged" : [
+            0,
+            3600
+          ],
+          "previous" : [
+            0,
+            1000
+          ]
+        }
+      ],
+      "name" : "assistant starts while an utterance is open",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "silence",
+          1000
+        ],
+        [
+          "assistant",
+          1500
+        ],
+        [
+          "advance",
+          2500
+        ],
+        [
+          "speech",
+          3000
+        ],
+        [
+          "silence",
+          3600
+        ],
+        [
+          "advance",
+          5100
         ]
       ]
     },

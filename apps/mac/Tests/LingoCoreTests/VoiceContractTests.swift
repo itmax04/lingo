@@ -50,7 +50,9 @@ import Testing
     /// Scripted segmenter calls: [op, ms] with op speech | silence | advance | assistant | flush.
     static let scripts: [(String, [(String, Int)])] = [
         ("discard short noise", [("speech", 0), ("silence", 150), ("advance", 2000)]),
-        ("merge within G", [("speech", 0), ("silence", 1000), ("advance", 2500), ("speech", 3500), ("silence", 4000), ("advance", 5600)]),
+        ("merge within G", [("speech", 0), ("silence", 1000), ("advance", 2500), ("speech", 3000), ("silence", 3600), ("advance", 5100)]),
+        ("no merge beyond G", [("speech", 0), ("silence", 1000), ("advance", 2500), ("speech", 3500), ("silence", 4000), ("advance", 5600)]),
+        ("assistant starts while an utterance is open", [("speech", 0), ("silence", 1000), ("assistant", 1500), ("advance", 2500), ("speech", 3000), ("silence", 3600), ("advance", 5100)]),
         ("assistant blocks a merge", [("speech", 0), ("silence", 1000), ("advance", 2500), ("assistant", 2600), ("speech", 3000), ("silence", 3500), ("advance", 5100)]),
         ("flush ends at once", [("speech", 0), ("flush", 800)]),
         ("double start and end are ignored", [("speech", 0), ("speech", 100), ("silence", 900), ("silence", 950), ("advance", 2399), ("advance", 2400)]),
@@ -64,6 +66,28 @@ import Testing
         ("silence is not speech", [(0, 50), (0.001, 50)]),
         ("hangover keeps a short dip", [(0.0025, 60), (0.1, 20), (0.0025, 5), (0.1, 20), (0.0025, 30)]),
     ]
+
+    /// Seeded runs with varying levels, odd block sizes and a barge-in margin: a 32-bit LCG (the same in the TS test) gives the samples.
+    static let randomRuns: [(name: String, seed: UInt32, frames: Int, blocks: [Int], extraDB: Float)] = [
+        ("random levels in odd blocks", 7, 300, [37, 320, 1000, 5], 0),
+        ("random levels with a barge-in margin", 2026, 300, [160, 700, 333], 6),
+    ]
+
+    static func lcg(_ x: inout UInt32) -> Float {
+        x = x &* 1_664_525 &+ 1_013_904_223
+        return Float(x >> 8) / Float(1 << 24)
+    }
+
+    /// Frame levels from the LCG: quiet noise, louder stretches and silence, sample by sample.
+    static func randomSamples(seed: UInt32, frames: Int, frameSize: Int) -> [Float] {
+        var x = seed
+        var out: [Float] = []
+        for f in 0..<frames {
+            let level: Float = (f / 25) % 3 == 1 ? 0.12 : ((f / 25) % 3 == 2 ? 0.0004 : 0.004)
+            for _ in 0..<frameSize { out.append((lcg(&x) * 2 - 1) * level) }
+        }
+        return out
+    }
 
     @Test func fixture() throws {
         let turns = JSONValue.array(try Self.timelines().map { c in
@@ -99,8 +123,23 @@ import Testing
             }
             return .object(["name": .string(name), "runs": .array(runs.map { .array([.number(Double($0.0)), .number(Double($0.1))]) }), "events": .array(events)])
         })
+        let randomVAD = JSONValue.array(Self.randomRuns.map { r in
+            var v = EnergyVAD(config: VoiceDefaults.vad)
+            v.extraMarginDB = r.extraDB
+            let samples = Self.randomSamples(seed: r.seed, frames: r.frames, frameSize: v.frameSize)
+            var events: [JSONValue] = []
+            var i = 0, b = 0
+            while i < samples.count {
+                let n = min(r.blocks[b % r.blocks.count], samples.count - i)
+                for e in v.processEvents(Array(samples[i..<(i + n)])) { events.append(.array([.bool(e.isSpeech), .number(Double(i + e.sampleOffset))])) }
+                i += n; b += 1
+            }
+            return .object(["name": .string(r.name), "seed": .number(Double(r.seed)), "frames": .number(Double(r.frames)),
+                            "blocks": .array(r.blocks.map { .number(Double($0)) }), "extraMarginDB": .number(Double(r.extraDB)),
+                            "events": .array(events), "noiseFloorDB": .number(Double(v.noiseFloorDB))])
+        })
         let file = JSONValue.object(["rule": .string("R-10, R-11 (TurnSegmenter, TurnTimeline) and ADR-0001 §8 (EnergyVAD with VoiceDefaults.vad); written by Swift VoiceContractTests."),
-                                     "turns": turns, "scripts": scripts, "vad": vad])
+                                     "turns": turns, "scripts": scripts, "vad": vad, "randomVAD": randomVAD])
         let enc = JSONEncoder()
         enc.outputFormatting = [.sortedKeys, .withoutEscapingSlashes, .prettyPrinted]
         let text = String(decoding: try enc.encode(file), as: UTF8.self) + "\n"

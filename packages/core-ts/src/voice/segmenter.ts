@@ -35,7 +35,12 @@ export class TurnSegmenter {
   private previous: Span | null = null;
   private assistantStarted = false;
 
-  constructor(public config: TurnConfig = turnConfig()) {}
+  config: TurnConfig;
+
+  /** The config is copied, as Swift copies the struct. */
+  constructor(config: TurnConfig = turnConfig()) {
+    this.config = { ...config };
+  }
 
   get isInUtterance(): boolean { return this.curStart !== null; }
   get isSpeaking(): boolean { return this.inSpeech; }

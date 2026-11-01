@@ -7,6 +7,7 @@ interface Fixture {
   turns: { id: string; spans: [number, number][] }[];
   scripts: { name: string; ops: [string, number][]; events: Record<string, unknown>[] }[];
   vad: { name: string; runs: [number, number][]; events: [boolean, number][] }[];
+  randomVAD: { name: string; seed: number; frames: number; blocks: number[]; extraMarginDB: number; events: [boolean, number][]; noiseFloorDB: number }[];
 }
 interface TurnCase { id: string; timeline: string[]; expect: [number, number][]; assistant_at?: number[]; silence?: number; merge?: number }
 
@@ -78,16 +79,38 @@ describe("energy VAD (Swift EnergyVAD with VoiceDefaults.vad)", () => {
     expect(events).toEqual(v.events);
   });
 
+  it.each(fx.randomVAD.map((r) => [r.name, r] as const))("%s (seeded levels, odd blocks)", (_n, r) => {
+    const f = Math.fround;
+    let x = r.seed >>> 0;
+    const lcg = () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return f(f(x >>> 8) / f(1 << 24)); };
+    const vad = new EnergyVAD(voiceDefaults);
+    vad.extraMarginDB = r.extraMarginDB;
+    const samples: number[] = [];
+    for (let fr = 0; fr < r.frames; fr++) {
+      const band = Math.trunc(fr / 25) % 3;
+      const level = f(band === 1 ? 0.12 : band === 2 ? 0.0004 : 0.004);
+      for (let i = 0; i < vad.frameSize; i++) samples.push(f(f(f(lcg() * 2) - 1) * level));
+    }
+    const events: [boolean, number][] = [];
+    for (let i = 0, b = 0; i < samples.length; b++) {
+      const n = Math.min(r.blocks[b % r.blocks.length] as number, samples.length - i);
+      for (const e of vad.processEvents(samples.slice(i, i + n))) events.push([e.isSpeech, i + e.sampleOffset]);
+      i += n;
+    }
+    expect(events).toEqual(r.events);
+    expect(vad.noiseFloorDB).toBe(r.noiseFloorDB);
+  });
+
   it("eval `turn` through the VAD on synthetic audio: cuts ≤ 10 %, false merges ≤ 5 %", () => {
     // As Swift `TurnEval.runThroughVAD`: a 220 Hz tone with a 4 Hz syllable envelope for speech, -52 dBFS noise for silence.
     let seed = 1;
-    const noise = () => { seed = (seed * 1103515245 + 12345) % 2 ** 31; return (seed / 2 ** 30 - 1) * 0.0025; };
+    const noise = () => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return (seed / 2 ** 31 - 1) * 0.0025; };
     let n = 0, cuts = 0, merges = 0;
     const lead = 1000, att = (voiceDefaults.attackFrames * voiceDefaults.frameMs) / 1000, hang = voiceDefaults.hangoverMs / 1000;
     for (const c of cases) {
       const vad = new EnergyVAD(voiceDefaults), seg = new TurnSegmenter(cfg(c));
       const spans: Span[] = [];
-      const pending = [...(c.assistant_at ?? [])];
+      const pending = [...(c.assistant_at ?? [])].sort((a, b) => a - b);
       const apply = (ev: TurnEvent[]) => { for (const e of ev) { if (e.type === "utterance") spans.push(e.span); else if (e.type === "merged") { spans.pop(); spans.push(e.span); } } };
       let t = 0;
       for (const p of [{ silence: lead }, ...pieces(c.timeline), { silence: 4000 }] as Piece[]) {
@@ -101,7 +124,7 @@ describe("energy VAD (Swift EnergyVAD with VoiceDefaults.vad)", () => {
             const sec = (t + e.sampleOffset) / 16000 - lead / 1000;
             apply(e.isSpeech ? seg.speechStarted(sec - att) : seg.speechEnded(sec - hang));
           }
-          const now = t / 16 - lead;
+          const now = (t + 320) / 16 - lead;  // after the block, as Swift advances once `t` has moved on
           while (pending.length > 0 && (pending[0] as number) <= now) { seg.assistantStartedSpeaking(); pending.shift(); }
           apply(seg.advance(now / 1000));
         }
