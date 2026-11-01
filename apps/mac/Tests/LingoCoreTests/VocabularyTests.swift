@@ -352,6 +352,16 @@ private func isoDate(_ s: String) -> Date {
         #expect(await store.state.vocabUsedInSession[sid] == nil)
     }
 
+    @Test func theLearnerUseCountsWhenTheTurnIsCancelled() async throws {
+        let (e, store, _) = try engine("vt-7") { .hang }
+        try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
+        let sid = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.inline]))
+        let turn = Task { for await ev in e.send(session: sid, text: "Ich habe Feierabend.", lang: .de) { if case .attempt = ev { break } } }
+        _ = await turn.value  // leaving the stream cancels the turn (Finish or barge-in before the answer)
+        for _ in 0..<300 where await uses(store).isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        #expect(await uses(store).map(\.by) == [.learner])
+    }
+
     @Test func theLearnerUseCountsWhenNoModelAnswers() async throws {
         let (e, store, _) = try engine("vt-4") { .fail(.http(status: 503, message: "down")) }
         try await e.addVocabulary(lang: .de, entries: [("Feierabend", "")], source: .manual)
