@@ -1,0 +1,176 @@
+{
+  "eventCount" : 15,
+  "fixes" : {
+    "s-fixture-de-1" : [
+      {
+        "fix" : {
+          "corrected" : "Ich wohne seit zwei Jahren in Hamburg",
+          "original" : "Ich wohne in Hamburg seit zwei Jahre",
+          "rule" : "seit + Dativ"
+        },
+        "message" : "01M5VJ1PD0YTJDV9DHH675JSKQ",
+        "ts" : "2026-10-26T07:33:25.000Z"
+      }
+    ]
+  },
+  "hints" : {
+    "s-fixture-de-1" : [
+      {
+        "lang" : "de",
+        "source" : "correction",
+        "text" : "Ich wohne seit zwei Jahren hier.",
+        "translation" : "Я живу здесь два года."
+      }
+    ]
+  },
+  "lastSeq" : {
+    "mac-fixture0001" : 15
+  },
+  "maxLamport" : 15,
+  "messages" : {
+    "s-fixture-de-1" : [
+      {
+        "createdAt" : "2026-10-26T07:33:22.000Z",
+        "heard" : null,
+        "id" : "01M5VJ1MEG1MQNH92WYDSWAE42",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "de",
+        "role" : "assistant",
+        "segments" : [
+          {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Hallo! Wo wohnen Sie?"
+            }
+          }
+        ],
+        "source" : "groq · gpt-oss-120b",
+        "text" : "@say de: Hallo! Wo wohnen Sie?"
+      },
+      {
+        "createdAt" : "2026-10-26T07:33:23.000Z",
+        "heard" : "Ich wohne in Hamburg seit zwei Jahre",
+        "id" : "01M5VJ1NDRW63GXX0W8598FSC9",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "de",
+        "role" : "user",
+        "segments" : [
+
+        ],
+        "source" : null,
+        "text" : "Ich wohne seit zwei Jahren in Hamburg"
+      },
+      {
+        "createdAt" : "2026-10-26T07:33:24.000Z",
+        "heard" : null,
+        "id" : "01M5VJ1PD0YTJDV9DHH675JSKQ",
+        "interruptedAt" : 7,
+        "kind" : "normal",
+        "lang" : "de",
+        "role" : "assistant",
+        "segments" : [
+          {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Fast perfekt!"
+            }
+          },
+          {
+            "fix" : {
+              "_0" : {
+                "corrected" : "Ich wohne seit zwei Jahren in Hamburg",
+                "original" : "Ich wohne in Hamburg seit zwei Jahre",
+                "rule" : "seit + Dativ"
+              }
+            }
+          },
+          {
+            "hint" : {
+              "_0" : {
+                "lang" : "de",
+                "source" : "correction",
+                "text" : "Ich wohne seit zwei Jahren hier.",
+                "translation" : "Я живу здесь два года."
+              }
+            }
+          },
+          {
+            "heard" : {
+              "_0" : "Ich wohne in Hamburg seit zwei Jahre"
+            }
+          }
+        ],
+        "source" : "groq · gpt-oss-120b",
+        "text" : "@say de: Fast perfekt!\n@fix: Ich wohne in Hamburg seit zwei Jahre → Ich wohne seit zwei Jahren in Hamburg | seit + Dativ\n@hint de: Ich wohne seit zwei Jahren hier. | Я живу здесь два года.\n@heard: Ich wohne in Hamburg seit zwei Jahre"
+      }
+    ]
+  },
+  "profile" : {
+    "goals" : "",
+    "interests" : ""
+  },
+  "profileUpdates" : [
+
+  ],
+  "sessions" : [
+    {
+      "createdAt" : "2026-10-26T07:33:21.000Z",
+      "deleted" : false,
+      "id" : "s-fixture-de-1",
+      "lastActivity" : "2026-10-26T07:33:33.000Z",
+      "settings" : {
+        "corrections" : [
+          "inline",
+          "after"
+        ],
+        "customPrompt" : "",
+        "lang" : "de",
+        "level" : "B1",
+        "mode" : "free",
+        "role" : "",
+        "starter" : "assistant",
+        "topic" : "Wohnort"
+      },
+      "state" : "active",
+      "summary" : "Learner lives in Hamburg.",
+      "summaryThrough" : "01M5VJ1PD0YTJDV9DHH675JSKQ",
+      "title" : "Hamburg"
+    },
+    {
+      "createdAt" : "2026-10-26T07:33:34.000Z",
+      "deleted" : true,
+      "id" : "s-fixture-en-1",
+      "lastActivity" : "2026-10-26T07:33:35.000Z",
+      "settings" : {
+        "corrections" : [
+          "on_demand"
+        ],
+        "customPrompt" : "",
+        "lang" : "en",
+        "level" : "",
+        "mode" : "questions",
+        "role" : "",
+        "starter" : "assistant",
+        "topic" : ""
+      },
+      "state" : "active",
+      "summary" : "",
+      "summaryThrough" : null,
+      "title" : "Questions"
+    }
+  ],
+  "starred" : {
+    "de:ich wohne seit zwei jahren hier" : {
+      "lang" : "de",
+      "source" : "correction",
+      "text" : "Ich wohne seit zwei Jahren hier.",
+      "translation" : "Я живу здесь два года."
+    }
+  },
+  "unknownEvents" : 0,
+  "visibleSessions" : [
+    "s-fixture-de-1"
+  ]
+}

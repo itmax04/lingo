@@ -1,0 +1,173 @@
+{
+  "eventCount" : 27,
+  "fixes" : {
+    "s-edge" : [
+      {
+        "fix" : {
+          "corrected" : "I went",
+          "original" : "I go",
+          "rule" : "Past Simple"
+        },
+        "message" : "01M5RJNT8M0000000000000003",
+        "ts" : "2026-10-25T03:46:40.062Z"
+      }
+    ]
+  },
+  "hints" : {
+    "s-edge" : [
+      {
+        "lang" : "en",
+        "source" : "topic",
+        "text" : "Café time!",
+        "translation" : "время кофе"
+      }
+    ]
+  },
+  "lastSeq" : {
+    "mac-edge0001" : 25,
+    "web-edge0002" : 2
+  },
+  "maxLamport" : 27,
+  "messages" : {
+    "s-edge" : [
+      {
+        "createdAt" : "2026-10-25T03:46:40.020Z",
+        "heard" : "I went to cinema yesterday",
+        "id" : "01M5RJNT8M0000000000000003",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "en",
+        "role" : "user",
+        "segments" : [
+
+        ],
+        "source" : null,
+        "text" : "I went to the cinema yesterday"
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.030Z",
+        "heard" : null,
+        "id" : "01M5RJNT8Y0000000000000005",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "en",
+        "role" : "user",
+        "segments" : [
+
+        ],
+        "source" : null,
+        "text" : "second utterance"
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.040Z",
+        "heard" : null,
+        "id" : "01M5RJNT980000000000000006",
+        "interruptedAt" : 5,
+        "kind" : "normal",
+        "lang" : "en",
+        "role" : "assistant",
+        "segments" : [
+          {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Nice! What did you watch?"
+            }
+          },
+          {
+            "heard" : {
+              "_0" : "I went to cinema yesterday"
+            }
+          }
+        ],
+        "source" : "groq · m",
+        "text" : "@say en: Nice! What did you watch?\n@heard: I went to cinema yesterday"
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.050Z",
+        "heard" : null,
+        "id" : "01M5RJNT9J00000000000000Z7",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "en",
+        "role" : "user",
+        "segments" : [
+
+        ],
+        "source" : null,
+        "text" : "tie B"
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.050Z",
+        "heard" : null,
+        "id" : "01M5RJNT9J000000000000003F",
+        "interruptedAt" : null,
+        "kind" : "normal",
+        "lang" : "en",
+        "role" : "user",
+        "segments" : [
+
+        ],
+        "source" : null,
+        "text" : "tie A"
+      }
+    ]
+  },
+  "profile" : {
+    "goals" : "Speak at work",
+    "interests" : "Jazz"
+  },
+  "profileUpdates" : [
+    {
+      "device" : "mac-edge0001",
+      "goals" : "Speak at work",
+      "interests" : null,
+      "lamport" : 18,
+      "ts" : "2026-10-25T03:46:40.080Z"
+    },
+    {
+      "device" : "mac-edge0001",
+      "goals" : null,
+      "interests" : "Jazz",
+      "lamport" : 19,
+      "ts" : "2026-10-25T03:46:40.081Z"
+    }
+  ],
+  "sessions" : [
+    {
+      "createdAt" : "2026-10-25T03:46:40.000Z",
+      "deleted" : false,
+      "id" : "s-edge",
+      "lastActivity" : "2026-10-25T03:46:40.110Z",
+      "settings" : {
+        "corrections" : [
+          "after",
+          "on_demand"
+        ],
+        "customPrompt" : "",
+        "lang" : "en",
+        "level" : "B1",
+        "mode" : "free",
+        "role" : "",
+        "starter" : "user",
+        "topic" : "Edge",
+        "useVocabulary" : false
+      },
+      "state" : "ended",
+      "summary" : "Talked about films.",
+      "summaryThrough" : "01M5RJNT8Y0000000000000005",
+      "title" : "Edge renamed"
+    }
+  ],
+  "starred" : {
+    "en:break a leg" : {
+      "lang" : "en",
+      "source" : "hint",
+      "text" : "Break a leg!",
+      "translation" : "удачи"
+    }
+  },
+  "unknownEvents" : 5,
+  "visibleSessions" : [
+    "s-edge"
+  ]
+}
