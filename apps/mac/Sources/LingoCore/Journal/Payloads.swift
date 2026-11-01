@@ -130,6 +130,13 @@ public enum Payload {
         }
     }
 
+    /// LINGO-05 SR-03: task `task` (1-based) of the session's scenario was completed in reply to the learner message `message`.
+    public struct ScenarioTask: Codable, Sendable, Hashable {
+        public var task: Int
+        public var message: String
+        public init(task: Int, message: String) { self.task = task; self.message = message }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

@@ -1,8 +1,9 @@
 import Foundation
 
-/// What to do next in one language (LINGO-05 GR-03). Scenarios join in T-5.
+/// What to do next in one language (LINGO-05 GR-03): the warm-up when cards are due, else the next scenario, else free conversation.
 public enum NextActivity: Sendable, Equatable {
     case warmup(cards: Int)
+    case scenario(id: String)
     case freeConversation
 }
 
@@ -53,7 +54,9 @@ public extension HistoryState {
         if langs.isEmpty { langs = [.de, .en] }
         let plans = [Lang.de, .en].filter(langs.contains).map { lang -> LanguagePlan in
             let queue = dueCards(lang: lang, now: now, calendar: calendar).count
-            return LanguagePlan(lang: lang, next: queue > 0 ? .warmup(cards: min(queue, Warmup.maxCards)) : .freeConversation)
+            let next: NextActivity = queue > 0 ? .warmup(cards: min(queue, Warmup.maxCards))
+                : nextScenario(lang: lang).map { .scenario(id: $0.id) } ?? .freeConversation
+            return LanguagePlan(lang: lang, next: next)
         }
         let stats = dayStats(calendar: calendar)
         let today = calendar.startOfDay(for: now)

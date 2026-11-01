@@ -171,6 +171,23 @@
       },
       "extractionState": "manual"
     },
+    "%lld of %lld done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld done"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выполнено %lld из %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "%lld of %lld min today": {
       "localizations": {
         "en": {
@@ -251,6 +268,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld. %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    ", done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", done"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", выполнено"
           }
         }
       },
@@ -4285,6 +4319,23 @@
       },
       "extractionState": "manual"
     },
+    "Situations from life and work, with tasks to get done.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Situations from life and work, with tasks to get done."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ситуации из жизни и работы с заданиями."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Skip": {
       "localizations": {
         "en": {
@@ -4586,6 +4637,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Начать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Start scenario": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start scenario"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать сценарий"
           }
         }
       },

@@ -108,7 +108,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   (`card.suspended` true). A "Suspended cards" list on the Warm-up screen resumes them (`card.suspended` false).
 
 ## 3. Scenarios
-- **SR-01. Catalogue** `packages/contracts/teacher/scenarios.json`, validated by a test: per scenario a unique `id`, `lang`, `title_en`,
+- **SR-01. Catalogue** `packages/contracts/teacher/scenarios.json`, validated by a test: per scenario a unique `id`, `lang`, `title` (study language: the session title and topic), `title_en`,
   `title_ru`, `level` (A2 | B1 | B2), `role` (Lingo's role, study language, ≤ 80 characters), `situation` (study language, ≤ 300
   characters), `tasks` (3–5 learner tasks, study language, each ≤ 120 characters), `phrases` (3–6 useful phrases with Russian
   translations). At least 8 German (life in Germany: doctor, residents' office registration, flat viewing, bank account, complaint in a
@@ -121,7 +121,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   close the situation naturally. The done tasks change per turn, so they go after `</transcript>` as `<scenario_progress>done: 1, 3</scenario_progress>`.
   The phrases are shown as topic hints without a model call.
 - **SR-03. Progress.** A valid `@task: n` (1 ≤ n ≤ task count) is recorded as `scenario.task` `{ task: n, message }` the first time n is
-  marked in that session; repeats and invalid numbers are ignored. The session header shows the checklist. A scenario is **done** when one
+  marked in that session; repeats and invalid numbers are ignored. The session shows the checklist above the input, and its header subtitle says "Scenario". A scenario is **done** when one
   live session of it has all its tasks recorded.
 - **SR-04. Debrief.** "Finish" shows the usual recap when the session has the "after" correction mode (R-23) plus the checklist result;
   nothing else is requested. The topic-phrases request is never made for a scenario.
@@ -188,7 +188,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 - **GR-03. Today screen** (replaces the placeholder; reference `mac-today-overview`): a plan row per study language (languages with a
   session in the last 30 days, otherwise German and English) with the **next activity**: the warm-up if that language's queue (CR-04) is
   not empty; otherwise the first scenario in catalogue order that is not done, at the **learner's level** (the CEFR level of the latest live
-  session of that language; A1, empty or custom text → A2, C1 and C2 → B2; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
+  ordinary session of that language that has one — warm-ups, scenarios and exams never count; A1, empty or custom text → A2, C1 and C2 → B2; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
   the warm-up card (queue size, about N minutes with N = ⌈min(queue, 8) × 0.6⌉, start), the daily goal ring and the streak (7 days of dots), and
   "Continue conversation".
 - **GR-04. Progress screen** (replaces the placeholder): practice minutes of the last 7 / 30 days (bars), learner words and mistakes per

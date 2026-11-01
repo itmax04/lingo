@@ -104,6 +104,9 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         activity = (try? c.decodeIfPresent(Activity.self, forKey: .activity)) ?? nil
     }
 
+    /// The catalogue id of a scenario session (SR-02), nil for other sessions.
+    public var scenarioID: String? { activity?.kind == .scenario ? activity?.id : nil }
+
     /// The frozen card queue of a warm-up (WR-01), nil for other sessions.
     public var warmupCards: [String]? { activity?.kind == .warmup ? activity?.cards : nil }
 
@@ -151,7 +154,13 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     }
 
     /// Header subtitle: "<mode> in <language>" (R-40).
-    public var subtitle: String { "\(mode.title) \(lang.inLanguagePhrase)" }
+    public var subtitle: String {
+        switch activity?.kind {
+        case .warmup: "\(String(localized: "Warm-up")) \(lang.inLanguagePhrase)"
+        case .scenario: "\(String(localized: "Scenario")) \(lang.inLanguagePhrase)"
+        default: "\(mode.title) \(lang.inLanguagePhrase)"
+        }
+    }
 }
 
 /// A teacher activity of a session (LINGO-05 WR-01, SR-02, XR-02). Only the fields of its kind are set.

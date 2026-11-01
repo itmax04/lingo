@@ -10,10 +10,10 @@ import Testing
         return (DialogEngine(store: store) { ChainFactory.chain(settings: LLMSettings(), secrets: InMemorySecretStore()) }, store)
     }
 
-    @Test func emptyJournalPlansBothLanguagesWithFreeConversation() async throws {
+    @Test func emptyJournalPlansBothLanguagesWithTheFirstScenario() async throws {
         let (_, store) = try engine("today-empty")
         let t = await store.state.todaySummary(now: StatsTests.now, calendar: Self.cal)
-        #expect(t.plans.map(\.lang) == [.de, .en] && t.plans.allSatisfy { $0.next == .freeConversation })
+        #expect(t.plans.map(\.lang) == [.de, .en] && t.plans.map(\.next) == [.scenario(id: "de-doctor"), .scenario(id: "en-small-talk")])
         #expect(t.goalMinutes == 15 && t.minutesToday == 0 && t.streak == 0 && t.week == Array(repeating: false, count: 7) && !t.goalReached)
     }
 
@@ -30,9 +30,9 @@ import Testing
         for c in st.dueCards(lang: .de, now: Date(), calendar: Self.cal) {
             try await store.append(EventType.cardReviewed, session: "w", Payload.CardReviewed(card: c.id, rating: .good, message: "m"))
         }
-        // The 5 new cards of the day are used up and the others are not due before tomorrow → free conversation.
+        // The 5 new cards of the day are used up and the others are not due before tomorrow → the next scenario.
         let after = await store.state.todaySummary(now: Date(), calendar: Self.cal).plans
-        #expect(after.first?.next == .freeConversation)
+        #expect(after.first?.next == .scenario(id: "de-doctor"))
     }
 
     @Test func goalRingStreakAndWeekDots() throws {

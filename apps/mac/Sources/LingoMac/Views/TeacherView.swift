@@ -5,7 +5,7 @@ import SwiftUI
 struct TeacherView: View {
     @Bindable var model: AppModel
     private let soon: [(title: LocalizedStringKey, symbol: String)] = [
-        ("Scenarios", "bubble.left.and.bubble.right"), ("German B1 exam", "graduationcap"), ("IELTS Speaking", "mic"),
+        ("German B1 exam", "graduationcap"), ("IELTS Speaking", "mic"),
         ("Weekly report", "calendar"), ("What Lingo knows about me", "person.text.rectangle"),
     ]
     var body: some View {
@@ -19,6 +19,7 @@ struct TeacherView: View {
                 Text("Teacher").font(Theme.F.title)
                 LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)], spacing: 16) {
                     warmupCard(plans)
+                    scenariosCard
                     ForEach(Array(soon.enumerated()), id: \.offset) { index, item in
                         VStack(alignment: .leading, spacing: 16) {
                             Image(systemName: item.symbol).font(.system(size: 24))
@@ -56,6 +57,23 @@ struct TeacherView: View {
                         Text("Nothing to review").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                     }
                 }
+            }
+        }
+        .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    private var scenariosCard: some View {
+        let done = ScenarioCatalog.all.filter { model.history.scenarioDone($0.id) }.count
+        return VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: "bubble.left.and.bubble.right").font(.system(size: 24)).foregroundStyle(Theme.C.accentEnglish)
+            Text("Scenarios").font(Theme.F.panelTitle)
+            Text("Situations from life and work, with tasks to get done.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+            HStack {
+                Text("\(done) of \(ScenarioCatalog.all.count) done").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                Spacer()
+                Button("Choose") { model.showScenarios = true }.buttonStyle(.borderedProminent)
             }
         }
         .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
