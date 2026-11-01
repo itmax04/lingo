@@ -149,13 +149,18 @@ public struct ReplyStreamParser: Sendable {
         var out: [Item] = []
         if !inThink, !pending.isEmpty { consume(pending, into: &out) }
         pending = ""
+        emitSentences(into: &out)
         completeLine(into: &out)
         return out
     }
 
     private mutating func consume(_ s: String, into out: inout [Item]) {
         for ch in s {
-            if ch == "\n" || ch == "\r" {
+            // `isNewline`, as `ReplyProtocol.parse` splits lines: "\r\n" is one Character, so comparing with "\n" missed it.
+            if ch.isNewline {
+                // Sentences of the finished line first, so a reply that arrives in one chunk is spoken sentence by sentence
+                // like a streamed one (the items never depend on chunk boundaries; LINGO-03 P-07d).
+                emitSentences(into: &out)
                 completeLine(into: &out)
             } else {
                 line.append(ch)
@@ -168,7 +173,8 @@ public struct ReplyStreamParser: Sendable {
     private func sayBody() -> (Lang, String)? {
         let t = line.trimmingCharacters(in: .whitespaces)
         guard !t.isEmpty else { return nil }
-        if !t.hasPrefix("@"), !t.hasPrefix("-"), !t.hasPrefix("*") { return (studyLang, line) }
+        // A line with list or quote markup ("- ", "* ", "• ", "> ") is never streamed: `parseLine` strips the markup when it completes.
+        if let f = t.first, f != "@", !"-*•>".contains(f) { return (studyLang, line) }
         guard t.lowercased().hasPrefix("@say"), let colon = line.firstIndex(of: ":") else { return nil }
         let head = line[..<colon].lowercased().split(separator: " ")
         let lang = head.count > 1 ? Lang(rawValue: String(head[1])) ?? studyLang : studyLang
@@ -182,7 +188,8 @@ public struct ReplyStreamParser: Sendable {
         var lastCut = spokenUpTo
         while i < chars.count - 1 {
             if ".!?…".contains(chars[i]) && chars[i + 1] == " " {
-                let sentence = String(chars[lastCut...i]).trimmingCharacters(in: .whitespaces)
+                // `**` is removed as `parseLine` removes it, so a spoken sentence matches the displayed segment text.
+                let sentence = String(chars[lastCut...i]).replacingOccurrences(of: "**", with: "").trimmingCharacters(in: .whitespaces)
                 if !sentence.isEmpty { out.append(.speak(lang, sentence)) }
                 lastCut = i + 1
             }
@@ -197,10 +204,15 @@ public struct ReplyStreamParser: Sendable {
         let (seg, violation) = ReplyProtocol.parseLine(line, studyLang: studyLang)
         if violation { violations += 1 }
         guard let seg else { return }
-        if case .say(let lang, _) = seg, let (_, body) = sayBody() {
-            let rest = String(Array(body).dropFirst(spokenUpTo)).trimmingCharacters(in: .whitespaces)
-            let cleaned = ReplyProtocol.parseLine("@say \(lang.rawValue): \(rest)", studyLang: studyLang).0?.sayText ?? rest
-            if !cleaned.isEmpty { out.append(.speak(lang, cleaned)) }
+        if case .say(let lang, let text) = seg {
+            if let (_, body) = sayBody() {
+                let rest = String(Array(body).dropFirst(spokenUpTo)).trimmingCharacters(in: .whitespaces)
+                let cleaned = ReplyProtocol.parseLine("@say \(lang.rawValue): \(rest)", studyLang: studyLang).0?.sayText ?? rest
+                if !cleaned.isEmpty { out.append(.speak(lang, cleaned)) }
+            } else {
+                // A formatted line ("- @say en: …", "**@say en:** …") is not streamed; it is spoken whole once it is complete.
+                out.append(.speak(lang, text))
+            }
         }
         out.append(.segment(seg))
     }

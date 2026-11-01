@@ -1,0 +1,1075 @@
+{
+  "cases" : [
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Hallo!"
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Wo wohnen Sie?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Hallo! Wo wohnen Sie?"
+            }
+          }
+        }
+      ],
+      "name" : "say with language",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Hallo! Wo wohnen Sie?"
+          }
+        }
+      ],
+      "spokenText" : "Hallo! Wo wohnen Sie?",
+      "studyLang" : "de",
+      "text" : "@say de: Hallo! Wo wohnen Sie?",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 12,
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Fast perfekt!"
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Fast perfekt! Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "Ich wohne seit zwei Jahren in Hamburg",
+                "original" : "Ich wohne in Hamburg seit zwei Jahre",
+                "rule" : "seit + Dativ"
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "de",
+                "source" : "hint",
+                "text" : "Ich wohne seit zwei Jahren hier.",
+                "translation" : "Я живу здесь два года."
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "heard" : {
+              "_0" : "Ich wohne in Hamburg seit zwei Jahre"
+            }
+          }
+        }
+      ],
+      "name" : "all four tags",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Fast perfekt! Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“"
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "Ich wohne seit zwei Jahren in Hamburg",
+              "original" : "Ich wohne in Hamburg seit zwei Jahre",
+              "rule" : "seit + Dativ"
+            }
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "de",
+              "source" : "hint",
+              "text" : "Ich wohne seit zwei Jahren hier.",
+              "translation" : "Я живу здесь два года."
+            }
+          }
+        },
+        {
+          "heard" : {
+            "_0" : "Ich wohne in Hamburg seit zwei Jahre"
+          }
+        }
+      ],
+      "spokenPrefix" : "Fast perfekt",
+      "spokenText" : "Fast perfekt! Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“",
+      "studyLang" : "de",
+      "text" : "@say de: Fast perfekt! Natürlicher: „Ich wohne seit zwei Jahren in Hamburg.“\n@fix: Ich wohne in Hamburg seit zwei Jahre → Ich wohne seit zwei Jahren in Hamburg | seit + Dativ\n@hint de: Ich wohne seit zwei Jahren hier. | Я живу здесь два года.\n@heard: Ich wohne in Hamburg seit zwei Jahre",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 5,
+      "items" : [
+        {
+          "speak" : [
+            "ru",
+            "Здесь нужен Present Perfect."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "ru",
+              "_1" : "Здесь нужен Present Perfect."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Try again: I have lived here for two years."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Try again: I have lived here for two years."
+            }
+          }
+        }
+      ],
+      "name" : "russian explanation then practice",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "ru",
+            "_1" : "Здесь нужен Present Perfect."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Try again: I have lived here for two years."
+          }
+        }
+      ],
+      "spokenPrefix" : "Здесь",
+      "spokenText" : "Здесь нужен Present Perfect. Try again: I have lived here for two years.",
+      "studyLang" : "en",
+      "text" : "@say ru: Здесь нужен Present Perfect.\n@say en: Try again: I have lived here for two years.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Sure, let's talk about films."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "What did you watch?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Sure, let's talk about films. What did you watch?"
+            }
+          }
+        }
+      ],
+      "name" : "untagged line is say and a violation",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Sure, let's talk about films. What did you watch?"
+          }
+        }
+      ],
+      "spokenText" : "Sure, let's talk about films. What did you watch?",
+      "studyLang" : "en",
+      "text" : "Sure, let's talk about films. What did you watch?",
+      "violations" : 1
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Hello there."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Hello there."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Nice to meet you!"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Nice to meet you!"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "Nice to meet you.",
+                "translation" : "Приятно познакомиться."
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "heard" : {
+              "_0" : "I am Alex"
+            }
+          }
+        }
+      ],
+      "name" : "list and bold formatting",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Hello there."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Nice to meet you!"
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "Nice to meet you.",
+              "translation" : "Приятно познакомиться."
+            }
+          }
+        },
+        {
+          "heard" : {
+            "_0" : "I am Alex"
+          }
+        }
+      ],
+      "spokenText" : "Hello there. Nice to meet you!",
+      "studyLang" : "en",
+      "text" : "- @say en: Hello there.\n**@say en:** Nice to meet you!\n• @hint en: Nice to meet you. | Приятно познакомиться.\n> @heard: I am Alex",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "remember this"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "remember this"
+            }
+          }
+        },
+        {
+          "speak" : [
+            "de",
+            "Guten Tag."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Guten Tag."
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "de",
+                "source" : "hint",
+                "text" : "Bonjour",
+                "translation" : "привет"
+              }
+            }
+          }
+        }
+      ],
+      "name" : "unknown tag and bad language",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "remember this"
+          }
+        },
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Guten Tag."
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "de",
+              "source" : "hint",
+              "text" : "Bonjour",
+              "translation" : "привет"
+            }
+          }
+        }
+      ],
+      "spokenText" : "remember this Guten Tag.",
+      "studyLang" : "de",
+      "text" : "@note: remember this\n@say xx: Guten Tag.\n@hint fr: Bonjour | привет",
+      "violations" : 3
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "только перевод",
+                "translation" : ""
+              }
+            }
+          }
+        }
+      ],
+      "name" : "empty bodies are violations",
+      "segments" : [
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "только перевод",
+              "translation" : ""
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "en",
+      "text" : "@say en:\n@heard:\n@hint en: | только перевод\n@fix: no arrow here",
+      "violations" : 3
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "Ich bin 30 Jahre alt",
+                "original" : "Ich bin 30 Jahre",
+                "rule" : "Alter"
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "Ich habe Hunger",
+                "original" : "Ich habe Hunger",
+                "rule" : ""
+              }
+            }
+          }
+        }
+      ],
+      "name" : "fix arrows and quotes",
+      "segments" : [
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "Ich bin 30 Jahre alt",
+              "original" : "Ich bin 30 Jahre",
+              "rule" : "Alter"
+            }
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "Ich habe Hunger",
+              "original" : "Ich habe Hunger",
+              "rule" : ""
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "de",
+      "text" : "@fix: „Ich bin 30 Jahre“ -> „Ich bin 30 Jahre alt“ | Alter\n@fix: 'Ich habe Hunger' => \"Ich habe Hunger\"\n@fix: a → | missing",
+      "violations" : 1
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "say en Hello without colon"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "say en Hello without colon"
+            }
+          }
+        }
+      ],
+      "name" : "missing colon",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "say en Hello without colon"
+          }
+        }
+      ],
+      "spokenText" : "say en Hello without colon",
+      "studyLang" : "en",
+      "text" : "@say en Hello without colon",
+      "violations" : 1
+    },
+    {
+      "interruptedAt" : 3,
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Großbuchstaben."
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Klein!"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Großbuchstaben. Klein!"
+            }
+          }
+        }
+      ],
+      "name" : "uppercase tag and language",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Großbuchstaben. Klein!"
+          }
+        }
+      ],
+      "spokenPrefix" : "Gro",
+      "spokenText" : "Großbuchstaben. Klein!",
+      "studyLang" : "de",
+      "text" : "@SAY DE: Großbuchstaben. Klein!",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Films are great."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Which one?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Films are great. Which one?"
+            }
+          }
+        }
+      ],
+      "name" : "think blocks",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Films are great. Which one?"
+          }
+        }
+      ],
+      "spokenText" : "Films are great. Which one?",
+      "studyLang" : "en",
+      "text" : "<think>The user wants films.</think>@say en: Films are great. Which one?\n<think>unterminated reasoning",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "One."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "One."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Two."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Two."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Three."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Three."
+            }
+          }
+        }
+      ],
+      "name" : "CRLF and other line breaks",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "One."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Two."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Three."
+          }
+        }
+      ],
+      "spokenText" : "One. Two. Three.",
+      "studyLang" : "en",
+      "text" : "@say en: One.\r\n@say en: Two. @say en: Three.",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 9,
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Ach so…"
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Wirklich?"
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Ja!"
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Und dann."
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Gut"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Ach so… Wirklich? Ja! Und dann. Gut"
+            }
+          }
+        }
+      ],
+      "name" : "sentence splitting",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Ach so… Wirklich? Ja! Und dann. Gut"
+          }
+        }
+      ],
+      "spokenPrefix" : "Ach so… W",
+      "spokenText" : "Ach so… Wirklich? Ja! Und dann. Gut",
+      "studyLang" : "de",
+      "text" : "@say de: Ach so… Wirklich? Ja! Und dann. Gut",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 7,
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Cool 😀!"
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Café time?"
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Yes 👍🏽."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Cool 😀! Café time? Yes 👍🏽."
+            }
+          }
+        }
+      ],
+      "name" : "emoji and combining characters",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Cool 😀! Café time? Yes 👍🏽."
+          }
+        }
+      ],
+      "spokenPrefix" : "Cool 😀!",
+      "spokenText" : "Cool 😀! Café time? Yes 👍🏽.",
+      "studyLang" : "en",
+      "text" : "@say en: Cool 😀! Café time? Yes 👍🏽.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "spaced out"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "spaced out"
+            }
+          }
+        }
+      ],
+      "name" : "blank and whitespace lines",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "spaced out"
+          }
+        }
+      ],
+      "spokenText" : "spaced out",
+      "studyLang" : "en",
+      "text" : "\n   \n\t@say en:   spaced out   \n\n",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "Break a leg!",
+                "translation" : ""
+              }
+            }
+          }
+        }
+      ],
+      "name" : "hint without translation",
+      "segments" : [
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "Break a leg!",
+              "translation" : ""
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "en",
+      "text" : "@hint en: Break a leg!",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "ru",
+            "Привет. Как дела?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "ru",
+              "_1" : "Привет. Как дела?"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "Nice. Really",
+                "translation" : "x"
+              }
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Fine. Thanks"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Fine. Thanks"
+            }
+          }
+        }
+      ],
+      "name" : "markup lines are never spoken with their markup",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "ru",
+            "_1" : "Привет. Как дела?"
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "Nice. Really",
+              "translation" : "x"
+            }
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Fine. Thanks"
+          }
+        }
+      ],
+      "spokenText" : "Привет. Как дела? Fine. Thanks",
+      "studyLang" : "en",
+      "text" : "• @say ru: Привет. Как дела?\n> @hint en: Nice. Really | x\n* @say en: Fine. Thanks",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "en",
+                "source" : "hint",
+                "text" : "a",
+                "translation" : "b"
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "y",
+                "original" : "x",
+                "rule" : "rule"
+              }
+            }
+          }
+        }
+      ],
+      "name" : "leading and second pipes",
+      "segments" : [
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "en",
+              "source" : "hint",
+              "text" : "a",
+              "translation" : "b"
+            }
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "y",
+              "original" : "x",
+              "rule" : "rule"
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "en",
+      "text" : "@hint en: | a | b\n@fix: | x → y | rule",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "segment" : {
+            "heard" : {
+              "_0" : "Ich wohne hier"
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "b",
+                "original" : "a",
+                "rule" : ""
+              }
+            }
+          }
+        }
+      ],
+      "name" : "reply with only silent lines",
+      "segments" : [
+        {
+          "heard" : {
+            "_0" : "Ich wohne hier"
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "b",
+              "original" : "a",
+              "rule" : ""
+            }
+          }
+        }
+      ],
+      "spokenText" : "",
+      "studyLang" : "de",
+      "text" : "@heard: Ich wohne hier\n@fix: a → b",
+      "violations" : 0
+    },
+    {
+      "interruptedAt" : 4,
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "👍🏽 Yes!"
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Go on."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "👍🏽 Yes! Go on."
+            }
+          }
+        }
+      ],
+      "name" : "emoji before the interruption offset",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "👍🏽 Yes! Go on."
+          }
+        }
+      ],
+      "spokenPrefix" : "👍🏽 Ye",
+      "spokenText" : "👍🏽 Yes! Go on.",
+      "studyLang" : "en",
+      "text" : "@say en: 👍🏽 Yes! Go on.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Hi."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "Bold there."
+          ]
+        },
+        {
+          "speak" : [
+            "en",
+            "End"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Hi. Bold there. End"
+            }
+          }
+        }
+      ],
+      "name" : "bold inside a streamed sentence",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Hi. Bold there. End"
+          }
+        }
+      ],
+      "spokenText" : "Hi. Bold there. End",
+      "studyLang" : "en",
+      "text" : "@say en: Hi. **Bold** there. End",
+      "violations" : 0
+    },
+    {
+      "items" : [
+
+      ],
+      "name" : "no segments at all",
+      "segments" : [
+
+      ],
+      "spokenText" : "<think>only reasoning</think>\n@say en:",
+      "studyLang" : "en",
+      "text" : "<think>only reasoning</think>\n@say en:",
+      "violations" : 1
+    }
+  ],
+  "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1). Streamed items are checked for every split at a Character boundary (a split inside a grapheme cluster is not covered)."
+}
