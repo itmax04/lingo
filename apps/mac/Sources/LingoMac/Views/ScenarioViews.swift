@@ -3,7 +3,8 @@ import SwiftUI
 
 /// A scenario title in the interface language (Russian or English).
 func scenarioTitle(_ sc: Scenario) -> String {
-    // The language the interface strings actually resolve to (the same bundle lookup SwiftUI uses).
+    // The language the interface strings resolved to at launch; after a language change in Settings it follows on the next start,
+    // like the "Restart Lingo" notice says.
     (Bundle.main.preferredLocalizations.first ?? "en").hasPrefix("ru") ? sc.title_ru : sc.title_en
 }
 
@@ -60,7 +61,10 @@ struct ScenarioPicker: View {
 /// The task checklist of a scenario session (SR-03), above the input.
 struct ScenarioChecklist: View {
     let scenario: Scenario
-    let done: [Int]
+    let recorded: [Int]
+    /// Only numbers of this scenario's tasks count (another writer could have stored more).
+    private var done: [Int] { recorded.filter { (1...scenario.tasks.count).contains($0) } }
+    init(scenario: Scenario, done: [Int]) { self.scenario = scenario; self.recorded = done }
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {

@@ -121,7 +121,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   close the situation naturally. The done tasks change per turn, so they go after `</transcript>` as `<scenario_progress>done: 1, 3</scenario_progress>`.
   The phrases are shown as topic hints without a model call.
 - **SR-03. Progress.** A valid `@task: n` (1 ≤ n ≤ task count) is recorded as `scenario.task` `{ task: n, message }` the first time n is
-  marked in that session; repeats and invalid numbers are ignored. The session header shows the checklist. A scenario is **done** when one
+  marked in that session; repeats and invalid numbers are ignored. The session shows the checklist above the input, and its header subtitle says "Scenario". A scenario is **done** when one
   live session of it has all its tasks recorded.
 - **SR-04. Debrief.** "Finish" shows the usual recap when the session has the "after" correction mode (R-23) plus the checklist result;
   nothing else is requested. The topic-phrases request is never made for a scenario.
