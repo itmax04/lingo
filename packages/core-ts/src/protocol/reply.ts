@@ -1,5 +1,5 @@
 import { LANGS, type Fix, type Lang, type ReplySegment } from "../model/types.js";
-import { characters, isNewline, splitOnce, trimSpaces } from "./text.js";
+import { characters, indexOfCharacter, isNewline, splitOnce, trimSpaces } from "./text.js";
 
 /** The model reply protocol (R-24), as Swift `ReplyProtocol`: one tagged item per line; an untagged line is `@say` and a violation. */
 export interface Parsed { segments: ReplySegment[]; violations: number }
@@ -51,8 +51,9 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
   while (line !== "" && "-*•>".includes(characters(line)[0] as string)) line = trimSpaces(line.slice((characters(line)[0] as string).length));
   line = line.replaceAll("**", "");
   if (line === "") return [null, false];
-  if (!line.startsWith("@")) return [say(studyLang, line), true];
-  const colon = line.indexOf(":");
+  // Character comparisons, as Swift: "@" followed by a combining mark is a different Character.
+  if (characters(line)[0] !== "@") return [say(studyLang, line), true];
+  const colon = indexOfCharacter(line, ":");
   if (colon < 0) return [say(studyLang, line.slice(1)), true];
   const head = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "");
   const body = trimSpaces(line.slice(colon + 1));
@@ -170,9 +171,11 @@ export class ReplyStreamParser {
   private sayBody(): [Lang, string] | null {
     const t = trimSpaces(this.line);
     if (t === "") return null;
-    if (!t.startsWith("@") && !t.startsWith("-") && !t.startsWith("*")) return [this.studyLang, this.line];
-    const colon = this.line.indexOf(":");
-    if (!t.toLowerCase().startsWith("@say") || colon < 0) return null;
+    // A line with list or quote markup ("- ", "* ", "• ", "> ") is never streamed: `parseLine` strips the markup when it completes.
+    const first = characters(t)[0] as string;
+    if (first !== "@" && !"-*•>".includes(first)) return [this.studyLang, this.line];
+    const colon = indexOfCharacter(this.line, ":");
+    if (characters(t.toLowerCase()).slice(0, 4).join("") !== "@say" || colon < 0) return null;
     const head = this.line.slice(0, colon).toLowerCase().split(" ").filter((x) => x !== "");
     return [head.length > 1 ? (lang(head[1]) ?? this.studyLang) : this.studyLang, this.line.slice(colon + 1)];
   }
@@ -185,7 +188,8 @@ export class ReplyStreamParser {
     let lastCut = this.spokenUpTo;
     for (let i = this.spokenUpTo; i < chars.length - 1; i++) {
       if (".!?…".includes(chars[i] as string) && chars[i + 1] === " ") {
-        const sentence = trimSpaces(chars.slice(lastCut, i + 1).join(""));
+        // `**` is removed as `parseLine` removes it, so a spoken sentence matches the displayed segment text.
+        const sentence = trimSpaces(chars.slice(lastCut, i + 1).join("").replaceAll("**", ""));
         if (sentence !== "") out.push({ speak: [l, sentence] });
         lastCut = i + 1;
       }
