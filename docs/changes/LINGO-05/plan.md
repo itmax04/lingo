@@ -14,12 +14,14 @@ gets the new event types and the two silent tags, so the shared journal and prot
 | T-2 | Statistics core: practice minutes, sessions, words, uses, mistakes, card states; `goal.set`, goal per day and streak; `stats.json` | GR-01, GR-02 | TAC-07 |
 | T-3 | Warm-up engine: `activity` (tolerant decoding), frozen queue, `<card>`/`<next_card>`, warm-up mode text, `@grade` silent tag (Swift + TS parsers, protocol fixture), WR-03 transitions, time limit, Resume, end data; `stripTags`/rule 7; PX-03 snapshots | WR-01…WR-04, PX-01…PX-03, PX-05 | TAC-04, TAC-10, TAC-11, TAC-16 (part) |
 | T-4 | Today and Teacher screens, the warm-up flow UI, end card, card suspension, daily goal setting | GR-03, GR-07, WR-04, WR-05 | TAC-09 (part), TAC-13, TAC-14 |
-| T-5 | Scenarios: catalogue + validation, `<scenario>` / `<scenario_progress>`, `@task` (Swift + TS), `scenario.task`, picker, checklist, hints | SR-01…SR-04 | TAC-05, TAC-09 (part) |
-| T-6 | Exams: catalogue + validation, runner (parts, roles, timers, monologue holding, microphone off in preparation), examiner rule, `exam.part`, debrief request, pronunciation filter, debrief card | XR-01…XR-03, PX-04 (exam) | TAC-06, TAC-09 (part), TAC-16 (part) |
-| T-7 | Progress screen (charts) and weekly report | GR-04, GR-05, PX-04 (report) | TAC-09 (part), TAC-12 |
-| T-8 | Memory: events, extraction, filter, "What Lingo knows about me", profile facts, switch | GR-06, PX-04 (memory) | TAC-08 |
+| T-5 | Scenarios: catalogue + validation, `<scenario>` / `<scenario_progress>`, `@task` (Swift + TS), `scenario.task`, picker, checklist, hints | SR-01…SR-04 | TAC-05, TAC-09 (part), TAC-11 (`@task`), TAC-16 (scenario sizes, no topic phrases) |
+| T-6a | Exam runner: catalogue + validation, parts, roles, timers, monologue holding, microphone off in preparation, examiner rule, `exam.part` | XR-01, XR-02 | TAC-06 (runner), TAC-09 (part), TAC-16 (exam sizes) |
+| T-6b | Exam debrief: request, the `no_pronunciation` marker list moved from `LingoEvalKit/DialogRules.swift` into LingoCore, the runtime filter, the debrief card and Retry | XR-03, PX-04 (exam) | TAC-06 (debrief), TAC-16 (examFeedback) |
+| T-7 | Progress screen (charts) and weekly report | GR-04, GR-05, PX-04 (report) | TAC-09 (part), TAC-12, TAC-16 (weeklyReport) |
+| T-8 | Memory: events, extraction, filter, "What Lingo knows about me", profile facts, switch | GR-06, PX-04 (memory) | TAC-08, TAC-16 (memory) |
 | T-9 | Reminder; docs update (ARCHITECTURE, MAC.md, ROADMAP, AGENTS, contracts README); RU/EN screenshots of all new screens | GR-08 | TAC-09, TAC-15 |
 
+A step that turns out larger than 600 lines (T-3 and T-4 are the likely ones) is split into an engine part and a UI part before review.
 Order: T-1 → T-2 → T-3 → T-4, then T-5 … T-9 in this order (each depends only on T-1…T-4 and could be stacked). The owner's app is
 rebuilt after T-4 (first usable warm-up) and after each later step.
 Risks: model quality of `@grade`/`@task` without live evals (mitigation: `wait` grade, local fallback, the two-turn skip, offline rules

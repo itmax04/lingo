@@ -42,10 +42,12 @@ teacher). The ROADMAP's LINGO-05 row also listed telc and a role split (partner 
 (plan T-9).
 
 ### Executor decision
-- **D-01** (AGENTS rule 9, contracts first): the TypeScript ports of cards, FSRS, statistics and memory are deferred to the web work
-  (LINGO-03 Stage 2), because the owner paused the web ("Mac first", 2026-11-01). This change still puts the shared parts into
-  `packages/contracts` (event schema, catalogues, `fsrs.json`, `stats.json`) and updates `packages/core-ts` for everything a shared
-  journal or reply needs today: the new event types (decoded, counted as known) and the silent `@grade` / `@task` tags.
+- **D-01** (how AGENTS rule 9, contracts first, applies here; the rule itself is not relaxed): rule 9 covers behaviour that both
+  Swift and TypeScript implement. TypeScript today has no teacher features (the owner paused the web, "Mac first", 2026-11-01), so
+  every step puts the shared contract into `packages/contracts` (event schema, catalogues, `fsrs.json`, `stats.json`) and updates
+  `packages/core-ts` for everything it already does with a journal or a reply: it decodes the new event types (so the merge counts
+  match) and parses the silent `@grade` / `@task` tags. When the web implements cards, FSRS, statistics or memory, that TypeScript code
+  must pass these fixtures in the same PR. The owner can overrule this reading.
 
 ## Assumptions (executor, R2: recorded, not blocking)
 - A-01: Cards come from two sources: vocabulary items (incl. ★) and recurring mistakes (grouped `@fix` records). A card is created by the

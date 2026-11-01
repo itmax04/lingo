@@ -25,11 +25,11 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
     item with the same key, VR-02). `id = word:<key>`, so ★ → own item and same-text duplicates keep one card and one history.
     `front` = the shown item's text, `hint` = its translation, `createdAt` = the earliest `vocab.added`/`phrase.starred` of that key.
     Editing an item's text gives a different key, i.e. a new card (it is a different phrase).
-  - **Mistake card** (best-effort grouping, like LINGO-08 PR-01): fixes of live sessions of that language are grouped by
-    `VocabularyText.normalize(rule)` cut to 60 Characters; within a group, fixes with the same (session, normalised original) count once
+  - **Mistake card** (best-effort grouping, like LINGO-08 PR-01): fixes of live sessions of that language, in the order (ts, session,
+    message, rule, original), are grouped by `VocabularyText.normalize(rule)` cut to 60 Characters (a fix with an empty normalised rule
+    is not grouped); within a group, fixes with the same (session, normalised original) count once
     (so "Reply again" does not double them). A group with ≥ 2 counted fixes is a card: `id = mistake:<lang>:<group key>`, `front` = the
-    shortest corrected text of the group (by Character count, then bytes) cut to 80 Characters, `hint` = the latest rule text (event
-    order) cut to 120 Characters, `createdAt` = the second counted fix. Known limit: wording drift of the model's rule ("seit + Dativ" vs
+    shortest corrected text of the group (by Character count, then bytes) cut to 80 Characters, `hint` = the latest rule text (in that order) cut to 120 Characters, `createdAt` = the second counted fix. Known limit: wording drift of the model's rule ("seit + Dativ" vs
     "seit + Dat.") can split a group; recorded, not solved here.
   - A card exists while its source exists. Reviews are never deleted: when the source disappears (item removed, session deleted), the
     reviews stay in the journal and apply again if the same id comes back.
@@ -44,8 +44,9 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   `w = [0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698,
   0.2315, 2.9898, 0.51655, 0.6621]`, `DECAY = -0.5`, `FACTOR = 0.9^(1/DECAY) − 1` (= 19/81) and the **Lingo profile**: desired retention
   0.9, no learning steps, no relearning steps, maximum interval 365 days, no fuzzing (the schedule must be identical on every device).
-  The state of a card (phase, step, S, D, last review, due, reviews, lapses) is a pure function of its counted reviews in event order:
-  - elapsed days `t` = whole days between the last review and this one, rounded down (Python `timedelta.days`);
+  The state of a card (phase, step, S, D, last review, due, reviews, lapses = `again` ratings after the first review) is a pure
+  function of its counted reviews in event order:
+  - elapsed days `t = floor((ms₂ − ms₁) / 86 400 000)` on the events' millisecond timestamps (Python `timedelta.days`);
   - first review with grade G (again 1 … easy 4): `S = max(w[G−1], 0.1)`, `D = clamp(w4 − e^{w5·(G−1)} + 1, 1, 10)`;
   - later reviews compute S from the **old** D first, then D:
     - `t < 1` (same day, takes precedence): `S' = S·e^{w17·(G−3+w18)}`;
@@ -60,7 +61,8 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   learning/relearning step timings. `packages/contracts/fixtures/teacher/fsrs.json` pins the Lingo profile (review sequences → S, D, due)
   for the TS port, written by Swift; S and D are compared with a tolerance of 1e-6, due exactly.
 - **CR-04. Due queue** per language, deterministic for (journal state, now, calendar):
-  - **due cards**: reviewed, not suspended, and the local day of `due` ≤ today (a card due at 20:00 is due all of that day);
+  - **due cards**: reviewed, not suspended, last reviewed before today's local day, and the local day of `due` ≤ today (a card due
+    at 20:00 is due all of that day; the 25-hour DST day cannot bring a card back on the day it was reviewed);
   - order: retrievability now ascending (R from whole elapsed days), then kind (mistake first), then `createdAt`, then id bytes;
   - **new cards** (never reviewed, not suspended) follow, ordered by (`createdAt`, id); at most **5 per language per local day**, minus the
     cards of that language whose first counted review falls on today's local day.
@@ -74,7 +76,8 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   in this session, with a new 5-minute budget.
 - **WR-02. Turn.** **Current card** = the first id in `activity.cards` without a counted review in this session and not skipped; **next
   card** = the one after it, or none. Every request carries, after `</transcript>`, `<card>` (front, hint, kind of the current card) and
-  `<next_card>` (the same for the next card, or `none`). The warm-up mode text (PX-02) tells the model: on the opening turn, set up a short
+  `<next_card>` (the same for the next card, or `none`; also `none` once the time limit is reached). Front and hint pass `oneLine` and
+  are cut to 60 Characters each. The warm-up mode text (PX-02) tells the model: on the opening turn, set up a short
   realistic situation or question that needs the current card (never say its front first); after the learner's answer give a short
   natural reaction, at most one correction sentence, the silent `@grade` for the current card, then set up the next card in the same turn
   (still one question per turn); with no next card, a short closing line without a question. The engine, not the model, decides which
@@ -88,10 +91,14 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   | a Russian utterance (rule 5: the model gives a version and asks for a repeat) | none now; the next graded answer on this card is capped at `hard` | no |
   | a local command ("repeat", "slower", "how do I say …") | none | no |
   | the `continue` command | skip: `again`, `message` = "" | yes |
-  | the second consecutive learner turn on the same card without a rating | skip: `again`, `message` = "" | yes |
-  A `@grade` line received before a barge-in still counts. Only the first review per (session, card) counts (CR-02).
-- **WR-04. End.** After the last card or at the time limit: a fixed localized closing line in the study language (no model call), then an
-  end card on screen: cards reviewed, the again/hard/good/easy counts, and the next due local date. A warm-up never requests a recap, a
+  | the second consecutive answer without a rating (only the "no valid `@grade`" row counts; `wait`, Russian and commands do not) | skip: `again`, `message` = "" | yes |
+  The first valid `@grade` line of a reply wins; one received before a barge-in still counts. Only the first review per (session, card)
+  counts (CR-02). When the engine advances on its own after the reply was generated (local-match `good`, the `continue` command, the
+  two-turn skip), it sends one follow-up request (purpose dialog, no learner message) with the new `<card>`, so the question on screen
+  always targets the current card.
+- **WR-04. End.** After the last card or at the time limit, the model's closing line (requested with `<next_card>none`) ends the talk;
+  only when the warm-up ends on a skip without a model turn, a fixed localized line in the study language is spoken instead (no model
+  call). Then an end card on screen: cards reviewed, the again/hard/good/easy counts, and the next due local date. A warm-up never requests a recap, a
   summary, topic phrases or memory extraction (PX-04).
 - **WR-05. Card management.** The warm-up end card and the Warm-up screen list the session's cards; each has "Don't practise this card"
   (`card.suspended` true). A "Suspended cards" list on the Warm-up screen resumes them (`card.suspended` false).
@@ -118,6 +125,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 ## 4. Exam modes
 - **XR-01. Catalogue** `packages/contracts/teacher/exams.json`, validated by a test; all tasks are written for Lingo (no copied exam
   material):
+  Field limits: task text ≤ 400 characters, planning points and slide titles ≤ 80 each, cue card ≤ 300, each question ≤ 150.
   - **German B1 speaking (Goethe-style)**: one preparation phase before the exam (up to 15 minutes, the learner can start earlier) with
     the Part 1 and Part 2 tasks on screen; Part 1 "plan something together" (a planning task with 4 points, about 3 minutes); Part 2
     "present a topic" (5 slides, about 3 minutes); Part 3 "talk about the topic" (about 2 minutes); at least 6 tasks per part.
@@ -127,11 +135,12 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 - **XR-02. Session and roles.** `activity = { kind: "exam", exam: "goethe_b1" | "ielts", tasks: [ids] }` (drawn at the start and frozen).
   Stored for older builds: mode "Free conversation", `role` = "Prüfer" / "Examiner", `topic` = the exam title, corrections "after". An exam
   cannot be resumed (Resume is hidden; the transcript stays). The app runs the parts in order with on-screen timers and records each
-  part start as `exam.part` `{ part }`. Roles per part:
+  part start as `exam.part` `{ part }` with `part` = `goethe_b1.1` … `goethe_b1.3` or `ielts.1` … `ielts.3` (suffix `.prep` for a
+  preparation phase). Roles per part:
   | Part | Lingo | Turn-taking |
   |---|---|---|
   | Goethe 1 | the learner's partner: makes suggestions, sometimes disagrees, keeps to the 4 points | normal turns |
-  | Goethe 2 | silent listener | **monologue**: the app holds the learner's utterances (no request) until the time is up, the learner says "fertig" / presses Done; then one request |
+  | Goethe 2 | silent listener | **monologue**: the app holds the learner's utterances (no request) until the time is up, the learner says "fertig" / "done" / "finished" as a whole utterance or presses Done; then one request |
   | Goethe 3 | the partner: one short reaction to the presentation and one question; then a short closing | normal turns |
   | IELTS 1, 3 | neutral examiner, one question at a time | normal turns |
   | IELTS 2 | examiner | preparation: microphone off, timer and cue card on screen; talk: **monologue** as Goethe 2; then one follow-up question |
@@ -154,21 +163,22 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
     `min(gap, 120 s)` to the local day of the later message; minutes are shown rounded down;
   - **sessions** per local day: live sessions with at least one counted learner message that day;
   - **learner words**: learner counted messages split on Unicode whitespace; a token counts when it contains a letter;
-  - **vocabulary used**: `vocab.used` events per local day;
+  - **vocabulary used**: learner `vocab.used` events of live sessions per local day;
   - **mistakes**: `fix.recorded` of live sessions, distinct by (message, normalised original, normalised corrected); **per 100 learner
     words per ISO week** (Monday–Sunday, local);
   - **cards**: new (never reviewed), learning (S < 21), mature (S ≥ 21), due today (CR-04); suspended cards are excluded.
   Golden fixture `packages/contracts/fixtures/teacher/stats.json` (a synthetic journal with a gap over midnight, a DST change, a deleted
   session, a duplicate fix, summary messages → the expected numbers), written by Swift.
 - **GR-02. Daily goal and streak.** The goal is a journal event `goal.set` `{ minutes }` (5–120; default 15 until the first event; last
-  writer wins by lamport, device). A local day **counts** when its practice minutes reach the goal in force at the end of that day, so a
-  goal change never rewrites past days. The streak is the number of consecutive counted days up to today (today counts once reached,
+  writer wins by lamport, device). A local day **counts** when its practice minutes reach the goal in force at the end of that day (among
+  the `goal.set` events with ts before the next local midnight, the last writer by lamport, device), so a goal change never rewrites
+  past days. The streak is the number of consecutive counted days up to today (today counts once reached,
   otherwise the streak runs to yesterday).
 - **GR-03. Today screen** (replaces the placeholder; reference `mac-today-overview`): a plan row per study language (languages with a
   session in the last 30 days, otherwise German and English) with the **next activity**: the warm-up if that language's queue (CR-04) is
-  not empty; otherwise the first scenario in catalogue order that is not done, at the **learner's level** (the level of the latest live
-  session of that language, A2 when empty; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
-  the warm-up card (queue size, about N minutes with N = ⌈cards × 0.6⌉, start), the daily goal ring and the streak (7 days of dots), and
+  not empty; otherwise the first scenario in catalogue order that is not done, at the **learner's level** (the CEFR level of the latest live
+  session of that language; A1, empty or custom text → A2, C1 and C2 → B2; the scenario level equal to it, else the nearest lower one); otherwise free conversation. Plus
+  the warm-up card (queue size, about N minutes with N = ⌈min(queue, 8) × 0.6⌉, start), the daily goal ring and the streak (7 days of dots), and
   "Continue conversation".
 - **GR-04. Progress screen** (replaces the placeholder): practice minutes of the last 7 / 30 days (bars), learner words and mistakes per
   100 words per week (lines), cards by state, totals. Swift Charts (system framework).
@@ -180,14 +190,16 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 - **GR-06. Memory.** "What Lingo knows about me" shows the profile (goals and interests, LINGO-08), the recurring mistakes, and **memory
   facts** — short sentences in Russian about the learner (≤ 120 characters), for one language or general.
   - Events: `memory.noted` `{ text, lang: "de" | "en" | "" }`, `memory.updated` `{ fact, text }` and `memory.removed` `{ fact }` where
-    `fact` is the id of the `memory.noted` event; the latest `memory.updated` wins; `memory.removed` is final. The switch is a journal
+    `fact` is the id of the `memory.noted` event; `memory.updated` is last writer by (lamport, device); `memory.removed` is final. Fact
+    text passes `oneLine` and `stripTags` when stored and when used. The key of a fact is `VocabularyText.key(lang:text:)`, and
+    `"-:" + normalize(text)` for a general fact. The switch is a journal
     event `memory.switched` `{ on }` (last writer wins; default on).
   - Extraction: once per session, on its first "Finish", when memory is on, the session is not a warm-up or an exam, it has ≥ 4 counted
-    learner messages, and the quota allows (PX-04). Input: the learner's lines (the last 30, at most 3 000 characters) and the current
-    fact texts; output: up to 3 new facts the learner said about themselves. Excluded by the prompt: facts about other people, health,
+    learner messages, and the quota allows (PX-04). Input: the learner's lines (the last 30, at most 3 000 characters) and the 50 most recent
+    live fact texts; output: up to 3 new facts the learner said about themselves. Excluded by the prompt: facts about other people, health,
     religion, politics, sexuality and finances. Locally, a proposed fact whose key equals the key of a live or removed fact is dropped.
-  - Use: the 5 most recent live facts (event order) of the session language or general go into `<profile>` as data, frozen at the
-    session's first turn; with memory off, none.
+  - Use: the 5 most recent live facts (event order) of the session language or general go into `<profile>` as data, frozen as the facts
+    live at the session's first message (a restart gives the same block); with memory off, none.
   - Disclosure (UI and docs): a deleted fact is hidden from Lingo and from the screen, but its text stays in the journal history, the
     sync folder and the backups until data deletion arrives with the account (LINGO-03/04).
 - **GR-07. Teacher screen** (replaces the placeholder; reference `mac-teacher-soon`): six cards — Warm-up, Scenarios, German B1 exam,
@@ -201,7 +213,8 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 ## 6. Prompt, protocol, quota and compatibility
 - **PX-01. Silent tags.** `@grade` and `@task` are parsed silently in Swift and TS: `parseLine` returns no segment and no violation for
   them (they are never spoken), and they are **never stored as `ReplySegment` cases**. They stay only in the raw reply `text` and in
-  `card.reviewed` / `scenario.task`, so the stored message decodes in older builds. Outside their activity they are ignored. The shared
+  `card.reviewed` / `scenario.task`, so the stored message decodes in older builds. Every fallback that uses the raw text (display,
+  speech, the transcript in later requests) removes silent-tag lines first; a reply with only silent lines follows the empty-reply path. Outside their activity they are ignored. The shared
   protocol fixture gets cases for both.
 - **PX-02. Prompt parts.** The warm-up has its own mode text (like the "My words" focus) and no `<vocabulary>` block; in a warm-up an
   inline correction is one sentence without a repeat request (rule 2 keeps one question). `<card>`, `<next_card>`, `<scenario>`,
@@ -212,7 +225,8 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   `<card>` + `<next_card>` ≤ 120; scenario rule ≤ 150, `<scenario>` ≤ 350, `<scenario_progress>` ≤ 20; examiner rule ≤ 200, `<exam>` ≤
   250; memory facts inside `<profile>` ≤ 200.
 - **PX-04. Quota per purpose** (new `LLMPurpose` cases `examFeedback`, `weeklyReport`, `memory`; the background check is the existing
-  "≥ 3000 tokens per minute on the first step" plus the usage ledger's day total of that step below 90 % of its known daily limit):
+  "≥ 3000 tokens per minute on the first step" plus, when that step's daily token limit is known (ADR-0005's Groq table), the usage ledger's day total below 90 % of it; with no
+  known limit this condition is skipped):
   | Purpose | Trigger | Input cap | maxTokens | Skipped when | Retry |
   |---|---|---|---|---|---|
   | dialog (warm-up, scenario, exam turns) | each turn | as today | 300 | monologue parts until Done | chain fallback |
@@ -224,12 +238,14 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   | memory | first Finish (GR-06) | 3 000 characters + current facts | 300 | warm-up, exam, < 4 learner messages, memory off, no quota | none (next session) |
 - **PX-05. Compatibility.** `SessionSettings.activity` is optional and decoded tolerantly: an unknown `kind` or malformed content
   decodes as nil, and the session opens as its stored mode (WR-01, SR-02, XR-02). New event types are additive; older builds count them
-  as unknown and keep everything else. `canStart` does not require a correction mode for an exam (it stores "after").
+  as unknown and keep everything else. `canStart` does not require a correction mode for an exam (it stores "after"). Known rollback
+  limit: an older build that edits a teacher session's settings writes the whole settings object without `activity` (settings are last
+  writer as a whole), so that session becomes a normal session of its stored mode; nothing else is lost.
 
 ## 7. Acceptance
 | ID | Criterion | How |
 |---|---|---|
-| TAC-01 | Cards as CR-01: word cards by key (★ → own item keeps the id), mistake groups with the 60-Character key and duplicate fixes counted once, removal and return keep reviews | unit tests |
+| TAC-01 | Cards as CR-01: word cards by key (★ → own item keeps the id), mistake groups with the 60-Character key, duplicate fixes counted once, empty rules not grouped, removal and return keep reviews | unit tests |
 | TAC-02 | FSRS: the py-fsrs 5.1.3 published expectations (CR-03) pass with the reference profile; the Lingo profile equals `fsrs.json` (S, D within 1e-6, due exact) | unit tests + fixture |
 | TAC-03 | Due queue (CR-04): local-day due, R order, new-card order and the daily limit, suspension | unit tests |
 | TAC-04 | Warm-up: frozen queue in `activity.cards`; `<card>`/`<next_card>` in the request; every WR-03 transition; first review per (session, card); 5-minute limit; Resume | engine tests |
@@ -239,7 +255,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 | TAC-08 | Memory: payloads with `fact`; extraction once per session and only as GR-06; duplicate and removed facts filtered; edit, final delete, switch event; facts frozen per session; never logged | engine tests |
 | TAC-09 | Today, Teacher, Warm-up, Progress screens and the flows, RU and EN, light and dark (DESIGN.md tokens only) | `check-design`, snapshots |
 | TAC-10 | Old journals and settings decode unchanged; teacher sessions decode as their stored mode; an unknown activity kind decodes as nil | unit tests |
-| TAC-11 | A teacher reply with `@grade` and `@task` lines decodes with the current `MessageCreated` decoder and the v1 schema; nothing extra is spoken | protocol tests (Swift + TS fixture) |
+| TAC-11 | A teacher reply with `@grade` and `@task` lines decodes with the current `MessageCreated` decoder and the v1 schema; nothing extra is spoken or shown, also for a reply with only silent lines | protocol tests (Swift + TS fixture) |
 | TAC-12 | Weekly report (GR-05): local numbers, request without transcript, one stored report per week, "Update" | engine tests |
 | TAC-13 | Next activity on Today (GR-03) for: due cards, a not-done scenario at the level, all done | unit tests |
 | TAC-14 | Warm-up end card (WR-04) counts and the next due date; card suspension (WR-05) | unit tests + screenshot |
