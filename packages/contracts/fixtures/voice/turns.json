@@ -1,0 +1,566 @@
+{
+  "rule" : "R-10, R-11 (TurnSegmenter, TurnTimeline) and ADR-0001 §8 (EnergyVAD with VoiceDefaults.vad); written by Swift VoiceContractTests.",
+  "scripts" : [
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "discarded" : [
+            0,
+            150
+          ]
+        }
+      ],
+      "name" : "discard short noise",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "silence",
+          150
+        ],
+        [
+          "advance",
+          2000
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            1000
+          ]
+        },
+        {
+          "merges" : false,
+          "speechBegan" : 3500
+        },
+        {
+          "utterance" : [
+            3500,
+            4000
+          ]
+        }
+      ],
+      "name" : "merge within G",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "silence",
+          1000
+        ],
+        [
+          "advance",
+          2500
+        ],
+        [
+          "speech",
+          3500
+        ],
+        [
+          "silence",
+          4000
+        ],
+        [
+          "advance",
+          5600
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            1000
+          ]
+        },
+        {
+          "merges" : false,
+          "speechBegan" : 3000
+        },
+        {
+          "utterance" : [
+            3000,
+            3500
+          ]
+        }
+      ],
+      "name" : "assistant blocks a merge",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "silence",
+          1000
+        ],
+        [
+          "advance",
+          2500
+        ],
+        [
+          "assistant",
+          2600
+        ],
+        [
+          "speech",
+          3000
+        ],
+        [
+          "silence",
+          3500
+        ],
+        [
+          "advance",
+          5100
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            800
+          ]
+        }
+      ],
+      "name" : "flush ends at once",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "flush",
+          800
+        ]
+      ]
+    },
+    {
+      "events" : [
+        {
+          "merges" : false,
+          "speechBegan" : 0
+        },
+        {
+          "utterance" : [
+            0,
+            900
+          ]
+        }
+      ],
+      "name" : "double start and end are ignored",
+      "ops" : [
+        [
+          "speech",
+          0
+        ],
+        [
+          "speech",
+          100
+        ],
+        [
+          "silence",
+          900
+        ],
+        [
+          "silence",
+          950
+        ],
+        [
+          "advance",
+          2399
+        ],
+        [
+          "advance",
+          2400
+        ]
+      ]
+    }
+  ],
+  "turns" : [
+    {
+      "id" : "single",
+      "spans" : [
+        [
+          0,
+          1200
+        ]
+      ]
+    },
+    {
+      "id" : "word-search-0800",
+      "spans" : [
+        [
+          0,
+          3200
+        ]
+      ]
+    },
+    {
+      "id" : "word-search-1100",
+      "spans" : [
+        [
+          0,
+          3300
+        ]
+      ]
+    },
+    {
+      "id" : "word-search-1400",
+      "spans" : [
+        [
+          0,
+          4100
+        ]
+      ]
+    },
+    {
+      "id" : "many-short-pauses",
+      "spans" : [
+        [
+          0,
+          4600
+        ]
+      ]
+    },
+    {
+      "id" : "two-turns",
+      "spans" : [
+        [
+          0,
+          1500
+        ],
+        [
+          5500,
+          6500
+        ]
+      ]
+    },
+    {
+      "id" : "s05-addition-merge",
+      "spans" : [
+        [
+          0,
+          3700
+        ]
+      ]
+    },
+    {
+      "id" : "addition-at-g",
+      "spans" : [
+        [
+          0,
+          3850
+        ]
+      ]
+    },
+    {
+      "id" : "beyond-g",
+      "spans" : [
+        [
+          0,
+          1300
+        ],
+        [
+          3900,
+          4500
+        ]
+      ]
+    },
+    {
+      "id" : "assistant-started",
+      "spans" : [
+        [
+          0,
+          1300
+        ],
+        [
+          3100,
+          3700
+        ]
+      ]
+    },
+    {
+      "id" : "noise-only",
+      "spans" : [
+
+      ]
+    },
+    {
+      "id" : "noise-then-speech",
+      "spans" : [
+        [
+          0,
+          1850
+        ]
+      ]
+    },
+    {
+      "id" : "p10-fragments",
+      "spans" : [
+        [
+          0,
+          2300
+        ],
+        [
+          4800,
+          5700
+        ]
+      ]
+    },
+    {
+      "id" : "long-monologue",
+      "spans" : [
+        [
+          0,
+          11600
+        ]
+      ]
+    },
+    {
+      "id" : "three-turns",
+      "spans" : [
+        [
+          0,
+          900
+        ],
+        [
+          4400,
+          5500
+        ],
+        [
+          9000,
+          9800
+        ]
+      ]
+    },
+    {
+      "id" : "t-short",
+      "spans" : [
+        [
+          0,
+          1000
+        ],
+        [
+          2000,
+          3000
+        ]
+      ]
+    },
+    {
+      "id" : "t-long",
+      "spans" : [
+        [
+          0,
+          4500
+        ]
+      ]
+    },
+    {
+      "id" : "g-zero",
+      "spans" : [
+        [
+          0,
+          1000
+        ],
+        [
+          2700,
+          3500
+        ]
+      ]
+    },
+    {
+      "id" : "g-four",
+      "spans" : [
+        [
+          0,
+          5300
+        ]
+      ]
+    },
+    {
+      "id" : "hesitation-1300-twice",
+      "spans" : [
+        [
+          0,
+          5300
+        ]
+      ]
+    },
+    {
+      "id" : "short-yes",
+      "spans" : [
+        [
+          0,
+          350
+        ]
+      ]
+    },
+    {
+      "id" : "double-repeat-p16",
+      "spans" : [
+        [
+          0,
+          4000
+        ]
+      ]
+    }
+  ],
+  "vad" : [
+    {
+      "events" : [
+        [
+          true,
+          20160
+        ],
+        [
+          false,
+          32000
+        ]
+      ],
+      "name" : "speech after quiet noise",
+      "runs" : [
+        [
+          0.0024999999441206455,
+          60
+        ],
+        [
+          0.10000000149011612,
+          30
+        ],
+        [
+          0.0024999999441206455,
+          40
+        ]
+      ]
+    },
+    {
+      "events" : [
+
+      ],
+      "name" : "short burst under attack",
+      "runs" : [
+        [
+          0.0024999999441206455,
+          60
+        ],
+        [
+          0.10000000149011612,
+          2
+        ],
+        [
+          0.0024999999441206455,
+          20
+        ]
+      ]
+    },
+    {
+      "events" : [
+        [
+          true,
+          74560
+        ],
+        [
+          false,
+          86400
+        ]
+      ],
+      "name" : "fan noise raises the floor",
+      "runs" : [
+        [
+          0.019999999552965164,
+          200
+        ],
+        [
+          0.029999999329447746,
+          30
+        ],
+        [
+          0.20000000298023224,
+          30
+        ],
+        [
+          0.019999999552965164,
+          50
+        ]
+      ]
+    },
+    {
+      "events" : [
+
+      ],
+      "name" : "silence is not speech",
+      "runs" : [
+        [
+          0,
+          50
+        ],
+        [
+          0.0010000000474974513,
+          50
+        ]
+      ]
+    },
+    {
+      "events" : [
+        [
+          true,
+          20160
+        ],
+        [
+          false,
+          36800
+        ]
+      ],
+      "name" : "hangover keeps a short dip",
+      "runs" : [
+        [
+          0.0024999999441206455,
+          60
+        ],
+        [
+          0.10000000149011612,
+          20
+        ],
+        [
+          0.0024999999441206455,
+          5
+        ],
+        [
+          0.10000000149011612,
+          20
+        ],
+        [
+          0.0024999999441206455,
+          30
+        ]
+      ]
+    }
+  ]
+}
