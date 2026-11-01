@@ -48,4 +48,37 @@ enum Fixtures {
         m.online = true
         m.syncStatus = String(localized: "Saved on this Mac")
     }
+
+    /// A synthetic teacher journal for the screenshots (T-4): words to review, 12 minutes of practice today, a goal, a finished
+    /// warm-up with one skipped card and one suspended card. Written to the snapshot's temporary journal, never the learner's.
+    static func teacherJournal(_ services: AppServices) async -> Bool {
+        let e = services.engine, store = services.store
+        do {
+            try await e.addVocabulary(lang: .de, entries: [("Feierabend", "конец рабочего дня"), ("sich verabreden", "договориться о встрече"),
+                                                           ("Termin", "приём, встреча"), ("vereinbaren", "договариваться"),
+                                                           ("Kopfschmerzen", "головная боль"), ("Wohnung", "квартира"),
+                                                           ("Miete", "арендная плата")], source: .list)
+            let practice = try await e.createSession(SessionSettings(lang: .de, mode: .free, topic: "Beim Arzt", corrections: [.after]))
+            for i in 0..<13 {
+                _ = try await store.append(EventType.messageCreated, session: practice,
+                                           Payload.MessageCreated(role: i % 2 == 0 ? .user : .assistant, text: i % 2 == 0 ? "Ich habe seit zwei Tagen Kopfschmerzen." : "Das tut mir leid.", lang: .de),
+                                           at: Date().addingTimeInterval(Double(i - 13) * 55))
+            }
+            guard let w = try await e.startWarmup(lang: .de, corrections: [.inline]) else { return false }
+            let queue = await store.state.sessions[w]?.settings.warmupCards ?? []
+            _ = try await store.append(EventType.messageCreated, session: w, Payload.MessageCreated(
+                role: .assistant, text: "", lang: .de, segments: [.say(.de, "Guten Tag! Wie war dein Feierabend gestern?")]), at: Date().addingTimeInterval(-300))
+            _ = try await store.append(EventType.messageCreated, session: w, Payload.MessageCreated(
+                role: .user, text: "Nach dem Feierabend habe ich gekocht.", lang: .de), at: Date().addingTimeInterval(-280))
+            for (i, r) in [CardRating.good, .hard, .again, .good, .easy].enumerated() where i < queue.count {
+                _ = try await store.append(EventType.cardReviewed, session: w, Payload.CardReviewed(card: queue[i], rating: r, message: i == 2 ? "" : "m\(i)"),
+                                           at: Date().addingTimeInterval(-270 + Double(i) * 30))
+            }
+            await e.setCardSuspended(queue.last ?? "", true)
+            try await e.setDailyGoal(minutes: 15)
+            services.model.apply(await store.state)
+            return true
+        } catch { return false }
+    }
 }
+

@@ -270,6 +270,20 @@ enum UISnapshot {
                 model.section = section
                 await capture(section.rawValue + "-overview", MainView(model: model))
             }
+            // LINGO-05 T-4: Today, Teacher and the end of a warm-up on a synthetic journal in the temporary folder.
+            if await Fixtures.teacherJournal(services) {
+                for section in [AppSection.today, .teacher] {
+                    model.section = section
+                    await capture(section.rawValue + "-teacher", MainView(model: model))
+                }
+                if let sid = await services.store.state.sessions.values.first(where: { $0.settings.warmupCards != nil })?.id {
+                    model.section = .conversations
+                    model.selectedSessionID = sid
+                    model.refreshSelection()
+                    await capture("warmup-end", MainView(model: model))
+                }
+                Fixtures.fill(model)
+            }
             model.section = .conversations
             for state in [VoiceState.idle, .recording, .listening, .thinking, .speaking, .paused] {
                 model.voiceState = state

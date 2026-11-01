@@ -256,6 +256,11 @@ public actor DialogEngine {
         return try await createSession(Warmup.settings(lang: lang, cards: Array(queue), corrections: corrections, level: level))
     }
 
+    /// "Don't practise this card" and its undo (WR-05); last writer wins.
+    public func setCardSuspended(_ card: String, _ suspended: Bool) async {
+        _ = try? await store.append(EventType.cardSuspended, session: "", Payload.CardSuspended(card: card, suspended: suspended))
+    }
+
     /// The `<card>` / `<next_card>` of the next request; nil outside a warm-up. "Reply again" on an answer that already rated a card
     /// names that card again (and rates nothing). Remembers the named next card, so the time limit is decided when it was asked.
     func warmupPrompt(_ session: String, followUp: Bool, replyTo: String? = nil) async -> PromptBuilder.WarmupPrompt? {

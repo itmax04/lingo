@@ -14,6 +14,8 @@ struct MainView: View {
                 ColumnDivider()
                 if model.section == .conversations { center }
                 else if model.section == .dictionary { VocabularyView(model: model) }
+                else if model.section == .today { TodayView(model: model) }
+                else if model.section == .teacher { TeacherView(model: model) }
                 else { PlannedSectionView(section: model.section) { model.section = .conversations } }
                 if model.section == .conversations && wide && model.hintsVisible {
                     ColumnDivider()
@@ -73,6 +75,10 @@ struct MainView: View {
                            extraControls: AnyView(VoiceToggles(model: model)))
                     .disabled(!model.disabledReason.isEmpty)
                     .help(model.disabledReason)
+                }
+                if let sid = model.selectedSessionID, let sum = model.history.warmupSummary(session: sid), sum.reviewed > 0,
+                   model.history.warmupState(session: sid, now: Date())?.finished == true {
+                    WarmupEndCard(summary: sum, onSuspend: { model.services?.setCardSuspended($0, $1) }, suspended: model.history.suspendedCards)
                 }
                 if model.selectedSession?.state == .ended {
                     FinishedSessionCard(onContinue: { model.services?.continueSession() }, onNew: { model.showNewSession = true })

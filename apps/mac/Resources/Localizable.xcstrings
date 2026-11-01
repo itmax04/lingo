@@ -103,6 +103,57 @@
       },
       "extractionState": "manual"
     },
+    "%lld cards": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cards"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карточек: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld cards reviewed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cards reviewed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторено карточек: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld cards · about %lld min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cards · about %lld min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карточек: %lld · примерно %lld мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "%lld h": {
       "localizations": {
         "en": {
@@ -171,6 +222,57 @@
       },
       "extractionState": "manual"
     },
+    "%lld of %lld min today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld min today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld из %lld мин сегодня"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld of %lld minutes today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld minutes today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld из %lld минут сегодня"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld of the last 7 days reached the goal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of the last 7 days reached the goal"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель выполнена в %lld из последних 7 дней"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "%lld s": {
       "localizations": {
         "en": {
@@ -234,6 +336,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Разбор последних реплик по просьбе «были ошибки?»"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снова"
           }
         }
       },
@@ -1123,6 +1242,23 @@
       },
       "extractionState": "manual"
     },
+    "Daily goal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily goal"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель на день"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Daily plan · 4 × 30 min": {
       "localizations": {
         "en": {
@@ -1169,6 +1305,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Данные"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "days in a row": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "days in a row"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "дней подряд"
           }
         }
       },
@@ -1293,6 +1446,23 @@
       },
       "extractionState": "manual"
     },
+    "Don't practise this card": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't practise this card"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не повторять эту карточку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Done": {
       "localizations": {
         "en": {
@@ -1305,6 +1475,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Готово"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Easy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Легко"
           }
         }
       },
@@ -1764,6 +1951,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Получить ключ…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Goal: %lld min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal: %lld min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель: %lld мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Good": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Хорошо"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Hard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Трудно"
           }
         }
       },
@@ -2755,6 +2993,23 @@
       },
       "extractionState": "manual"
     },
+    "Next review: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next review: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Следующее повторение: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "No key": {
       "localizations": {
         "en": {
@@ -2920,6 +3175,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Непонятно ✗"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Nothing to review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to review"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторять нечего"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Nothing to review right now.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to review right now."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сейчас повторять нечего."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Nothing to review today. Free conversation?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to review today. Free conversation?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сегодня повторять нечего. Свободный разговор?"
           }
         }
       },
@@ -3231,6 +3537,23 @@
       },
       "extractionState": "manual"
     },
+    "Plan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "План"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Planned modes": {
       "localizations": {
         "en": {
@@ -3294,6 +3617,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Время практики"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Practise again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practise again"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снова повторять"
           }
         }
       },
@@ -4319,6 +4659,23 @@
       },
       "extractionState": "manual"
     },
+    "Start warm-up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start warm-up"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать разминку"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Step %lld of 3": {
       "localizations": {
         "en": {
@@ -4348,6 +4705,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Шаги выполняются сверху вниз; каждый использует рабочие ключи провайдера по очереди. Переход происходит при лимите, ошибке сервера или сети, отказе модели или истечении ожидания первого токена."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Streak": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streak"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Серия"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Suspended cards": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suspended cards"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отложенные карточки"
           }
         }
       },
@@ -5096,6 +5487,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Разминка"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Warm-up done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warm-up done"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разминка закончена"
           }
         }
       },
