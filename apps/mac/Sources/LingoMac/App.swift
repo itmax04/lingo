@@ -153,7 +153,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate()
     }
 
-        func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     /// Free the whisper contexts before AppKit calls `exit`, otherwise ggml aborts while tearing down its Metal devices (crash on ⌘Q).
     func applicationWillTerminate(_ notification: Notification) {

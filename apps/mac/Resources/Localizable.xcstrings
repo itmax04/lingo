@@ -4183,6 +4183,23 @@
       },
       "extractionState": "manual"
     },
+    "Speech recognition stopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition stopped"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Распознавание остановлено"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Speech recognition check — part 1 (H-2)": {
       "localizations": {
         "en": {
