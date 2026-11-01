@@ -17,3 +17,5 @@ export { parseReply, parseLine, parseFix, stripThinking, sayText, spokenText, Re
 export { characters, prefixCharacters, trimSpaces } from "./protocol/text.js";
 export { detectCommand, normalizeCommand, levenshtein, type CommandMatch } from "./commands/detector.js";
 export { COMMAND_KINDS, isLocalCommand, type CommandKind } from "./commands/kind.js";
+export { TurnSegmenter, turnConfig, runTimeline, SILENCE_RANGE, MERGE_RANGE, type TurnConfig, type TurnEvent, type Span, type Piece } from "./voice/segmenter.js";
+export { EnergyVAD, rmsDB, vadConfig, voiceDefaults, type VADConfig, type VADEvent } from "./voice/vad.js";
