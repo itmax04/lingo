@@ -173,7 +173,8 @@ public struct ReplyStreamParser: Sendable {
     private func sayBody() -> (Lang, String)? {
         let t = line.trimmingCharacters(in: .whitespaces)
         guard !t.isEmpty else { return nil }
-        if !t.hasPrefix("@"), !t.hasPrefix("-"), !t.hasPrefix("*") { return (studyLang, line) }
+        // A line with list or quote markup ("- ", "* ", "• ", "> ") is never streamed: `parseLine` strips the markup when it completes.
+        if let f = t.first, f != "@", !"-*•>".contains(f) { return (studyLang, line) }
         guard t.lowercased().hasPrefix("@say"), let colon = line.firstIndex(of: ":") else { return nil }
         let head = line[..<colon].lowercased().split(separator: " ")
         let lang = head.count > 1 ? Lang(rawValue: String(head[1])) ?? studyLang : studyLang
@@ -187,7 +188,8 @@ public struct ReplyStreamParser: Sendable {
         var lastCut = spokenUpTo
         while i < chars.count - 1 {
             if ".!?…".contains(chars[i]) && chars[i + 1] == " " {
-                let sentence = String(chars[lastCut...i]).trimmingCharacters(in: .whitespaces)
+                // `**` is removed as `parseLine` removes it, so a spoken sentence matches the displayed segment text.
+                let sentence = String(chars[lastCut...i]).replacingOccurrences(of: "**", with: "").trimmingCharacters(in: .whitespaces)
                 if !sentence.isEmpty { out.append(.speak(lang, sentence)) }
                 lastCut = i + 1
             }

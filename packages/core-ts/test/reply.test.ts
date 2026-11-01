@@ -35,6 +35,13 @@ describe("reply protocol fixture written by Swift", () => {
       expect(stream([chars.slice(0, i).join(""), chars.slice(i).join("")], c.studyLang).items).toEqual(c.items);
     }
     expect(stream(chars, c.studyLang).items).toEqual(c.items);
+    // Speech comes only from @say segments: the spoken parts before each say segment join to its text.
+    let parts: string[] = [];
+    for (const item of whole.items) {
+      if ("speak" in item) { parts.push(item.speak[1]); continue; }
+      if ("say" in item.segment) expect(parts.join(" ")).toBe(item.segment.say._1); else expect(parts).toEqual([]);
+      parts = [];
+    }
   });
 });
 
