@@ -9,12 +9,15 @@ struct TeacherView: View {
         ("Weekly report", "calendar"), ("What Lingo knows about me", "person.text.rectangle"),
     ]
     var body: some View {
-        let now = Date()
-        let plans = model.history.todaySummary(now: now).plans
+        TimelineView(.everyMinute) { context in content(model.history.todaySummary(now: context.date).plans) }
+    }
+
+    private func content(_ plans: [LanguagePlan]) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
+                BannerLine(model: model)
                 Text("Teacher").font(Theme.F.title)
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)], spacing: 16) {
                     warmupCard(plans)
                     ForEach(Array(soon.enumerated()), id: \.offset) { index, item in
                         VStack(alignment: .leading, spacing: 16) {
@@ -48,6 +51,7 @@ struct TeacherView: View {
                     if case .warmup(let n) = plan.next {
                         Text("\(n) cards").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                         Button("Start") { model.services?.startWarmup(plan.lang) }.buttonStyle(.borderedProminent)
+                            .disabled(model.startingWarmup.contains(plan.lang)).accessibilityLabel(Text("Start warm-up") + Text(", ") + Text(languageTitle(plan.lang)))
                     } else {
                         Text("Nothing to review").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                     }
@@ -69,6 +73,7 @@ struct TeacherView: View {
                         Text(c.front).font(Theme.F.hintPhrase).lineLimit(1)
                         Spacer()
                         Button("Practise again") { model.services?.setCardSuspended(c.id, false) }.buttonStyle(LingoButtonStyle())
+                            .accessibilityLabel(Text("Practise again") + Text(": \(c.front)"))
                     }
                 }
             }
@@ -96,15 +101,22 @@ struct WarmupEndCard: View {
                     Text("Next review: \(due.formatted(.dateTime.weekday(.wide).day().month()))").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                 }
             }
-            ForEach(Array(summary.cards.enumerated()), id: \.offset) { _, item in
-                HStack {
-                    Text(item.card.front).font(Theme.F.hintTranslation).lineLimit(1)
-                    Spacer()
-                    let off = suspended.contains(item.card.id)
-                    Button(off ? "Practise again" : "Don't practise this card") { onSuspend(item.card.id, !off) }.buttonStyle(LingoButtonStyle())
-                        .font(Theme.F.meta)
+            // A long list scrolls instead of squeezing the conversation.
+            ScrollView {
+                VStack(spacing: 6) {
+                    ForEach(Array(summary.cards.enumerated()), id: \.offset) { _, item in
+                        HStack {
+                            Text(item.card.front).font(Theme.F.hintTranslation).lineLimit(1)
+                            Spacer()
+                            let off = suspended.contains(item.card.id)
+                            Button(off ? "Practise again" : "Don't practise this card") { onSuspend(item.card.id, !off) }.buttonStyle(LingoButtonStyle())
+                                .font(Theme.F.meta)
+                                .accessibilityLabel(Text(off ? "Practise again" : "Don't practise this card") + Text(": \(item.card.front)"))
+                        }
+                    }
                 }
             }
+            .frame(maxHeight: 132)
         }
         .padding(Theme.S.s12)
         .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
@@ -116,3 +128,19 @@ struct WarmupEndCard: View {
         VStack(spacing: 2) { Text("\(n)").font(Theme.F.panelTitle); Text(title).font(Theme.F.caption).foregroundStyle(Theme.C.textSecondary) }
     }
 }
+
+/// Shows the end card of a warm-up once the engine says it is over (the card the model already set up after the time limit is still practised).
+struct WarmupEndHost: View {
+    @Bindable var model: AppModel
+    let session: String
+    @State private var finished = false
+    var body: some View {
+        Group {
+            if finished, let sum = model.history.warmupSummary(session: session), sum.reviewed > 0 {
+                WarmupEndCard(summary: sum, onSuspend: { model.services?.setCardSuspended($0, $1) }, suspended: model.history.suspendedCards)
+            }
+        }
+        .task(id: "\(session)-\(model.history.eventCount)") { finished = await model.services?.engine.warmupFinished(session) ?? false }
+    }
+}
+

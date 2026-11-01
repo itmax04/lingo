@@ -62,10 +62,7 @@ struct MainView: View {
                        subtitle: model.selectedSession?.settings.subtitle ?? String(localized: "Create a session: “New session”"),
                        sourceLabel: model.sourceLabel, online: model.online, memoryNote: model.memoryNote,
                        sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
-            if let b = model.banner {
-                Text(b).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger).padding(Theme.S.s8)
-                    .onTapGesture { model.banner = nil }
-            }
+            BannerLine(model: model)
             MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
             VStack(spacing: Theme.S.s16) {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -76,9 +73,8 @@ struct MainView: View {
                     .disabled(!model.disabledReason.isEmpty)
                     .help(model.disabledReason)
                 }
-                if let sid = model.selectedSessionID, let sum = model.history.warmupSummary(session: sid), sum.reviewed > 0,
-                   model.history.warmupState(session: sid, now: Date())?.finished == true {
-                    WarmupEndCard(summary: sum, onSuspend: { model.services?.setCardSuspended($0, $1) }, suspended: model.history.suspendedCards)
+                if let sid = model.selectedSessionID, model.selectedSession?.settings.warmupCards != nil {
+                    WarmupEndHost(model: model, session: sid)
                 }
                 if model.selectedSession?.state == .ended {
                     FinishedSessionCard(onContinue: { model.services?.continueSession() }, onNew: { model.showNewSession = true })

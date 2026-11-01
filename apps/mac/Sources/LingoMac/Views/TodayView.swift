@@ -13,10 +13,14 @@ func languageTitle(_ lang: Lang) -> LocalizedStringKey {
 struct TodayView: View {
     @Bindable var model: AppModel
     var body: some View {
-        let now = Date()
-        let t = model.history.todaySummary(now: now)
+        // The clock ticks every minute: left open over midnight, the screen moves on to the new day.
+        TimelineView(.everyMinute) { context in content(model.history.todaySummary(now: context.date)) }
+    }
+
+    private func content(_ t: TodaySummary) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
+                BannerLine(model: model)
                 Text("Today").font(Theme.F.title)
                 HStack(alignment: .top, spacing: 16) {
                     goalCard(t)
@@ -61,8 +65,7 @@ struct TodayView: View {
     private func streakCard(_ t: TodaySummary) -> some View {
         SettingsCard(title: "Streak") {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("\(t.streak)").font(Theme.F.title)
-                Text("days in a row").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+                Text("\(t.streak) days in a row").font(Theme.F.panelTitle)
             }
             HStack(spacing: 8) {
                 ForEach(Array(t.week.enumerated()), id: \.offset) { _, reached in
@@ -81,12 +84,14 @@ struct TodayView: View {
             switch plan.next {
             case .warmup(let n):
                 Text("Warm-up").font(Theme.F.hintPhrase)
-                Text("\(n) cards · about \(plan.warmupMinutes) min").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                HStack(spacing: 6) { Text("\(n) cards"); Text("·"); Text("about \(plan.warmupMinutes) min") }
+                    .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                 Button("Start warm-up") { model.services?.startWarmup(plan.lang) }.buttonStyle(.borderedProminent)
+                    .disabled(model.startingWarmup.contains(plan.lang)).accessibilityLabel(Text("Start warm-up") + Text(", ") + Text(languageTitle(plan.lang)))
             case .freeConversation:
                 Text("Nothing to review today. Free conversation?").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
                 Button("New session") { model.langFilter = plan.lang; model.section = .conversations; model.showNewSession = true }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.bordered).accessibilityLabel(Text("New session") + Text(", ") + Text(languageTitle(plan.lang)))
             }
         }
         .padding(20).frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)

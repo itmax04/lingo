@@ -6,8 +6,17 @@ import LingoCore
 extension AppServices {
     /// Starts today's warm-up in a language (WR-01): a session over the frozen queue, opened by the assistant.
     func startWarmup(_ lang: Lang) {
+        guard !model.startingWarmup.contains(lang) else { return }  // a double click starts one warm-up, not two
+        model.startingWarmup.insert(lang)
         Task {
+            defer { model.startingWarmup.remove(lang) }
             do {
+                if let open = await engine.reusableWarmup(lang: lang) {
+                    model.langFilter = lang
+                    model.selectedSessionID = open
+                    model.section = .conversations
+                    return
+                }
                 let corrections = settings.lastCorrections.isEmpty ? [CorrectionMode.inline] : settings.lastCorrections
                 guard let id = try await engine.startWarmup(lang: lang, corrections: corrections) else {
                     model.banner = String(localized: "Nothing to review right now.")

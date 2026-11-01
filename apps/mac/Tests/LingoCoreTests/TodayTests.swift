@@ -69,4 +69,38 @@ import Testing
         let plain = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
         #expect(await store.state.warmupSummary(session: plain) == nil)
     }
+
+    @Test func startingAgainOpensTheUnreviewedWarmupInsteadOfADuplicate() async throws {
+        let (e, store) = try engine("today-reuse")
+        try await e.addVocabulary(lang: .de, entries: [("eins", ""), ("zwei", "")], source: .list)
+        #expect(await e.reusableWarmup(lang: .de) == nil)
+        let sid = try #require(try await e.startWarmup(lang: .de, corrections: [.inline]))
+        let reuseDE = await e.reusableWarmup(lang: .de), reuseEN = await e.reusableWarmup(lang: .en)
+        #expect(reuseDE == sid && reuseEN == nil)
+        let queue = try #require(await store.state.sessions[sid]?.settings.warmupCards)
+        try await store.append(EventType.cardReviewed, session: sid, Payload.CardReviewed(card: queue[0], rating: .good, message: "m"))
+        #expect(await e.reusableWarmup(lang: .de) == nil)  // a warm-up in progress is not reopened as new
+    }
+
+    @Test func theEngineSaysWhenTheWarmupIsFinished() async throws {
+        let (e, store) = try engine("today-finished")
+        try await e.addVocabulary(lang: .de, entries: [("eins", ""), ("zwei", "")], source: .list)
+        let sid = try #require(try await e.startWarmup(lang: .de, corrections: [.inline]))
+        let queue = try #require(await store.state.sessions[sid]?.settings.warmupCards)
+        let before = await e.warmupFinished(sid)
+        #expect(!before)
+        for c in queue { try await store.append(EventType.cardReviewed, session: sid, Payload.CardReviewed(card: c, rating: .good, message: "m")) }
+        let after = await e.warmupFinished(sid), unknown = await e.warmupFinished("no-such-session")
+        #expect(after && !unknown)
+    }
+
+    @Test func aLanguageWithoutRecentSessionsIsLeftOutOfThePlan() async throws {
+        let (e, store) = try engine("today-langs")
+        let old = Date().addingTimeInterval(-40 * 86_400)
+        try await store.append(EventType.sessionCreated, session: "old-en", Payload.SessionCreated(title: "E", settings: SessionSettings(lang: .en, mode: .free, corrections: [.after])), at: old)
+        _ = try await e.createSession(SessionSettings(lang: .de, mode: .free, corrections: [.after]))
+        let plans = await store.state.todaySummary(now: Date(), calendar: Self.cal).plans
+        #expect(plans.map(\.lang) == [.de])  // the English session is 40 days old
+    }
 }
+
