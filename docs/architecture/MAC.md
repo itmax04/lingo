@@ -86,7 +86,7 @@ flowchart LR
 | `Views/` | `MainView` (three columns), `SidebarView`, `ChatViews` (header, bubbles, segments), `VoicePanel` (+ `Waveform`, input bar), `HintsPanel`, `NewSessionView`, `EditMessageView`, `OnboardingView`, `Components` |
 | `Design/` | `Theme` (DESIGN.md tokens one to one), `AppIcon` |
 | `STTCheck/` | "Speech recognition check" window for live recognition tests |
-| `Headless.swift`, `SelfTest.swift`, `AudioDiag.swift`, `UIClickTest.swift` | Windowless diagnostic modes |
+| `Headless.swift`, `SelfTest.swift`, `AudioDiag.swift`, `UIClickTest.swift`, `QuitCheck.swift` | Windowless diagnostic modes (`QuitCheck`: load whisper, recognise on the GPU, quit like ⌘Q; exit 0 expected) |
 | `Fixtures.swift` | Synthetic data for UI snapshots only |
 
 PR #33 (LINGO-07) adds `Design/InterfacePreferences.swift` (interface language and theme), `Design/LingoMark.swift` (vector mark),
@@ -153,7 +153,7 @@ Local commands ("repeat", "slower") never call a model (target ≤ 0.3 s until a
 
 Command-line modes of `dist/Lingo.app/Contents/MacOS/Lingo`: `--check-keys` ·
 `--eval-dialog <cases> <out> [--provider] [--models] [--only] [--max-cases] [--budget] [--offset] [--allow-daytime]` · `--help-eval` ·
-`--selftest <wav>` · `--audio-diag <file>` · `--audio-stability <file>` · `--stt-check` · `--ui-snapshot <png>` · `--ui-click-test` ·
+`--selftest <wav>` · `--audio-diag <file>` · `--audio-stability <file>` · `--stt-check` · `--ui-snapshot <png>` · `--ui-click-test` · `--quit-check` ·
 `--export-iconset` · `--settings`. Key-dependent modes must run through the signed app (Keychain access without prompts).
 
 | Test suite | Covers |
