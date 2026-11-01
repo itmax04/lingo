@@ -95,8 +95,9 @@ public enum CommandDetector {
         let core = words.filter { !fillers.contains($0) }.joined(separator: " ")
         let candidates = Set([norm, core]).filter { !$0.isEmpty }
         var best: (CommandKind, Int)?
-        for (kind, list) in exact {
-            for p in list {
+        // A fixed order (`CommandKind.allCases`): `exact` is a Dictionary, and on a distance tie its random order picked the winner.
+        for kind in CommandKind.allCases {
+            for p in exact[kind] ?? [] {
                 let pn = normalize(p)
                 for c in candidates {
                     let d = levenshtein(c, pn)

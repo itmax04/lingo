@@ -15,3 +15,5 @@ export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, ty
   type CorrectionMode, type SessionMode, type Starter, type PhraseSource, type MessageKind } from "./model/types.js";
 export { parseReply, parseLine, parseFix, stripThinking, sayText, spokenText, ReplyStreamParser, type Parsed, type StreamItem } from "./protocol/reply.js";
 export { characters, prefixCharacters, trimSpaces } from "./protocol/text.js";
+export { detectCommand, normalizeCommand, levenshtein, type CommandMatch } from "./commands/detector.js";
+export { COMMAND_KINDS, isLocalCommand, type CommandKind } from "./commands/kind.js";

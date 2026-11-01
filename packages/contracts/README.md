@@ -14,6 +14,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/events/edge.jsonl` | Synthetic edge cases for the reducer (ties, replyTo, dedupe, ★ toggles, profile, undecodable payloads, unknown type) | Swift `MergerContractTests`, TS merge tests |
 | `fixtures/events/sample-journal.state.json`, `merge-two-devices.state.json`, `edge.state.json` | Full reducer state (sessions, messages with segments and `heard`, fixes, hints, ★, profile, counters) without the vocabulary, written by Swift `MergerContractTests` (`LINGO_RECORD_FIXTURES=1`) | Swift `MergerContractTests`, TS `packages/core-ts/test/merge.test.ts` |
 | `fixtures/protocol/replies.json` | Reply protocol (R-24) cases: synthetic replies with the Swift-written segments, violations, streamed speech items (R-13), spoken text and interruption prefixes (R-12) | Swift `ReplyProtocolContractTests`, TS `packages/core-ts/test/reply.test.ts` (both also check every chunk boundary) |
+| `fixtures/commands/vocabulary.json`, `fixtures/commands/detect.json` | The command detector vocabulary and the detections (kind, argument) of every `evals/commands` phrase plus edge cases, written by Swift `CommandContractTests` | TS `packages/core-ts/test/commands.test.ts` (no drift, same detections) |
 | `fixtures/vocab/text.json` | Normalisation, duplicate key and pasted-list parsing (LINGO-08 VR-03, VR-07a) | Swift `VocabularyTextTests`, the TS port |
 | `fixtures/vocab/selection.json` | Which vocabulary items the model practises next (LINGO-08 VR-06) | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07b), with negative cases and accepted misses | Swift `VocabularyContractTests`, the TS port |
@@ -26,4 +27,6 @@ Rules
 - Fixtures are synthetic. No personal data, no keys, no real conversations.
 - Never edit a golden fixture by hand to make a test pass; regenerate it from the reference implementation and explain why in the PR.
 - The `ReplySegment` encoding (`{"say":{"_0":"de","_1":"…"}}`) is Swift's synthesized Codable format and is part of the contract.
+- Swift and TS use their platform's Unicode data (Foundation vs Node/ICU); code points added in recent Unicode versions and a few
+  lower-case mappings may differ. The fixtures use ru/de/en text where both agree.
 - Golden fixtures were generated on 2026-10-26 from commit `1e254e7` with a temporary Swift test that used `JournalStore` and `Merger`.
