@@ -69,7 +69,8 @@
         "profile.updated",
         "card.reviewed",
         "card.suspended",
-        "goal.set"
+        "goal.set",
+        "scenario.task"
       ]
     },
     "session": {
@@ -354,6 +355,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/GoalSet"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "scenario.task"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ScenarioTask"
           }
         }
       }
@@ -961,6 +978,24 @@
       "properties": {
         "minutes": {
           "type": "integer"
+        }
+      }
+    },
+    "ScenarioTask": {
+      "type": "object",
+      "description": "scenario.task (LINGO-05 SR-03): task `task` (1-based) of the session's scenario was completed; each task counts once per session.",
+      "required": [
+        "task",
+        "message"
+      ],
+      "properties": {
+        "task": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "message": {
+          "type": "string",
+          "description": "the learner message the task was completed in (the reply's id for an assistant-opened task)"
         }
       }
     }

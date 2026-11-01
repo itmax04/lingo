@@ -1,0 +1,515 @@
+{
+  "rule" : "LINGO-05 SR-01: the scenario catalogue, written by Swift ScenarioTests from ScenarioCatalog (LINGO_RECORD_FIXTURES=1); synthetic texts written for Lingo.",
+  "scenarios" : [
+    {
+      "id" : "de-doctor",
+      "lang" : "de",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "Ich habe seit drei Tagen Halsschmerzen.",
+          "translation" : "У меня три дня болит горло."
+        },
+        {
+          "text" : "Ich habe leichtes Fieber.",
+          "translation" : "У меня небольшая температура."
+        },
+        {
+          "text" : "Könnten Sie mich bitte krankschreiben?",
+          "translation" : "Не могли бы вы выписать мне больничный?"
+        },
+        {
+          "text" : "Wie oft soll ich die Tabletten nehmen?",
+          "translation" : "Как часто мне принимать таблетки?"
+        }
+      ],
+      "role" : "Ärztin in einer Hausarztpraxis",
+      "situation" : "Sie haben seit drei Tagen Halsschmerzen und Fieber. Sie sind zum ersten Mal in dieser Praxis, und morgen müssten Sie eigentlich arbeiten.",
+      "tasks" : [
+        "Beschreiben Sie Ihre Beschwerden und seit wann Sie sie haben.",
+        "Beantworten Sie die Fragen nach Allergien und Medikamenten.",
+        "Bitten Sie um eine Krankschreibung für Ihren Arbeitgeber.",
+        "Fragen Sie, wie und wie oft Sie das Medikament nehmen sollen."
+      ],
+      "title" : "Beim Hausarzt",
+      "title_en" : "At the GP",
+      "title_ru" : "У терапевта"
+    },
+    {
+      "id" : "de-anmeldung",
+      "lang" : "de",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "Ich möchte meinen neuen Wohnsitz anmelden.",
+          "translation" : "Я хочу зарегистрировать новое место жительства."
+        },
+        {
+          "text" : "Die Wohnungsgeberbestätigung habe ich leider vergessen.",
+          "translation" : "Подтверждение от арендодателя я, к сожалению, забыл."
+        },
+        {
+          "text" : "Kann ich das Dokument per E-Mail nachreichen?",
+          "translation" : "Могу я донести документ по электронной почте?"
+        },
+        {
+          "text" : "Ich bin am ersten Oktober eingezogen.",
+          "translation" : "Я въехал первого октября."
+        }
+      ],
+      "role" : "Sachbearbeiter im Bürgeramt",
+      "situation" : "Sie sind vor einer Woche umgezogen und haben einen Termin im Bürgeramt. Die Wohnungsgeberbestätigung haben Sie leider zu Hause vergessen.",
+      "tasks" : [
+        "Sagen Sie, warum Sie da sind.",
+        "Erklären Sie, dass ein Dokument fehlt, und finden Sie eine Lösung.",
+        "Nennen Sie Ihre neue Adresse und das Einzugsdatum.",
+        "Fragen Sie, wann und wie Sie die Meldebescheinigung bekommen."
+      ],
+      "title" : "Wohnsitz anmelden",
+      "title_en" : "Registering your address",
+      "title_ru" : "Регистрация по месту жительства"
+    },
+    {
+      "id" : "de-auslaenderbehoerde",
+      "lang" : "de",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Ich möchte meinen Aufenthaltstitel verlängern.",
+          "translation" : "Я хочу продлить вид на жительство."
+        },
+        {
+          "text" : "Mein Titel läuft am 20. November ab.",
+          "translation" : "Мой ВНЖ истекает 20 ноября."
+        },
+        {
+          "text" : "Bis wann muss ich die Unterlagen nachreichen?",
+          "translation" : "До какого срока нужно донести документы?"
+        },
+        {
+          "text" : "Bekomme ich eine Fiktionsbescheinigung?",
+          "translation" : "Я получу фикционсбешайнигунг (временный документ)?"
+        }
+      ],
+      "role" : "Sachbearbeiterin in der Ausländerbehörde",
+      "situation" : "Ihr Aufenthaltstitel läuft in drei Wochen ab. Sie haben einen Termin, aber der aktuelle Gehaltsnachweis fehlt noch, weil Ihr Arbeitgeber ihn erst nächste Woche schickt.",
+      "tasks" : [
+        "Erklären Sie Ihr Anliegen und wann Ihr Titel abläuft.",
+        "Sagen Sie, welches Dokument fehlt und warum.",
+        "Fragen Sie nach der Frist für die fehlenden Unterlagen.",
+        "Fragen Sie, ob Sie bis zur Entscheidung eine Fiktionsbescheinigung bekommen."
+      ],
+      "title" : "Aufenthaltstitel verlängern",
+      "title_en" : "Extending a residence permit",
+      "title_ru" : "Продление вида на жительство"
+    },
+    {
+      "id" : "de-besichtigung",
+      "lang" : "de",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Wie hoch sind die Nebenkosten?",
+          "translation" : "Сколько составляют коммунальные платежи?"
+        },
+        {
+          "text" : "Ist die Miete warm oder kalt?",
+          "translation" : "Аренда с отоплением или без?"
+        },
+        {
+          "text" : "Sind Haustiere erlaubt?",
+          "translation" : "Можно ли держать домашних животных?"
+        },
+        {
+          "text" : "Ich kann Ihnen die Unterlagen heute Abend schicken.",
+          "translation" : "Я могу прислать вам документы сегодня вечером."
+        }
+      ],
+      "role" : "Vermieterin einer Zweizimmerwohnung",
+      "situation" : "Sie besichtigen eine Zweizimmerwohnung in Ihrer Stadt. Es gibt viele Interessenten, und die Vermieterin möchte schnell entscheiden.",
+      "tasks" : [
+        "Stellen Sie sich kurz vor: Beruf und warum Sie umziehen.",
+        "Fragen Sie nach der Warmmiete und den Nebenkosten.",
+        "Klären Sie, ob eine Katze erlaubt ist.",
+        "Vereinbaren Sie, welche Unterlagen Sie schicken und bis wann."
+      ],
+      "title" : "Wohnungsbesichtigung",
+      "title_en" : "Flat viewing",
+      "title_ru" : "Осмотр квартиры"
+    },
+    {
+      "id" : "de-bank",
+      "lang" : "de",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "Ich möchte ein Girokonto eröffnen.",
+          "translation" : "Я хочу открыть текущий счёт."
+        },
+        {
+          "text" : "Welche Unterlagen brauchen Sie von mir?",
+          "translation" : "Какие документы вам от меня нужны?"
+        },
+        {
+          "text" : "Kostet das Konto etwas?",
+          "translation" : "Счёт платный?"
+        },
+        {
+          "text" : "Wann bekomme ich die Bankkarte?",
+          "translation" : "Когда я получу банковскую карту?"
+        }
+      ],
+      "role" : "Bankberater in einer Filiale",
+      "situation" : "Sie haben eine neue Arbeit und brauchen ein Girokonto für Ihr Gehalt. Sie haben Ihren Pass und die Meldebescheinigung dabei.",
+      "tasks" : [
+        "Sagen Sie, dass Sie ein Konto eröffnen möchten.",
+        "Fragen Sie, welche Dokumente nötig sind.",
+        "Fragen Sie nach den Kontoführungsgebühren.",
+        "Fragen Sie nach der Karte und dem Online-Banking."
+      ],
+      "title" : "Ein Girokonto eröffnen",
+      "title_en" : "Opening a bank account",
+      "title_ru" : "Открытие счёта в банке"
+    },
+    {
+      "id" : "de-reklamation",
+      "lang" : "de",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Die linke Seite funktioniert nicht mehr.",
+          "translation" : "Левый наушник больше не работает."
+        },
+        {
+          "text" : "Hier ist der Kassenbon.",
+          "translation" : "Вот чек."
+        },
+        {
+          "text" : "Ich möchte die Kopfhörer umtauschen.",
+          "translation" : "Я хочу обменять наушники."
+        },
+        {
+          "text" : "Ich hätte lieber mein Geld zurück.",
+          "translation" : "Я бы предпочёл вернуть деньги."
+        }
+      ],
+      "role" : "Verkäufer in einem Elektronikmarkt",
+      "situation" : "Sie haben vor einer Woche Kopfhörer gekauft. Seitdem funktioniert die linke Seite nicht mehr. Den Kassenbon haben Sie dabei.",
+      "tasks" : [
+        "Beschreiben Sie das Problem genau.",
+        "Zeigen Sie den Kassenbon und sagen Sie, wann Sie gekauft haben.",
+        "Verlangen Sie einen Umtausch oder Ihr Geld zurück.",
+        "Reagieren Sie auf den Vorschlag des Verkäufers und einigen Sie sich."
+      ],
+      "title" : "Reklamation im Geschäft",
+      "title_en" : "Returning a faulty product",
+      "title_ru" : "Возврат неисправного товара"
+    },
+    {
+      "id" : "de-zug",
+      "lang" : "de",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Mein Zug ist ausgefallen.",
+          "translation" : "Мой поезд отменили."
+        },
+        {
+          "text" : "Ich verpasse meinen Anschluss.",
+          "translation" : "Я опаздываю на пересадку."
+        },
+        {
+          "text" : "Gibt es eine andere Verbindung?",
+          "translation" : "Есть другой вариант?"
+        },
+        {
+          "text" : "Kann ich eine Bestätigung bekommen?",
+          "translation" : "Можно получить подтверждение?"
+        }
+      ],
+      "role" : "Mitarbeiterin im Reisezentrum am Bahnhof",
+      "situation" : "Ihr Zug nach München ist ausgefallen, und Sie verpassen den Anschluss zu einem wichtigen Termin. Sie gehen ins Reisezentrum.",
+      "tasks" : [
+        "Erklären Sie die Situation und wohin Sie müssen.",
+        "Fragen Sie nach der schnellsten Alternative.",
+        "Fragen Sie, ob Sie eine Entschädigung bekommen.",
+        "Bitten Sie um eine Bestätigung für Ihren Arbeitgeber."
+      ],
+      "title" : "Zug fällt aus",
+      "title_en" : "A cancelled train",
+      "title_ru" : "Поезд отменили"
+    },
+    {
+      "id" : "de-vorstellung",
+      "lang" : "de",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Ich habe drei Jahre im Kundenservice gearbeitet.",
+          "translation" : "Я три года работал в службе поддержки."
+        },
+        {
+          "text" : "Meine Stärke ist, dass ich ruhig bleibe.",
+          "translation" : "Моя сильная сторона — я сохраняю спокойствие."
+        },
+        {
+          "text" : "Ich arbeite noch an meinem Deutsch.",
+          "translation" : "Я ещё работаю над своим немецким."
+        },
+        {
+          "text" : "Wie sieht ein typischer Arbeitstag aus?",
+          "translation" : "Как выглядит обычный рабочий день?"
+        }
+      ],
+      "role" : "Personalleiterin eines mittelgroßen Unternehmens",
+      "situation" : "Sie haben sich als Mitarbeiter im Kundenservice beworben. Das Gespräch findet vor Ort statt und dauert etwa zwanzig Minuten.",
+      "tasks" : [
+        "Stellen Sie sich vor und sagen Sie, warum Sie sich beworben haben.",
+        "Beschreiben Sie eine Situation aus Ihrer bisherigen Arbeit.",
+        "Nennen Sie eine Stärke und eine Schwäche.",
+        "Stellen Sie eine Frage zum Team oder zu den Arbeitszeiten."
+      ],
+      "title" : "Vorstellungsgespräch",
+      "title_en" : "Job interview",
+      "title_ru" : "Собеседование"
+    },
+    {
+      "id" : "de-meeting",
+      "lang" : "de",
+      "level" : "B2",
+      "phrases" : [
+        {
+          "text" : "Kurz zum Stand meines Projekts:",
+          "translation" : "Коротко о статусе моего проекта:"
+        },
+        {
+          "text" : "Leider hat sich die Lieferung verzögert.",
+          "translation" : "К сожалению, поставка задержалась."
+        },
+        {
+          "text" : "Ich schlage vor, dass wir …",
+          "translation" : "Я предлагаю, чтобы мы …"
+        },
+        {
+          "text" : "Ich kümmere mich darum bis Freitag.",
+          "translation" : "Я займусь этим до пятницы."
+        }
+      ],
+      "role" : "Teamleiter in einer wöchentlichen Besprechung",
+      "situation" : "In der wöchentlichen Besprechung sollen Sie über Ihr Projekt berichten. Ein Lieferant ist zu spät, deshalb wird ein Termin knapp.",
+      "tasks" : [
+        "Berichten Sie kurz über den Stand Ihres Projekts.",
+        "Erklären Sie das Problem mit der Verspätung.",
+        "Machen Sie einen Vorschlag, wie das Team reagieren kann.",
+        "Übernehmen Sie eine Aufgabe und nennen Sie einen Termin."
+      ],
+      "title" : "Teambesprechung",
+      "title_en" : "Team meeting",
+      "title_ru" : "Совещание команды"
+    },
+    {
+      "id" : "en-interview",
+      "lang" : "en",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "I've been working as … for three years.",
+          "translation" : "Я работаю … уже три года."
+        },
+        {
+          "text" : "One project I'm proud of is …",
+          "translation" : "Один проект, которым я горжусь, — …"
+        },
+        {
+          "text" : "I'm working on being more concise.",
+          "translation" : "Я работаю над тем, чтобы говорить короче."
+        },
+        {
+          "text" : "What are the next steps?",
+          "translation" : "Какие следующие шаги?"
+        }
+      ],
+      "role" : "hiring manager at a software company",
+      "situation" : "You applied for a job in an international team. The interview is a video call and takes about twenty minutes.",
+      "tasks" : [
+        "Introduce yourself and say why you applied.",
+        "Describe a project you are proud of.",
+        "Answer the question about a weakness.",
+        "Ask a question about the team or the next steps."
+      ],
+      "title" : "Job interview",
+      "title_en" : "Job interview",
+      "title_ru" : "Собеседование"
+    },
+    {
+      "id" : "en-meeting",
+      "lang" : "en",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "Quick update on my side:",
+          "translation" : "Коротко по моей части:"
+        },
+        {
+          "text" : "There's a risk we'll miss the deadline.",
+          "translation" : "Есть риск, что мы не успеем к сроку."
+        },
+        {
+          "text" : "What if we …?",
+          "translation" : "А что если мы …?"
+        },
+        {
+          "text" : "I can have it ready by Thursday.",
+          "translation" : "Я могу подготовить это к четвергу."
+        }
+      ],
+      "role" : "project manager leading the weekly meeting",
+      "situation" : "In the weekly meeting you give an update on your task. A colleague's part is late, so your deadline is at risk.",
+      "tasks" : [
+        "Give a short update on your task.",
+        "Explain the risk to the deadline.",
+        "Suggest a solution.",
+        "Agree on who does what and by when."
+      ],
+      "title" : "Weekly meeting",
+      "title_en" : "Weekly meeting",
+      "title_ru" : "Еженедельное совещание"
+    },
+    {
+      "id" : "en-small-talk",
+      "lang" : "en",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "How was your weekend?",
+          "translation" : "Как прошли выходные?"
+        },
+        {
+          "text" : "Have you got any plans for the week?",
+          "translation" : "Есть планы на неделю?"
+        },
+        {
+          "text" : "You should try …",
+          "translation" : "Тебе стоит попробовать …"
+        },
+        {
+          "text" : "Anyway, I'd better get back to work.",
+          "translation" : "Ладно, мне пора возвращаться к работе."
+        }
+      ],
+      "role" : "a friendly colleague at the coffee machine",
+      "situation" : "It is Monday morning. A colleague from another team is at the coffee machine and starts a conversation.",
+      "tasks" : [
+        "Say how your weekend was.",
+        "Ask about the colleague's plans.",
+        "Recommend something: a place, a film or a book.",
+        "End the conversation politely."
+      ],
+      "title" : "Small talk at work",
+      "title_en" : "Small talk at work",
+      "title_ru" : "Разговор с коллегой"
+    },
+    {
+      "id" : "en-phone",
+      "lang" : "en",
+      "level" : "B1",
+      "phrases" : [
+        {
+          "text" : "I'm calling to reschedule my appointment.",
+          "translation" : "Я звоню, чтобы перенести запись."
+        },
+        {
+          "text" : "Would Thursday afternoon work?",
+          "translation" : "Подойдёт четверг после обеда?"
+        },
+        {
+          "text" : "Let me spell that for you.",
+          "translation" : "Давайте я продиктую по буквам."
+        },
+        {
+          "text" : "So that's Thursday at three, right?",
+          "translation" : "Значит, в четверг в три, верно?"
+        }
+      ],
+      "role" : "receptionist at a dental clinic",
+      "situation" : "You have a dentist appointment tomorrow at ten, but you have to work. You call the clinic to move it.",
+      "tasks" : [
+        "Say who you are and why you are calling.",
+        "Suggest two other times.",
+        "Spell your surname.",
+        "Confirm the new date and time."
+      ],
+      "title" : "Rescheduling by phone",
+      "title_en" : "Rescheduling by phone",
+      "title_ru" : "Перенос записи по телефону"
+    },
+    {
+      "id" : "en-airport",
+      "lang" : "en",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "I'm flying to London.",
+          "translation" : "Я лечу в Лондон."
+        },
+        {
+          "text" : "Can I take something out of the suitcase?",
+          "translation" : "Можно я достану что-то из чемодана?"
+        },
+        {
+          "text" : "Could I have a window seat, please?",
+          "translation" : "Можно место у окна?"
+        },
+        {
+          "text" : "What time does boarding start?",
+          "translation" : "Во сколько начинается посадка?"
+        }
+      ],
+      "role" : "airline check-in agent",
+      "situation" : "You are checking in for a flight to London. Your suitcase is a little heavier than allowed and you would like a window seat.",
+      "tasks" : [
+        "Give your destination and passport.",
+        "Deal with the heavy suitcase.",
+        "Ask for a window seat.",
+        "Ask about the gate and boarding time."
+      ],
+      "title" : "Check-in at the airport",
+      "title_en" : "Check-in at the airport",
+      "title_ru" : "Регистрация в аэропорту"
+    },
+    {
+      "id" : "en-doctor",
+      "lang" : "en",
+      "level" : "A2",
+      "phrases" : [
+        {
+          "text" : "I've had a bad cough for a week.",
+          "translation" : "У меня неделю сильный кашель."
+        },
+        {
+          "text" : "I'm not allergic to anything.",
+          "translation" : "У меня нет аллергии."
+        },
+        {
+          "text" : "Do I need a sick note?",
+          "translation" : "Мне нужен больничный?"
+        },
+        {
+          "text" : "How often should I take it?",
+          "translation" : "Как часто это принимать?"
+        }
+      ],
+      "role" : "general practitioner",
+      "situation" : "You have had a bad cough for a week and you cannot sleep well. You are seeing a doctor for the first time in this city.",
+      "tasks" : [
+        "Describe your symptoms and how long you have had them.",
+        "Answer the questions about allergies and medicine.",
+        "Ask if you need a sick note.",
+        "Ask how to take the medicine."
+      ],
+      "title" : "At the doctor's",
+      "title_en" : "At the doctor's",
+      "title_ru" : "У врача"
+    }
+  ]
+}

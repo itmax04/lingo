@@ -88,6 +88,13 @@ struct TodayView: View {
                     .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                 Button("Start warm-up") { model.services?.startWarmup(plan.lang) }.buttonStyle(.borderedProminent)
                     .disabled(model.startingWarmup.contains(plan.lang)).accessibilityLabel(Text("Start warm-up") + Text(", ") + Text(languageTitle(plan.lang)))
+            case .scenario(let id):
+                if let sc = ScenarioCatalog.scenario(id) {
+                    Text("Scenario").font(Theme.F.hintPhrase)
+                    Text("\(scenarioTitle(sc)) · \(sc.level)").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                    Button("Start scenario") { model.services?.startScenario(id) }.buttonStyle(.borderedProminent)
+                        .accessibilityLabel(Text("Start scenario") + Text(": \(scenarioTitle(sc))"))
+                }
             case .freeConversation:
                 Text("Nothing to review today. Free conversation?").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
                 Button("New session") { model.langFilter = plan.lang; model.section = .conversations; model.showNewSession = true }

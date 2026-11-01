@@ -67,6 +67,8 @@ public struct HistoryState: Sendable {
     public var firstStarred: [String: Date] = [:]
     /// All `goal.set` events (GR-02); the goal of a day is resolved from them.
     public var goalSets: [GoalSet] = []
+    /// Completed scenario tasks per session, each once, in traversal order (SR-03).
+    public var scenarioTasks: [String: [Int]] = [:]
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -256,6 +258,9 @@ public enum Merger {
             case EventType.cardSuspended:
                 guard let p = try? e.payload.decode(Payload.CardSuspended.self) else { st.unknownEvents += 1; continue }
                 suspended[p.card, default: LWW(false)].apply(p.suspended, ver)
+            case EventType.scenarioTask:
+                guard let p = try? e.payload.decode(Payload.ScenarioTask.self) else { st.unknownEvents += 1; continue }
+                if !(st.scenarioTasks[e.session] ?? []).contains(p.task) { st.scenarioTasks[e.session, default: []].append(p.task) }
             case EventType.goalSet:
                 guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }
                 st.goalSets.append(GoalSet(minutes: min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, p.minutes)), ts: e.ts, version: ver))

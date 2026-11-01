@@ -108,7 +108,7 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
   (`card.suspended` true). A "Suspended cards" list on the Warm-up screen resumes them (`card.suspended` false).
 
 ## 3. Scenarios
-- **SR-01. Catalogue** `packages/contracts/teacher/scenarios.json`, validated by a test: per scenario a unique `id`, `lang`, `title_en`,
+- **SR-01. Catalogue** `packages/contracts/teacher/scenarios.json`, validated by a test: per scenario a unique `id`, `lang`, `title` (study language: the session title and topic), `title_en`,
   `title_ru`, `level` (A2 | B1 | B2), `role` (Lingo's role, study language, ≤ 80 characters), `situation` (study language, ≤ 300
   characters), `tasks` (3–5 learner tasks, study language, each ≤ 120 characters), `phrases` (3–6 useful phrases with Russian
   translations). At least 8 German (life in Germany: doctor, residents' office registration, flat viewing, bank account, complaint in a

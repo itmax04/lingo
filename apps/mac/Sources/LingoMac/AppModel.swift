@@ -37,6 +37,8 @@ final class AppModel {
     var readOnly = false
     var memoryNote: String?
     var showNewSession = false
+    /// The scenario picker (LINGO-05 SR-01).
+    var showScenarios = false
     var continuous = false
     var networkUp = true
     var hasKey = false

@@ -41,6 +41,7 @@ struct MainView: View {
                             },
                             onCancel: { model.editing = nil })
         }
+        .sheet(isPresented: $model.showScenarios) { ScenarioPicker(model: model) }
         .sheet(isPresented: $model.showNewSession) {
             NewSessionView(lang: model.langFilter, lastCorrections: model.services?.settings.lastCorrections ?? [],
                            vocabularyCount: { l in model.vocabulary.filter { $0.lang == l }.count },
@@ -72,6 +73,9 @@ struct MainView: View {
                            extraControls: AnyView(VoiceToggles(model: model)))
                     .disabled(!model.disabledReason.isEmpty)
                     .help(model.disabledReason)
+                }
+                if let sid = model.selectedSessionID, let sc = model.selectedSession?.settings.scenarioID.flatMap(ScenarioCatalog.scenario) {
+                    ScenarioChecklist(scenario: sc, done: model.history.scenarioTasks[sid] ?? [])
                 }
                 if let sid = model.selectedSessionID, model.selectedSession?.settings.warmupCards != nil {
                     WarmupEndHost(model: model, session: sid)

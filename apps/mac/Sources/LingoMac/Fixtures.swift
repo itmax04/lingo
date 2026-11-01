@@ -76,6 +76,14 @@ enum Fixtures {
             }
             await e.setCardSuspended(queue.last ?? "", true)
             try await e.setDailyGoal(minutes: 15)
+            // A scenario with two of its four tasks done (T-5 screenshots).
+            if let sc = try await e.startScenario("de-doctor", corrections: [.inline]) {
+                _ = try await store.append(EventType.messageCreated, session: sc, Payload.MessageCreated(
+                    role: .assistant, text: "", lang: .de, segments: [.say(.de, "Guten Tag! Was führt Sie zu mir?")]))
+                _ = try await store.append(EventType.messageCreated, session: sc, Payload.MessageCreated(
+                    role: .user, text: "Ich habe seit drei Tagen Halsschmerzen und Fieber.", lang: .de))
+                for n in [1, 2] { _ = try await store.append(EventType.scenarioTask, session: sc, Payload.ScenarioTask(task: n, message: "m")) }
+            }
             services.model.apply(await store.state)
             return true
         } catch { return false }

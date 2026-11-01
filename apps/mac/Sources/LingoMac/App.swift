@@ -282,6 +282,12 @@ enum UISnapshot {
                     model.refreshSelection()
                     await capture("warmup-end", MainView(model: model))
                 }
+                if let sid = await services.store.state.sessions.values.first(where: { $0.settings.scenarioID != nil })?.id {
+                    model.selectedSessionID = sid
+                    model.refreshSelection()
+                    await capture("scenario-session", MainView(model: model))
+                    await capture("scenario-picker", ScenarioPicker(model: model), NSSize(width: 640, height: 620))
+                }
                 Fixtures.fill(model)
             }
             model.section = .conversations

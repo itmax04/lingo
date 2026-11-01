@@ -104,6 +104,9 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         activity = (try? c.decodeIfPresent(Activity.self, forKey: .activity)) ?? nil
     }
 
+    /// The catalogue id of a scenario session (SR-02), nil for other sessions.
+    public var scenarioID: String? { activity?.kind == .scenario ? activity?.id : nil }
+
     /// The frozen card queue of a warm-up (WR-01), nil for other sessions.
     public var warmupCards: [String]? { activity?.kind == .warmup ? activity?.cards : nil }
 

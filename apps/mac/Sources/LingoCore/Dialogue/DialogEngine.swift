@@ -147,7 +147,8 @@ public actor DialogEngine {
         let profile = frozenProfiles[session] ?? st.promptProfile(session: session)
         frozenProfiles[session] = profile
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
-                                              profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup)
+                                              profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
+                                              scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil)
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?
@@ -228,6 +229,7 @@ public actor DialogEngine {
             }
             if !items.isEmpty { try await store.appendBatch(items) }
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: mid, segments: full.segments)
+            await recordScenarioTasks(session, reply: parser.text, message: replyTo ?? mid)
             let said = full.segments.contains { if case .say = $0 { return true }; return false }
             let moved = await rateWarmupCard(session, named: warmup?.card?.id, learnerMessage: replyTo, command: command, reply: parser.text, said: said)
             cont.yield(.finished(messageID: mid, label: label, segments: full.segments, violations: full.violations))
@@ -244,6 +246,29 @@ public actor DialogEngine {
             cont.yield(.failed(reason: "\(error)", retryAfter: nil))
             return
         }
+    }
+
+    // MARK: Scenarios (LINGO-05 SR-01…SR-04)
+
+    /// A scenario session (SR-02); its phrases become topic hints at once, without a model call.
+    public func startScenario(_ id: String, corrections: Set<CorrectionMode>, level: String = "") async throws -> String? {
+        guard let sc = ScenarioCatalog.scenario(id) else { return nil }
+        let sid = try await createSession(sc.settings(corrections: corrections, level: level), title: sc.title)
+        let hints = try sc.phrases.map { (EventType.hintAdded, sid, try JSONValue.from(Payload.HintAdded(phrase: Phrase(lang: sc.lang, text: $0.text, translation: $0.translation, source: .topic)))) }
+        if !hints.isEmpty { _ = try await store.appendBatch(hints) }
+        return sid
+    }
+
+    /// `@task` lines of a reply → `scenario.task`, each task once per session (SR-03).
+    func recordScenarioTasks(_ session: String, reply: String, message: String) async {
+        let st = await store.state
+        guard let sc = st.sessions[session]?.settings.scenarioID.flatMap(ScenarioCatalog.scenario) else { return }
+        var done = Set(st.scenarioTasks[session] ?? [])
+        var items: [(type: String, session: String, payload: JSONValue)] = []
+        for n in sc.completedTasks(in: reply) where done.insert(n).inserted {
+            if let p = try? JSONValue.from(Payload.ScenarioTask(task: n, message: message)) { items.append((EventType.scenarioTask, session, p)) }
+        }
+        if !items.isEmpty { _ = try? await store.appendBatch(items) }
     }
 
     // MARK: Warm-up (LINGO-05 WR-01…WR-04)
