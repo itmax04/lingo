@@ -235,7 +235,7 @@ public actor DialogEngine {
             if moved, !Task.isCancelled, let w = await warmupPrompt(session, followUp: true) {
                 if w.card != nil {
                     await replyInner(session: session, replyTo: nil, command: nil, followUp: true, cont: cont)
-                } else if warmup?.next != nil {
+                } else if warmup?.next != nil || !said {
                     await sayWarmupClosing(session, cont: cont)
                 }
             }
@@ -283,7 +283,7 @@ public actor DialogEngine {
         let st = await store.state
         guard command == nil, let named, let mid = learnerMessage, let s = st.sessions[session],
               let w = st.warmupState(session: session, now: Date(), namedNext: warmupNamedNext[session]),
-              w.current == named, w.reviewed[named] == nil,
+              w.cards.contains(named), w.reviewed[named] == nil,
               let m = st.messages[session]?.first(where: { $0.id == mid }), m.role == .user, m.lang != .ru,
               CommandDetector.detect(m.text) == nil else { return false }
         let grade = Warmup.grade(in: reply)

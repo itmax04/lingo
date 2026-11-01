@@ -341,5 +341,20 @@ final class ScriptProvider: LLMProvider, @unchecked Sendable {
             #expect(try String(contentsOf: url, encoding: .utf8) == text, "snapshot \(name) changed")
         }
     }
-}
 
+    @Test func aCardSetUpBeforeTheDeadlineIsRatedEvenIfItsReplyArrivesAfterIt() async throws {
+        let p = ScriptProvider([])
+        let (e, store) = try engine("wu-late", p)
+        try await e.addVocabulary(lang: .de, entries: [("eins", ""), ("zwei", "")], source: .list)
+        let cards = await store.state.dueCards(lang: .de, now: Date()).map(\.id)
+        let sid = "wu-late-session"
+        let created = Date().addingTimeInterval(-Warmup.duration - 60)
+        try await store.append(EventType.sessionCreated, session: sid, Payload.SessionCreated(title: "W", settings: Warmup.settings(lang: .de, cards: cards, corrections: [.inline])), at: created)
+        // Card 0 was graded after the deadline while card 1 had been set up before it (the request named it as next).
+        try await store.append(EventType.cardReviewed, session: sid, Payload.CardReviewed(card: cards[0], rating: .good, message: "m"), at: Date().addingTimeInterval(-30))
+        let msg = try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: .user, text: "zwei", lang: .de))
+        let moved = await e.rateWarmupCard(sid, named: cards[1], learnerMessage: msg.id, command: nil, reply: "@say de: Gut.\n@grade: good", said: true)
+        let reviews = await store.state.cardReviews[cards[1]]
+        #expect(!moved && reviews?.map(\.rating) == [.good])
+    }
+}

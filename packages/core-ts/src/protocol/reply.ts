@@ -28,11 +28,9 @@ function tagged(raw: string): { tag: string; body: string } | null {
   const colon = indexOfCharacter(line, ":");
   if (colon < 0) {
     // No colon: the first word is the tag, the rest the body ("@grade good").
-    const rest = line.slice(1);
-    const space = rest.indexOf(" ");
-    const first = space < 0 ? rest : rest.slice(0, space);
-    if (first === "") return null;
-    return { tag: first.toLowerCase(), body: space < 0 ? "" : trimSpaces(rest.slice(space + 1)) };
+    const words = line.slice(1).split(" ").filter((x) => x !== "");
+    if (words.length === 0) return null;
+    return { tag: (words[0] as string).toLowerCase(), body: trimSpaces(words.slice(1).join(" ")) };
   }
   const tag = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "")[0] ?? "";
   return { tag, body: trimSpaces(line.slice(colon + 1)) };
