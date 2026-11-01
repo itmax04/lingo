@@ -19,8 +19,9 @@ export const str: Decoder<string> = (v, p) => {
   return v;
 };
 
+/** A whole number in the Int64 range: Swift decodes an `Int` field from such a JSON number (via Double). */
 export const int: Decoder<number> = (v, p) => {
-  if (typeof v !== "number" || !Number.isSafeInteger(v)) throw new DecodeError(p);
+  if (typeof v !== "number" || !Number.isInteger(v) || Math.abs(v) >= 2 ** 63) throw new DecodeError(p);
   return v;
 };
 

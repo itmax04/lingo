@@ -151,6 +151,7 @@ import Testing
         let t = Task { await runner.run(cs) }
         // Wait for the first request (a fixed pause was too short on a loaded machine), then cancel during its 429 wait.
         for _ in 0..<500 where log.all.isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        #expect(!log.all.isEmpty, "the first request never started")
         try await Task.sleep(for: .milliseconds(50))
         t.cancel()
         let r = await t.value

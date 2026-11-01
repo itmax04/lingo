@@ -55,6 +55,9 @@ export interface HistoryState {
   unknownEvents: number;
 }
 
+/** Swift `Date.distantPast` in milliseconds: the last activity of a session without dated events. */
+const DISTANT_PAST = -62135596800000;
+
 const version = (e: JournalEvent): Version => ({ lamport: e.lamport, device: e.device, id: e.id });
 const traversal = (a: JournalEvent, b: JournalEvent): number => a.ts - b.ts || cmp(a.device, b.device) || a.seq - b.seq || cmp(a.id, b.id);
 
@@ -85,7 +88,7 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
   const session = (id: string): SessionAcc => {
     let acc = sessions.get(id);
     if (!acc) {
-      acc = { title: new LWW(""), deleted: new LWW(false), ended: new LWW(false), summary: new LWW<SummaryUpdated>({ text: "" }), lastActivity: -Infinity };
+      acc = { title: new LWW(""), deleted: new LWW(false), ended: new LWW(false), summary: new LWW<SummaryUpdated>({ text: "" }), lastActivity: DISTANT_PAST };
       sessions.set(id, acc);
     }
     return acc;

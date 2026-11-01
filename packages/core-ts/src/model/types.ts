@@ -76,10 +76,11 @@ export const decodePhrase: Decoder<Phrase> = (v, p) => {
     translation: str(field(o, "translation"), `${p}.translation`), source: oneOf(PHRASE_SOURCES)(field(o, "source"), `${p}.source`) };
 };
 
-/** Swift's synthesized enum decoder: exactly one case key, unlabeled associated values as `_0`, `_1`. */
+/** Swift's synthesized enum decoder: exactly one known case key (other keys are ignored), associated values as `_0`, `_1`. */
+const SEGMENT_CASES = new Set(["say", "fix", "hint", "heard"]);
 export const decodeSegment: Decoder<ReplySegment> = (v, p) => {
   const o = object(v, p);
-  const keys = Object.keys(o);
+  const keys = Object.keys(o).filter((k) => SEGMENT_CASES.has(k));
   if (keys.length !== 1) throw new DecodeError(p);
   const k = keys[0] as string;
   const inner = object(o[k], `${p}.${k}`);
@@ -94,8 +95,11 @@ export const decodeSegment: Decoder<ReplySegment> = (v, p) => {
 
 /** Stable phrase key for ★ and de-duplication (R-28), as Swift `Phrase.key`: language + lower case, whitespace collapsed, trimmed. */
 export function phraseKey(l: Lang, text: string): string {
-  const norm = text.toLowerCase().split(/\s+/u).filter((x) => x !== "").join(" ").replace(TRIM, "");
-  return `${l}:${norm}`;
+  // Lower case per code point (no context rule such as the final sigma, like Swift), Swift's `.whitespacesAndNewlines`, and NFC,
+  // because Swift compares and hashes strings by canonical equivalence (an NFD "café" is the same key as NFC).
+  const lower = Array.from(text, (c) => c.toLowerCase()).join("");
+  const norm = lower.split(/[\t-\r\u0085\p{Z}\u200B]+/u).filter((x) => x !== "").join(" ").replace(TRIM, "");
+  return `${l}:${norm}`.normalize("NFC");
 }
 const TRIM_CHARS = ".!?…,;:«»\"“”„' ";
 const TRIM = new RegExp(`^[${escapeClass(TRIM_CHARS)}]+|[${escapeClass(TRIM_CHARS)}]+$`, "gu");

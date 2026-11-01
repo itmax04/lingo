@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildState, canonicalJSON, CORRECTION_MODES, eventLine, formatTS, parseEventLine, readJournal, visibleSessions,
+  phraseKey, buildState, canonicalJSON, CORRECTION_MODES, eventLine, formatTS, parseEventLine, readJournal, visibleSessions,
   type HistoryState, type JournalEvent, type JSONValue,
 } from "../src/index.js";
 import { readContract, readJSON } from "./contracts.js";
@@ -22,7 +22,10 @@ function projection(st: HistoryState): JSONValue {
     fixes: obj(st.fixes, (list) => list.map((f) => ({ message: f.message, fix: f.fix, ts: formatTS(f.ts) }))),
     hints: obj(st.hints, (list) => list),
     starred: obj(st.starred, (p) => p),
-    profile: st.profile, eventCount: st.eventCount, maxLamport: st.maxLamport,
+    profile: st.profile,
+    profileUpdates: st.profileUpdates.map((u) => ({ ts: formatTS(u.ts), lamport: u.version.lamport, device: u.version.device,
+      goals: u.goals ?? null, interests: u.interests ?? null })),
+    eventCount: st.eventCount, maxLamport: st.maxLamport,
     lastSeq: Object.fromEntries(st.lastSeq), unknownEvents: st.unknownEvents,
   })) as JSONValue;
 }
@@ -39,7 +42,7 @@ function shuffled<T>(xs: readonly T[], seed: number): T[] {
 }
 
 describe("golden state written by Swift Merger.build", () => {
-  it.each([["sample-journal", "sample-journal"], ["merge-two-devices.input", "merge-two-devices"]])("%s", (input, golden) => {
+  it.each([["sample-journal", "sample-journal"], ["merge-two-devices.input", "merge-two-devices"], ["edge", "edge"]])("%s", (input, golden) => {
     expect(projection(buildState(journal(input)))).toEqual(readJSON(`fixtures/events/${golden}.state.json`));
   });
 
@@ -56,12 +59,22 @@ describe("golden state written by Swift Merger.build", () => {
 });
 
 describe("merging is commutative and idempotent", () => {
-  const all = [...journal("sample-journal"), ...journal("merge-two-devices.input")];
+  const all = [...journal("sample-journal"), ...journal("merge-two-devices.input"), ...journal("edge")];
   const want = canonicalJSON(projection(buildState(all)));
   it.each([1, 2, 3, 42, 2026, 31337])("shuffled with seed %i and with duplicates", (seed) => {
     const input = shuffled([...all, ...all.slice(0, seed % all.length)], seed);
     expect(canonicalJSON(projection(buildState(input)))).toBe(want);
     expect(canonicalJSON(projection(buildState([...input, ...input])))).toBe(want);
+  });
+});
+
+describe("phrase keys (Swift Phrase.key, values from a Swift run)", () => {
+  it("whitespace, lower case and canonical equivalence", () => {
+    expect(phraseKey("en", "a\u0085b\u200Bc")).toBe("en:a b c");
+    expect(phraseKey("en", "a\uFEFFb")).toBe("en:a\uFEFFb");
+    expect(phraseKey("de", "ΟΔΟΣ")).toBe("de:οδοσ");
+    expect(phraseKey("en", "Cafe\u0301 time!")).toBe(phraseKey("en", "café TIME"));
+    expect(phraseKey("de", "  „Ich wohne seit zwei Jahren hier.“ ")).toBe("de:ich wohne seit zwei jahren hier");
   });
 });
 

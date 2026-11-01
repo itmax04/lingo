@@ -46,12 +46,16 @@ import Testing
             "sessions": .array(sessions), "visibleSessions": .array(st.visibleSessions().map { .string($0.id) }),
             "messages": .object(messages), "fixes": .object(fixes), "hints": .object(hints), "starred": .object(starred),
             "profile": .object(["goals": .string(st.profile.goals), "interests": .string(st.profile.interests)]),
+            "profileUpdates": .array(st.profileUpdates.map { u in
+                .object(["ts": date(u.ts), "lamport": .number(Double(u.version.lamport)), "device": .string(u.version.device),
+                         "goals": opt(u.goals), "interests": opt(u.interests)])
+            }),
             "eventCount": .number(Double(st.eventCount)), "maxLamport": .number(Double(st.maxLamport)),
             "lastSeq": .object(st.lastSeq.mapValues { .number(Double($0)) }), "unknownEvents": .number(Double(st.unknownEvents)),
         ])
     }
 
-    @Test(arguments: ["sample-journal", "merge-two-devices.input"])
+    @Test(arguments: ["sample-journal", "merge-two-devices.input", "edge"])
     func goldenState(name: String) throws {
         let golden = Self.events.appendingPathComponent(name.replacingOccurrences(of: ".input", with: "") + ".state.json")
         let enc = JSONEncoder()
