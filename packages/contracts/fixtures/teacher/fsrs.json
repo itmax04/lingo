@@ -1,0 +1,295 @@
+{
+  "cases" : [
+    {
+      "name" : "good every interval",
+      "reviews" : [
+        [
+          "good",
+          0
+        ],
+        [
+          "good",
+          3
+        ],
+        [
+          "good",
+          13
+        ],
+        [
+          "good",
+          50
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 5.282434,
+          "due" : "2026-10-29T07:33:20.000Z",
+          "stability" : 3.173
+        },
+        {
+          "difficulty" : 5.272968,
+          "due" : "2026-11-09T07:33:20.000Z",
+          "stability" : 10.738926
+        },
+        {
+          "difficulty" : 5.263545,
+          "due" : "2026-12-11T07:33:20.000Z",
+          "stability" : 32.615222
+        },
+        {
+          "difficulty" : 5.254165,
+          "due" : "2027-03-27T07:33:20.000Z",
+          "stability" : 102.202613
+        }
+      ]
+    },
+    {
+      "name" : "lapse then relearn",
+      "reviews" : [
+        [
+          "good",
+          0
+        ],
+        [
+          "good",
+          3
+        ],
+        [
+          "again",
+          20
+        ],
+        [
+          "good",
+          21
+        ],
+        [
+          "good",
+          23
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 5.282434,
+          "due" : "2026-10-29T07:33:20.000Z",
+          "stability" : 3.173
+        },
+        {
+          "difficulty" : 5.272968,
+          "due" : "2026-11-09T07:33:20.000Z",
+          "stability" : 10.738926
+        },
+        {
+          "difficulty" : 6.790568,
+          "due" : "2026-11-17T07:33:20.000Z",
+          "stability" : 2.415259
+        },
+        {
+          "difficulty" : 6.774164,
+          "due" : "2026-11-20T07:33:20.000Z",
+          "stability" : 4.443684
+        },
+        {
+          "difficulty" : 6.757835,
+          "due" : "2026-11-26T07:33:20.000Z",
+          "stability" : 8.216033
+        }
+      ]
+    },
+    {
+      "name" : "hard and easy",
+      "reviews" : [
+        [
+          "hard",
+          0
+        ],
+        [
+          "easy",
+          2
+        ],
+        [
+          "hard",
+          9
+        ],
+        [
+          "easy",
+          15
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 6.488305,
+          "due" : "2026-10-27T07:33:20.000Z",
+          "stability" : 1.18385
+        },
+        {
+          "difficulty" : 5.906082,
+          "due" : "2026-11-11T07:33:20.000Z",
+          "stability" : 13.638505
+        },
+        {
+          "difficulty" : 6.554997,
+          "due" : "2026-11-21T07:33:20.000Z",
+          "stability" : 16.839982
+        },
+        {
+          "difficulty" : 5.983239,
+          "due" : "2026-12-28T07:33:20.000Z",
+          "stability" : 47.517447
+        }
+      ]
+    },
+    {
+      "name" : "same day",
+      "reviews" : [
+        [
+          "again",
+          0
+        ],
+        [
+          "again",
+          0.01
+        ],
+        [
+          "good",
+          0.02
+        ],
+        [
+          "good",
+          1.5
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 7.1949,
+          "due" : "2026-10-27T07:33:20.000Z",
+          "stability" : 0.40255
+        },
+        {
+          "difficulty" : 8.082797,
+          "due" : "2026-10-27T07:47:44.000Z",
+          "stability" : 0.201689
+        },
+        {
+          "difficulty" : 8.060449,
+          "due" : "2026-10-27T08:02:08.000Z",
+          "stability" : 0.283932
+        },
+        {
+          "difficulty" : 8.038204,
+          "due" : "2026-10-29T19:33:20.000Z",
+          "stability" : 1.664471
+        }
+      ]
+    },
+    {
+      "name" : "again first, long gap (post-lapse cap)",
+      "reviews" : [
+        [
+          "again",
+          0
+        ],
+        [
+          "again",
+          10
+        ],
+        [
+          "good",
+          11
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 7.1949,
+          "due" : "2026-10-27T07:33:20.000Z",
+          "stability" : 0.40255
+        },
+        {
+          "difficulty" : 8.082797,
+          "due" : "2026-11-06T07:33:20.000Z",
+          "stability" : 0.285948
+        },
+        {
+          "difficulty" : 8.060449,
+          "due" : "2026-11-08T07:33:20.000Z",
+          "stability" : 1.65742
+        }
+      ]
+    },
+    {
+      "name" : "long gap and interval cap",
+      "reviews" : [
+        [
+          "good",
+          0
+        ],
+        [
+          "easy",
+          400
+        ],
+        [
+          "easy",
+          800
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 5.282434,
+          "due" : "2026-10-29T07:33:20.000Z",
+          "stability" : 3.173
+        },
+        {
+          "difficulty" : 4.510986,
+          "due" : "2028-09-17T07:33:20.000Z",
+          "stability" : 292.464163
+        },
+        {
+          "difficulty" : 3.618481,
+          "due" : "2030-01-03T07:33:20.000Z",
+          "stability" : 2207.32215
+        }
+      ]
+    },
+    {
+      "name" : "partial days are floored",
+      "reviews" : [
+        [
+          "good",
+          0
+        ],
+        [
+          "good",
+          2.99
+        ],
+        [
+          "good",
+          9.5
+        ]
+      ],
+      "start" : "2026-10-26T07:33:20.000Z",
+      "states" : [
+        {
+          "difficulty" : 5.282434,
+          "due" : "2026-10-29T07:33:20.000Z",
+          "stability" : 3.173
+        },
+        {
+          "difficulty" : 5.272968,
+          "due" : "2026-11-06T07:18:56.000Z",
+          "stability" : 8.384375
+        },
+        {
+          "difficulty" : 5.263545,
+          "due" : "2026-11-26T19:33:20.000Z",
+          "stability" : 22.207007
+        }
+      ]
+    }
+  ],
+  "rule" : "LINGO-05 CR-03: FSRS-5 as py-fsrs 5.1.3 with the Lingo profile (default parameters, retention 0.9, no learning or relearning steps, maximum interval 365, no fuzzing, whole elapsed days). Review times are days after `start`; stability and difficulty rounded to 6 decimals; compare with a tolerance of 1e-6. Written by Swift FSRSTests, whose port is checked against the py-fsrs test expectations."
+}

@@ -119,6 +119,24 @@ public enum Payload {
         }
     }
 
+    /// LINGO-05 CR-02: a card review in a warm-up; `message` is the graded learner message, "" for a skipped card.
+    public struct CardReviewed: Codable, Sendable, Hashable {
+        public var card: String
+        public var rating: CardRating
+        public var source: CardReviewSource
+        public var message: String
+        public init(card: String, rating: CardRating, source: CardReviewSource = .warmup, message: String) {
+            self.card = card; self.rating = rating; self.source = source; self.message = message
+        }
+    }
+
+    /// LINGO-05 CR-02: a card is suspended (never queued) or resumed; last writer wins.
+    public struct CardSuspended: Codable, Sendable, Hashable {
+        public var card: String
+        public var suspended: Bool
+        public init(card: String, suspended: Bool) { self.card = card; self.suspended = suspended }
+    }
+
     public struct ProfileUpdated: Codable, Sendable, Hashable {
         public var goals: String?
         public var interests: String?

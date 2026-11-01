@@ -25,3 +25,6 @@
 {"device":"mac-edge0001","id":"01M5RJNTB8000000000000000S","lamport":25,"payload":{"anything":true},"seq":23,"session":"s-edge","ts":"2026-10-25T03:46:40.104Z","type":"future.thing","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTB9000000000000000T","lamport":26,"payload":{"at":1.5,"message":"01M5RJNT980000000000000006"},"seq":24,"session":"s-edge","ts":"2026-10-25T03:46:40.105Z","type":"message.interrupted","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTBE000000000000000V","lamport":27,"payload":{},"seq":25,"session":"s-edge","ts":"2026-10-25T03:46:40.110Z","type":"session.ended","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBF000000000000000W","lamport":28,"payload":{"card":"word:de:hallo","message":"01M5RJNT980000000000000006","rating":"good","source":"warmup"},"seq":26,"session":"s-edge","ts":"2026-10-25T03:46:40.111Z","type":"card.reviewed","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBG000000000000000X","lamport":29,"payload":{"card":"word:de:hallo","rating":"good","source":"manual"},"seq":27,"session":"s-edge","ts":"2026-10-25T03:46:40.112Z","type":"card.reviewed","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBH000000000000000Y","lamport":30,"payload":{"card":"word:de:hallo","suspended":true},"seq":28,"session":"","ts":"2026-10-25T03:46:40.113Z","type":"card.suspended","v":1}

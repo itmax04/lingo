@@ -39,6 +39,8 @@ export const EventType = {
   vocabRemoved: "vocab.removed",
   vocabUsed: "vocab.used",
   profileUpdated: "profile.updated",
+  cardReviewed: "card.reviewed",
+  cardSuspended: "card.suspended",
 } as const;
 export const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(EventType));
 

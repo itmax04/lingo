@@ -201,6 +201,8 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
       case EventType.vocabUpdated: if (!Payload.vocabUpdated(e.payload)) st.unknownEvents++; break;
       case EventType.vocabRemoved: if (!Payload.vocabRemoved(e.payload)) st.unknownEvents++; break;
       case EventType.vocabUsed: if (!Payload.vocabUsed(e.payload)) st.unknownEvents++; break;
+      case EventType.cardReviewed: if (!Payload.cardReviewed(e.payload)) st.unknownEvents++; break;
+      case EventType.cardSuspended: if (!Payload.cardSuspended(e.payload)) st.unknownEvents++; break;
       default: st.unknownEvents++;
     }
   }
