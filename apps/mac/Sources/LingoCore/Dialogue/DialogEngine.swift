@@ -32,6 +32,8 @@ public actor DialogEngine {
     /// The learner profile of each session, computed at its first turn and kept while the app runs (PR-01: the system part stays
     /// identical, cacheable); after a restart it is computed again from the journal as it was before the session started.
     private var frozenProfiles: [String: PromptProfile] = [:]
+    /// The `<next_card>` the last warm-up request named (WR-01): after the time limit that card is still practised, then the warm-up ends.
+    private var warmupNamedNext: [String: String?] = [:]
     /// Usage log — for service requests too (passed into the chain from outside).
     public var usage: UsageRecorder?
 
@@ -42,6 +44,9 @@ public actor DialogEngine {
     }
 
     public func setPolicy(_ p: ContextPolicy) { policy = p }
+
+    /// A warm-up and an exam never request a recap or a summary (PX-04).
+    static func skipsRecapAndSummary(_ s: SessionSettings) -> Bool { s.activity?.kind == .warmup || s.activity?.kind == .exam }
 
     // MARK: Sessions (R-01, R-05)
 
@@ -129,7 +134,10 @@ public actor DialogEngine {
         Task.detached { await engine.runBackground(session) }
     }
 
-    private func replyInner(session: String, replyTo: String?, command: CommandKind?, cont: AsyncStream<TurnEvent>.Continuation) async {
+    private func replyInner(session: String, replyTo: String?, command: CommandKind?, followUp: Bool = false,
+                            cont: AsyncStream<TurnEvent>.Continuation) async {
+        if command == .continuePractice { await skipWarmupCard(session) }  // WR-03: `continue` skips before the request names the next card
+        let warmup = await warmupPrompt(session, followUp: followUp, replyTo: replyTo)
         let st = await store.state
         guard let s = st.sessions[session] else { cont.yield(.failed(reason: String(localized: "no session"), retryAfter: nil)); return }
         var history = st.messages[session] ?? []
@@ -139,7 +147,7 @@ public actor DialogEngine {
         let profile = frozenProfiles[session] ?? st.promptProfile(session: session)
         frozenProfiles[session] = profile
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
-                                              profile: profile, vocabulary: st.vocabTargets(session: session))
+                                              profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup)
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?
@@ -220,12 +228,94 @@ public actor DialogEngine {
             }
             if !items.isEmpty { try await store.appendBatch(items) }
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: mid, segments: full.segments)
+            let said = full.segments.contains { if case .say = $0 { return true }; return false }
+            let moved = await rateWarmupCard(session, named: warmup?.card?.id, learnerMessage: replyTo, command: command, reply: parser.text, said: said)
             cont.yield(.finished(messageID: mid, label: label, segments: full.segments, violations: full.violations))
+            // The engine moved on after the reply was generated: name the new card in one more request, or close (WR-03, WR-04).
+            if moved, !Task.isCancelled, let w = await warmupPrompt(session, followUp: true) {
+                if w.card != nil {
+                    await replyInner(session: session, replyTo: nil, command: nil, followUp: true, cont: cont)
+                } else if warmup?.next != nil || !said {
+                    await sayWarmupClosing(session, cont: cont)
+                }
+            }
         } catch {
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
             cont.yield(.failed(reason: "\(error)", retryAfter: nil))
             return
         }
+    }
+
+    // MARK: Warm-up (LINGO-05 WR-01…WR-04)
+
+    /// A warm-up over today's queue of a language (WR-01): nil when nothing is due or new.
+    public func startWarmup(lang: Lang, corrections: Set<CorrectionMode>, level: String = "", now: Date = Date(),
+                            calendar: Calendar = .autoupdatingCurrent) async throws -> String? {
+        let queue = await store.state.dueCards(lang: lang, now: now, calendar: calendar).prefix(Warmup.maxCards).map(\.id)
+        guard !queue.isEmpty else { return nil }
+        return try await createSession(Warmup.settings(lang: lang, cards: Array(queue), corrections: corrections, level: level))
+    }
+
+    /// The `<card>` / `<next_card>` of the next request; nil outside a warm-up. "Reply again" on an answer that already rated a card
+    /// names that card again (and rates nothing). Remembers the named next card, so the time limit is decided when it was asked.
+    func warmupPrompt(_ session: String, followUp: Bool, replyTo: String? = nil) async -> PromptBuilder.WarmupPrompt? {
+        let st = await store.state
+        guard let lang = st.sessions[session]?.settings.lang,
+              let w = st.warmupState(session: session, now: Date(), namedNext: warmupNamedNext[session]) else { return nil }
+        if let r = replyTo, let rated = st.cardReviews.first(where: { $0.value.contains { $0.session == session && $0.message == r } })?.key {
+            return PromptBuilder.WarmupPrompt(card: st.card(rated, lang: lang), next: w.current.flatMap { st.card($0, lang: lang) }, followUp: followUp)
+        }
+        warmupNamedNext[session] = w.next
+        return PromptBuilder.WarmupPrompt(card: w.current.flatMap { st.card($0, lang: lang) }, next: w.next.flatMap { st.card($0, lang: lang) },
+                                          followUp: followUp)
+    }
+
+    /// `continue` in a warm-up: the current card is skipped as `again` before the request, which then names the next card (WR-03).
+    func skipWarmupCard(_ session: String) async {
+        guard let cur = await store.state.warmupState(session: session, now: Date(), namedNext: warmupNamedNext[session])?.current else { return }
+        await review(session, card: cur, .again, message: "")
+    }
+
+    /// Rates `named` — the card the request named — from the reply (WR-03), only while it has no counted review in this session (so
+    /// "Reply again" and overlapping turns never rate another card). Returns true when the engine, not the model, moved on (local match,
+    /// skip, or a graded reply that set up nothing), so the next card still has to be set up.
+    func rateWarmupCard(_ session: String, named: String?, learnerMessage: String?, command: CommandKind?, reply: String, said: Bool) async -> Bool {
+        let st = await store.state
+        guard command == nil, let named, let mid = learnerMessage, let s = st.sessions[session],
+              let w = st.warmupState(session: session, now: Date(), namedNext: warmupNamedNext[session]),
+              w.cards.contains(named), w.reviewed[named] == nil,
+              let m = st.messages[session]?.first(where: { $0.id == mid }), m.role == .user, m.lang != .ru,
+              CommandDetector.detect(m.text) == nil else { return false }
+        let grade = Warmup.grade(in: reply)
+        if let g = grade, let r = CardRating(rawValue: g) {
+            await review(session, card: named, Warmup.capped(r, russian: w.russianOnCurrent), message: mid)
+            return !said
+        }
+        if grade == "wait" { return false }
+        if let card = st.card(named, lang: s.settings.lang), card.kind == .word,
+           VocabularyMatcher.contains(card.front, in: m.text, lang: s.settings.lang) {
+            await review(session, card: named, Warmup.capped(.good, russian: w.russianOnCurrent), message: mid)
+            return true
+        }
+        if w.unratedAnswers >= Warmup.unratedLimit {
+            await review(session, card: named, .again, message: "")
+            return true
+        }
+        return false
+    }
+
+    func review(_ session: String, card: String, _ rating: CardRating, message: String) async {
+        _ = try? await store.append(EventType.cardReviewed, session: session, Payload.CardReviewed(card: card, rating: rating, message: message))
+    }
+
+    /// The fixed closing line when the warm-up ends without a model turn (WR-04).
+    func sayWarmupClosing(_ session: String, cont: AsyncStream<TurnEvent>.Continuation) async {
+        guard let lang = await store.state.sessions[session]?.settings.lang else { return }
+        let line = Warmup.closingLine(lang)
+        guard let ev = try? await store.append(EventType.messageCreated, session: session, Payload.MessageCreated(
+            role: .assistant, text: "@say \(lang.rawValue): \(line)", lang: lang, segments: [.say(lang, line)])) else { return }
+        cont.yield(.speak(lang, line))
+        cont.yield(.finished(messageID: ev.id, label: "", segments: [.say(lang, line)], violations: 0))
     }
 
     /// Background requests after a turn: topic phrases (once) and the summary (every 10 turns) — if no turn is running and quota allows.
@@ -257,7 +347,8 @@ public actor DialogEngine {
     /// 6–8 topic phrases with translations — a separate background request at session start; the first turn does not wait for it.
     public func generateTopicPhrases(_ session: String) async {
         let st = await store.state
-        guard let s = st.sessions[session], (st.hints[session] ?? []).filter({ $0.source == .topic }).count < 6 else { return }
+        // Never for a teacher activity (PX-04): a scenario has its own phrases, a warm-up and an exam need none.
+        guard let s = st.sessions[session], s.settings.activity == nil, (st.hints[session] ?? []).filter({ $0.source == .topic }).count < 6 else { return }
         let req = PromptBuilder.topicPhrasesRequest(settings: s.settings)
         var text = ""
         for await e in await makeChain().run(req) {
@@ -443,7 +534,7 @@ public actor DialogEngine {
     /// What follows the end of a session and needs the model: the recap in the "after" mode (R-23) and the final summary.
     public func finalizeEnded(_ session: String) async {
         let st = await store.state
-        guard let s = st.sessions[session] else { return }
+        guard let s = st.sessions[session], !Self.skipsRecapAndSummary(s.settings) else { return }
         if s.settings.corrections.contains(.after) { await recap(session) }
         await maybeSummarize(session, force: true)
     }
@@ -474,7 +565,7 @@ public actor DialogEngine {
     public func maybeSummarize(_ session: String, force: Bool = false) async {
         guard !summarizing.contains(session) else { return }
         let st = await store.state
-        guard let s = st.sessions[session], let msgs = st.messages[session], !msgs.isEmpty else { return }
+        guard let s = st.sessions[session], !Self.skipsRecapAndSummary(s.settings), let msgs = st.messages[session], !msgs.isEmpty else { return }
         guard force || policy.needsSummary(msgs, through: s.summaryThrough) else { return }
         summarizing.insert(session)
         defer { summarizing.remove(session) }

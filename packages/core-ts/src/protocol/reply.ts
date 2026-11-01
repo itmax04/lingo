@@ -13,7 +13,32 @@ export function sayText(s: ReplySegment): string | undefined {
 
 /** Text for display and speech: the `@say` lines joined with spaces (Swift `ChatMessage.spokenText` of an assistant message). */
 export function spokenText(segments: readonly ReplySegment[], raw: string): string {
-  return segments.length === 0 ? raw : segments.flatMap((s) => sayText(s) ?? []).join(" ");
+  return segments.length === 0 ? removingSilentLines(raw) : segments.flatMap((s) => sayText(s) ?? []).join(" ");
+}
+
+/** Tags parsed silently (LINGO-05 PX-01): never spoken, never a segment. */
+export const SILENT_TAGS: ReadonlySet<string> = new Set(["grade", "task"]);
+
+/** The tag (lower case) and body of a tagged line after the `parseLine` clean-up; null for an untagged line. */
+function tagged(raw: string): { tag: string; body: string } | null {
+  let line = trimSpaces(raw);
+  while (line !== "" && "-*•>".includes(characters(line)[0] as string)) line = trimSpaces(line.slice((characters(line)[0] as string).length));
+  line = line.replaceAll("**", "");
+  if (characters(line)[0] !== "@") return null;
+  const colon = indexOfCharacter(line, ":");
+  if (colon < 0) {
+    // No colon: the first word is the tag, the rest the body ("@grade good").
+    const words = line.slice(1).split(" ").filter((x) => x !== "");
+    if (words.length === 0) return null;
+    return { tag: (words[0] as string).toLowerCase(), body: trimSpaces(words.slice(1).join(" ")) };
+  }
+  const tag = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "")[0] ?? "";
+  return { tag, body: trimSpaces(line.slice(colon + 1)) };
+}
+
+/** The raw text without silent-tag lines (Swift `ReplyProtocol.removingSilentLines`). */
+export function removingSilentLines(text: string): string {
+  return text.split("\n").filter((l) => { const t = tagged(l); return t === null || !SILENT_TAGS.has(t.tag); }).join("\n");
 }
 
 /** Removes `<think>…</think>` reasoning blocks; an unterminated block is cut to the end. */
@@ -53,6 +78,9 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
   if (line === "") return [null, false];
   // Character comparisons, as Swift: "@" followed by a combining mark is a different Character.
   if (characters(line)[0] !== "@") return [say(studyLang, line), true];
+  // A silent tag stays silent even without its colon ("@grade good").
+  const silent = tagged(line);
+  if (silent !== null && SILENT_TAGS.has(silent.tag)) return [null, false];
   const colon = indexOfCharacter(line, ":");
   if (colon < 0) return [say(studyLang, line.slice(1)), true];
   const head = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "");
@@ -69,6 +97,9 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
     }
     case "heard":
       return body === "" ? [null, true] : [{ heard: { _0: body } }, false];
+    case "grade":
+    case "task":
+      return [null, false];
     case "hint": {
       const parts = splitOnce(body, "|").map(trimSpaces);
       const phrase = parts[0];

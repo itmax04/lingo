@@ -113,9 +113,11 @@ public struct ChatMessage: Sendable, Hashable, Identifiable {
         self.kind = kind
     }
 
-    /// Text for display and speech: `@say` lines joined with spaces; for the user — the text itself.
+    /// Text for display and speech: `@say` lines joined with spaces; for the user — the text itself. A reply without segments falls back to
+    /// its raw text without silent-tag lines (PX-01).
     public var spokenText: String {
-        guard role == .assistant, !segments.isEmpty else { return text }
+        guard role == .assistant else { return text }
+        guard !segments.isEmpty else { return ReplyProtocol.removingSilentLines(text) }
         return segments.compactMap(\.sayText).joined(separator: " ")
     }
 }

@@ -314,6 +314,9 @@ public final class TurnController {
         speakingMessageID = nil
         speakingSessionID = ctx.session.id
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        // A turn can carry a second reply (the warm-up follow-up, LINGO-05 WR-03): after a barge-in it is not spoken, so it was heard
+        // from 0, not from the first reply's offset.
+        var finishedReplies = 0
         for await e in stream {
             onTurn?(e)
             switch e {
@@ -338,9 +341,11 @@ public final class TurnController {
             case .finished(let mid, _, _, _):
                 if speakingTurn == turnID { speakingMessageID = mid }
                 if let at = interruptedAt, speakingTurn == turnID || speakingTurn == nil {
-                    try? await engine.markInterrupted(mid, session: ctx.session.id, at: at)
-                    metrics?.note(turnID, "interrupted_at", String(at))
+                    // A reply after the first one in this turn was never spoken (a barge-in marks the first one at once).
+                    try? await engine.markInterrupted(mid, session: ctx.session.id, at: finishedReplies > 0 ? 0 : at)
+                    if finishedReplies == 0 { metrics?.note(turnID, "interrupted_at", String(at)) }
                 }
+                finishedReplies += 1
                 metrics?.note(turnID, "message", mid)
             case .failed(let reason, _):
                 metrics?.note(turnID, "failed", String(reason.prefix(60)))
@@ -418,7 +423,7 @@ public final class TurnController {
         if slower { slowStep = min(SpeechPace.slowSteps.count - 1, slowStep + 1) } else { slowStep = 0 }
         let mult = SpeechPace.slowSteps[slowStep]
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slower ? mult : (slowPace ? 0.75 : 1))
-        let segs: [(Lang, String)] = last.segments.isEmpty ? [(last.lang, last.text)]
+        let segs: [(Lang, String)] = last.segments.isEmpty ? [(last.lang, last.spokenText)]
             : last.segments.compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
         spokenParts = []
         interruptedAt = nil

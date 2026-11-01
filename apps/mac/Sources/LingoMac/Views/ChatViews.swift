@@ -192,7 +192,7 @@ struct MessageBubble: View {
                 }
             }
         } else if isUser || message.segments.isEmpty {
-            Text(message.text).font(Theme.F.bubble).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
+            Text(message.spokenText).font(Theme.F.bubble).foregroundStyle(Theme.C.textPrimary).textSelection(.enabled)
         } else {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(Array(message.segments.enumerated()), id: \.offset) { index, segment in

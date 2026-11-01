@@ -8,6 +8,8 @@ import Foundation
 /// @heard: Mir gefällt an Rostock, dass es hier das Meer gibt   (R-51: how the user's utterance was understood)
 /// ```
 /// A line without a tag is `@say` in the target language. Parse errors never break the turn and are counted as the `protocol_violation` metric.
+/// `@grade` (warm-up) and `@task` (scenario) are silent (LINGO-05 PX-01): never spoken, never a segment (older builds would drop the whole
+/// message), read from the raw text with `silentValues`.
 public enum ReplyProtocol {
     public struct Parsed: Sendable, Equatable {
         public var segments: [ReplySegment]
@@ -47,6 +49,8 @@ public enum ReplyProtocol {
         line = line.replacingOccurrences(of: "**", with: "")
         guard !line.isEmpty else { return (nil, false) }
         guard line.hasPrefix("@") else { return (.say(studyLang, line), true) }
+        // A silent tag stays silent even without its colon ("@grade good"): it must never be spoken.
+        if let t = tagged(line), silentTags.contains(t.tag) { return (nil, false) }
         guard let colon = line.firstIndex(of: ":") else { return (.say(studyLang, String(line.dropFirst())), true) }
         let head = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ")
         let body = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
@@ -63,6 +67,8 @@ public enum ReplyProtocol {
         case "heard":
             guard !body.isEmpty else { return (nil, true) }
             return (.heard(body), false)
+        case "grade", "task":
+            return (nil, false)
         case "hint":
             let parts = body.split(separator: "|", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
             guard let phrase = parts.first, !phrase.isEmpty else { return (nil, true) }
@@ -70,6 +76,42 @@ public enum ReplyProtocol {
         default:
             return (.say(studyLang, body), true)
         }
+    }
+
+    /// Tags parsed silently (PX-01).
+    public static let silentTags: Set<String> = ["grade", "task"]
+
+    /// The tag (lower case) and body of a tagged line, after the same clean-up as `parseLine`; nil for an untagged line.
+    static func tagged<S: StringProtocol>(_ raw: S) -> (tag: String, body: String)? {
+        var line = Substring(raw).trimmingCharacters(in: .whitespaces)
+        while let f = line.first, "-*•>".contains(f) { line.removeFirst(); line = line.trimmingCharacters(in: .whitespaces) }
+        line = line.replacingOccurrences(of: "**", with: "")
+        guard line.hasPrefix("@") else { return nil }
+        if let colon = line.firstIndex(of: ":") {
+            let tag = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ").first.map(String.init) ?? ""
+            return (tag, line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces))
+        }
+        // No colon: the first word is the tag, the rest the body ("@grade good").
+        let words = line.dropFirst().split(separator: " ", maxSplits: 1)
+        guard let first = words.first else { return nil }
+        return (first.lowercased(), words.count > 1 ? words[1].trimmingCharacters(in: .whitespaces) : "")
+    }
+
+    /// Bodies of the silent `tag` lines in order (`@grade: good` → "good"), from the raw reply text.
+    public static func silentValues(_ text: String, tag: String) -> [String] {
+        stripThinking(text).split(whereSeparator: \.isNewline).compactMap { line in
+            guard let t = tagged(line), t.tag == tag else { return nil }
+            return t.body
+        }
+    }
+
+    /// The raw text without silent-tag lines: the fallback for display, speech and the transcript when a reply has no segments.
+    public static func removingSilentLines(_ text: String) -> String {
+        // Split on U+000A like JavaScript's `split("\n")` (Swift's Character split would keep "\r\n" whole).
+        text.components(separatedBy: "\n").filter { line in
+            guard let t = tagged(line) else { return true }
+            return !silentTags.contains(t.tag)
+        }.joined(separator: "\n")
     }
 
     /// "wrong → right | rule"; arrows "→", "->", "=>".

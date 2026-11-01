@@ -63,10 +63,12 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     public var vocabularyFocus: Bool?
     /// LINGO-08 VR-11: the item chosen with "Practise"; it is the first target while it is a candidate.
     public var pinnedVocab: String?
+    /// LINGO-05: a teacher activity (warm-up, scenario, exam). Older builds ignore it and open the session as its stored mode (PX-05).
+    public var activity: Activity?
 
     public init(lang: Lang, mode: SessionMode, topic: String = "", role: String = "", level: String = "",
                 customPrompt: String = "", corrections: Set<CorrectionMode> = [], starter: Starter = .assistant,
-                useVocabulary: Bool? = nil, vocabularyFocus: Bool? = nil, pinnedVocab: String? = nil) {
+                useVocabulary: Bool? = nil, vocabularyFocus: Bool? = nil, pinnedVocab: String? = nil, activity: Activity? = nil) {
         self.lang = lang
         self.mode = mode
         self.topic = topic
@@ -78,7 +80,32 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         self.useVocabulary = useVocabulary
         self.vocabularyFocus = vocabularyFocus
         self.pinnedVocab = pinnedVocab
+        self.activity = activity
     }
+
+    enum CodingKeys: String, CodingKey {
+        case lang, mode, topic, role, level, customPrompt, corrections, starter, useVocabulary, vocabularyFocus, pinnedVocab, activity
+    }
+
+    /// As the synthesized decoder, except that `activity` is tolerant: missing, malformed or of an unknown kind → nil (PX-05).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        lang = try c.decode(Lang.self, forKey: .lang)
+        mode = try c.decode(SessionMode.self, forKey: .mode)
+        topic = try c.decode(String.self, forKey: .topic)
+        role = try c.decode(String.self, forKey: .role)
+        level = try c.decode(String.self, forKey: .level)
+        customPrompt = try c.decode(String.self, forKey: .customPrompt)
+        corrections = try c.decode(Set<CorrectionMode>.self, forKey: .corrections)
+        starter = try c.decode(Starter.self, forKey: .starter)
+        useVocabulary = try c.decodeIfPresent(Bool.self, forKey: .useVocabulary)
+        vocabularyFocus = try c.decodeIfPresent(Bool.self, forKey: .vocabularyFocus)
+        pinnedVocab = try c.decodeIfPresent(String.self, forKey: .pinnedVocab)
+        activity = (try? c.decodeIfPresent(Activity.self, forKey: .activity)) ?? nil
+    }
+
+    /// The frozen card queue of a warm-up (WR-01), nil for other sessions.
+    public var warmupCards: [String]? { activity?.kind == .warmup ? activity?.cards : nil }
 
     /// "My words" (VR-09).
     public var isVocabularyFocus: Bool { vocabularyFocus == true && mode == .questions }
@@ -125,4 +152,42 @@ public struct SessionSettings: Codable, Sendable, Hashable {
 
     /// Header subtitle: "<mode> in <language>" (R-40).
     public var subtitle: String { "\(mode.title) \(lang.inLanguagePhrase)" }
+}
+
+/// A teacher activity of a session (LINGO-05 WR-01, SR-02, XR-02). Only the fields of its kind are set.
+public struct Activity: Codable, Sendable, Hashable {
+    public enum Kind: String, Codable, Sendable { case warmup, scenario, exam }
+    public var kind: Kind
+    /// Warm-up: the frozen queue of card ids.
+    public var cards: [String]?
+    /// Scenario: the catalogue id.
+    public var id: String?
+    /// Exam: "goethe_b1" or "ielts", and the tasks drawn at the start.
+    public var exam: String?
+    public var tasks: [String]?
+
+    public init(kind: Kind, cards: [String]? = nil, id: String? = nil, exam: String? = nil, tasks: [String]? = nil) {
+        self.kind = kind; self.cards = cards; self.id = id; self.exam = exam; self.tasks = tasks
+    }
+
+    public static func warmup(_ cards: [String]) -> Activity { Activity(kind: .warmup, cards: cards) }
+
+    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks }
+
+    /// Malformed content for its kind throws, so `SessionSettings` decodes it as no activity (PX-05).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try c.decode(Kind.self, forKey: .kind)
+        cards = try c.decodeIfPresent([String].self, forKey: .cards)
+        id = try c.decodeIfPresent(String.self, forKey: .id)
+        exam = try c.decodeIfPresent(String.self, forKey: .exam)
+        tasks = try c.decodeIfPresent([String].self, forKey: .tasks)
+        let valid: Bool
+        switch kind {
+        case .warmup: valid = !(cards ?? []).isEmpty
+        case .scenario: valid = !(id ?? "").isEmpty
+        case .exam: valid = !(exam ?? "").isEmpty && !(tasks ?? []).isEmpty
+        }
+        guard valid else { throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "activity without its fields") }
+    }
 }

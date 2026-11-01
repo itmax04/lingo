@@ -1069,6 +1069,207 @@
       "studyLang" : "en",
       "text" : "<think>only reasoning</think>\n@say en:",
       "violations" : 1
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Genau, gut gemacht!"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Genau, gut gemacht!"
+            }
+          }
+        },
+        {
+          "speak" : [
+            "de",
+            "Und was machst du am Wochenende?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Und was machst du am Wochenende?"
+            }
+          }
+        }
+      ],
+      "name" : "warm-up grade is silent",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Genau, gut gemacht!"
+          }
+        },
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Und was machst du am Wochenende?"
+          }
+        }
+      ],
+      "spokenText" : "Genau, gut gemacht! Und was machst du am Wochenende?",
+      "studyLang" : "de",
+      "text" : "@say de: Genau, gut gemacht!\n@grade: good\n@say de: Und was machst du am Wochenende?",
+      "violations" : 0
+    },
+    {
+      "items" : [
+
+      ],
+      "name" : "only silent lines",
+      "segments" : [
+
+      ],
+      "spokenText" : "",
+      "studyLang" : "de",
+      "text" : "@grade: wait",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Great, see you at ten."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Great, see you at ten."
+            }
+          }
+        }
+      ],
+      "name" : "scenario task is silent",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Great, see you at ten."
+          }
+        }
+      ],
+      "spokenText" : "Great, see you at ten.",
+      "studyLang" : "en",
+      "text" : "- **@task: 2**\n@say en: Great, see you at ten.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+
+      ],
+      "name" : "silent lines with CRLF",
+      "segments" : [
+
+      ],
+      "spokenText" : "",
+      "studyLang" : "de",
+      "text" : "@grade: hard\r\n@task: 1",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Gut."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Gut."
+            }
+          }
+        }
+      ],
+      "name" : "silent tag without a colon",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Gut."
+          }
+        }
+      ],
+      "spokenText" : "Gut.",
+      "studyLang" : "de",
+      "text" : "@say de: Gut.\n@grade good",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Weiter."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Weiter."
+            }
+          }
+        }
+      ],
+      "name" : "grade in any case",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Weiter."
+          }
+        }
+      ],
+      "spokenText" : "Weiter.",
+      "studyLang" : "de",
+      "text" : "@Grade: Good!\n@say de: Weiter.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Weiter."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Weiter."
+            }
+          }
+        }
+      ],
+      "name" : "silent tag with a space after the at sign",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Weiter."
+          }
+        }
+      ],
+      "spokenText" : "Weiter.",
+      "studyLang" : "de",
+      "text" : "@ grade good\n@say de: Weiter.",
+      "violations" : 0
     }
   ],
   "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1). Streamed items are checked for every split at a Character boundary (a split inside a grapheme cluster is not covered)."
