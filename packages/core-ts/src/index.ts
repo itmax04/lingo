@@ -9,3 +9,7 @@ export { canonicalJSON, numberJSON, compareCodePoints, isSwiftCompatible, isJSON
 export function isReadOnlyVersion(v: number): boolean {
   return v > JOURNAL_SCHEMA_VERSION;
 }
+export { buildState, visibleSessions, compareVersions, type HistoryState, type Session, type ChatMessage, type FixEntry,
+  type ProfileUpdate, type Version } from "./events/merge.js";
+export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, type Fix, type Phrase, type ReplySegment, type Role,
+  type CorrectionMode, type SessionMode, type Starter, type PhraseSource, type MessageKind } from "./model/types.js";
