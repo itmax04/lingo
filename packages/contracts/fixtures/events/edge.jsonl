@@ -31,3 +31,5 @@
 {"device":"mac-edge0001","id":"01M5RJNTBJ000000000000000Z","lamport":31,"payload":{"card":"word:de:hallo","message":"m","rating":"perfect","source":"warmup"},"seq":29,"session":"s-edge2","ts":"2026-10-25T03:46:40.114Z","type":"card.reviewed","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTBK0000000000000010","lamport":32,"payload":{"card":"word:de:hallo","suspended":"yes"},"seq":30,"session":"","ts":"2026-10-25T03:46:40.115Z","type":"card.suspended","v":1}
 {"device":"mac-edge0001","id":"01M5RJNTBM0000000000000011","lamport":33,"payload":{"card":"word:de:hallo","suspended":true},"seq":31,"session":"","ts":"2026-10-25T03:46:40.116Z","type":"card.suspended","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBN0000000000000012","lamport":34,"payload":{"minutes":30},"seq":32,"session":"","ts":"2026-10-25T03:46:40.117Z","type":"goal.set","v":1}
+{"device":"mac-edge0001","id":"01M5RJNTBP0000000000000013","lamport":35,"payload":{"minutes":"thirty"},"seq":33,"session":"","ts":"2026-10-25T03:46:40.118Z","type":"goal.set","v":1}

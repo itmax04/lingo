@@ -65,6 +65,8 @@ public struct HistoryState: Sendable {
     public var suspendedCards: Set<String> = []
     /// The earliest `phrase.starred` per vocabulary key (`VocabularyText.key`), so a word card keeps its first date (CR-01).
     public var firstStarred: [String: Date] = [:]
+    /// All `goal.set` events (GR-02); the goal of a day is resolved from them.
+    public var goalSets: [GoalSet] = []
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -252,6 +254,9 @@ public enum Merger {
             case EventType.cardSuspended:
                 guard let p = try? e.payload.decode(Payload.CardSuspended.self) else { st.unknownEvents += 1; continue }
                 suspended[p.card, default: LWW(false)].apply(p.suspended, ver)
+            case EventType.goalSet:
+                guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }
+                st.goalSets.append(GoalSet(minutes: min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, p.minutes)), ts: e.ts, version: ver))
             case EventType.profileUpdated:
                 guard let p = try? e.payload.decode(Payload.ProfileUpdated.self) else { st.unknownEvents += 1; continue }
                 if let g = p.goals { goals.apply(g, ver) }

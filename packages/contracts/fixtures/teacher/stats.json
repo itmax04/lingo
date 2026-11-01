@@ -1,0 +1,96 @@
+{
+  "calendar" : "Europe/Berlin",
+  "days" : {
+    "de" : {
+      "2026-10-23" : {
+        "learnerWords" : 24,
+        "mistakes" : 0,
+        "practiceMinutes" : 6,
+        "practiceSeconds" : 360,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      },
+      "2026-10-24" : {
+        "learnerWords" : 30,
+        "mistakes" : 2,
+        "practiceMinutes" : 9,
+        "practiceSeconds" : 540,
+        "sessions" : 1,
+        "vocabularyUsed" : 1
+      },
+      "2026-10-26" : {
+        "learnerWords" : 24,
+        "mistakes" : 0,
+        "practiceMinutes" : 6,
+        "practiceSeconds" : 360,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      }
+    },
+    "en" : {
+      "2026-10-24" : {
+        "learnerWords" : 6,
+        "mistakes" : 0,
+        "practiceMinutes" : 1,
+        "practiceSeconds" : 60,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      },
+      "2026-10-25" : {
+        "learnerWords" : 30,
+        "mistakes" : 0,
+        "practiceMinutes" : 8,
+        "practiceSeconds" : 480,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      }
+    },
+    "total" : {
+      "2026-10-23" : {
+        "learnerWords" : 24,
+        "mistakes" : 0,
+        "practiceMinutes" : 6,
+        "practiceSeconds" : 360,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      },
+      "2026-10-24" : {
+        "learnerWords" : 36,
+        "mistakes" : 2,
+        "practiceMinutes" : 10,
+        "practiceSeconds" : 600,
+        "sessions" : 2,
+        "vocabularyUsed" : 1
+      },
+      "2026-10-25" : {
+        "learnerWords" : 30,
+        "mistakes" : 0,
+        "practiceMinutes" : 8,
+        "practiceSeconds" : 480,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      },
+      "2026-10-26" : {
+        "learnerWords" : 24,
+        "mistakes" : 0,
+        "practiceMinutes" : 6,
+        "practiceSeconds" : 360,
+        "sessions" : 1,
+        "vocabularyUsed" : 0
+      }
+    }
+  },
+  "goalByDay" : {
+    "2026-10-23" : 15,
+    "2026-10-24" : 5,
+    "2026-10-25" : 5,
+    "2026-10-26" : 60
+  },
+  "mistakesPer100WordsByWeek" : {
+    "2026-10-19" : 2.222222,
+    "2026-10-26" : 0
+  },
+  "now" : "2026-10-26T17:00:00.000Z",
+  "rule" : "LINGO-05 GR-01/GR-02: statistics of stats.input.jsonl in Europe/Berlin at `now`; days are local dates; written by Swift StatsTests.",
+  "streak" : 2
+}

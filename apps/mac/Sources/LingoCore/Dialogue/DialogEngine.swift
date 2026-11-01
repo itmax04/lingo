@@ -336,6 +336,12 @@ public actor DialogEngine {
         try await store.append(EventType.vocabRemoved, session: "", Payload.VocabRemoved(item: id))
     }
 
+    /// The daily goal in minutes (LINGO-05 GR-02), clamped to 5–120; a journal event, so it follows the learner to other devices.
+    public func setDailyGoal(minutes: Int) async throws {
+        let m = min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, minutes))
+        try await store.append(EventType.goalSet, session: "", Payload.GoalSet(minutes: m))
+    }
+
     public func updateProfile(goals: String? = nil, interests: String? = nil) async throws {
         try await store.append(EventType.profileUpdated, session: "", Payload.ProfileUpdated(
             goals: goals.map { String($0.prefix(300)) }, interests: interests.map { String($0.prefix(300)) }))

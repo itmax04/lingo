@@ -160,7 +160,8 @@ with the language prefix). Event order everywhere is (ts, device, seq, id), as i
 ## 5. Progress, Today and memory
 - **GR-01. Statistics** — pure functions of the journal state and a calendar, per language and in total:
   - **practice seconds** per local day: per live session, the counted messages in event order; each gap between consecutive messages adds
-    `min(gap, 120 s)` to the local day of the later message; minutes are shown rounded down;
+    `min(gap, 120 s)` to the local day of the later message, and a gap longer than 10 minutes is a break that adds nothing (a session
+    resumed days later gives no phantom minutes); minutes are shown rounded down;
   - **sessions** per local day: live sessions with at least one counted learner message that day;
   - **learner words**: learner counted messages split on Unicode whitespace; a token counts when it contains a letter;
   - **vocabulary used**: learner `vocab.used` events of live sessions per local day;
