@@ -14,7 +14,7 @@ import Testing
             .split(separator: "\n").filter { !$0.isEmpty }.map { try Event(line: $0) }
     }
 
-    /// A neutral projection of the state: every field the reducer produces outside the vocabulary (P-07c2), dates as contract strings.
+    /// A neutral projection of the state: every field the reducer produces, dates as contract strings.
     static func projection(_ st: HistoryState) throws -> JSONValue {
         func date(_ d: Date) -> JSONValue { .string(Event.formatTS(d)) }
         func opt(_ s: String?) -> JSONValue { s.map(JSONValue.string) ?? .null }
@@ -42,7 +42,22 @@ import Testing
         }
         let hints = try st.hints.mapValues { JSONValue.array(try $0.map { try JSONValue.from($0) }) }
         let starred = try st.starred.mapValues { try JSONValue.from($0) }
+        func item(_ i: VocabItem) -> JSONValue {
+            .object(["id": .string(i.id), "lang": .string(i.lang.rawValue), "text": .string(i.text), "translation": .string(i.translation),
+                     "note": .string(i.note), "example": .string(i.example), "source": .string(i.source.rawValue), "createdAt": date(i.createdAt),
+                     "offered": .number(Double(i.offered)), "used": .number(Double(i.used)), "mistakes": .number(Double(i.mistakes)),
+                     "lastPractised": i.lastPractised.map(date) ?? .null])
+        }
+        let vocab: [String: JSONValue] = [
+            "items": .array(st.vocabulary().map(item)),
+            "usedInSession": .object(st.vocabUsedInSession.mapValues { .array($0.sorted().map(JSONValue.string)) }),
+            "uses": .array(st.vocabUses.map { .object(["item": .string($0.item), "session": .string($0.session), "by": .string($0.by.rawValue),
+                                                         "outcome": .string($0.outcome.rawValue), "at": date($0.at)]) }),
+            "addKeys": .array(st.vocabAddKeys.sorted().map(JSONValue.string)),
+            "targets": .object(Dictionary(uniqueKeysWithValues: st.sessions.keys.map { ($0, JSONValue.array(st.vocabTargets(session: $0).map { .string($0.id) })) })),
+        ]
         return .object([
+            "vocab": .object(vocab),
             "sessions": .array(sessions), "visibleSessions": .array(st.visibleSessions().map { .string($0.id) }),
             "messages": .object(messages), "fixes": .object(fixes), "hints": .object(hints), "starred": .object(starred),
             "profile": .object(["goals": .string(st.profile.goals), "interests": .string(st.profile.interests)]),
@@ -55,7 +70,7 @@ import Testing
         ])
     }
 
-    @Test(arguments: ["sample-journal", "merge-two-devices.input", "edge"])
+    @Test(arguments: ["sample-journal", "merge-two-devices.input", "edge", "vocab-edge"])
     func goldenState(name: String) throws {
         let golden = Self.events.appendingPathComponent(name.replacingOccurrences(of: ".input", with: "") + ".state.json")
         let enc = JSONEncoder()

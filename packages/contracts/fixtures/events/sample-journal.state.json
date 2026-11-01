@@ -172,5 +172,40 @@
   "unknownEvents" : 0,
   "visibleSessions" : [
     "s-fixture-de-1"
-  ]
+  ],
+  "vocab" : {
+    "addKeys" : [
+
+    ],
+    "items" : [
+      {
+        "createdAt" : "2026-10-26T07:33:29.000Z",
+        "example" : "",
+        "id" : "star:de:ich wohne seit zwei jahren hier",
+        "lang" : "de",
+        "lastPractised" : null,
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 0,
+        "source" : "starred",
+        "text" : "Ich wohne seit zwei Jahren hier.",
+        "translation" : "Я живу здесь два года.",
+        "used" : 0
+      }
+    ],
+    "targets" : {
+      "s-fixture-de-1" : [
+        "star:de:ich wohne seit zwei jahren hier"
+      ],
+      "s-fixture-en-1" : [
+
+      ]
+    },
+    "usedInSession" : {
+
+    },
+    "uses" : [
+
+    ]
+  }
 }

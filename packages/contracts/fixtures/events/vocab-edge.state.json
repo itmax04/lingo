@@ -1,0 +1,250 @@
+{
+  "eventCount" : 23,
+  "fixes" : {
+
+  },
+  "hints" : {
+
+  },
+  "lastSeq" : {
+    "mac-voc00001" : 20,
+    "web-voc00002" : 3
+  },
+  "maxLamport" : 23,
+  "messages" : {
+
+  },
+  "profile" : {
+    "goals" : "Arbeit",
+    "interests" : ""
+  },
+  "profileUpdates" : [
+    {
+      "device" : "mac-voc00001",
+      "goals" : "Arbeit",
+      "interests" : null,
+      "lamport" : 23,
+      "ts" : "2026-10-25T03:46:40.050Z"
+    }
+  ],
+  "sessions" : [
+    {
+      "createdAt" : "2026-10-25T03:46:40.000Z",
+      "deleted" : false,
+      "id" : "s1",
+      "lastActivity" : "2026-10-25T03:46:40.046Z",
+      "settings" : {
+        "corrections" : [
+          "inline"
+        ],
+        "customPrompt" : "",
+        "lang" : "de",
+        "level" : "A2",
+        "mode" : "free",
+        "role" : "",
+        "starter" : "user",
+        "topic" : ""
+      },
+      "state" : "active",
+      "summary" : "",
+      "summaryThrough" : null,
+      "title" : "One"
+    },
+    {
+      "createdAt" : "2026-10-25T03:46:40.001Z",
+      "deleted" : false,
+      "id" : "s2",
+      "lastActivity" : "2026-10-25T03:46:40.044Z",
+      "settings" : {
+        "corrections" : [
+          "inline"
+        ],
+        "customPrompt" : "",
+        "lang" : "de",
+        "level" : "A2",
+        "mode" : "questions",
+        "role" : "",
+        "starter" : "user",
+        "topic" : "",
+        "vocabularyFocus" : true
+      },
+      "state" : "active",
+      "summary" : "",
+      "summaryThrough" : null,
+      "title" : "My words"
+    },
+    {
+      "createdAt" : "2026-10-25T03:46:40.002Z",
+      "deleted" : false,
+      "id" : "s3",
+      "lastActivity" : "2026-10-25T03:46:40.002Z",
+      "settings" : {
+        "corrections" : [
+          "inline"
+        ],
+        "customPrompt" : "",
+        "lang" : "de",
+        "level" : "A2",
+        "mode" : "free",
+        "role" : "",
+        "starter" : "user",
+        "topic" : "",
+        "useVocabulary" : false
+      },
+      "state" : "active",
+      "summary" : "",
+      "summaryThrough" : null,
+      "title" : "Off"
+    }
+  ],
+  "starred" : {
+    "de:die ausrede" : {
+      "lang" : "de",
+      "source" : "hint",
+      "text" : "die Ausrede",
+      "translation" : "отговорка"
+    },
+    "de:ich wohne seit zwei jahren hier" : {
+      "lang" : "de",
+      "source" : "hint",
+      "text" : "Ich wohne seit zwei Jahren hier.",
+      "translation" : "Я живу здесь два года."
+    }
+  },
+  "unknownEvents" : 0,
+  "visibleSessions" : [
+    "s1",
+    "s2",
+    "s3"
+  ],
+  "vocab" : {
+    "addKeys" : [
+      "de:die ausrede",
+      "de:feierabend",
+      "de:sich verabreden",
+      "en:spot on"
+    ],
+    "items" : [
+      {
+        "createdAt" : "2026-10-25T03:46:40.010Z",
+        "example" : "",
+        "id" : "01M5RJNT8A0000000000000004",
+        "lang" : "de",
+        "lastPractised" : "2026-10-25T03:46:40.042Z",
+        "mistakes" : 1,
+        "note" : "",
+        "offered" : 1,
+        "source" : "manual",
+        "text" : "Feierabend",
+        "translation" : "конец рабочего дня",
+        "used" : 0
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.012Z",
+        "example" : "",
+        "id" : "01M5RJNT8C0000000000000006",
+        "lang" : "de",
+        "lastPractised" : "2026-10-25T03:46:40.043Z",
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 0,
+        "source" : "list",
+        "text" : "sich verabreden",
+        "translation" : "",
+        "used" : 1
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.013Z",
+        "example" : "Das ist eine Ausrede.",
+        "id" : "01M5RJNT8D0000000000000007",
+        "lang" : "de",
+        "lastPractised" : null,
+        "mistakes" : 0,
+        "note" : "Nomen",
+        "offered" : 0,
+        "source" : "manual",
+        "text" : "die Ausrede",
+        "translation" : "",
+        "used" : 0
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.024Z",
+        "example" : "",
+        "id" : "01M5RJNT8R000000000000000D",
+        "lang" : "en",
+        "lastPractised" : null,
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 0,
+        "source" : "manual",
+        "text" : "Spot on!",
+        "translation" : "",
+        "used" : 0
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.030Z",
+        "example" : "",
+        "id" : "star:de:ich wohne seit zwei jahren hier",
+        "lang" : "de",
+        "lastPractised" : "2026-10-25T03:46:40.044Z",
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 1,
+        "source" : "starred",
+        "text" : "Ich wohne seit zwei Jahren hier.",
+        "translation" : "Я живу здесь два года.",
+        "used" : 0
+      }
+    ],
+    "targets" : {
+      "s1" : [
+        "01M5RJNT8D0000000000000007",
+        "01M5RJNT8A0000000000000004",
+        "star:de:ich wohne seit zwei jahren hier"
+      ],
+      "s2" : [
+        "01M5RJNT8A0000000000000004",
+        "star:de:ich wohne seit zwei jahren hier",
+        "01M5RJNT8D0000000000000007"
+      ],
+      "s3" : [
+
+      ]
+    },
+    "usedInSession" : {
+      "s2" : [
+        "01M5RJNT8C0000000000000006"
+      ]
+    },
+    "uses" : [
+      {
+        "at" : "2026-10-25T03:46:40.040Z",
+        "by" : "learner",
+        "item" : "01M5RJNT8A0000000000000004",
+        "outcome" : "mistake",
+        "session" : "s1"
+      },
+      {
+        "at" : "2026-10-25T03:46:40.042Z",
+        "by" : "assistant",
+        "item" : "01M5RJNT8A0000000000000004",
+        "outcome" : "ok",
+        "session" : "s1"
+      },
+      {
+        "at" : "2026-10-25T03:46:40.043Z",
+        "by" : "learner",
+        "item" : "01M5RJNT8C0000000000000006",
+        "outcome" : "ok",
+        "session" : "s2"
+      },
+      {
+        "at" : "2026-10-25T03:46:40.044Z",
+        "by" : "assistant",
+        "item" : "star:de:ich wohne seit zwei jahren hier",
+        "outcome" : "ok",
+        "session" : "s2"
+      }
+    ]
+  }
+}

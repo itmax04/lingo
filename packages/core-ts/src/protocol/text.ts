@@ -7,7 +7,7 @@ export function characters(s: string): string[] {
 }
 
 /** Swift `Character.isNewline` ("\r\n" is one Character). */
-const NEWLINES = new Set(["\n", "\r", "\r\n", "\u000B", "\u000C", "\u0085", " ", " "]);
+const NEWLINES = new Set(["\n", "\r", "\r\n", "\u000B", "\u000C", "\u0085", "\u2028", "\u2029"]);
 export function isNewline(c: string): boolean {
   return NEWLINES.has(c);
 }

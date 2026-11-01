@@ -169,5 +169,51 @@
   "unknownEvents" : 5,
   "visibleSessions" : [
     "s-edge"
-  ]
+  ],
+  "vocab" : {
+    "addKeys" : [
+      "en:spot on"
+    ],
+    "items" : [
+      {
+        "createdAt" : "2026-10-25T03:46:40.103Z",
+        "example" : "",
+        "id" : "01M5RJNTB7000000000000000R",
+        "lang" : "en",
+        "lastPractised" : null,
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 0,
+        "source" : "manual",
+        "text" : "spot on",
+        "translation" : "",
+        "used" : 0
+      },
+      {
+        "createdAt" : "2026-10-25T03:46:40.072Z",
+        "example" : "",
+        "id" : "star:en:break a leg",
+        "lang" : "en",
+        "lastPractised" : null,
+        "mistakes" : 0,
+        "note" : "",
+        "offered" : 0,
+        "source" : "starred",
+        "text" : "Break a leg!",
+        "translation" : "удачи",
+        "used" : 0
+      }
+    ],
+    "targets" : {
+      "s-edge" : [
+
+      ]
+    },
+    "usedInSession" : {
+
+    },
+    "uses" : [
+
+    ]
+  }
 }

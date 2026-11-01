@@ -1,5 +1,8 @@
 import { EventType, KNOWN_EVENT_TYPES, type JournalEvent } from "./event.js";
 import { Payload, type SummaryUpdated } from "./payloads.js";
+import { countUse, selectTargets, starredID, ORDINARY_COUNT, WORDS_MODE_COUNT, type VocabItem, type VocabUse } from "../vocab/item.js";
+import { normalizeVocab, vocabKey } from "../vocab/text.js";
+import { compareCodePoints } from "../json.js";
 import { phraseKey, type Fix, type Lang, type MessageKind, type Phrase, type ReplySegment, type Role, type SessionSettings } from "../model/types.js";
 
 /** Value version for last-writer-wins (R-37): the larger `lamport`, then `device`, then `id` — as Swift `Version`. */
@@ -35,7 +38,7 @@ export interface ChatMessage {
 export interface FixEntry { message: string; fix: Fix; ts: number }
 export interface ProfileUpdate { ts: number; version: Version; goals?: string; interests?: string }
 
-/** History state built from a set of events (R-37), as Swift `HistoryState` without the vocabulary (P-07c2). */
+/** History state built from a set of events (R-37), as Swift `HistoryState`. */
 export interface HistoryState {
   sessions: Map<string, Session>;
   /** Session messages in (`ts`, `device`, `seq`, `id`) order. */
@@ -45,6 +48,16 @@ export interface HistoryState {
   hints: Map<string, Phrase[]>;
   /** Vocabulary ★ (R-28): phrase key → phrase. */
   starred: Map<string, Phrase>;
+  /** My vocabulary (VR-01…VR-05): own items with statistics; ★ phrases are added by `vocabulary()`. */
+  vocab: Map<string, VocabItem>;
+  /** ★ phrases as items (VR-01a), by `starredID`, with statistics. */
+  starredStats: Map<string, VocabItem>;
+  /** Items the learner used correctly in each session (VR-06). */
+  vocabUsedInSession: Map<string, Set<string>>;
+  /** De-duplicated uses, canonical ids (statistics "before a session"). */
+  vocabUses: VocabUse[];
+  /** Add-time keys of live items: an edited item still owns its original text (VR-02, VR-03). */
+  vocabAddKeys: Set<string>;
   profile: { goals: string; interests: string };
   profileUpdates: ProfileUpdate[];
   eventCount: number;
@@ -82,6 +95,7 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
   const events = [...byID.values()].sort(traversal);
   const st: HistoryState = {
     sessions: new Map(), messages: new Map(), fixes: new Map(), hints: new Map(), starred: new Map(),
+    vocab: new Map(), starredStats: new Map(), vocabUsedInSession: new Map(), vocabUses: [], vocabAddKeys: new Set(),
     profile: { goals: "", interests: "" }, profileUpdates: [], eventCount: events.length, maxLamport: 0, lastSeq: new Map(), unknownEvents: 0,
   };
   const sessions = new Map<string, SessionAcc>();
@@ -100,6 +114,12 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
   const starPhrase = new Map<string, Phrase>();
   const hintKeys = new Map<string, Set<string>>();
   const goals = new LWW(""), interests = new LWW("");
+  interface VocabAcc { event: JournalEvent; lang: Lang; draftText: string; source: VocabItem["source"]; text: LWW<string>; translation: LWW<string>; note: LWW<string>; example: LWW<string> }
+  const vocab = new Map<string, VocabAcc>();
+  const vocabUpdates: [Version, { item: string; text?: string | undefined; translation?: string | undefined; note?: string | undefined; example?: string | undefined }][] = [];
+  const vocabRemovals: [Version, string][] = [];
+  const vocabUseEvents: [JournalEvent, { item: string; message: string; by: "learner" | "assistant"; outcome: "ok" | "mistake" }][] = [];
+  const starTime = new Map<string, number>();
 
   for (const e of events) {
     st.maxLamport = Math.max(st.maxLamport, e.lamport);
@@ -182,7 +202,10 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
         const reg = stars.get(key) ?? new LWW(false);
         stars.set(key, reg);
         reg.apply(e.type === EventType.phraseStarred, ver);
-        if (reg.version && compareVersions(reg.version, ver) === 0) starPhrase.set(key, p.phrase);
+        if (reg.version && compareVersions(reg.version, ver) === 0) {
+          starPhrase.set(key, p.phrase);
+          if (e.type === EventType.phraseStarred) starTime.set(key, e.ts);
+        }
         break;
       }
       case EventType.profileUpdated: {
@@ -196,11 +219,32 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
         st.profileUpdates.push(u);
         break;
       }
-      // The vocabulary state comes in P-07c2; the payloads are checked so that the unknown-event count matches Swift.
-      case EventType.vocabAdded: if (!Payload.vocabAdded(e.payload)) st.unknownEvents++; break;
-      case EventType.vocabUpdated: if (!Payload.vocabUpdated(e.payload)) st.unknownEvents++; break;
-      case EventType.vocabRemoved: if (!Payload.vocabRemoved(e.payload)) st.unknownEvents++; break;
-      case EventType.vocabUsed: if (!Payload.vocabUsed(e.payload)) st.unknownEvents++; break;
+      case EventType.vocabAdded: {
+        const p = Payload.vocabAdded(e.payload);
+        if (!p) { st.unknownEvents++; break; }
+        const d = p.item;
+        vocab.set(e.id, { event: e, lang: d.lang, draftText: d.text, source: d.source, text: new LWW(d.text), translation: new LWW(d.translation ?? ""),
+          note: new LWW(d.note ?? ""), example: new LWW(d.example ?? "") });
+        break;
+      }
+      case EventType.vocabUpdated: {
+        const p = Payload.vocabUpdated(e.payload);
+        if (!p) { st.unknownEvents++; break; }
+        vocabUpdates.push([ver, p]);
+        break;
+      }
+      case EventType.vocabRemoved: {
+        const p = Payload.vocabRemoved(e.payload);
+        if (!p) { st.unknownEvents++; break; }
+        vocabRemovals.push([ver, p.item]);
+        break;
+      }
+      case EventType.vocabUsed: {
+        const p = Payload.vocabUsed(e.payload);
+        if (!p) { st.unknownEvents++; break; }
+        vocabUseEvents.push([e, p]);
+        break;
+      }
       default: st.unknownEvents++;
     }
   }
@@ -234,6 +278,66 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
     });
   }
   for (const [key, reg] of stars) { const p = starPhrase.get(key); if (reg.value && p) st.starred.set(key, p); }
+
+  // My vocabulary (VR-02). A removal of an item removes every add of the same text (key) whose version is below it; later adds start
+  // again. Of the live adds of one text, the earliest is canonical. Removed adds map to themselves and are dropped with their data.
+  const addKey = (a: VocabAcc) => vocabKey(a.lang, a.draftText);
+  const removedBelow = new Map<string, Version>();
+  for (const [v, id] of vocabRemovals) {
+    const acc = vocab.get(id);
+    if (!acc) continue;
+    const k = addKey(acc), cur = removedBelow.get(k);
+    if (!cur || compareVersions(v, cur) > 0) removedBelow.set(k, v);
+  }
+  const canonical = new Map<string, string>(), byKey = new Map<string, string>(), dead = new Set<string>();
+  for (const [id, acc] of [...vocab].sort(([ia, a], [ib, b]) => traversal(a.event, b.event) || cmp(ia, ib))) {
+    const key = addKey(acc), r = removedBelow.get(key);
+    if (r && compareVersions(version(acc.event), r) < 0) { dead.add(id); canonical.set(id, id); continue; }
+    const first = byKey.get(key);
+    if (first) canonical.set(id, first); else { byKey.set(key, id); canonical.set(id, id); }
+    st.vocabAddKeys.add(key);
+  }
+  for (const [v, u] of vocabUpdates) {
+    const acc = vocab.get(canonical.get(u.item) ?? "");
+    if (!acc) continue;
+    if (u.text !== undefined && normalizeVocab(u.text) !== "") acc.text.apply(u.text, v);
+    if (u.translation !== undefined) acc.translation.apply(u.translation, v);
+    if (u.note !== undefined) acc.note.apply(u.note, v);
+    if (u.example !== undefined) acc.example.apply(u.example, v);
+  }
+  for (const [id, acc] of vocab) {
+    if (canonical.get(id) !== id || dead.has(id)) continue;
+    st.vocab.set(id, { id, lang: acc.lang, text: acc.text.value, translation: acc.translation.value, note: acc.note.value, example: acc.example.value,
+      source: acc.source, createdAt: acc.event.ts, offered: 0, used: 0, mistakes: 0 });
+  }
+  for (const p of [...st.starred.values()].sort((a, b) => cmp(phraseKey(a.lang, a.text), phraseKey(b.lang, b.text)))) {
+    const id = starredID(p.lang, p.text);
+    if (st.starredStats.has(id)) continue;  // two ★ phrases with the same key: the first by phrase key
+    st.starredStats.set(id, { id, lang: p.lang, text: p.text, translation: p.translation, note: "", example: "", source: "starred",
+      createdAt: starTime.get(phraseKey(p.lang, p.text)) ?? DISTANT_PAST, offered: 0, used: 0, mistakes: 0 });
+  }
+  // Uses: one per (item, by, message), `mistake` wins over `ok`; ids of duplicates count for the canonical item.
+  const uses = new Map<string, VocabUse>();
+  const order: string[] = [];
+  for (const [e, u] of [...vocabUseEvents].sort(([a], [b]) => traversal(a, b))) {
+    const id = canonical.get(u.item) ?? u.item;
+    if (!st.vocab.has(id) && !st.starredStats.has(id)) continue;
+    const k = `${id}|${u.by}|${u.message}`;
+    const cur = uses.get(k);
+    if (cur) { if (u.outcome === "mistake" && cur.outcome === "ok") cur.outcome = "mistake"; continue; }
+    uses.set(k, { item: id, session: e.session, by: u.by, outcome: u.outcome, at: e.ts });
+    order.push(k);
+  }
+  for (const k of order) {
+    const use = uses.get(k) as VocabUse;
+    st.vocabUses.push(use);
+    countUse((st.vocab.get(use.item) ?? st.starredStats.get(use.item)) as VocabItem, use);
+    if (use.by === "learner" && use.outcome === "ok" && use.session !== "") {
+      const set = st.vocabUsedInSession.get(use.session) ?? new Set<string>();
+      set.add(use.item);
+      st.vocabUsedInSession.set(use.session, set);
+    }
+  }
   st.profile = { goals: goals.value, interests: interests.value };
   return st;
 }
@@ -247,4 +351,33 @@ function push<T>(m: Map<string, T[]>, k: string, v: T): void {
 export function visibleSessions(st: HistoryState, lang?: Lang): Session[] {
   return [...st.sessions.values()].filter((s) => !s.deleted && (lang === undefined || s.settings.lang === lang))
     .sort((a, b) => b.lastActivity - a.lastActivity || cmp(b.id, a.id));
+}
+
+/** All practice items of a language (or all): own items and ★ phrases; an own item hides a ★ phrase with the same key (VR-01a). */
+export function vocabulary(st: HistoryState, lang?: Lang): VocabItem[] {
+  const out = [...st.vocab.values()].filter((i) => lang === undefined || i.lang === lang);
+  const own = new Set(out.map((i) => vocabKey(i.lang, i.text)));
+  for (const i of st.starredStats.values()) if ((lang === undefined || i.lang === lang) && !own.has(vocabKey(i.lang, i.text))) out.push(i);
+  return out.sort((a, b) => compareCodePoints(a.id, b.id));
+}
+
+/** Items with the statistics as they were before `session` (its own uses left out), so the targets stay stable within it (VR-06). */
+export function vocabularyBefore(st: HistoryState, lang: Lang, session: string): VocabItem[] {
+  const base = new Map(vocabulary(st, lang).map((i) => {
+    const x: VocabItem = { ...i, offered: 0, used: 0, mistakes: 0 };
+    delete x.lastPractised;
+    return [i.id, x] as const;
+  }));
+  for (const u of st.vocabUses) if (u.session !== session) { const x = base.get(u.item); if (x) countUse(x, u); }
+  return [...base.values()].sort((a, b) => compareCodePoints(a.id, b.id));
+}
+
+/** The session's targets (VR-06): 3, or 6 with the vocabulary focus; none when the vocabulary is off for the session. */
+export function vocabTargets(st: HistoryState, session: string): VocabItem[] {
+  const s = st.sessions.get(session);
+  if (!s) return [];
+  const focus = s.settings.vocabularyFocus === true && s.settings.mode === "questions";
+  if (!focus && s.settings.useVocabulary === false) return [];
+  return selectTargets(vocabularyBefore(st, s.settings.lang, session), s.settings.lang, st.vocabUsedInSession.get(session) ?? new Set(),
+    focus ? WORDS_MODE_COUNT : ORDINARY_COUNT, s.settings.pinnedVocab);
 }

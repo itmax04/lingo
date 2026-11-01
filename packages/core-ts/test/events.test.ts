@@ -33,7 +33,7 @@ describe("unknown data is kept", () => {
   it("keeps unknown top-level fields, unknown types and unknown payload fields", () => {
     const line = canonicalJSON({
       v: 1, id: "01M5VJ1KF80KH70QYS833AQ708", device: "web-abcd", seq: 3, lamport: 9, ts: "2026-10-26T07:33:21.007Z",
-      type: "future.thing", session: "s1", payload: { a: [1, 2.5, null, true], nested: { "z/y": "é   😀" } },
+      type: "future.thing", session: "s1", payload: { a: [1, 2.5, null, true], nested: { "z/y": "é \u2028 😀" } },
       zzz: { kept: true }, aaa: -0,
     });
     const e = parseEventLine(line);
@@ -128,7 +128,7 @@ describe("canonical JSON matches Swift JSONEncoder", () => {
 
   it("strings and key order", () => {
     // Swift output: {"s":"a\u0001\u001fé/  \"\\\t\n\r\b\f😀"} and {"B":5,"Z":1,"_":3,"a":2,"é":4}
-    expect(canonicalJSON({ s: "a\u0001\u001f\u007fé/  \"\\\t\n\r\b\f😀" })).toBe('{"s":"a\\u0001\\u001f\u007fé/  \\"\\\\\\t\\n\\r\\b\\f😀"}');
+    expect(canonicalJSON({ s: "a\u0001\u001f\u007fé/\u2028\u2029\"\\\t\n\r\b\f😀" })).toBe('{"s":"a\\u0001\\u001f\u007fé/\u2028\u2029\\"\\\\\\t\\n\\r\\b\\f😀"}');
     expect(canonicalJSON({ Z: 1, a: 2, _: 3, é: 4, B: 5 })).toBe('{"B":5,"Z":1,"_":3,"a":2,"é":4}');
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  phraseKey, buildState, canonicalJSON, CORRECTION_MODES, eventLine, formatTS, parseEventLine, readJournal, visibleSessions,
+  phraseKey, buildState, vocabulary, vocabTargets, type VocabItem, canonicalJSON, CORRECTION_MODES, eventLine, formatTS, parseEventLine, readJournal, visibleSessions,
   type HistoryState, type JournalEvent, type JSONValue,
 } from "../src/index.js";
 import { readContract, readJSON } from "./contracts.js";
@@ -8,7 +8,17 @@ import { readContract, readJSON } from "./contracts.js";
 /** The same neutral projection as the Swift `MergerContractTests` golden. */
 function projection(st: HistoryState): JSONValue {
   const obj = <T>(m: Map<string, T>, f: (v: T) => unknown): unknown => Object.fromEntries([...m].map(([k, v]) => [k, f(v)]));
+  const item = (i: VocabItem) => ({ id: i.id, lang: i.lang, text: i.text, translation: i.translation, note: i.note, example: i.example,
+    source: i.source, createdAt: formatTS(i.createdAt), offered: i.offered, used: i.used, mistakes: i.mistakes,
+    lastPractised: i.lastPractised === undefined ? null : formatTS(i.lastPractised) });
   return JSON.parse(JSON.stringify({
+    vocab: {
+      items: vocabulary(st).map(item),
+      usedInSession: Object.fromEntries([...st.vocabUsedInSession].map(([k, v]) => [k, [...v].sort()])),
+      uses: st.vocabUses.map((u) => ({ item: u.item, session: u.session, by: u.by, outcome: u.outcome, at: formatTS(u.at) })),
+      addKeys: [...st.vocabAddKeys].sort(),
+      targets: Object.fromEntries([...st.sessions.keys()].map((sid) => [sid, vocabTargets(st, sid).map((i) => i.id)])),
+    },
     sessions: [...st.sessions.values()].sort((a, b) => (a.id < b.id ? -1 : 1)).map((s) => ({
       id: s.id, title: s.title, createdAt: formatTS(s.createdAt), lastActivity: formatTS(s.lastActivity), state: s.state,
       deleted: s.deleted, summary: s.summary, summaryThrough: s.summaryThrough ?? null,
@@ -42,7 +52,7 @@ function shuffled<T>(xs: readonly T[], seed: number): T[] {
 }
 
 describe("golden state written by Swift Merger.build", () => {
-  it.each([["sample-journal", "sample-journal"], ["merge-two-devices.input", "merge-two-devices"], ["edge", "edge"]])("%s", (input, golden) => {
+  it.each([["sample-journal", "sample-journal"], ["merge-two-devices.input", "merge-two-devices"], ["edge", "edge"], ["vocab-edge", "vocab-edge"]])("%s", (input, golden) => {
     expect(projection(buildState(journal(input)))).toEqual(readJSON(`fixtures/events/${golden}.state.json`));
   });
 
@@ -59,7 +69,7 @@ describe("golden state written by Swift Merger.build", () => {
 });
 
 describe("merging is commutative and idempotent", () => {
-  const all = [...journal("sample-journal"), ...journal("merge-two-devices.input"), ...journal("edge")];
+  const all = [...journal("sample-journal"), ...journal("merge-two-devices.input"), ...journal("edge"), ...journal("vocab-edge")];
   const want = canonicalJSON(projection(buildState(all)));
   it.each([1, 2, 3, 42, 2026, 31337])("shuffled with seed %i and with duplicates", (seed) => {
     const input = shuffled([...all, ...all.slice(0, seed % all.length)], seed);

@@ -9,7 +9,7 @@ export { canonicalJSON, numberJSON, compareCodePoints, isSwiftCompatible, isJSON
 export function isReadOnlyVersion(v: number): boolean {
   return v > JOURNAL_SCHEMA_VERSION;
 }
-export { buildState, visibleSessions, compareVersions, type HistoryState, type Session, type ChatMessage, type FixEntry,
+export { buildState, visibleSessions, vocabulary, vocabularyBefore, vocabTargets, compareVersions, type HistoryState, type Session, type ChatMessage, type FixEntry,
   type ProfileUpdate, type Version } from "./events/merge.js";
 export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, type Fix, type Phrase, type ReplySegment, type Role,
   type CorrectionMode, type SessionMode, type Starter, type PhraseSource, type MessageKind } from "./model/types.js";
@@ -19,3 +19,6 @@ export { detectCommand, normalizeCommand, levenshtein, type CommandMatch } from 
 export { COMMAND_KINDS, isLocalCommand, type CommandKind } from "./commands/kind.js";
 export { TurnSegmenter, turnConfig, runTimeline, SILENCE_RANGE, MERGE_RANGE, type TurnConfig, type TurnEvent, type Span, type Piece } from "./voice/segmenter.js";
 export { EnergyVAD, rmsDB, vadConfig, voiceDefaults, type VADConfig, type VADEvent } from "./voice/vad.js";
+export { normalizeVocab, vocabTokens, vocabKey, parseList, MAX_LIST_LINES, type ParsedList } from "./vocab/text.js";
+export { matchItem, containsItem, useOutcome, itemTokens, wordMatches } from "./vocab/matcher.js";
+export { selectTargets, starredID, countUse, ORDINARY_COUNT, WORDS_MODE_COUNT, type VocabItem, type VocabUse } from "./vocab/item.js";
