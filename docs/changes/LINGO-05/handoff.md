@@ -21,5 +21,5 @@ Status: documents (#67) and T-1…T-5 (#68, #70, #71, #72, #73) merged; the owne
 
 ## Next step
 Rebuild the owner's app with T-5; then T-6a (exam runner). From 2026-11-03 the remaining steps run with Codex
-([CODEX.md](../../process/CODEX.md)): one GitHub issue per step in the milestone "LINGO-05 · Teacher" (T-6a, T-6b, T-7, T-8, T-9,
-report, then the owner checkpoint H-05), in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).
+([CODEX.md](../../process/CODEX.md)): one GitHub issue per step in the milestone "LINGO-05 · Teacher" (T-6a #74, T-6b #75, T-7 #76, T-8 #77, T-9 #78,
+report #79, then the owner checkpoint H-05 #80), in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).

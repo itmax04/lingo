@@ -13,6 +13,7 @@ is always "documents", and nothing after it starts before the owner's H-0.
   LINGO-03 P-07a…P-07f (`packages/core-ts`, #56–#61), LINGO-08 vocabulary and prompting v2 (#50–#55),
   LINGO-05 documents (#67) and T-1…T-5 (#68, #70–#73).
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
+- **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with links to their PRs (CX-03); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),
   CX-01…CX-03 ([CODEX.md](../process/CODEX.md) §1).
 
@@ -24,13 +25,13 @@ Requirements and TACs: [LINGO-05 spec](../changes/LINGO-05/spec.md). Step conten
 
 | # | Step | Requirements | Depends on | Notes |
 |---|---|---|---|---|
-| A1 | T-6a exam runner | XR-01, XR-02, PX-02, PX-03, PX-05 | T-5 | likely split: catalogue + engine, then UI |
-| A2 | T-6b exam debrief | XR-03, PX-04 (examFeedback) | A1 | moves the `no_pronunciation` markers into LingoCore |
-| A3 | T-7 Progress screen and weekly report | GR-04, GR-05, PX-04 (weeklyReport) | T-2 | Swift Charts only |
-| A4 | T-8 memory | GR-06, PX-04 (memory), GR-07 card | T-4 | privacy-critical; review with extra care |
-| A5 | T-9 reminder, docs, screenshots | GR-08, TAC-09, TAC-15 | A1…A4 | updates ARCHITECTURE, MAC.md, ROADMAP, AGENTS, contracts README |
-| A6 | LINGO-05 report | all TAC-01…TAC-16 | A5 | `report.md` with evidence per TAC (CODEX.md §8.3) |
-| **H-05** | **Owner: try the teacher and accept LINGO-05** | — | A6 | live model behaviour of `@grade`, `@task`, exams, debrief, memory, report, the reminder |
+| A1 | T-6a exam runner (#74) | XR-01, XR-02, PX-02, PX-03, PX-05 | T-5 | likely split: catalogue + engine, then UI |
+| A2 | T-6b exam debrief (#75) | XR-03, PX-04 (examFeedback) | A1 | moves the `no_pronunciation` markers into LingoCore |
+| A3 | T-7 Progress screen and weekly report (#76) | GR-04, GR-05, PX-04 (weeklyReport) | T-2 | Swift Charts only |
+| A4 | T-8 memory (#77) | GR-06, PX-04 (memory), GR-07 card | T-4 | privacy-critical; review with extra care |
+| A5 | T-9 reminder, docs, screenshots (#78) | GR-08, TAC-09, TAC-15 | A1…A4 | updates ARCHITECTURE, MAC.md, ROADMAP, AGENTS, contracts README |
+| A6 | LINGO-05 report (#79) | all TAC-01…TAC-16 | A5 | `report.md` with evidence per TAC (CODEX.md §8.3) |
+| **H-05** | **Owner: try the teacher and accept LINGO-05 (#80)** | — | A6 | live model behaviour of `@grade`, `@task`, exams, debrief, memory, report, the reminder |
 
 ### B. LINGO-09 — new conversation modes (after H-05; owner decision Q-04 "teacher, then the modes")
 
