@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: documents (#67) and T-1…T-4 (#68, #70, #71, #72) merged; the owner runs build 196 with the warm-up; T-5 in review. Updated 2026-11-01.
+Status: documents (#67) and T-1…T-5 (#68, #70, #71, #72, #73) merged; the owner runs build 196 with the warm-up. Updated 2026-11-03.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -20,4 +20,6 @@ Status: documents (#67) and T-1…T-4 (#68, #70, #71, #72) merged; the owner run
   vectors produced by the reference itself. Optional for the owner: `pip install fsrs==5.1.3` and compare `fsrs.json`.
 
 ## Next step
-Merge the T-5 PR, rebuild the owner's app; then T-6a (exam runner).
+Rebuild the owner's app with T-5; then T-6a (exam runner). From 2026-11-03 the remaining steps run with Codex
+([CODEX.md](../../process/CODEX.md)): one GitHub issue per step in the milestone "LINGO-05 · Teacher" (T-6a, T-6b, T-7, T-8, T-9,
+report, then the owner checkpoint H-05), in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).

@@ -22,6 +22,8 @@ Status: current · Date: 2026-10-28. Start with [`AGENTS.md`](../AGENTS.md) (rul
 | [process/EVOLVING.md](process/EVOLVING.md) | How to make each kind of change without breaking the architecture; ADR template; keeping docs true |
 | [process/SDLC.md](process/SDLC.md) | Lifecycle, roles, autonomy, Definition of Done, git workflow, reporting |
 | [process/TESTING.md](process/TESTING.md) · [process/RELEASE.md](process/RELEASE.md) | Test levels and device checks · deploy and release |
+| [process/CODEX.md](process/CODEX.md) | How Codex runs a step: loop, checks, independent review, merge rules, start prompts |
+| [plans/COMPLETION-PLAN-2026-11.md](plans/COMPLETION-PLAN-2026-11.md) | Everything left to finish Lingo, in order, with owner checkpoints |
 | [process/STAGE-PROMPTS.md](process/STAGE-PROMPTS.md) | Start prompt for every stage, incl. the final audit |
 | [decisions/](decisions/) | ADRs — why a hard-to-reverse choice was made |
 | [changes/LINGO-NN/](changes/) | Per change: intent, spec (requirements), plan, handoff (current state), report |

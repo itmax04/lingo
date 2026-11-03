@@ -9,8 +9,8 @@ Current owner decision D04-01 supersedes the historical human-review policy: AI-
 1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
    [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
    and [`docs/process/SDLC.md`](docs/process/SDLC.md). Before changing anything structural read [`docs/process/EVOLVING.md`](docs/process/EVOLVING.md).
-2. Open the current change: [`docs/changes/LINGO-05/`](docs/changes/LINGO-05/) — the teacher on the Mac (`intent.md`, `spec.md`, `plan.md`, `handoff.md`). LINGO-08 (vocabulary, prompting v2) is done. The web part of [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) is paused by the owner (2026-11-01: Mac first); P-07 is merged.
-3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-03 · Stage 0 — Stabilise"`), take the lowest-numbered unblocked step.
+2. Open the current change: [`docs/changes/LINGO-05/`](docs/changes/LINGO-05/) — the teacher on the Mac (`intent.md`, `spec.md`, `plan.md`, `handoff.md`). LINGO-08 (vocabulary, prompting v2) is done. The web part of [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) is paused by the owner (2026-11-01: Mac first); P-07 is merged. Everything left, in order: [`docs/plans/COMPLETION-PLAN-2026-11.md`](docs/plans/COMPLETION-PLAN-2026-11.md). Codex: [`docs/process/CODEX.md`](docs/process/CODEX.md).
+3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-05 · Teacher"`), take the lowest-numbered unblocked step that is not an `owner-checkpoint`.
 4. Make sure you are in your own worktree and branch (§5), the tree is clean, and `main` is up to date.
 5. Read `handoff.md` → "Next step" before touching code.
 
@@ -66,6 +66,7 @@ Always:
 
 ## 5. How to work
 - **Process:** [SDLC](docs/process/SDLC.md). One issue → one branch → one PR. Definition of Done in SDLC §6. Update `handoff.md` in the same PR.
+- **Merging:** the executor squash-merges its own PR after green CI and an independent review without open P0/P1 (owner decision CX-02, 2026-11-03; rules in [CODEX.md](docs/process/CODEX.md) §6).
 - **Branches:** `<type>/<issue>-<slug>` from `main`. Future explicitly scoped executors may merge ready PRs after checks, AI review and H-x; DG-03 A authorises only the own P-00 docs PR, product-PR merges need separate explicit authority, and the chain #1 → #31 → #34 is merged only under G-CHAIN (accepted 2026-10-31); the P-00 adoption was prepared locally and published as PR #35. While waiting, continue on a stacked branch. Never force-push, rewrite history, delete branches or merge red PRs.
 - **Parallel agents:** one git worktree per agent/issue: `git worktree add ../lingo-<issue> -b <branch> origin/main`. Never work in another agent's directory; never revert changes you did not make.
 - **Autonomy:** finish the whole current stage (milestone) without asking per step. Stop only at owner checkpoints `H-x`, at blockers that need the owner (accounts, keys, devices, money, scope conflicts), or when a requirement is wrong.
@@ -113,7 +114,8 @@ UI strings: English in code (`String(localized:)` / `LocalizedStringKey` in Swif
 | All documents | `docs/README.md` |
 | Data formats / API | `packages/contracts/` |
 | How to test / release | `docs/process/TESTING.md`, `docs/process/RELEASE.md` |
-| Start prompt for each stage | `docs/process/STAGE-PROMPTS.md` |
+| Start prompt for each stage | `docs/process/CODEX.md` §8 (current), `docs/process/STAGE-PROMPTS.md` (history and later changes) |
+| Everything left to do, in order | `docs/plans/COMPLETION-PLAN-2026-11.md` |
 | Terms | `docs/GLOSSARY.md` |
 | Design | `DESIGN.md`, `docs/design/lingo-mac.webp` |
 
