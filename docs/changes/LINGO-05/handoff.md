@@ -22,4 +22,7 @@ Status: documents (#67) and T-1…T-5 (#68, #70, #71, #72, #73) merged; the owne
 ## Next step
 Rebuild the owner's app with T-5; then T-6a (exam runner). From 2026-11-03 the remaining steps run with Codex
 ([CODEX.md](../../process/CODEX.md)): one GitHub issue per step in the milestone "LINGO-05 · Teacher" (T-6a #74, T-6b #75, T-7 #76, T-8 #77, T-9 #78,
-report #79, then the owner checkpoint H-05 #80), in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).
+report #79, then the owner checkpoint H-05 #80).
+Before T-6a: PR #81 (this runbook, the completion plan, issues #74–#80; branch `claude/lingo-github-docs-386bb4`) needs an
+independent review in a fresh session (CODEX.md §5) and a merge under CODEX.md §6. Checks on f2ca139: `check-english` PASS,
+`secret-scan --no-history` 0 findings, link check PASS; CI and the review NOT RUN yet, in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).
