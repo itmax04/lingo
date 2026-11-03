@@ -13,10 +13,10 @@ Where this file and an accepted spec disagree, the spec wins; where it and AGENT
 |---|---|---|---|
 | CX-01 | What does "finish with Codex" cover? | "LINGO-05 + the roadmap" | Detailed issues for the remaining LINGO-05 steps (T-6a…T-9, H-05); the later changes are an ordered plan in which Codex first writes the documents and stops at the owner's H-0 |
 | CX-02 | May Codex merge its own PRs? | "Yes, itself" | Codex squash-merges its own PR after green CI and an independent review with no open P0/P1 (§5). Owner checkpoints H-x, accounts, keys, settings and production deploys stay with the owner |
-| CX-03 | Stale GitHub issues of LINGO-03 Stage 0 | "Close with a link to the PR" | Done in the PR that added this file; GitHub issues now show only open work |
+| CX-03 | Stale GitHub issues of LINGO-03 Stage 0 | "Close with a link to the PR" | Done with `gh` on 2026-11-03 together with PR #81 (#2–#7 and #9; #8 was already closed); GitHub issues now show only open work |
 
 CX-02 is the "explicit scoped authority" the [SDLC](SDLC.md) §4 asks for. It covers product and docs PRs of the steps listed in the
-[completion plan](../plans/COMPLETION-PLAN-2026-11.md), one at a time, and nothing else: not the parked draft PR #62, not other
+[completion plan](../plans/COMPLETION-PLAN-2026-11.md) and PR #81 that added this file, one at a time, and nothing else: not the parked draft PR #62, not other
 agents' PRs, not a red PR, not a PR whose review has an open P0/P1.
 
 ## 2. Where Codex runs
@@ -32,14 +32,16 @@ Codex reads `AGENTS.md` itself. `CLAUDE.md`, `.claude/` and `.sdlc/` belong to C
 Claude SDLC plugin state as the cursor. The cursor is the change's `handoff.md` → "Next step" plus the open issues of the milestone.
 
 Suggested local setup (the owner's own `~/.codex/config.toml`; never put keys into the repository): sandbox "workspace-write" with
-network access for `gh` and `npm`, approvals "on-request". Commands that need the owner's systems are asked for, not forced.
+network access for `gh` and `npm`, approvals "on-request". Start Codex inside the step's worktree (`../lingo-<step>`), or add that
+worktree as a writable root: a sandbox rooted at `~/Developer/lingo` cannot write to the sibling worktree. Commands that need the
+owner's systems are asked for, not forced.
 
 ## 3. One step = one session = one PR
 
 Run this loop for every step. Do not ask the owner between ready steps (AGENTS §5 "Autonomy").
 
 1. **Pick the step.** `git fetch origin && gh issue list --milestone "<milestone>" --state open`. Take the lowest-numbered issue that
-   is not `owner-checkpoint` and not `blocked`, whose "Depends on" items are closed. Cross-check with `handoff.md` → "Next step";
+   is not `owner-checkpoint`, not `blocked` and not an epic (title contains "Epic"), whose "Depends on" items are closed. Cross-check with `handoff.md` → "Next step";
    if they disagree, the handoff wins and you fix the issue.
 2. **Own worktree.** `git worktree add ../lingo-<step> -b <type>/<issue>-<slug> origin/main`. Never work in another agent's directory.
 3. **Read** AGENTS.md, ARCHITECTURE, MAC.md (or WEB.md), EVOLVING, the change's `intent.md`, `spec.md`, `plan.md`, `handoff.md`, the
@@ -49,10 +51,15 @@ Run this loop for every step. Do not ask the owner between ready steps (AGENTS �
    If the step grows past ~600 changed lines without fixtures and catalogues, split it (engine part, then UI part) and say so in the issue.
 5. **Check** (§4) and keep the real output.
 6. **Update** the change's `handoff.md` (a row in "Done", executor decisions D-xx, "Next step") in the same PR.
-7. **Commit and open the PR** with `.github/pull_request_template.md` filled; body starts with `Closes #<issue>`.
+7. **Commit and open the PR** with `.github/pull_request_template.md` filled; body starts with `Closes #<issue>`. When a step is
+   split, each partial PR says `Refs #<issue>` and only the last part says `Closes`, so the next step stays blocked until the whole
+   step is merged.
 8. **Independent review** (§5), fix findings, re-review until there is no open P0/P1.
-9. **Merge** (§6), then rebuild the owner's app: `apps/mac/scripts/build-app.sh` (Mac steps only).
-10. **Report** in Russian (SDLC §10) as an issue comment on the epic and continue with the next step.
+9. **Merge** (§6), then rebuild the owner's app (Mac steps only). The app the owner runs is `~/Developer/lingo/dist/Lingo.app`, not
+   the worktree's `dist/`: if `~/Developer/lingo` is on `main` with a clean tree, run
+   `git -C ~/Developer/lingo pull --ff-only && ~/Developer/lingo/apps/mac/scripts/build-app.sh`; otherwise do not touch that
+   checkout and tell the owner the two commands.
+10. **Report** in Russian (SDLC §10) as an issue comment on the epic, then start the next step in a new session (§8.1).
 
 ## 4. Checks per area
 
@@ -89,13 +96,15 @@ Output: a verdict (approve / approve-with-notes / changes-required) and findings
 priority P0–P3, file:line, a concrete failing scenario and a suggested fix. P0/P1 block the merge.
 ```
 
-Record the verdict and the reviewed commit SHA in the PR (a comment) and in `handoff.md`. After fixes, re-review only the new commits
-plus anything they touch.
+Record the verdict and the reviewed commit SHA as a PR comment. After fixes, re-review only the new commits plus anything they touch.
+The handoff row that cites the review may be added after the review in a commit that changes only `handoff.md`; that commit does not
+need a new review (§6).
 
 ## 6. Merge rules (CX-02)
 
 Codex may run `gh pr merge <number> --squash --delete-branch=false` when **all** hold:
-- CI is green on the PR head (`gh pr checks <number>`), and the head is the SHA that was reviewed;
+- CI is green on the PR head (`gh pr checks <number>`), and the head is the reviewed SHA or differs from it only by a commit that
+  changes `handoff.md` alone;
 - the last review has no open P0/P1 and every P2 is fixed or answered in the PR;
 - the DoD checklist (SDLC §6) is complete; `handoff.md` is updated;
 - the step is not an owner checkpoint and needs no owner action first.

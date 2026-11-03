@@ -13,7 +13,7 @@ is always "documents", and nothing after it starts before the owner's H-0.
   LINGO-03 P-07a…P-07f (`packages/core-ts`, #56–#61), LINGO-08 vocabulary and prompting v2 (#50–#55),
   LINGO-05 documents (#67) and T-1…T-5 (#68, #70–#73).
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
-- **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with links to their PRs (CX-03); #10 stays open for #62.
+- **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with `gh` with links to their PRs (CX-03; #8 was already closed); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),
   CX-01…CX-03 ([CODEX.md](../process/CODEX.md) §1).
 

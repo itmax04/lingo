@@ -29,5 +29,5 @@ assignees: ""
 ### Definition of Done
 - [ ] Acceptance checks above with real output in the PR
 - [ ] `handoff.md` updated (Done row, executor decisions, Next step)
-- [ ] Independent review in a fresh session without open P0/P1; verdict and SHA recorded
+- [ ] Independent review in a fresh session without open P0/P1; verdict and SHA in a PR comment
 - [ ] CI green; squash-merged under CODEX.md §6; owner's app rebuilt (Mac steps)
