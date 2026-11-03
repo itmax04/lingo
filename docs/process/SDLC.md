@@ -65,7 +65,7 @@ flowchart LR
 
 The owner chose **"a whole stage at a time"** (2026-10-26):
 - The executor works through the issues of the current milestone without asking for permission per step: branches, commits, tests, pull requests, `handoff.md` updates.
-- **Future merging requires explicit scoped authority, checks, AI review and H-x.** Current P-00 has no publication authority. Stack only on a tested predecessor; after squash merge, integrate main with a normal merge commit. Never rebase or force-push.
+- **Merging requires explicit scoped authority, checks, AI review and the plan's owner checkpoints (H-x).** Owner decision CX-02 (2026-11-03, [CODEX.md](CODEX.md) §6) is that authority for the steps of the [completion plan](../plans/COMPLETION-PLAN-2026-11.md); "H-x" means only the checkpoints a plan names, not a review of every PR. Stack only on a tested predecessor; after squash merge, integrate main with a normal merge commit. Never rebase or force-push.
 - The executor stops and asks the owner at **owner checkpoints** (`H-x` in the plan), on a **blocker** only the owner can resolve (accounts, keys, money, devices, a scope conflict), or when a requirement turns out to be wrong.
 - At the end of a stage: a short Russian summary (format in §10) with links to the PRs.
 - Never: force-push, history rewrite, deleting branches, merging a red PR.
@@ -92,7 +92,7 @@ The owner chose **"a whole stage at a time"** (2026-10-26):
 - `main` is the default and always-green branch. Work happens on `<type>/<issue>-<slug>` branches, e.g. `feat/12-engine-sync`, `fix/30-voice-restart`, `docs/5-adr-auth`.
 - Several agents in parallel: each uses its own **git worktree** (`git worktree add ../lingo-<issue> -b <branch>`), never the same working directory.
 - Commits: imperative English subject ≤ 72 chars, body with the why; reference the issue (`Refs #12`; `Closes #12` in the PR).
-- PRs: one concern, ≤ ~600 changed lines where possible, template filled, linked issue, green CI. An authorized executor may squash-merge after checks, AI review and gates; no publication during P-00.
+- PRs: one concern, ≤ ~600 changed lines where possible, template filled, linked issue, green CI. An authorized executor may squash-merge after checks, AI review and gates (CX-02, [CODEX.md](CODEX.md) §6).
 - Labels: `area:mac`, `area:web`, `area:engine`, `area:contracts`, `area:docs`, `area:ci`; `type:feature`, `type:bug`, `type:chore`, `type:test`, `type:docs`; `owner-checkpoint`, `blocked`.
 - Milestones = stages of the current change (e.g. "LINGO-03 · Stage 0 — Stabilise").
 
@@ -113,7 +113,7 @@ The owner chose **"a whole stage at a time"** (2026-10-26):
 | Accounts and secrets | `wrangler login`, GitHub OAuth App, `wrangler secret put GROQ_KEY_…` |
 | Devices | voice tests on iPhone Air / iPhone 11 / iPad / Android / Windows |
 | Live use | 30-minute session, full day 4 × 30 |
-| Merges | scoped publication authority, actual checks/AI review/H-x; no current P-00 publication |
+| Merges | scoped authority (CX-02 for the completion plan), actual checks and AI review; the plan's H-x where it names one |
 | Acceptance of the change | report review |
 
 ## 10. Reporting format (to the owner, in Russian)

@@ -3,6 +3,11 @@
 Status: accepted with the upgrade amendment in DG-01 on 2026-10-29 · Version 2 · Source date: 2026-10-28
 Links: [upgrade plan](../plans/UPGRADE-PLAN-2026-10-28.md), [SDLC](SDLC.md), [ROADMAP](../ROADMAP.md), [original LINGO-03 plan](../changes/LINGO-03/plan.md).
 
+> **2026-11-03:** for the current work use [CODEX.md](CODEX.md) §8 and the [completion plan](../plans/COMPLETION-PLAN-2026-11.md).
+> Prompt 6 (LINGO-05) is superseded: LINGO-05 runs on the Mac first (owner decision Q-01, 2026-11-01) with accepted documents in
+> `docs/changes/LINGO-05/`. Owner decision CX-02 lets the executor merge its own PRs after green CI and an independent review.
+> Prompts 3–5 and 7 remain the content outline of the later changes; their order is the completion plan's.
+
 ## Use and authority
 
 Paste one fenced block into a new executor session. **One step = one session = one PR**, normally 150–450 changed text lines and at most about 600 including tests/docs. Reuse the same stage prompt for the next ready step; handoff/issue state supplies the cursor. Do not ask permission between ready steps; end the session with the next cursor and continue under the owner's stage authorization. Stop dependent work only at H-x or an actual blocker. Do not automatically create chats, agents or scheduled jobs.

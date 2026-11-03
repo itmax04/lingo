@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: documents (#67) and T-1…T-4 (#68, #70, #71, #72) merged; the owner runs build 196 with the warm-up; T-5 in review. Updated 2026-11-01.
+Status: documents (#67) and T-1…T-5 (#68, #70, #71, #72, #73) merged; the owner runs build 196 with the warm-up. Updated 2026-11-03.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -20,4 +20,10 @@ Status: documents (#67) and T-1…T-4 (#68, #70, #71, #72) merged; the owner run
   vectors produced by the reference itself. Optional for the owner: `pip install fsrs==5.1.3` and compare `fsrs.json`.
 
 ## Next step
-Merge the T-5 PR, rebuild the owner's app; then T-6a (exam runner).
+Rebuild the owner's app with T-5; then T-6a (exam runner). From 2026-11-03 the remaining steps run with Codex
+([CODEX.md](../../process/CODEX.md)): one GitHub issue per step in the milestone "LINGO-05 · Teacher" (T-6a #74, T-6b #75, T-7 #76, T-8 #77, T-9 #78,
+report #79, then the owner checkpoint H-05 #80).
+Before T-6a: PR #81 (this runbook, the completion plan, issues #74–#80; branch `claude/lingo-github-docs-386bb4`) was reviewed
+independently (approve-with-notes, no P0/P1; F-1…F-12 applied, CI green) and is merged by the owner (`gh pr merge` is denied to Claude Code by `.claude/settings.json`; Codex merges under CODEX.md §6). The worktree
+`/Users/macbook/Developer/lingo-t1` on branch `feat/5-t6a-exam` (clean, at fccb1e2, no commits) is unused: T-6a has not started;
+Codex may use a new worktree and the owner may remove that one, in the order of the [completion plan](../../plans/COMPLETION-PLAN-2026-11.md).
