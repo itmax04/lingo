@@ -1,5 +1,7 @@
 # packages/contracts — the single source of truth between Swift and TypeScript
 
+Status: current · Updated: 2026-11-03.
+
 Everything here is **language-neutral data**. Both implementations (Swift in `apps/mac`, TypeScript in `packages/core-ts`,
 `services/engine`, `apps/web`) are tested against these files. A behaviour change starts here: update the contract or fixture
 in the same PR as both implementations; CI fails if either side diverges.
@@ -20,6 +22,9 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/vocab/selection.json` | Which vocabulary items the model practises next (LINGO-08 VR-06) | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07b), with negative cases and accepted misses | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/events.jsonl` | One event of every vocabulary/profile type, written by the real Swift code | round-trip tests |
+| `teacher/exams.json` | Original B1 and IELTS tasks, written by Swift `ExamTests` with `LINGO_RECORD_FIXTURES=1` | Swift catalogue validation; future TS teacher under D-01 |
+| `fixtures/teacher/exam-events.jsonl` | All eight exam phases and four malformed payloads, written by Swift `ExamTests` | Swift/TS round-trip and unknown-event count parity |
+| `prompts/prompt-exam-*.txt` | Examiner system rules and a maximal bounded `<exam>` block | Swift `ExamTests`; no live model calls (Q-03) |
 | `api/openapi.yaml` | Engine HTTP API (sign-in, sync, lease, transcribe, turn SSE, budget, export, delete) | engine implementation, web client, later the Mac adapter |
 | `prompts/` *(moved here in plan step P-01)* | System-prompt snapshots (today `Tests/LingoCoreTests/Snapshots/*.txt`) | Swift `PromptBuilderTests`, TS prompt builder tests — byte-identical |
 | `evals/` *(moved here in P-01)* | `commands`, `turn`, `audio`, `dialog` eval sets (today `evals/`) | Swift `lingo-eval`, TS ports, the engine's eval runner |

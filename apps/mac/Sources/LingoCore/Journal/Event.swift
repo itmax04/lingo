@@ -60,11 +60,12 @@ public enum EventType {
     public static let goalSet = "goal.set"
     /// A scenario task the learner completed (LINGO-05 SR-03).
     public static let scenarioTask = "scenario.task"
+    public static let examPart = "exam.part"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
                                          hintAdded, phraseStarred, phraseUnstarred,
-                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask]
+                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask, examPart]
 }
 
 // MARK: - JSON Lines row

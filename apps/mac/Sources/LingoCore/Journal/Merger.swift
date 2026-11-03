@@ -69,6 +69,7 @@ public struct HistoryState: Sendable {
     public var goalSets: [GoalSet] = []
     /// Completed scenario tasks per session, each once, in traversal order (SR-03).
     public var scenarioTasks: [String: [Int]] = [:]
+    public var examParts: [String: [ExamPhase]] = [:]
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -261,6 +262,9 @@ public enum Merger {
             case EventType.scenarioTask:
                 guard let p = try? e.payload.decode(Payload.ScenarioTask.self), p.task >= 1 else { st.unknownEvents += 1; continue }
                 if !(st.scenarioTasks[e.session] ?? []).contains(p.task) { st.scenarioTasks[e.session, default: []].append(p.task) }
+            case EventType.examPart:
+                guard let p = try? e.payload.decode(Payload.ExamPart.self) else { st.unknownEvents += 1; continue }
+                st.examParts[e.session, default: []].append(p.part)
             case EventType.goalSet:
                 guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }
                 st.goalSets.append(GoalSet(minutes: min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, p.minutes)), ts: e.ts, version: ver))

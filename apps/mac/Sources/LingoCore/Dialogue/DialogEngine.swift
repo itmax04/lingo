@@ -74,7 +74,7 @@ public actor DialogEngine {
     }
 
     public func resume(_ session: String) async throws {
-        guard await store.state.sessions[session]?.state == .ended else { return }
+        guard let s = await store.state.sessions[session], s.state == .ended, s.settings.canResume else { return }
         try await store.append(EventType.sessionResumed, session: session, payload: .object([:]))
     }
 
@@ -590,7 +590,7 @@ public actor DialogEngine {
     /// Saved as a card message (kind = summary).
     public func recap(_ session: String) async {
         let st = await store.state
-        guard let s = st.sessions[session] else { return }
+        guard let s = st.sessions[session], !Self.skipsRecapAndSummary(s.settings) else { return }
         let fixes = (st.fixes[session] ?? []).map(\.fix)
         let msgs = (st.messages[session] ?? []).filter { $0.kind == .normal }
         let req = PromptBuilder.recapRequest(settings: s.settings, fixes: fixes, messages: Array(msgs.suffix(40)))

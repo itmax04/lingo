@@ -205,6 +205,7 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
       case EventType.cardSuspended: if (!Payload.cardSuspended(e.payload)) st.unknownEvents++; break;
       case EventType.goalSet: if (!Payload.goalSet(e.payload)) st.unknownEvents++; break;
       case EventType.scenarioTask: if (!Payload.scenarioTask(e.payload)) st.unknownEvents++; break;
+      case EventType.examPart: if (!Payload.examPart(e.payload)) st.unknownEvents++; break;
       default: st.unknownEvents++;
     }
   }

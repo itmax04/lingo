@@ -43,6 +43,7 @@ export const EventType = {
   cardSuspended: "card.suspended",
   goalSet: "goal.set",
   scenarioTask: "scenario.task",
+  examPart: "exam.part",
 } as const;
 export const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(EventType));
 

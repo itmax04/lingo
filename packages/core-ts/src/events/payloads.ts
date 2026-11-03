@@ -61,6 +61,8 @@ const scenarioTask = shape((o, p) => {
   return { task, message: str(field(o, "message"), `${p}.message`) };
 });
 
+const examPart = shape((o, p) => ({ part: oneOf(["goethe_b1.1.prep", "goethe_b1.1", "goethe_b1.2", "goethe_b1.3", "ielts.1", "ielts.2.prep", "ielts.2", "ielts.3"] as const)(field(o, "part"), `${p}.part`) }));
+
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
   sessionUpdated: (v: JSONValue) => attempt(sessionUpdated, v),
@@ -79,4 +81,5 @@ export const Payload = {
   cardSuspended: (v: JSONValue) => attempt(cardSuspended, v),
   goalSet: (v: JSONValue) => attempt(goalSet, v),
   scenarioTask: (v: JSONValue) => attempt(scenarioTask, v),
+  examPart: (v: JSONValue) => attempt(examPart, v),
 };
