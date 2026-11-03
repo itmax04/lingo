@@ -12,7 +12,7 @@ Apple Swift 6.2.4, Node v26.0.0, npm 11.12.1, gh 2.97.0. Node satisfies package.
 | Command (baseline main) | Actual result |
 |---|---|
 | `swift build --package-path apps/mac && swift test --package-path apps/mac` | PASS: `Test run with 265 tests in 65 suites passed after 10.136 seconds.` |
-| `npm ci && npm test` | PASS: 301 tests, 7 files |
+| `npm ci && npm test` | PASS: 301 tests, 6 files |
 | `apps/mac/scripts/check-core-ios.sh` | PASS: 59 objects, `LC_BUILD_VERSION platform=2 (iOS)` |
 | `python3 scripts/check-design.py` | FAIL in main: `AssertionError: Keep only the root DESIGN.md` (another DESIGN.md in the pre-existing `.claude/worktrees` checkout); PASS in the isolated worktree on the same commit: 19 tokens, 88 contrast pairs, 496 bilingual strings |
 | `scripts/check-english.sh` (isolated worktree) | PASS |
