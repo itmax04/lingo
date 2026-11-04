@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import LingoCore
 
-private struct ExamProvider: LLMProvider {
+struct ExamProvider: LLMProvider {
     let id = ProviderID.groq
     let requests: CallLog
     func stream(_ request: LLMRequest, model: String, key: String) -> AsyncThrowingStream<LLMEvent, Error> {
@@ -154,12 +154,15 @@ private struct ExamProvider: LLMProvider {
 }
 
 @MainActor @Suite struct ExamVoiceTests {
-    func setup(_ e: TurnControllerTests.Env, clock: ExamControllerTests.Clock) async throws -> ExamController {
-        let c = ExamController(engine: e.engine, sink: e.sink, now: { clock.date }) { [weak tc = e.tc] stream in
+    func setup(_ e: TurnControllerTests.Env, clock: ExamControllerTests.Clock, kind: ExamKind = .goetheB1) async throws -> ExamController {
+        let c = ExamController(engine: e.engine, sink: e.sink, now: { clock.date }) { [weak tc = e.tc, store = e.store, holder = e.holder] stream in
+            if let sid = tc?.exam?.sessionID, let session = await store.state.sessions[sid] {
+                holder?.ctx = TurnController.Context(session: session, lastAssistant: nil, lastUser: nil, phrases: [])
+            }
             await tc?.consumeExamReply(stream)
         }
         e.tc.exam = c
-        let sid = try #require(try await c.start(.goetheB1, automaticTimer: false))
+        let sid = try #require(try await c.start(kind, automaticTimer: false))
         let st = await e.store.state
         e.holder?.ctx = TurnController.Context(session: st.sessions[sid]!, lastAssistant: nil, lastUser: nil, phrases: [])
         return c

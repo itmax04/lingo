@@ -59,6 +59,8 @@ public final class TurnController {
     public var slowPace = false
     public var exam: ExamController? {
         didSet {
+            examRecognitionTask?.cancel(); examRecognitionTask = nil
+            segmenter.reset()
             oldValue?.flushUtterance = nil
             exam?.flushUtterance = { [weak self] in self?.flushExamUtterance() }
         }
@@ -91,6 +93,7 @@ public final class TurnController {
 
     // Turn
     private var turnTask: Task<Void, Never>?
+    private var examRecognitionTask: Task<Void, Never>?
     private var turnSeq = 0
     private var currentTurnID = ""
     private var spokenParts: [(tag: Int, text: String)] = []
@@ -141,6 +144,7 @@ public final class TurnController {
         interrupt(reason: "stop")
         if cancelTurn {
             exam?.stop()
+            examRecognitionTask?.cancel(); examRecognitionTask = nil
             turnTask?.cancel()
             turnTask = nil
             speakingTurn = nil
@@ -203,7 +207,9 @@ public final class TurnController {
         onLevel?(level)
         buffer.append(contentsOf: s)
         clock += s.count
-        let cap = Int(UtteranceBuffer.maxSeconds * 16_000)
+        // XR-02: retain the longest allowed monologue plus VAD/padding/timer slack (about 12 MB).
+        let retention = exam == nil ? UtteranceBuffer.maxSeconds : Double(ExamPhase.goethe2.seconds + 5)
+        let cap = Int(retention * 16_000)
         if buffer.count > cap { let drop = buffer.count - cap; buffer.removeFirst(drop); bufferStart += drop }
         // The VAD always listens (the noise floor and the "speech" state do not get stuck between push-to-talk recordings);
         // events go to the segmenter only while recording is active.
@@ -243,6 +249,7 @@ public final class TurnController {
             case .speechBegan:
                 if state == .listening || state == .thinking { /* merging is decided at the end of the utterance */ }
             case .utterance(let span):
+                if exam != nil { segmenter.reset() } // exam fragments never share an audio span
                 process(span: span, merge: false)
             case .merged(_, let span):
                 process(span: span, merge: true)
@@ -271,7 +278,7 @@ public final class TurnController {
         let exam = self.exam
         let capture: UUID?
         if let exam {
-            guard ctx.session.id == exam.sessionID, let token = exam.beginCapture() else { return }
+            guard ctx.session.id == exam.sessionID, let token = exam.enqueueCapture() else { return }
             capture = token
         } else { capture = nil }
         // Merging (R-11): the assistant has not started speaking yet → cancel the pending request and send the combined text.
@@ -290,8 +297,11 @@ public final class TurnController {
         answerStarted = false
         let recCtx = RecognitionContext.make(lastAssistant: ctx.lastAssistant?.spokenText, topic: ctx.session.settings.topic, phrases: ctx.phrases, targets: ctx.targets)
         let prevID = lastUserID, prevText = lastUserText
-        turnTask = Task { [weak self] in
-            guard let self else { return }
+        let preceding = exam == nil ? nil : examRecognitionTask
+        let task = Task { [weak self] in
+            await preceding?.value
+            guard let self, !Task.isCancelled else { return }
+            if let exam, let capture, !exam.ownsCapture(capture) { return }
             let tr: Transcription
             do {
                 tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
@@ -340,6 +350,7 @@ public final class TurnController {
             if c(cmd) != .slower { self.slowStep = 0 }
             await self.runTurn(self.engine.send(session: ctx.session.id, text: text, lang: tr.lang, command: cmd?.kind), turnID: turnID, ctx: ctx)
         }
+        if exam != nil { examRecognitionTask = task } else { turnTask = task }
     }
 
     private nonisolated func c(_ m: CommandMatch?) -> CommandKind? { m?.kind }

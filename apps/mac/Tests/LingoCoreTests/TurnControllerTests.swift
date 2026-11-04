@@ -90,17 +90,19 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         }
     }
 
-    func env(texts: [String], recDelay: Double = 0, reply: @escaping @Sendable (String) -> MockProvider.Behavior = { _ in .text(["@say de: Schön! Wie lange schon?"]) }) async throws -> Env {
+    func env(texts: [String], recDelay: Double = 0, recognizer: (any SpeechRecognizer)? = nil, requests: CallLog? = nil, reply: @escaping @Sendable (String) -> MockProvider.Behavior = { _ in .text(["@say de: Schön! Wie lange schon?"]) }) async throws -> Env {
         let store = try JournalStore(base: tempDir("tc"), deviceName: "Mac", deviceID: "mac-tc")
-        let log = CallLog()
-        let p = MockProvider(id: .groq, behavior: { _, _ in reply("") }, calls: log)
+        let log = requests ?? CallLog()
+        let p: any LLMProvider
+        if let requests { p = ExamProvider(requests: requests) }
+        else { p = MockProvider(id: .groq, behavior: { _, _ in reply("") }, calls: log) }
         let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 5)
         let secrets = InMemorySecretStore(["k": "synthetic"])
         let engine = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: secrets, health: ProviderHealth(), providers: [.groq: p]) }
         let sid = try await engine.createSession(SessionSettings(lang: .de, mode: .free, topic: "Wohnort", corrections: [.inline]))
         let sink = FakeSink()
         let holder = Holder()
-        let tc = TurnController(engine: engine, recognizer: FakeRecognizer(texts, delay: recDelay), sink: sink, metrics: nil, voice: VoiceSettings()) {
+        let tc = TurnController(engine: engine, recognizer: recognizer ?? FakeRecognizer(texts, delay: recDelay), sink: sink, metrics: nil, voice: VoiceSettings()) {
             holder.ctx
         }
         let e = Env(tc: tc, sink: sink, store: store, engine: engine, sid: sid, log: log)

@@ -19,7 +19,7 @@ public final class ExamController {
     private let now: () -> Date
     private var timer: Task<Void, Never>?
     private var operation: Task<Void, Never>?
-    private var capture: UUID?
+    private var captures: Set<UUID> = []
     private var pending: (ExamPhase, Bool)?
     private var stopped = false
     private var starting = false
@@ -32,8 +32,8 @@ public final class ExamController {
         self.engine = engine; self.sink = sink; self.now = now; self.consume = consume
     }
 
-    public var microphoneAllowed: Bool { !stopped && run?.microphoneAllowed == true }
-    public var canCapture: Bool { microphoneAllowed && capture == nil && (!busy || replying) && pending == nil }
+    public var microphoneAllowed: Bool { !stopped && pending == nil && run?.microphoneAllowed == true }
+    public var canCapture: Bool { microphoneAllowed && captures.isEmpty && (!busy || replying) }
 
     /// A single controller is single-use. The guard precedes the first suspension (double Start).
     @discardableResult public func start(_ kind: ExamKind, tasks: [String]? = nil, automaticTimer: Bool = true) async throws -> String? {
@@ -83,27 +83,39 @@ public final class ExamController {
     /// Called synchronously before STT starts, so a deadline waits for that transcript.
     public func beginCapture() -> UUID? {
         guard canCapture else { return nil }
-        let token = UUID(); capture = token
+        return enqueueCapture()
+    }
+
+    /// Reserve closed audio synchronously, even while earlier recognition/journal work is pending.
+    /// TurnController drains these reservations in audio order; transitions wait for every token.
+    func enqueueCapture() -> UUID? {
+        guard microphoneAllowed, !busy || replying else { return nil }
+        let token = UUID(); captures.insert(token)
         return token
     }
 
+    func ownsCapture(_ token: UUID) -> Bool { !stopped && captures.contains(token) }
+
     public func endCapture(_ token: UUID, text: String, lang: Lang) async {
-        guard capture == token, !stopped, let sid = sessionID, let r = run else { return }
+        guard captures.contains(token), !stopped, let sid = sessionID, let r = run else { return }
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // Keep the capture lock across journal I/O; a timer cannot overtake the final utterance.
         if !text.isEmpty {
             do { lastUser = try await engine.recordUser(session: sid, text: text, lang: lang) }
             catch { stop(); onFailure?(error); return }
         }
-        guard capture == token, !stopped else { return }
-        capture = nil
+        guard captures.contains(token), !stopped else { return }
+        captures.remove(token)
         if r.phase.isMonologue && !monologueReleased {
             if ExamRun.isDoneUtterance(text), pending == nil { pending = (r.phase, false) }
             drainTransition()
-        } else if !text.isEmpty {
-            if r.phase == .ielts2 { pending = (.ielts2, false); drainTransition() }
-            else { userWaiting = true; if !busy { request(replyTo: lastUser) } }
-        } else { drainTransition() }
+        } else if r.phase == .ielts2, !text.isEmpty {
+            pending = (.ielts2, false); drainTransition()
+        } else {
+            if !text.isEmpty { userWaiting = true }
+            drainTransition()
+            if userWaiting, pending == nil, captures.isEmpty, !busy { request(replyTo: lastUser) }
+        }
     }
 
     /// Typed input follows exactly the same holding/release rules as recognition.
@@ -115,7 +127,7 @@ public final class ExamController {
     /// Finish, deletion or leaving the live exam: no timer, late transcript, transition or speech survives.
     public func stop() {
         stopped = true; timer?.cancel(); timer = nil; operation?.cancel(); operation = nil
-        capture = nil; pending = nil; busy = false; replying = false; userWaiting = false
+        captures.removeAll(); pending = nil; busy = false; replying = false; userWaiting = false
         sink.stopSpeaking(); sink.micMuted = true
         onChange?()
     }
@@ -128,7 +140,7 @@ public final class ExamController {
     }
 
     private func drainTransition() {
-        guard !stopped, !busy, capture == nil, let (phase, timeUp) = pending, let r = run else { return }
+        guard !stopped, !busy, captures.isEmpty, let (phase, timeUp) = pending, let r = run else { return }
         pending = nil
         if r.phase.isMonologue && !monologueReleased {
             monologueReleased = true
@@ -166,7 +178,7 @@ public final class ExamController {
             await self.consume(self.engine.respond(session: sid, replyTo: replyTo, exam: snapshot))
             guard !self.stopped, !Task.isCancelled else { return }
             self.busy = false; self.replying = false; self.onChange?(); self.drainTransition()
-            if self.userWaiting, self.pending == nil, self.capture == nil { self.request(replyTo: self.lastUser) }
+            if self.userWaiting, self.pending == nil, self.captures.isEmpty { self.request(replyTo: self.lastUser) }
         }
     }
 }
