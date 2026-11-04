@@ -70,7 +70,8 @@
         "card.reviewed",
         "card.suspended",
         "goal.set",
-        "scenario.task"
+        "scenario.task",
+        "exam.part"
       ]
     },
     "session": {
@@ -371,6 +372,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/ScenarioTask"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "exam.part"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ExamPart"
           }
         }
       }
@@ -998,6 +1015,29 @@
           "description": "the learner message the task was completed in"
         }
       }
+    },
+    "ExamPart": {
+      "type": "object",
+      "description": "exam.part (LINGO-05 XR-02): start of a timed exam part or preparation phase.",
+      "required": [
+        "part"
+      ],
+      "properties": {
+        "part": {
+          "type": "string",
+          "enum": [
+            "goethe_b1.1.prep",
+            "goethe_b1.1",
+            "goethe_b1.2",
+            "goethe_b1.3",
+            "ielts.1",
+            "ielts.2.prep",
+            "ielts.2",
+            "ielts.3"
+          ]
+        }
+      },
+      "additionalProperties": true
     }
   }
 }

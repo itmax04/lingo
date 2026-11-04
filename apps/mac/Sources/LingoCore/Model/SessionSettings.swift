@@ -104,6 +104,9 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         activity = (try? c.decodeIfPresent(Activity.self, forKey: .activity)) ?? nil
     }
 
+    public var examKind: ExamKind? { activity?.kind == .exam ? activity?.exam.flatMap(ExamKind.init(rawValue:)) : nil }
+    public var canResume: Bool { examKind == nil }
+
     /// The catalogue id of a scenario session (SR-02), nil for other sessions.
     public var scenarioID: String? { activity?.kind == .scenario ? activity?.id : nil }
 
@@ -143,9 +146,10 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         return t.isEmpty ? name : "\(name): \(t)"
     }
 
-    /// "Start" is enabled only if at least one correction mode is selected (S-01, A-3),
-    /// and for "Custom prompt" the prompt text is not empty (R-03).
+    /// Ordinary sessions need a correction mode (S-01, A-3) and custom prompts need text (R-03).
+    /// Exams store "after" themselves, so their picker needs no correction choice (PX-05).
     public var canStart: Bool {
+        if examKind != nil { return true }
         guard !corrections.isEmpty else { return false }
         if mode == .customPrompt {
             return !customPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -195,7 +199,7 @@ public struct Activity: Codable, Sendable, Hashable {
         switch kind {
         case .warmup: valid = !(cards ?? []).isEmpty
         case .scenario: valid = !(id ?? "").isEmpty
-        case .exam: valid = !(exam ?? "").isEmpty && !(tasks ?? []).isEmpty
+        case .exam: valid = exam.flatMap(ExamKind.init(rawValue:)).map { ExamCatalog.validSelection($0, ids: tasks ?? []) } ?? false
         }
         guard valid else { throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "activity without its fields") }
     }

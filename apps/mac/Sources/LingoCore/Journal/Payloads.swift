@@ -137,6 +137,12 @@ public enum Payload {
         public init(task: Int, message: String) { self.task = task; self.message = message }
     }
 
+    /// LINGO-05 XR-02: the start of a timed exam phase.
+    public struct ExamPart: Codable, Sendable, Hashable {
+        public var part: ExamPhase
+        public init(part: ExamPhase) { self.part = part }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

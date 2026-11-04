@@ -1,6 +1,6 @@
 # Lingo — Architecture
 
-Status: **target architecture, accepted direction** (owner brainstorms of 2026-10-26) · Version 4 · Date: 2026-10-28
+Status: **target architecture, accepted direction** (owner brainstorms of 2026-10-26) · Version 5 · Date: 2026-11-03
 Supersedes: the architecture sections of `docs/changes/LINGO-03/*` v1 drafts and the "engine" wording of the audit reports.
 Decision records: [ADR-0001](../decisions/ADR-0001-stack.md) (Mac stack), [ADR-0002](../decisions/ADR-0002-web-stack.md) (web stack),
 [ADR-0003](../decisions/ADR-0003-authentication.md) (sign-in), [ADR-0004](../decisions/ADR-0004-repository-layout.md) (monorepo and contracts),
@@ -218,7 +218,7 @@ The history is a set of immutable **events** (schema: `packages/contracts/events
 | `seq` | per-device sequence, strictly increasing |
 | `lamport` | Lamport clock for last-writer-wins on mutable fields |
 | `ts` | ISO 8601 UTC with milliseconds; ordering unit is the millisecond |
-| `type` | `session.created`, `session.updated`, `session.deleted`, `session.ended`, `session.resumed`, `message.created`, `message.edited`, `message.interrupted`, `summary.updated`, `fix.recorded`, `hint.added`, `phrase.starred`, `phrase.unstarred` (teacher types are added in LINGO-05) |
+| `type` | `session.created`, `session.updated`, `session.deleted`, `session.ended`, `session.resumed`, `message.created`, `message.edited`, `message.interrupted`, `summary.updated`, `fix.recorded`, `hint.added`, `phrase.starred`, `phrase.unstarred` (LINGO-05 also decodes `card.reviewed`, `card.suspended`, `goal.set`, `scenario.task`, `exam.part`; exam phases are additive v1 events) |
 | `session` | session id (empty for account-wide events such as stars) |
 | `payload` | type-specific object; unknown fields preserved |
 

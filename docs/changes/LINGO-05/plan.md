@@ -1,6 +1,6 @@
 # LINGO-05: Plan
 
-ID: LINGO-05-plan · Status: draft for AI review · Version: 1.1 · Date: 2026-11-01 · Risk: R2 · Links: [intent.md](intent.md) · [spec.md](spec.md)
+ID: LINGO-05-plan · Status: draft for AI review · Version: 1.2 · Date: 2026-11-03 · Risk: R2 · Links: [intent.md](intent.md) · [spec.md](spec.md)
 
 One step = one PR (≤ 600 changed lines without fixtures and catalogues), each with tests, an independent AI review and green CI before
 merge. Mac and shared contracts only (D-01): `packages/contracts` gets the schemas, catalogues and golden fixtures; `packages/core-ts`
@@ -20,6 +20,15 @@ gets the new event types and the two silent tags, so the shared journal and prot
 | T-7 | Progress screen (charts) and weekly report | GR-04, GR-05, PX-04 (report) | TAC-09 (part), TAC-12, TAC-16 (weeklyReport) |
 | T-8 | Memory: events, extraction, filter, "What Lingo knows about me", profile facts, switch | GR-06, PX-04 (memory) | TAC-08, TAC-16 (memory) |
 | T-9 | Reminder; docs update (ARCHITECTURE, MAC.md, ROADMAP, AGENTS, contracts README); RU/EN screenshots of all new screens | GR-08 | TAC-09, TAC-15 |
+
+T-6a (#74) is split before review to keep each implementation PR within the limit:
+
+- **T-6a1 foundations**: original catalogue and validation, frozen settings, additive `exam.part` decoding in Swift/TS,
+  pure timed-phase state (including queued transitions), examiner prompt and maximum-size snapshots, skip/resume guards.
+- **T-6a2 integration**: connect the runner to DialogEngine/TurnController (monologue holding and one release request, phase events,
+  microphone off in preparation, timer/turn/cancellation races), Teacher entry cards and exam panels, Resume hidden, RU/EN screenshots.
+  Split coordination and UI into separate partial PRs too if their combined diff exceeds the limit. Only the final partial PR closes #74;
+  T-6b remains blocked until then. Pure state tests in T-6a1 are not evidence of a working voice/UI flow.
 
 A step that turns out larger than 600 lines (T-3 and T-4 are the likely ones) is split into an engine part and a UI part before review.
 Order: T-1 → T-2 → T-3 → T-4, then T-5 … T-9 in this order (each depends only on T-1…T-4 and could be stacked). The owner's app is
