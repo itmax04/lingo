@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI implemented at `3a2046c`, local checks PASS; independent review and delivery pending. Updated 2026-11-04. Owner app remains build 203 (`1a67e90`). #74 is open; #75 waits for its completion.
+Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84), implemented at `3a2046c`, local checks PASS; independent review and delivery pending. Updated 2026-11-04. Owner app remains build 203 (`1a67e90`). #74 is open; #75 waits for its completion.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -42,7 +42,9 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI implemented at `3a2046c`, loca
 ## Current work identity
 - Worktree `/Users/macbook/Developer/lingo-74-ui`, branch `feat/74-exam-ui`, implementation/tests/evidence commit
   `3a2046c9d5e5d5207447b924eddf16e0184d9ced`; base `1a67e904b37e21aaae7195cd76d7a40c0f907140`.
-- The following commit changes this handoff alone. Identify its SHA with `git log -1`; tracked tree is expected clean after publication.
+- Publication checkpoint: PR #84 is OPEN at `a6f68782827c81f2878b7205e1f8422e8f3edada`; hygiene PASS (27 s),
+  swift-test QUEUED awaiting a macOS runner. This is not a Swift CI PASS. The local watch was stopped; the GitHub run was not cancelled.
+- The publication-checkpoint commit changes this handoff alone; its new head requires checking CI again. Identify its SHA with `git log -1`; tracked tree is expected clean after publication.
   Other worktrees and the owner's main checkout/bundle are untouched. PR #83 delivery and owner build 203 were verified before work.
 - #74 was unexpectedly closed when this session started; reopened to match its unfinished runner scope. Only the final UI PR closes it.
 
@@ -73,7 +75,8 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI implemented at `3a2046c`, loca
 
 ## Next step
 **Strong: independent review of the T-6a2b PR on `feat/74-exam-ui` in a fresh session; do not edit or merge in the review session.**
-1. Locate the PR with `gh pr list --head feat/74-exam-ui`; verify its head and diff against `1a67e90`.
+1. Open [PR #84](https://github.com/itmax04/lingo/pull/84); verify its latest head and diff against `1a67e90`.
+   Commits after implementation `3a2046c` must change only this handoff; check CI on the actual current head.
 2. Read CODEX.md §5, XR-02/PX-02…PX-05, #74, this handoff and evidence/t6a2b-mac-checks.md; inspect each changed path.
    Check early attachment, speech/deadline gating, duplicate Start/Done, typed and recognized captures, cancellation at every await,
    preparation gating after VoiceIO setup/restarts, manual/natural Finish and transcript-only prior exams. No live calls.
