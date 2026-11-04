@@ -57,6 +57,28 @@ public final class TurnController {
     public var forceRussianOnce = false
     /// "Slow pace" in the header (R-15): all replies at ×0.75.
     public var slowPace = false
+    public var exam: ExamController? {
+        didSet {
+            oldValue?.flushUtterance = nil
+            exam?.flushUtterance = { [weak self] in self?.flushExamUtterance() }
+        }
+    }
+
+    /// Shared speech consumer for typed, timed and spoken exam turns.
+    public func consumeExamReply(_ stream: AsyncStream<TurnEvent>) async {
+        guard let ctx = context(), ctx.session.id == exam?.sessionID else { return }
+        turnSeq += 1
+        let id = "exam-\(turnSeq)"
+        currentTurnID = id; state = .thinking; answerStarted = false
+        await runTurn(stream, turnID: id, ctx: ctx)
+    }
+
+    private func flushExamUtterance() {
+        let events = segmenter.flush(at: seconds)
+        recording = false
+        handle(events)
+        segmenter = TurnSegmenter(config: voice.turn)
+    }
 
     // Audio
     private var vad: EnergyVAD
@@ -118,6 +140,7 @@ public final class TurnController {
         paused = false
         interrupt(reason: "stop")
         if cancelTurn {
+            exam?.stop()
             turnTask?.cancel()
             turnTask = nil
             speakingTurn = nil
@@ -141,6 +164,7 @@ public final class TurnController {
 
     /// Space/button pressed (R-06): start recording; while speaking — stop the speech (R-12).
     public func pushDown() {
+        if let exam, !exam.canCapture { return }
         if sink.isSpeaking { interrupt(reason: "key") }
         recording = true
         segmenter = TurnSegmenter(config: voice.turn)
@@ -174,6 +198,7 @@ public final class TurnController {
     // MARK: Audio
 
     public func feed(_ s: [Float]) {
+        if let exam, !exam.microphoneAllowed { return }
         let level = min(1, max(0, (EnergyVAD.rmsDB(s[...]) + 60) / 50))
         onLevel?(level)
         buffer.append(contentsOf: s)
@@ -243,8 +268,14 @@ public final class TurnController {
             return
         }
         let study = ctx.session.settings.lang
+        let exam = self.exam
+        let capture: UUID?
+        if let exam {
+            guard ctx.session.id == exam.sessionID, let token = exam.beginCapture() else { return }
+            capture = token
+        } else { capture = nil }
         // Merging (R-11): the assistant has not started speaking yet → cancel the pending request and send the combined text.
-        let doMerge = merge && !answerStarted && lastUserID != nil
+        let doMerge = exam == nil && merge && !answerStarted && lastUserID != nil
         if doMerge { turnTask?.cancel() } else if turnTask != nil { /* the previous turn finishes on its own */ }
         let audio = samples(span)
         let forced: Lang? = forceRussianOnce ? .ru : nil
@@ -265,6 +296,7 @@ public final class TurnController {
             do {
                 tr = try await self.recognizer.transcribe(audio, candidates: [study, .ru], forced: forced, context: recCtx)
             } catch {
+                if let exam, let capture { await exam.endCapture(capture, text: "", lang: study) }
                 if Task.isCancelled { return }  // "Finish" or a merge cancelled the turn: not an error
                 self.onNotice?(String(localized: "Speech recognition: \(String(describing: error))"))
                 self.state = self.mode == .continuous ? .listening : .idle
@@ -275,6 +307,11 @@ public final class TurnController {
             self.metrics?.note(turnID, "lang", tr.lang.rawValue)
             self.metrics?.note(turnID, "chars", String(tr.text.count))
             let text = tr.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let exam, let capture {
+                await exam.endCapture(capture, text: text, lang: tr.lang)
+                if !exam.busy { self.state = self.mode == .continuous ? .listening : .idle }
+                return
+            }
             guard !text.isEmpty else {
                 self.state = self.mode == .continuous ? .listening : .idle
                 return
@@ -318,6 +355,7 @@ public final class TurnController {
         // from 0, not from the first reply's offset.
         var finishedReplies = 0
         for await e in stream {
+            if Task.isCancelled { break }
             onTurn?(e)
             switch e {
             case .userSaved(let id):

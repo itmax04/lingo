@@ -1,6 +1,6 @@
 # Lingo — repository map
 
-Status: current · Version 2 · Date: 2026-11-03
+Status: current · Version 3 · Date: 2026-11-04
 Part of the documentation set: [ARCHITECTURE.md](ARCHITECTURE.md) (whole system) · [MAC.md](MAC.md) (Lingo for Mac) ·
 [WEB.md](WEB.md) (Lingo Web + Engine, all other devices) · **CODEBASE.md** (this file) · [EVOLVING.md](../process/EVOLVING.md) (how to change things).
 
@@ -39,6 +39,7 @@ created exactly there (ADR-0004). Update this file in the same PR when a top-lev
 | `services/engine/` | Cloudflare Worker + D1 | Web | *planned* P-08 |
 | `apps/web/` | React + Vite PWA | Web | *planned* P-15 |
 | `apps/mac/` | Home of the Swift package | Mac | working (P-01) |
+| `apps/mac/Sources/LingoCore/Teacher/ExamController.swift` | Live exam coordination, phase events, monologue release, recognition/speech deadline guards; Mac UI attachment planned | Mac | T-6a2a |
 | `design/redesign-2026/` | LINGO-07 reference images per platform: `01-directions`, `02-iphone`, `03-ipad`, `04-mac`, `05-web-desktop`, `06-android-windows`, `07-teacher`, `08-design-system`, `09-architecture`, `10-comparison` | both | in PR #33 |
 | `design/redesign/inputs/` | Owner inputs for the redesign | both | current |
 | `docs/architecture/` | ARCHITECTURE, MAC, WEB, this map | both | current |
