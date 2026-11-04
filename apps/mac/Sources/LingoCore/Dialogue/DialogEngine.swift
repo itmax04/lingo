@@ -97,14 +97,14 @@ public actor DialogEngine {
     // MARK: Turn
 
     /// User utterance → assistant reply. `command` — from the local detector (R-14…R-22).
-    public nonisolated func send(session: String, text: String, lang: Lang, command: CommandKind? = nil) -> AsyncStream<TurnEvent> {
+    public nonisolated func send(session: String, text: String, lang: Lang, command: CommandKind? = nil, exam: ExamRun? = nil) -> AsyncStream<TurnEvent> {
         AsyncStream { cont in
             let task = Task {
                 do {
                     let ev = try await self.store.append(EventType.messageCreated, session: session,
                                                          Payload.MessageCreated(role: .user, text: text, lang: lang))
                     cont.yield(.userSaved(messageID: ev.id))
-                    await self.reply(session: session, replyTo: ev.id, command: command, cont: cont)
+                    await self.reply(session: session, replyTo: ev.id, command: command, exam: exam, cont: cont)
                 } catch {
                     cont.yield(.failed(reason: "\(error)", retryAfter: nil))
                 }
@@ -115,26 +115,26 @@ public actor DialogEngine {
     }
 
     /// The assistant's first message if it starts (S-01), or "Reply again" (R-09) without a new user utterance.
-    public nonisolated func respond(session: String, replyTo: String? = nil, command: CommandKind? = nil) -> AsyncStream<TurnEvent> {
+    public nonisolated func respond(session: String, replyTo: String? = nil, command: CommandKind? = nil, exam: ExamRun? = nil) -> AsyncStream<TurnEvent> {
         AsyncStream { cont in
             let task = Task {
-                await self.reply(session: session, replyTo: replyTo, command: command, cont: cont)
+                await self.reply(session: session, replyTo: replyTo, command: command, exam: exam, cont: cont)
                 cont.finish()
             }
             cont.onTermination = { _ in task.cancel() }
         }
     }
 
-    private func reply(session: String, replyTo: String?, command: CommandKind?, cont: AsyncStream<TurnEvent>.Continuation) async {
+    private func reply(session: String, replyTo: String?, command: CommandKind?, exam: ExamRun?, cont: AsyncStream<TurnEvent>.Continuation) async {
         dialogInFlight += 1
         defer { dialogInFlight -= 1 }
-        await replyInner(session: session, replyTo: replyTo, command: command, cont: cont)
+        await replyInner(session: session, replyTo: replyTo, command: command, exam: exam, cont: cont)
         // Background requests run after the turn and only when there is quota to spare (R-27, R-04, R-52).
         let engine = self
         Task.detached { await engine.runBackground(session) }
     }
 
-    private func replyInner(session: String, replyTo: String?, command: CommandKind?, followUp: Bool = false,
+    private func replyInner(session: String, replyTo: String?, command: CommandKind?, exam: ExamRun? = nil, followUp: Bool = false,
                             cont: AsyncStream<TurnEvent>.Continuation) async {
         if command == .continuePractice { await skipWarmupCard(session) }  // WR-03: `continue` skips before the request names the next card
         let warmup = await warmupPrompt(session, followUp: followUp, replyTo: replyTo)
@@ -148,7 +148,7 @@ public actor DialogEngine {
         frozenProfiles[session] = profile
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
                                               profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
-                                              scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil)
+                                              scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?

@@ -1,6 +1,6 @@
 # LINGO-05: Plan
 
-ID: LINGO-05-plan · Status: draft for AI review · Version: 1.2 · Date: 2026-11-03 · Risk: R2 · Links: [intent.md](intent.md) · [spec.md](spec.md)
+ID: LINGO-05-plan · Status: draft for AI review · Version: 1.3 · Date: 2026-11-04 · Risk: R2 · Links: [intent.md](intent.md) · [spec.md](spec.md)
 
 One step = one PR (≤ 600 changed lines without fixtures and catalogues), each with tests, an independent AI review and green CI before
 merge. Mac and shared contracts only (D-01): `packages/contracts` gets the schemas, catalogues and golden fixtures; `packages/core-ts`
@@ -27,7 +27,9 @@ T-6a (#74) is split before review to keep each implementation PR within the limi
   pure timed-phase state (including queued transitions), examiner prompt and maximum-size snapshots, skip/resume guards.
 - **T-6a2 integration**: connect the runner to DialogEngine/TurnController (monologue holding and one release request, phase events,
   microphone off in preparation, timer/turn/cancellation races), Teacher entry cards and exam panels, Resume hidden, RU/EN screenshots.
-  Split coordination and UI into separate partial PRs too if their combined diff exceeds the limit. Only the final partial PR closes #74;
+  Split as **T-6a2a core coordination** (ExamController and TurnController attachment, mocked integration tests) and **T-6a2b Mac integration/UI**
+  (AppServices wiring, Teacher cards, actual voice setup, panels, hidden Resume and screenshots). Core coordination is not yet reachable
+  from the shipping app. Review/merge T-6a2a before starting T-6a2b. Only the final partial PR closes #74;
   T-6b remains blocked until then. Pure state tests in T-6a1 are not evidence of a working voice/UI flow.
 
 A step that turns out larger than 600 lines (T-3 and T-4 are the likely ones) is split into an engine part and a UI part before review.
