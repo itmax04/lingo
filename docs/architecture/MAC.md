@@ -1,6 +1,6 @@
 # Lingo for Mac — architecture and code guide
 
-Status: current · Version 3 · Date: 2026-11-04
+Status: current · Version 4 · Date: 2026-11-04
 Part of the documentation set: [ARCHITECTURE.md](ARCHITECTURE.md) (whole system, shared rules) · **MAC.md** (this file) ·
 [WEB.md](WEB.md) (Lingo Web + Engine, all other devices) · [CODEBASE.md](CODEBASE.md) (repository map) ·
 [EVOLVING.md](../process/EVOLVING.md) (how to change things).
@@ -64,7 +64,7 @@ flowchart LR
 | `Audio/` | `VoiceIO` · `EnergyVAD` · `PCMConverter`, `AudioFileReader` · `VoiceDefaults` · `Permissions` · `AudioRestartLimiter` | One `AVAudioEngine` for mic + speech output (voice processing, channel 0 of 5), adaptive energy VAD, conversion to 16 kHz mono Float32, TCC permission checks, bounded engine restarts |
 | `Speech/` | `WhisperEngine` · `SpeechRecognizer`, `UtteranceBuffer`, `RecognitionContext` · `TurnSegmenter`, `TurnConfig` · `AppleSpeechEngine` · `ModelStore` · `Voices`, `SlowChunks`, `SpeechPace` · `WER` | Recognition, end of utterance and merging (pause T, merge G), model download with SHA256, voice choice (Premium → Enhanced → Default), slower speech, WER for evals |
 | `Commands/` | `CommandDetector`, `CommandMatch` · `CommandKind` | "repeat", "slower", "how do I say …", "explain", "continue", "any mistakes", "finish" in ru/de/en, incl. misrecognised variants |
-| `Teacher/` | `Exams`, `ExamRun`, `ExamPrompt`, `ExamController` | Original B1/IELTS tasks, frozen selections, timed phases, bounded prompt data; live coordinator serializes recognition, held monologues, replies and speech, mutes preparation, and journals phase starts. TurnController attaches via `exam` and `consumeExamReply`; Mac entry points and panels remain planned (T-6a2b) |
+| `Teacher/` | `Exams`, `ExamRun`, `ExamPrompt`, `ExamController` | Original B1/IELTS tasks, frozen selections, timed phases, bounded prompt data; live coordinator serializes recognition, held monologues, replies and speech, mutes preparation, and journals phase starts. TurnController attaches via `exam` and `consumeExamReply`; `LingoMac/ExamServices` attaches before input/first reply and stops on selection/deletion/Finish; Teacher starts exams and `ExamPanel` shows tasks/timers. Prior exams are transcript-only |
 | `Dialogue/` | `TurnController`, `SpeechSink` · `DialogEngine`, `TurnEvent` · `PromptBuilder` · `ContextPolicy` · `ReplyProtocol`, `ReplyStreamParser` | Voice-turn state machine (listening → thinking → speaking, barge-in), one dialogue turn end to end, system wrapper (English instructions), context window + summary, streaming parser of `@say / @fix / @hint / @heard` lines |
 | `Journal/` | `Event`, `EventType` · `Payloads` · `JSONValue` · `JournalIO` · `JournalStore` · `Merger` (`HistoryState`, `LWW`) · `SyncFolder`, `SyncScheduler` · `ULID` | Append-only event journal per device, merge of all devices (union, LWW, tombstones), folder sync, ULIDs — mirrors `packages/contracts/events` |
 | `LLM/` | `ProviderChain` · `OpenAICompatibleProvider` · `SSEClient` · `LLMTypes` (`LLMRequest`, `LLMPurpose`) · `LLMSettings` (`KeyRecord`, `ChainEntry`) · `ProviderID` · `RateLimits` (`UsageRecorder`) · `KeyVerifier` | Provider + model + key chain with fallback on 429/5xx/network/timeout and cooldowns, streaming chat completions, rate-limit parsing, usage log, key checks |

@@ -9,7 +9,18 @@ final class AppModel {
     var section: AppSection = .conversations
     var sessionSearch = ""
     var sessions: [Session] = []
-    var selectedSessionID: String?
+    var selectedSessionID: String? {
+        didSet { if selectedSessionID != oldValue { services?.examSelectionChanged() } }
+    }
+    var startingExam = false
+    var liveExamSessionID: String?
+    var examRun: ExamRun?
+    var examBusy = false
+    var examInputAllowed = false
+    var examFollowUp = false
+    var isExam: Bool { selectedSession?.settings.activity?.kind == .exam }
+    var canContinue: Bool { !isExam }
+    var examReadOnly: Bool { isExam && (liveExamSessionID != selectedSessionID || examRun?.finished == true) }
     var langFilter: Lang = .en
     var messages: [ChatMessage] = []
     var phrases: [Phrase] = []
@@ -116,6 +127,8 @@ final class AppModel {
         if !networkUp { return String(localized: "Offline: model replies are unavailable") }
         if !hasKey { return String(localized: "No key: Settings → Keys and models") }
         if selectedSession == nil { return String(localized: "Create a session") }
+        if examReadOnly { return String(localized: "Exam transcript — start a new exam from Teacher.") }
+        if isExam && !examInputAllowed { return String(localized: "Preparation — microphone off") }
         // A finished session takes no input until the learner explicitly continues it (the "Session finished" card).
         if selectedSession?.state == .ended { return String(localized: "The session is finished") }
         return ""

@@ -5,7 +5,6 @@ import SwiftUI
 struct TeacherView: View {
     @Bindable var model: AppModel
     private let soon: [(title: LocalizedStringKey, symbol: String)] = [
-        ("German B1 exam", "graduationcap"), ("IELTS Speaking", "mic"),
         ("Weekly report", "calendar"), ("What Lingo knows about me", "person.text.rectangle"),
     ]
     var body: some View {
@@ -20,6 +19,8 @@ struct TeacherView: View {
                 LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)], spacing: 16) {
                     warmupCard(plans)
                     scenariosCard
+                    examCard(.goetheB1, title: "German B1 exam")
+                    examCard(.ielts, title: "IELTS Speaking")
                     ForEach(Array(soon.enumerated()), id: \.offset) { index, item in
                         VStack(alignment: .leading, spacing: 16) {
                             Image(systemName: item.symbol).font(.system(size: 24))
@@ -77,6 +78,21 @@ struct TeacherView: View {
             }
         }
         .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    private func examCard(_ kind: ExamKind, title: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: Theme.S.s12) {
+            Image(systemName: "graduationcap").font(Theme.F.title).foregroundStyle(Theme.accent(kind.lang))
+            Text(title).font(Theme.F.panelTitle)
+            Text("Speaking practice with timed parts and preparation.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+            Button("Start exam") { model.services?.startExam(kind) }.buttonStyle(.borderedProminent)
+                .disabled(model.startingExam || !model.online || model.readOnly)
+                .tint(Theme.accent(kind.lang))
+                .accessibilityLabel(Text("Start exam") + Text(": ") + Text(title))
+        }
+        .padding(Theme.S.s24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
         .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
         .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
     }

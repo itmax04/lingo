@@ -254,13 +254,25 @@ enum UISnapshot {
         llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
         llm.knownModelsAt[.groq] = Date()
         let keys = KeysController(settings: llm, secrets: secrets) { _ in }
+        let examOnly = args.contains("--ui-exams")
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
-            let target = option("--ui-all") == nil ? url : url.deletingLastPathComponent().appendingPathComponent("mac-" + name + "-" + theme + "-" + String(Int(size.width)) + "x" + String(Int(size.height)) + ".png")
-            if option("--ui-all") == nil && name != "conversation-speaking" { return }
+            let target = option("--ui-all") == nil && !examOnly ? url : url.deletingLastPathComponent().appendingPathComponent("mac-" + name + "-" + theme + "-" + String(Int(size.width)) + "x" + String(Int(size.height)) + ".png")
+            if option("--ui-all") == nil && !examOnly && name != "conversation-speaking" { return }
             ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
             print("ui-snapshot: " + target.path)
+        }
+        if examOnly {
+            model.section = .teacher
+            await capture("teacher-exams", MainView(model: model))
+            for (kind, phase) in [(ExamKind.goetheB1, ExamPhase.goethePrep), (.goetheB1, .goethe2), (.ielts, .ieltsPrep), (.ielts, .ielts2)] {
+                Fixtures.exam(model, kind: kind, phase: phase)
+                await capture("exam-" + phase.rawValue, MainView(model: model))
+            }
+            Fixtures.exam(model, kind: .ielts, phase: .ielts3, transcript: true)
+            await capture("exam-transcript", MainView(model: model))
+            return ok ? 0 : 1
         }
         await capture("conversation-speaking", MainView(model: model))
         if option("--ui-all") != nil {

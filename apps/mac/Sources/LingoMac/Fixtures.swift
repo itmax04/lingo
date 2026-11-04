@@ -49,6 +49,33 @@ enum Fixtures {
         m.syncStatus = String(localized: "Saved on this Mac")
     }
 
+    static func exam(_ model: AppModel, kind: ExamKind, phase: ExamPhase, transcript: Bool = false) {
+        let ids = kind == .goetheB1 ? ["b1-plan-park", "b1-talk-bicycle", "b1-discuss-bicycle"]
+            : ["ielts-topic-home", "ielts-cue-journey", "ielts-discuss-journey"]
+        // Use a validated linked selection, independent of random catalogue draws.
+        let tasks = ExamCatalog.validSelection(kind, ids: ids) ? ids : [ExamCatalog.tasks(kind, part: 1)[0].id,
+            ExamCatalog.tasks(kind, part: 2)[0].id, ExamCatalog.tasks(kind, part: 3)[0].id]
+        let now = Date()
+        guard let settings = kind.settings(tasks: tasks), var run = ExamRun(kind: kind, tasks: tasks, now: now) else { return }
+        while run.phase != phase { run.advance(expected: run.phase, timeUp: false, turnRunning: false, now: now) }
+        model.sessions = [Session(id: "exam-fixture", title: kind.title, settings: settings, createdAt: now, lastActivity: now)]
+        model.selectedSessionID = "exam-fixture"
+        model.section = .conversations
+        model.langFilter = kind.lang
+        model.hintsVisible = false
+        model.messages = phase.isPreparation ? [] : [ChatMessage(id: "exam-user", session: "exam-fixture", role: .user,
+            text: kind == .goetheB1 ? "Ich fahre jeden Tag mit dem Fahrrad zur Arbeit." : "I remember a journey to the mountains with my friends.",
+            lang: kind.lang, createdAt: now)]
+        model.liveExamSessionID = transcript ? nil : "exam-fixture"
+        model.examRun = transcript ? nil : run
+        model.examBusy = false
+        model.examInputAllowed = run.microphoneAllowed
+        model.examFollowUp = false
+        model.voiceState = phase.isPreparation || transcript ? .idle : .listening
+        model.levels = []
+        model.phrases = []
+    }
+
     /// A synthetic teacher journal for the screenshots (T-4): words to review, 12 minutes of practice today, a goal, a finished
     /// warm-up with one skipped card and one suspended card. Written to the snapshot's temporary journal, never the learner's.
     static func teacherJournal(_ services: AppServices) async -> Bool {

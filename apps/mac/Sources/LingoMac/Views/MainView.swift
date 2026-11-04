@@ -60,19 +60,26 @@ struct MainView: View {
     private var center: some View {
         VStack(spacing: 0) {
             ChatHeader(title: model.selectedSession?.title ?? "Lingo",
-                       subtitle: model.selectedSession?.settings.subtitle ?? String(localized: "Create a session: “New session”"),
+                       subtitle: model.isExam ? String(localized: "Exam practice") : (model.selectedSession?.settings.subtitle ?? String(localized: "Create a session: “New session”")),
                        sourceLabel: model.sourceLabel, online: model.online, memoryNote: model.memoryNote,
                        sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
             BannerLine(model: model)
+            if model.isExam, let run = model.examRun, model.liveExamSessionID == model.selectedSessionID {
+                ExamPanel(run: run, busy: model.examBusy, followUp: model.examFollowUp,
+                          onDone: { model.services?.exam?.advance(expected: $0) }, onFinish: { model.services?.endTapped() })
+                    .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
+            }
             MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
             VStack(spacing: Theme.S.s16) {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    VoicePanel(state: model.voiceState, levels: model.levels, lang: model.studyLanguage, unavailable: model.voiceUnavailableReason(now: context.date),
-                           onMic: { model.services?.micTapped() }, onPause: { model.services?.pauseTapped() },
-                           onEnd: { model.services?.endTapped() },
-                           extraControls: AnyView(VoiceToggles(model: model)))
-                    .disabled(!model.disabledReason.isEmpty)
-                    .help(model.disabledReason)
+                if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        VoicePanel(state: model.voiceState, levels: model.levels, lang: model.studyLanguage, unavailable: model.voiceUnavailableReason(now: context.date),
+                               onMic: { model.services?.micTapped() }, onPause: { model.services?.pauseTapped() },
+                               onEnd: { model.services?.endTapped() },
+                               extraControls: AnyView(VoiceToggles(model: model)))
+                        .disabled(!model.disabledReason.isEmpty)
+                        .help(model.disabledReason)
+                    }
                 }
                 if let sid = model.selectedSessionID, let sc = model.selectedSession?.settings.scenarioID.flatMap(ScenarioCatalog.scenario) {
                     ScenarioChecklist(scenario: sc, done: model.history.scenarioTasks[sid] ?? [])
@@ -80,14 +87,18 @@ struct MainView: View {
                 if let sid = model.selectedSessionID, model.selectedSession?.settings.warmupCards != nil {
                     WarmupEndHost(model: model, session: sid)
                 }
-                if model.selectedSession?.state == .ended {
+                if model.examReadOnly {
+                    Text("Exam transcript — start a new exam from Teacher.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+                } else if model.selectedSession?.state == .ended {
                     FinishedSessionCard(onContinue: { model.services?.continueSession() }, onNew: { model.showNewSession = true })
-                } else if !model.disabledReason.isEmpty, model.selectedSession != nil {
+                } else if !model.disabledReason.isEmpty, model.selectedSession != nil, !model.isExam {
                     Text(model.disabledReason).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger)
                 }
-                InputBar(text: $model.draft, enabled: model.disabledReason.isEmpty,
-                         disabledReason: model.disabledReason,
-                         onSend: { model.services?.sendText() })
+                if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
+                    InputBar(text: $model.draft, enabled: model.disabledReason.isEmpty,
+                             disabledReason: model.disabledReason,
+                             onSend: { model.services?.sendText() })
+                }
             }
             .padding(.horizontal, Theme.S.columnPadding)
             .padding(.bottom, Theme.S.columnPadding)
@@ -165,13 +176,15 @@ struct SessionMenu: View {
     var body: some View {
         Menu {
             if let s = model.selectedSession {
-                Section("Error correction") {
-                    ForEach(CorrectionMode.allCases, id: \.self) { c in
-                        Button((s.settings.corrections.contains(c) ? "✓ " : "") + c.title) { model.services?.toggleCorrection(c) }
+                if !model.isExam {
+                    Section("Error correction") {
+                        ForEach(CorrectionMode.allCases, id: \.self) { c in
+                            Button((s.settings.corrections.contains(c) ? "✓ " : "") + c.title) { model.services?.toggleCorrection(c) }
+                        }
                     }
                 }
                 Button((model.slowPace ? "✓ " : "") + String(localized: "Slow pace")) { model.services?.toggleSlowPace() }
-                if !s.settings.isVocabularyFocus {
+                if !s.settings.isVocabularyFocus && !model.isExam {
                     Button((s.settings.vocabularyOn ? "✓ " : "") + String(localized: "Use my vocabulary")) { model.services?.toggleVocabulary() }
                 }
                 Section(model.memoryNote ?? "") {}

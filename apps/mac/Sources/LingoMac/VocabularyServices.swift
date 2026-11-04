@@ -56,7 +56,7 @@ extension AppServices {
 
     /// The session menu switch (VR-08).
     func toggleVocabulary() {
-        guard let s = model.selectedSession, !s.settings.isVocabularyFocus else { return }
+        guard let s = model.selectedSession, !s.settings.isVocabularyFocus, !model.isExam else { return }
         Task {
             do { try await engine.updateSettings(s.id, s.settings.togglingVocabulary()) }
             catch { model.banner = String(localized: "Could not save: \(String(describing: error))") }

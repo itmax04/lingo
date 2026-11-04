@@ -13,6 +13,9 @@ final class AppServices {
     var settings: AppSettings
     let secrets: SecretStore
     private var observer: UUID?
+    var exam: ExamController?
+    var examStartID: UUID?
+    var examStartTask: Task<Void, Never>?
     var turnTask: Task<Void, Never>?
     /// True while "Finish" is being processed, so a second click does not start a second goodbye.
     var ending = false
@@ -30,7 +33,8 @@ final class AppServices {
     var backup: BackupScheduler?
     let reachability = Reachability()
 
-    init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil) throws {
+    init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil,
+         chain: (@Sendable () async -> ProviderChain)? = nil) throws {
         self.model = model
         self.settingsStore = settingsStore
         self.secrets = secrets
@@ -47,10 +51,10 @@ final class AppServices {
         self.settingsRef = settingsRef
         let usage = UsageRecorder(dir: dir.appendingPathComponent("usage", isDirectory: true))
         self.usage = usage
-        engine = DialogEngine(store: store, policy: migrated.context) {
+        engine = DialogEngine(store: store, policy: migrated.context, chain: chain ?? {
             // Keys are read off the main thread (D-11). Every attempt writes a usage record (R-52).
             ChainFactory.chain(settings: settingsRef.value.llm, secrets: secretsRef, usage: usage)
-        }
+        })
         model.langFilter = s.lastLang
         model.sourceLabel = s.llm.primaryLabel ?? String(localized: "No key")
         model.hasKey = s.llm.hasUsableKey
@@ -104,6 +108,7 @@ final class AppServices {
 
     func rename(_ id: String, _ title: String) { Task { try? await engine.rename(id, to: title) } }
     func delete(_ id: String) {
+        if exam?.sessionID == id { stopExam() }
         Task {
             try? await engine.delete(id)
             await scheduler?.trigger(.manual)
@@ -121,7 +126,7 @@ final class AppServices {
 
     /// Correction modes are changed in the session header (R-20); an empty set is not allowed (A-3).
     func toggleCorrection(_ c: CorrectionMode) {
-        guard let s = model.selectedSession else { return }
+        guard let s = model.selectedSession, !model.isExam else { return }
         var st = s.settings
         if st.corrections.contains(c) { guard st.corrections.count > 1 else { return }; st.corrections.remove(c) } else { st.corrections.insert(c) }
         Task { try? await engine.updateSettings(s.id, st) }
@@ -133,6 +138,7 @@ final class AppServices {
 
     /// Click on a bubble (R-41): user — edit (R-09), assistant — replay speech (P-07).
     func tapped(_ m: ChatMessage) {
+        if model.isExam { if m.role == .assistant && m.kind == .normal { replay(m) }; return }
         if m.role == .user { model.editing = m } else if m.kind == .normal { replay(m) }
     }
 
@@ -141,10 +147,15 @@ final class AppServices {
     func sendText() {
         let text = model.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let sid = model.selectedSessionID, let s = model.selectedSession else { return }
+        guard !ending, !model.examReadOnly, !model.isExam || exam?.canCapture == true else { return }
+        let capture = model.isExam ? exam?.beginCapture() : nil
         model.draft = ""
         let lang = WhisperEngine.scriptLang(text, candidates: [s.settings.lang, .ru]) ?? s.settings.lang
         let cmd = CommandDetector.detect(text)?.kind
-        guard !ending else { model.draft = text; return }
+        if model.isExam, let exam, let capture {
+            Task { await exam.endCapture(capture, text: text, lang: lang) }
+            return
+        }
         Task {
             if cmd == .finish, s.state != .ended {
                 // "that's all" typed behaves like the button and the voice command (R-22): save the line, say goodbye, end the session.
@@ -160,7 +171,7 @@ final class AppServices {
 
     /// "Reply again" (R-09): a new reply to the user's utterance.
     func regenerate(userMessageID: String) {
-        guard let sid = model.selectedSessionID else { return }
+        guard let sid = model.selectedSessionID, !model.isExam else { return }
         guard model.selectedSession?.state != .ended else { model.banner = String(localized: "The session is finished"); return }
         run(engine.respond(session: sid, replyTo: userMessageID))
     }
@@ -195,6 +206,7 @@ final class AppServices {
     }
 
     func editMessage(_ id: String, text: String) {
+        guard !model.isExam else { return }
         guard let sid = model.selectedSessionID else { return }
         model.translations[id] = nil  // the old translation no longer matches the text
         Task { try? await engine.edit(id, session: sid, text: text) }

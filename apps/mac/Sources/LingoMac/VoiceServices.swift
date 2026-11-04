@@ -30,8 +30,9 @@ extension AppServices {
     }
 
     /// Audio and the loop are created on the first voice action (that is when macOS asks for microphone permission).
-    func ensureVoice() async -> TurnController? {
-        if let t = turn { return t }
+    func ensureVoice(forExamStart: Bool = false) async -> TurnController? {
+        guard forExamStart || !model.examReadOnly else { return nil }
+        if let t = turn { restoreExamMicrophone(on: t.sink); return t }
         if Permissions.microphone == .notDetermined { _ = await Permissions.requestMicrophone() }
         guard Permissions.microphone == .granted else {
             model.banner = String(localized: "No microphone access: System Settings → Privacy & Security → Microphone → Lingo")
@@ -40,8 +41,8 @@ extension AppServices {
         prepareVoice()
         guard await voiceReady?.value == true, let w = whisper else { return nil }
         // Finish may have run while the model was loading: a finished session must not get the microphone back.
-        guard !ending, model.selectedSession?.state != .ended else { return nil }
-        if let t = turn { return t }
+        guard !ending, forExamStart || (model.selectedSession?.state != .ended && !model.examReadOnly), !Task.isCancelled else { return nil }
+        if let t = turn { restoreExamMicrophone(on: t.sink); return t }
         plainSpeech.stopSpeaking(at: .immediate)  // its sound is unknown to echo cancellation; never let it overlap live voice
         let io = VoiceIO()
         do { try io.start(voiceProcessing: settings.voice.voiceProcessing, output: true) } catch {
@@ -73,10 +74,13 @@ extension AppServices {
         tc.onTurn = { [weak self] e in self?.turnEvent(e) }
         io.onSamples = { s in Task { @MainActor in tc.feed(s) } }
         io.onPlaybackStarted = { tag, ns in Task { @MainActor in tc.playbackStarted(tag: tag, uptimeNs: ns) } }
-        io.onIdle = { Task { @MainActor in io.micMuted = false } }
-        io.onRestart = { reason, ok in
+        io.onIdle = { [weak self] in Task { @MainActor in self?.restoreExamMicrophone(on: io) } }
+        io.onRestart = { [weak self] reason, ok in
             Log.app.notice("voice restarted: \(reason, privacy: .public)")
-            if !ok { Task { @MainActor in m.banner = reason } }
+            Task { @MainActor in
+                self?.restoreExamMicrophone(on: io)
+                if !ok { m.banner = reason }
+            }
         }
         io.onCaptureFailure = { [weak tc] reason in
             Task { @MainActor in
@@ -88,6 +92,8 @@ extension AppServices {
         }
         voiceIO = io
         turn = tc
+        tc.exam = exam
+        restoreExamMicrophone(on: io)
         // Audio watchdog: once a second check that the microphone delivers samples (the engine may have stopped).
         healthTimer = Task { @MainActor in
             while !Task.isCancelled {
@@ -157,6 +163,7 @@ extension AppServices {
     func finishSession(_ sid: String) {
         guard !ending else { return }
         ending = true
+        if model.startingExam || exam?.sessionID == sid { stopExam() }
         // Nothing may go on generating or speaking after "Finish": cancel the voice turn and the text turn that are in flight.
         turn?.stopVoice(cancelTurn: true)
         turnTask?.cancel()
@@ -190,7 +197,7 @@ extension AppServices {
 
     /// "Continue session" on the "Session finished" card (R-01): the only way back into a finished session.
     func continueSession() {
-        guard let sid = model.selectedSessionID else { return }
+        guard let sid = model.selectedSessionID, model.canContinue else { return }
         // Pressed while the goodbye is still playing: continue as soon as finishing is done (no click is lost).
         if ending { pendingContinue = sid; return }
         plainSpeech.stopSpeaking(at: .immediate)
@@ -242,7 +249,7 @@ extension AppServices {
             io.speak(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 50_000)
             return
         }
-        if model.selectedSession?.state == .ended || ending {
+        if model.selectedSession?.state == .ended || model.examReadOnly || ending {
             speakWithoutMicrophone(p.text, lang: p.lang)
             return
         }
@@ -261,7 +268,7 @@ extension AppServices {
 
     /// Click on an assistant bubble — replay speech (R-41).
     func replay(_ m: ChatMessage) {
-        if model.selectedSession?.state == .ended || ending {
+        if model.selectedSession?.state == .ended || model.examReadOnly || ending {
             // A finished session must not switch the microphone back on just to replay a line.
             let parts: [(Lang, String)] = (m.segments.isEmpty ? [.say(m.lang, m.spokenText)] : m.segments).compactMap { if case .say(let l, let t) = $0 { return (l, t) }; return nil }
             if let io = voiceIO {
