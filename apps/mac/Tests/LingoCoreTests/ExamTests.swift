@@ -149,6 +149,35 @@ import Testing
         }
     }
 
+    @Test(arguments: ExamKind.allCases) func fullExamPromptKeepsTaskAndMistakesSilent(kind: ExamKind) throws {
+        let run = Self.run(kind)
+        let settings = try #require(kind.settings(tasks: run.tasks))
+        let ordinary = SessionSettings(lang: kind.lang, mode: .free, corrections: [.after])
+        let requests = kind == .goetheB1
+            ? ["Können wir stattdessen über Filme sprechen?", "Welche Fehler habe ich gemacht?"]
+            : ["Can we talk about films instead?", "Any mistakes?"]
+        for text in requests {
+            let message = ChatMessage(id: "u", session: "exam", role: .user, text: text, lang: kind.lang, createdAt: Self.start)
+            for command: CommandKind? in [nil, .mistakes] {
+                let req = PromptBuilder.dialogRequest(settings: settings, summary: "", messages: [message], command: command, exam: run, now: Self.start)
+                let full = req.system + "\n" + req.messages.map(\.text).joined(separator: "\n")
+                #expect(full.contains(text) && full.contains("<exam>"))
+                #expect(full.contains("4b. Keep the current exam task and question sequence."))
+                #expect(full.contains("mistakes → record real mistakes only as silent @fix lines for the debrief; no spoken review, continue the current exam task"))
+                #expect(!full.contains("Follow the learner's lead") && !full.contains("NEW subject"))
+                #expect(!full.contains("3–5 points") && !full.contains("3–5 real mistakes"))
+                #expect(full.contains("4. Transcription artifacts are not mistakes") && full.contains("4a. Similar-sounding misrecognitions"))
+                #expect(req.system == PromptBuilder.system(settings))
+            }
+        }
+        let message = ChatMessage(id: "u", session: "ordinary", role: .user, text: requests[1], lang: kind.lang, createdAt: Self.start)
+        let req = PromptBuilder.dialogRequest(settings: ordinary, summary: "", messages: [message], command: .mistakes)
+        #expect(req.system.contains("4b. Follow the learner's lead") && req.system.contains("NEW subject"))
+        #expect(req.system.contains("mistakes → review the last 10 utterances, 3–5 points, each also an @fix"))
+        #expect(req.messages[0].text.contains("3–5 real mistakes"))
+        #expect(!req.system.contains("continue the current exam task"))
+    }
+
     @Test func examNeverRequestsTopicPhrasesRecapSummaryOrResume() async throws {
         let p = ScriptProvider([])
         let store = try JournalStore(base: tempDir("exam-skip"), deviceName: "Mac", deviceID: "mac-exam")
