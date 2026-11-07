@@ -30,6 +30,8 @@ public enum LLMPurpose: String, Sendable {
     case translate
     /// The exam debrief (XR-03): one request at the end of an exam.
     case examFeedback
+    /// The weekly advice of the Progress screen (GR-05): one request on the learner's click.
+    case weeklyReport
 }
 
 public struct LLMRequest: Sendable, Equatable {

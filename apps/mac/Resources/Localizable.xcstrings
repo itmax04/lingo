@@ -8768,6 +8768,567 @@
           }
         }
       }
+    },
+    "7 days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 days"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 дней"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "30 days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 days"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 дней"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Period": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Период"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Minutes per day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes per day"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Минуты по дням"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Last %lld days: %lld min": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last %lld days: %lld min"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За последние %lld дн.: %lld мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Learner words per week": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learner words per week"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши слова по неделям"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mistakes per 100 words per week": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mistakes per 100 words per week"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибки на 100 слов по неделям"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No data yet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No data yet"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пока нет данных"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Cards": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cards"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Карточки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "New": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новые"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Learning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изучаются"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mature": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mature"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выученные"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Due today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due today"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На сегодня"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Total practice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total practice"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всего практики"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Learner words": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learner words"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши слова"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mistakes found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mistakes found"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найдено ошибок"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "My words used": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My words used"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовано своих слов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No practice yet. Start a conversation or a warm-up and your progress appears here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No practice yet. Start a conversation or a warm-up and your progress appears here."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пока нет практики. Начните разговор или разминку, и здесь появится ваш прогресс."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Last 7 days. The advice is written from these numbers, not from your conversations.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 7 days. The advice is written from these numbers, not from your conversations."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последние 7 дней. Совет пишется по этим числам, а не по вашим разговорам."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Minutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Минуты"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Goal days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal days"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дни с целью"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Sessions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessions"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сессии"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Words": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слова"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Mistakes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mistakes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ошибки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Cards reviewed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cards reviewed"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторено карточек"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Writing the advice…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing the advice…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готовим совет…"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Advice not available. The models did not answer. Try again in a moment.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advice not available. The models did not answer. Try again in a moment."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Совет недоступен. Модели не ответили. Попробуйте ещё раз чуть позже."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Practise a little this week to get advice.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practise a little this week to get advice."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позанимайтесь немного на этой неделе, чтобы получить совет."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Advice from Lingo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advice from Lingo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Совет от Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Update": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Your last 7 days in numbers, with advice from Lingo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your last 7 days in numbers, with advice from Lingo."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши последние 7 дней в числах и совет от Lingo."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "weekly report": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "weekly report"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "недельный отчёт"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

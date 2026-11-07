@@ -58,7 +58,6 @@ struct PlannedSectionView: View {
                 } else {
                     let cards: [LocalizedStringKey] = switch section {
                     case .teacher: ["Warm-up", "Scenarios", "German B1 exam", "IELTS Speaking", "Weekly report", "What Lingo knows about me"]
-                    case .progress: ["Practice time", "Words and mistakes", "Weekly report"]
                     default: ["Saved phrases", "Language filter", "Listen and repeat"]
                     }
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -90,7 +89,6 @@ struct PlannedSectionView: View {
     private func symbol(for index: Int) -> String {
         let symbols: [String] = switch section {
         case .teacher: ["rectangle.on.rectangle", "bubble.left.and.bubble.right", "graduationcap", "mic", "calendar", "person.text.rectangle"]
-        case .progress: ["chart.bar", "book.closed", "calendar"]
         default: ["star", "line.3.horizontal.decrease.circle", "speaker.wave.2"]
         }
         return symbols[index % symbols.count]

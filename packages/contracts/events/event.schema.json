@@ -71,7 +71,8 @@
         "card.suspended",
         "goal.set",
         "scenario.task",
-        "exam.part"
+        "exam.part",
+        "report.weekly"
       ]
     },
     "session": {
@@ -388,6 +389,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/ExamPart"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "report.weekly"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ReportWeekly"
           }
         }
       }
@@ -1013,6 +1030,23 @@
         "message": {
           "type": "string",
           "description": "the learner message the task was completed in"
+        }
+      }
+    },
+    "ReportWeekly": {
+      "type": "object",
+      "description": "report.weekly (LINGO-05 GR-05): the advice for one ISO week; the last writer (lamport, device) per week wins. Session is the empty string.",
+      "required": [
+        "week",
+        "text"
+      ],
+      "properties": {
+        "week": {
+          "type": "string",
+          "pattern": "^\\d{4}-W(0[1-9]|[1-4]\\d|5[0-3])$"
+        },
+        "text": {
+          "type": "string"
         }
       }
     },

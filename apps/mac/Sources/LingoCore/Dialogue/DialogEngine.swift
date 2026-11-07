@@ -27,6 +27,7 @@ public actor DialogEngine {
     public var policy: ContextPolicy
     private var summarizing: Set<String> = []
     private var debriefing: Set<String> = []
+    private var reportingWeek = false
     /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
@@ -643,6 +644,28 @@ public actor DialogEngine {
             _ = try await store.append(EventType.messageCreated, session: session,
                                        Payload.MessageCreated(role: .assistant, text: clean, lang: .ru, kind: .summary))
         } catch { return .failed }
+        return .stored
+    }
+
+    // MARK: Weekly report (GR-05)
+
+    /// The weekly advice: one request from local numbers and examples (no transcript), stored as `report.weekly` for the current ISO
+    /// week. An existing report is replaced only by an explicit new call (the Update button). One request at a time; no automatic retry.
+    public func weeklyReport(now: Date = Date(), calendar: Calendar = .autoupdatingCurrent) async -> DebriefResult {
+        guard !reportingWeek else { return .skipped }
+        reportingWeek = true   // before the first suspension: a double click cannot pass the guard
+        defer { reportingWeek = false }
+        let week = await store.state.weekSummary(now: now, calendar: calendar)
+        guard let req = PromptBuilder.weeklyReportRequest(week) else { return .skipped }
+        var text = ""
+        for await e in await makeChain().run(req) {
+            if case .text(let t) = e { text += t }
+            if case .restart = e { text = "" }
+            if case .exhausted = e { return .failed }
+        }
+        let clean = PromptBuilder.cut(PronunciationFilter.removingMarkedLines(from: ReplyProtocol.stripThinking(text)), 1_500)
+        guard !clean.isEmpty else { return .failed }
+        do { try await store.append(EventType.reportWeekly, session: "", Payload.ReportWeekly(week: week.week, text: clean)) } catch { return .failed }
         return .stored
     }
 

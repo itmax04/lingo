@@ -5,7 +5,7 @@ import SwiftUI
 struct TeacherView: View {
     @Bindable var model: AppModel
     private let soon: [(title: LocalizedStringKey, symbol: String)] = [
-        ("Weekly report", "calendar"), ("What Lingo knows about me", "person.text.rectangle"),
+        ("What Lingo knows about me", "person.text.rectangle"),
     ]
     var body: some View {
         TimelineView(.everyMinute) { context in content(model.history.todaySummary(now: context.date).plans) }
@@ -21,6 +21,7 @@ struct TeacherView: View {
                     scenariosCard
                     examCard(.goetheB1, title: "German B1 exam")
                     examCard(.ielts, title: "IELTS Speaking")
+                    weeklyCard
                     ForEach(Array(soon.enumerated()), id: \.offset) { index, item in
                         VStack(alignment: .leading, spacing: 16) {
                             Image(systemName: item.symbol).font(.system(size: 24))
@@ -78,6 +79,20 @@ struct TeacherView: View {
             }
         }
         .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    /// GR-07: the weekly report lives on the Progress screen; this card opens it.
+    private var weeklyCard: some View {
+        VStack(alignment: .leading, spacing: Theme.S.s12) {
+            Image(systemName: "calendar").font(.system(size: 24)).foregroundStyle(Theme.C.accentGerman)
+            Text("Weekly report").font(Theme.F.panelTitle)
+            Text("Your last 7 days in numbers, with advice from Lingo.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+            Button("Open") { model.section = .progress }.buttonStyle(.borderedProminent)
+                .accessibilityLabel(Text("Open") + Text(": ") + Text("Weekly report"))
+        }
+        .padding(Theme.S.s24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
         .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
         .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
     }

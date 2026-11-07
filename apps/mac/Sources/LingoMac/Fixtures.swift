@@ -129,5 +129,62 @@ enum Fixtures {
             return true
         } catch { return false }
     }
+
+    /// T-7 screenshots: a synthetic busy journal of the last 30 days (practice on most days, four mistake rules, card reviews) and,
+    /// optionally, a stored weekly advice. Written to the snapshot's temporary journal, never the learner's.
+    static func progressJournal(_ services: AppServices) async -> Bool {
+        let e = services.engine, store = services.store
+        do {
+            try await e.addVocabulary(lang: .de, entries: [("Feierabend", "конец рабочего дня"), ("Termin", "приём, встреча"), ("Wohnung", "квартира"), ("Miete", "арендная плата")], source: .list)
+            let de = try await e.createSession(SessionSettings(lang: .de, mode: .free, topic: "Alltag", corrections: [.after]))
+            let en = try await e.createSession(SessionSettings(lang: .en, mode: .free, topic: "Work", corrections: [.after]))
+            let rules = ["Perfekt mit sein", "Nach seit steht der Dativ", "Artikel: der, die, das", "Wortstellung im Nebensatz"]
+            let cal = Calendar.current
+            let today = cal.startOfDay(for: Date())
+            var fixCount = 0
+            for offset in 0..<30 where offset % 4 != 3 {
+                let start = (cal.date(byAdding: .day, value: -offset, to: today) ?? today).addingTimeInterval(19 * 3600)
+                // More practice in recent weeks: the chart shows a rising line.
+                let turns = offset < 7 ? 14 : offset < 14 ? 10 : 6
+                let (sid, lang) = offset % 2 == 0 ? (de, Lang.de) : (en, Lang.en)
+                for i in 0..<turns {
+                    let at = start.addingTimeInterval(Double(i) * 70)
+                    if i % 2 == 0 {
+                        let text = lang == .de ? "Ich habe gestern im Park gearbeitet und Freunde besucht." : "I worked in the park yesterday and met my friends."
+                        let m = try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: .user, text: text, lang: lang), at: at)
+                        if i % 6 == 0 {
+                            let n = fixCount; fixCount += 1
+                            // Fewer mistakes per word in the later weeks.
+                            if offset < 7 || n % 2 == 0 {
+                                try await store.append(EventType.fixRecorded, session: sid, Payload.FixRecorded(message: m.id, fix: Fix(
+                                    original: lang == .de ? "ich bin gearbeitet \(n)" : "I goed to work \(n)",
+                                    corrected: lang == .de ? "ich habe gearbeitet \(n)" : "I went to work \(n)",
+                                    rule: rules[n % rules.count])), at: at.addingTimeInterval(5))
+                            }
+                        }
+                    } else {
+                        try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: .assistant, text: "Gut.", lang: lang), at: at)
+                    }
+                }
+            }
+            for (i, text) in ["Feierabend", "Termin", "Wohnung"].enumerated() {
+                try await store.append(EventType.cardReviewed, session: de, Payload.CardReviewed(card: "word:de:\(text)", rating: i == 0 ? .good : .easy, message: "m"),
+                                       at: Date().addingTimeInterval(-Double(i + 1) * 3600))
+            }
+            services.model.apply(await store.state)
+            return true
+        } catch { return false }
+    }
+
+    /// The stored weekly advice of the current ISO week (T-7 screenshots).
+    static func weeklyAdvice(_ services: AppServices) async -> Bool {
+        do {
+            try await services.store.append(EventType.reportWeekly, session: "", Payload.ReportWeekly(
+                    week: HistoryState.weekID(Date()),
+                    text: "На этой неделе вы занимались почти каждый день и набрали хороший темп: слов стало больше, а ошибок на сто слов меньше. Чаще всего вы путаете вспомогательный глагол в Perfekt, поэтому повторите глаголы движения с sein. Попробуйте три коротких разговора по десять минут и одну разминку в день. В конце недели вернитесь к карточкам со словом Termin."))
+            services.model.apply(await services.store.state)
+            return true
+        } catch { return false }
+    }
 }
 
