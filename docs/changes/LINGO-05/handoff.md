@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84), implemented at `3a2046c`, local checks PASS; independent review and delivery pending. Updated 2026-11-04. Owner app remains build 203 (`1a67e90`). #74 is open; #75 waits for its completion.
+Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): review at `a8922d5` was changes-required (F-1 P1, F-2 P2); both fixed at `ea15ee0` with regressions, local checks PASS; fresh re-review pending. Updated 2026-11-07. Owner app remains build 203 (`1a67e90`). #74 is open; #75 waits for its completion.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -16,7 +16,7 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 | T-6a1 exam foundations (partial #74) | [#82](https://github.com/itmax04/lingo/pull/82), branch `feat/74-exam-runner`; merged as `fa6146c`; review APPROVE at `925764d` | `swift build` + `swift test` PASS (273); `npm ci && npm test` PASS (302); check-core-ios, check-design (496 strings), check-english, secret-scan (0 findings), diff check PASS | Original catalogue (6 tasks per Goethe part; 8 IELTS topics and linked cue cards/discussions), frozen settings, tolerant decoding, additive `exam.part` in Swift/TS, pure phase/timer state, examiner/max-block snapshots, skip/resume guards. Independent re-review at `925764d`: APPROVE, F-1/F-2 resolved, no new findings; [review](https://github.com/itmax04/lingo/pull/82#issuecomment-6625259451). Voice/UI integration NOT RUN and not implemented in this partial PR. [Evidence](evidence/t6a1-mac-checks.md) |
 
 | T-6a2a core coordination (partial #74) | [#83](https://github.com/itmax04/lingo/pull/83), merged `1a67e90`; independent APPROVE at `f6705f8` | Swift build + 287 tests, iOS core (63 objects), design (496 strings), English, diff, secret scan and CI PASS | `ExamController`, DialogEngine exam snapshots, TurnController capture/flush/speech integration. Owner build 203; [delivery](https://github.com/itmax04/lingo/pull/83#issuecomment-6632843656), [evidence](evidence/t6a2a-mac-checks.md) |
-| T-6a2b Mac wiring/UI (#74) | Branch `feat/74-exam-ui`, implementation `3a2046c`; awaiting independent review | Swift build + 293 tests, npm 302 tests, iOS core, design (506 strings), English/diff, secret scan (0 findings), signed worktree bundle PASS; CI: see PR checks | Teacher start cards, task/cue panels, timers/Done, service attachment/input/speech lifecycle and transcript-only prior exams. Six host tests; 24 RU/EN light/dark screenshots. [Evidence](evidence/t6a2b-mac-checks.md) |
+| T-6a2b Mac wiring/UI (#74) | [#84](https://github.com/itmax04/lingo/pull/84), branch `feat/74-exam-ui`, implementation `3a2046c`, review fixes `ea15ee0`; review changes-required at `a8922d5`, re-review pending | Swift build + 298 tests, iOS core, design (506 strings), English/diff, secret scan (0 findings) PASS at `ea15ee0`; npm 302 and signed worktree bundle PASS at `3a2046c`; CI: see PR checks | Teacher start cards, task/cue panels, timers/Done, service attachment/input/speech lifecycle and transcript-only prior exams. Nine host tests; 24 RU/EN light/dark screenshots. [Evidence](evidence/t6a2b-mac-checks.md) |
 
 ## Executor decisions
 - D-01 (intent): rule 9 applies when TypeScript implements cards, FSRS, statistics or memory; until then contracts and core-ts event/tag decoding land with each step.
@@ -40,13 +40,11 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
   scope exceeds the ~600-line guideline; no separate corrective PR is created.
 
 ## Current work identity
-- Worktree `/Users/macbook/Developer/lingo-74-ui`, branch `feat/74-exam-ui`, implementation/tests/evidence commit
-  `3a2046c9d5e5d5207447b924eddf16e0184d9ced`; base `1a67e904b37e21aaae7195cd76d7a40c0f907140`.
-- Publication checkpoint: PR #84 is OPEN at `a6f68782827c81f2878b7205e1f8422e8f3edada`; hygiene PASS (27 s),
-  swift-test QUEUED awaiting a macOS runner. This is not a Swift CI PASS. The local watch was stopped; the GitHub run was not cancelled.
-- The publication-checkpoint commit changes this handoff alone; its new head requires checking CI again. Identify its SHA with `git log -1`; tracked tree is expected clean after publication.
-  Other worktrees and the owner's main checkout/bundle are untouched. PR #83 delivery and owner build 203 were verified before work.
-- #74 was unexpectedly closed when this session started; reopened to match its unfinished runner scope. Only the final UI PR closes it.
+- Worktree `/Users/macbook/Developer/lingo/.claude/worktrees/lingo-05-handoff-continue-50ef7e` (Claude Code), branch `feat/74-exam-ui`
+  checked out from `origin/feat/74-exam-ui` at `a8922d5`; the original `lingo-74-ui` worktree no longer exists.
+- Review-fix commit `ea15ee023f93f5779b150e4a919a53160c8386dc` (code, tests, evidence); this handoff commit follows it alone.
+  Base `1a67e904b37e21aaae7195cd76d7a40c0f907140`. Identify the published head with `git log -1`; check CI on that head.
+- PR #83 delivery (merged `1a67e90`, owner build 203, codesign PASS) was re-verified before work. Other worktrees untouched.
 
 ## Executor decisions (T-6a2b)
 - D-05: `ExamController.onStarted` lets the host select/load the new session before input or the opening request; busy changes notify
@@ -55,34 +53,36 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 - D-06: preparation shows tasks and timer with Done/Finish; input is hidden. Goethe preparation includes the presentation task too.
   Prior exams show only their transcript, with no Resume/edit/regenerate; Finish still journals session completion. The existing
   Teacher/conversation components and references are extended. No new dependency, prompt, schema or extra provider request.
+- D-07 (review F-1): only `AppModel.apply`'s pick for a missing/deleted selection is automatic. During a start without a session it is
+  ignored; `onStarted` then selects the exam session. Explicit navigation still cancels; any selection away from a live exam stops it.
+- D-08 (review F-2): R-22 "that's all" ends an exam session typed or spoken, also in held monologues and while part input is not
+  capturable (Finish button parity). The runner is stopped before the line is journaled. Whole-utterance Fertig/Done/Finished stay
+  part completion (XR-02). The fixes add ~140 lines to a PR already near the guideline; kept in the same PR as with D-04.
 
-## Verified (T-6a2b, 2026-11-04)
-- On the source tree committed as `3a2046c`: `swift build --package-path apps/mac` PASS (3.95 s),
-  `swift test --package-path apps/mac` PASS (293 tests, 70 suites, 10.764 s); unchanged prompt snapshots, no recording.
-- `npm ci && npm test` PASS (302 tests); iOS core PASS (63 objects, platform=2); design PASS (506 bilingual strings);
-  English/diff and secret scan PASS (0 findings before publication). CI is checked on the published head; see PR checks.
-- `apps/mac/scripts/build-app.sh` and deep/strict codesign PASS on the worktree bundle. 24 fixture screenshots PASS, visually checked:
-  Teacher, Goethe preparation/monologue, IELTS preparation/monologue, prior transcript × RU/EN × light/dark. [Evidence](evidence/t6a2b-mac-checks.md).
-- Earlier test-harness compile errors (recognizer signature, LLM event case, nested Env actor isolation) were corrected before passing checks.
-  Optional contact-sheet Python failed because Pillow is absent; AppKit produced the inspection sheets instead; no dependency added.
-- NOT RUN: live providers, real STT/microphone/recovery/devices, `--selftest`, owner metrics and live exam behavior (Q-03).
-  Independent review, merge and owner-app rebuild are not done in this implementation session. Owner app remains build 203 (`1a67e90`).
+## Verified (review fixes, 2026-11-07, at `ea15ee0`)
+- `swift build --package-path apps/mac` PASS (5.71 s); `swift test --package-path apps/mac` PASS (298 tests, 70 suites, 10.123 s);
+  prompt snapshots unchanged. New regressions FAIL on the old production files (F-1 2/4 cases, typed and both spoken Finish cases).
+- iOS core PASS (63 objects, platform=2); design PASS (506 bilingual strings); English, diff check, secret scan PASS (0 findings).
+- NOT RUN: npm (no TS/contracts change; 302-test PASS at `3a2046c` is historical); screenshots (no view/string/token change);
+  live providers, real STT/microphone/VoiceIO restart, `--selftest`, shipping-app runtime (Q-03). [Evidence](evidence/t6a2b-mac-checks.md).
+
+## Verified (T-6a2b implementation, 2026-11-04, at `3a2046c`)
+- Swift build/293 tests, npm 302, iOS core, design, English/diff, secret scan PASS; worktree bundle build and deep/strict codesign PASS;
+  24 fixture screenshots (Teacher, Goethe/IELTS preparation and monologue, prior transcript × RU/EN × light/dark) visually checked.
 
 ## Open
-- Independent fresh-session review is required before merge (CODEX.md §§5–6). CI status is on the published PR; no review approval is inferred.
+- Fresh-session re-review of F-1/F-2 and the whole PR is required before merge (CODEX.md §§5–6); no approval is inferred.
 - Real VoiceIO startup/restart and live exam flow remain owner-checkpoint evidence; fake-sink gating tests are offline evidence only.
 - Debrief remains #75/T-6b, blocked until #74's final runner PR merges. No owner blocker or spec conflict identified.
 
 ## Next step
-**Strong: independent review of the T-6a2b PR on `feat/74-exam-ui` in a fresh session; do not edit or merge in the review session.**
-1. Open [PR #84](https://github.com/itmax04/lingo/pull/84); verify its latest head and diff against `1a67e90`.
-   Commits after implementation `3a2046c` must change only this handoff; check CI on the actual current head.
-2. Read CODEX.md §5, XR-02/PX-02…PX-05, #74, this handoff and evidence/t6a2b-mac-checks.md; inspect each changed path.
-   Check early attachment, speech/deadline gating, duplicate Start/Done, typed and recognized captures, cancellation at every await,
-   preparation gating after VoiceIO setup/restarts, manual/natural Finish and transcript-only prior exams. No live calls.
-3. Run Swift build/tests, iOS core, design/English/diff/secret checks as needed; inspect the RU/EN screenshots and final-head CI.
-   Publish verdict, exact SHA and F-1… findings (P0–P3); no open P0/P1 before delivery. Every P2 must be fixed or answered.
+**Strong: independent re-review of PR #84 on `feat/74-exam-ui` in a fresh session; do not edit or merge in the review session.**
+1. Verify the PR head; commits after `ea15ee0` must change only this handoff. Check final-head CI (`swift-test`, `hygiene`).
+2. Read CODEX.md §5, the [changes-required review](https://github.com/itmax04/lingo/pull/84#issuecomment-6634057538), D-07/D-08 and
+   evidence/t6a2b-mac-checks.md. Confirm F-1 with the app's journal observer and F-2 typed and spoken; re-check the whole diff
+   against `1a67e90` for regressions in cancellation, duplicate Start/Done and transcript-only prior exams. No live calls.
+3. Run Swift build/tests, iOS core, design/English/diff/secret checks. Publish verdict, exact SHA and findings; no open P0/P1.
 4. After approval, a delivery session may update only this handoff, merge under CODEX.md §6 after green final-head CI,
-   fast-forward clean owner main and rebuild `~/Developer/lingo/dist/Lingo.app`. Verify revision/build/codesign and record delivery.
+   fast-forward clean owner main and rebuild `~/Developer/lingo/dist/Lingo.app`; verify revision/build/codesign and record delivery.
    #74 closes only on that merge; #75/T-6b starts afterward in its own implementation session.
-Next model: strong → gpt-6-astra high. Start: “Continue the independent T-6a2b review from this handoff.”
+Next model: strong → Opus 5.5 high. Start: "Continue the independent T-6a2b re-review from this handoff."
