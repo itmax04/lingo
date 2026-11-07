@@ -622,14 +622,14 @@ public actor DialogEngine {
     /// the caller decides (Retry button). At most one request per session at a time, and none once a debrief is stored.
     public func examDebrief(_ session: String) async -> DebriefResult {
         guard !debriefing.contains(session) else { return .skipped }
+        debriefing.insert(session)   // before the first suspension: no second request can pass the guard
+        defer { debriefing.remove(session) }
         let st = await store.state
         guard let s = st.sessions[session], s.settings.activity?.kind == .exam else { return .skipped }
         let msgs = (st.messages[session] ?? [])
         guard !msgs.contains(where: { $0.kind == .summary }) else { return .skipped }
         let fixes = (st.fixes[session] ?? []).map(\.fix)
         guard let req = PromptBuilder.examFeedbackRequest(settings: s.settings, fixes: fixes, messages: msgs) else { return .skipped }
-        debriefing.insert(session)
-        defer { debriefing.remove(session) }
         var text = ""
         for await e in await makeChain().run(req) {
             if case .text(let t) = e { text += t }
