@@ -9,7 +9,20 @@ final class AppModel {
     var section: AppSection = .conversations
     var sessionSearch = ""
     var sessions: [Session] = []
-    var selectedSessionID: String?
+    var selectedSessionID: String? {
+        didSet { if selectedSessionID != oldValue { services?.examSelectionChanged(automatic: selectingAutomatically) } }
+    }
+    /// True only while `apply` picks a session because none (or a deleted one) was selected: not the learner's navigation.
+    @ObservationIgnored private var selectingAutomatically = false
+    var startingExam = false
+    var liveExamSessionID: String?
+    var examRun: ExamRun?
+    var examBusy = false
+    var examInputAllowed = false
+    var examFollowUp = false
+    var isExam: Bool { selectedSession?.settings.activity?.kind == .exam }
+    var canContinue: Bool { !isExam }
+    var examReadOnly: Bool { isExam && (liveExamSessionID != selectedSessionID || examRun?.finished == true) }
     var langFilter: Lang = .en
     var messages: [ChatMessage] = []
     var phrases: [Phrase] = []
@@ -78,7 +91,9 @@ final class AppModel {
         vocabulary = st.vocabulary()
         profile = st.profile
         if selectedSessionID == nil || st.sessions[selectedSessionID!]?.deleted == true {
+            selectingAutomatically = true
             selectedSessionID = visibleSessions.first?.id
+            selectingAutomatically = false
         }
         refreshSelection()
     }
@@ -116,6 +131,8 @@ final class AppModel {
         if !networkUp { return String(localized: "Offline: model replies are unavailable") }
         if !hasKey { return String(localized: "No key: Settings → Keys and models") }
         if selectedSession == nil { return String(localized: "Create a session") }
+        if examReadOnly { return String(localized: "Exam transcript — start a new exam from Teacher.") }
+        if isExam && !examInputAllowed { return String(localized: "Preparation — microphone off") }
         // A finished session takes no input until the learner explicitly continues it (the "Session finished" card).
         if selectedSession?.state == .ended { return String(localized: "The session is finished") }
         return ""

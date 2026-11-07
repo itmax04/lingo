@@ -8506,6 +8506,166 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Exam transcript — start a new exam from Teacher.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam transcript — start a new exam from Teacher."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипт экзамена — новый экзамен можно начать в разделе «Учитель»."
+          }
+        }
+      }
+    },
+    "Preparation — microphone off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparation — microphone off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подготовка — микрофон выключен"
+          }
+        }
+      }
+    },
+    "Could not continue the exam. Start a new exam from Teacher.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not continue the exam. Start a new exam from Teacher."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось продолжить экзамен. Начните новый в разделе «Учитель»."
+          }
+        }
+      }
+    },
+    "Speaking practice with timed parts and preparation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speaking practice with timed parts and preparation."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разговорная практика: части с таймером и подготовка."
+          }
+        }
+      }
+    },
+    "Start exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать экзамен"
+          }
+        }
+      }
+    },
+    "Part %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Part %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Часть %lld"
+          }
+        }
+      }
+    },
+    "Time remaining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time remaining"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Осталось времени"
+          }
+        }
+      }
+    },
+    "Answer the examiner's follow-up question.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer the examiner's follow-up question."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ответьте на дополнительный вопрос экзаменатора."
+          }
+        }
+      }
+    },
+    "Speak until the timer ends, or say Done or press Done.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speak until the timer ends, or say Done or press Done."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Говорите до конца таймера или завершите речь: скажите «Fertig», «Done» или «Finished» либо нажмите «Готово»."
+          }
+        }
+      }
+    },
+    "Exam practice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam practice"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подготовка к экзамену"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

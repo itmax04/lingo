@@ -9,6 +9,8 @@ public final class ExamController {
     public private(set) var busy = false
     public private(set) var monologueReleased = false
     public var onChange: (() -> Void)?
+    /// Host selects and attaches the newly created session before any input or opening reply.
+    public var onStarted: ((String) async -> Void)?
     public var onFinished: (() -> Void)?
     public var onFailure: ((Error) -> Void)?
     /// Flush a recording into recognition before a deadline releases the held monologue.
@@ -45,6 +47,7 @@ public final class ExamController {
         defer { starting = false }
         let sid = try await engine.createSession(settings)
         sessionID = sid
+        await onStarted?(sid)
         guard !stopped else { return sid }
         run = ExamRun(kind: kind, tasks: ids, now: now())
         do { try await recordPhase() } catch { stop(); throw error }
@@ -149,7 +152,7 @@ public final class ExamController {
         guard run?.advance(expected: phase, timeUp: timeUp, turnRunning: false, now: now()) == true else { return }
         monologueReleased = false
         updateMicrophone()
-        busy = true
+        busy = true; onChange?()
         operation = Task { [weak self] in
             guard let self, !self.stopped, !Task.isCancelled else { return }
             do {
@@ -171,7 +174,7 @@ public final class ExamController {
 
     private func request(replyTo: String? = nil) {
         guard !stopped, !busy, let sid = sessionID, let snapshot = run, !snapshot.finished, !snapshot.phase.isPreparation else { return }
-        busy = true; replying = true; userWaiting = false
+        busy = true; replying = true; userWaiting = false; onChange?()
         run?.consumeTransition()
         operation = Task { [weak self] in
             guard let self, !self.stopped, !Task.isCancelled else { return }
