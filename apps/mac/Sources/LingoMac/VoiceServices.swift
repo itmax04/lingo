@@ -190,6 +190,7 @@ extension AppServices {
             if model.banner == note { model.banner = nil }
             // The recap and summary belong to the finished part, so they are written before a queued "Continue".
             if ended { await engine.finalizeEnded(sid) }
+            if ended, model.sessions.first(where: { $0.id == sid })?.settings.activity?.kind == .exam { runDebrief(sid) }
             if let c = pendingContinue { pendingContinue = nil; try? await engine.resume(c) }
             await scheduler?.trigger(.sessionEnded)
         }

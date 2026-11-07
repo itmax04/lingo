@@ -272,6 +272,10 @@ enum UISnapshot {
             }
             Fixtures.exam(model, kind: .ielts, phase: .ielts3, transcript: true)
             await capture("exam-transcript", MainView(model: model))
+            Fixtures.examDebrief(model, stored: true)
+            await capture("exam-debrief", MainView(model: model))
+            Fixtures.examDebrief(model, stored: false)
+            await capture("exam-debrief-unavailable", MainView(model: model))
             return ok ? 0 : 1
         }
         await capture("conversation-speaking", MainView(model: model))

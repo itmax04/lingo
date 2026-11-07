@@ -22,6 +22,16 @@ final class AppModel {
     var examFollowUp = false
     var isExam: Bool { selectedSession?.settings.activity?.kind == .exam }
     var canContinue: Bool { !isExam }
+    /// Exam sessions whose debrief request is running (memory only; a stored debrief is a `summary` message in the journal).
+    var debriefRunning: Set<String> = []
+    enum DebriefCard { case running, unavailable }
+    /// XR-03: the card under a finished exam. Nil while the exam is live, without learner turns, or once the debrief is stored.
+    var debriefCard: DebriefCard? {
+        guard isExam, let sid = selectedSessionID, selectedSession?.state == .ended, liveExamSessionID != sid,
+              messages.contains(where: { $0.role == .user && $0.kind == .normal }),
+              !messages.contains(where: { $0.kind == .summary }) else { return nil }
+        return debriefRunning.contains(sid) ? .running : .unavailable
+    }
     var examReadOnly: Bool { isExam && (liveExamSessionID != selectedSessionID || examRun?.finished == true) }
     var langFilter: Lang = .en
     var messages: [ChatMessage] = []

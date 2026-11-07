@@ -28,6 +28,8 @@ public enum LLMPurpose: String, Sendable {
     case judge
     /// "Translate to Russian" of one message, on the user's click.
     case translate
+    /// The exam debrief (XR-03): one request at the end of an exam.
+    case examFeedback
 }
 
 public struct LLMRequest: Sendable, Equatable {

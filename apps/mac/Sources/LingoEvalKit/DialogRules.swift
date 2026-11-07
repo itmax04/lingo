@@ -27,14 +27,8 @@ public enum DialogRules {
         "nur plaudern", "einfach plaudern", "lass uns weiterplaudern", "was gibt's sonst", "was gibt es sonst neues",
     ]
 
-    /// Words about pronunciation, sounds, accent and "softer/harder/clearer" (ru, de, en) — whole-word regular expressions (language data).
-    /// Everyday idioms "sounds like", "klingt wie", "звучит как" and "акцентировать (внимание)" are not about pronunciation (false positives in run1, D-20).
-    static let pronunciation: [String] = [
-        "произнош", "произнес", "произнёс", "произноси", "выговор", "\\bакцент(а|у|ом|е|ы|ов)?\\b", "интонац", "ударени",
-        "мягче", "твёрже", "тверже", "чётче", "четче", "\\bзвук(а|и|ов|ом)?\\b",
-        "aussprache", "aussprech", "ausgesproch", "\\bakzent(e|s)?\\b", "betonung", "weicher", "härter", "deutlicher aus",
-        "pronunciation", "pronounc", "\\baccents?\\b", "intonation", "softer", "harder sound", "your sound",
-    ]
+    /// The marker list lives in LingoCore (`PronunciationFilter`): the runtime filter of the exam debrief uses the same one.
+    static let pronunciation: [String] = PronunciationFilter.markers
 
     /// Signs of a correction in the spoken text (for modes without "as we go").
     static let correctionMarkers: [String] = [
@@ -90,7 +84,7 @@ public enum DialogRules {
             r["lang_discipline"] = ru.isEmpty
         }
         let low = lower(allSay)
-        r["no_pronunciation"] = !pronunciation.contains { low.range(of: lower($0), options: .regularExpression) != nil }
+        r["no_pronunciation"] = !PronunciationFilter.matches(allSay)
         if c.session.mode == .questions || e.one_question == true {
             let q = study.joined(separator: " ").filter { $0 == "?" }.count
             r["one_question"] = q <= 1
