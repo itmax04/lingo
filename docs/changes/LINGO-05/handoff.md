@@ -1,6 +1,20 @@
 # LINGO-05 handoff
 
 Status: T-1…T-6a1 merged. T-6a2a PR #83 independently APPROVED at `f6705f8`; eligible merge/rebuild follows this handoff-only commit. T-6a2b is next and unstarted. Updated 2026-11-04. Read the PR delivery comment for the resulting merge SHA and owner bundle build; last verified before delivery: build 202 (`fa6146c`).
+Update 2026-11-07 ([audit](../../audits/AUDIT-2026-11-07.md)): PR #83 is merged as `1a67e90`; the owner's app is build 203 at `1a67e90`. T-6a2b is open as PR #84 with review changes-required (F-1 P1, F-2 P2); its last `mac` CI run was cancelled. Next: fix F-1/F-2 on `feat/74-exam-ui`, re-review, merge (completion plan v2, row A1).
+
+### Audit session 2026-11-07 (Claude Code, docs only)
+- Identity: worktree `.claude/worktrees/lingo-audit-plan-2b8b20`, branch `claude/lingo-audit-plan-2b8b20`, base `1a67e90`.
+  Published as [PR #85](https://github.com/itmax04/lingo/pull/85) (audit, completion plan v2, ROADMAP, docs index, this file).
+  No code changed; not merged; no rebuild.
+- Verified on `1a67e90`: `swift build` PASS; `swift test` PASS (287 tests, 69 suites); `npm ci && npm test` PASS (302);
+  check-english, secret-scan (0 findings), check-core-ios (63 objects), check-design (496 strings), `git diff --check` PASS.
+  Live providers/audio/devices NOT RUN.
+- Open owner decisions (completion plan v2 §6): CP-01 live smoke test H-05a after A1; CP-02 acceptance debt in H-05; CP-03 R2/R3
+  before LINGO-09; CP-04 web scope at resume. Recommended answers are the first options.
+- Next for this session's work: independent fresh-session review of PR #85, green CI, then merge under CX-02.
+  Then the implementation next step below is unchanged: A1 = fix PR #84 F-1/F-2 (plus R1 privacy, audit A-03, in parallel).
+
 
 ## Done
 | Step | PR | Checks | Notes |
