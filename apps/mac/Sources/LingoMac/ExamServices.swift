@@ -10,7 +10,6 @@ extension AppServices {
         let startID = UUID()
         examStartID = startID
         model.startingExam = true
-        let selection = model.selectedSessionID
         examStartTask = Task {
             defer {
                 if examStartID == startID {
@@ -19,8 +18,8 @@ extension AppServices {
                     if let tc = turn { restoreExamMicrophone(on: tc.sink) }
                 }
             }
-            guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled,
-                  model.selectedSessionID == selection else { return }
+            // Navigation during voice setup cancels this task (examSelectionChanged); journal auto-selection does not.
+            guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else { return }
             await attachExam(kind, to: tc)
         }
     }
@@ -73,9 +72,12 @@ extension AppServices {
         catch { controller.onFailure?(error) }
     }
 
-    func examSelectionChanged() {
+    /// Leaving a live exam stops it. While a start has no session yet, only the learner's navigation cancels it: the journal
+    /// observer may auto-select (often the new exam session itself) before `createSession` returns, and `onStarted` then
+    /// selects the exam's own session (F-1).
+    func examSelectionChanged(automatic: Bool = false) {
         if let sid = exam?.sessionID, model.selectedSessionID != sid { stopExam() }
-        else if model.startingExam && exam?.sessionID == nil { stopExam() }
+        else if model.startingExam && exam?.sessionID == nil && !automatic { stopExam() }
     }
 
     func stopExam() {

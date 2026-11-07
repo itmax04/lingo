@@ -10,8 +10,10 @@ final class AppModel {
     var sessionSearch = ""
     var sessions: [Session] = []
     var selectedSessionID: String? {
-        didSet { if selectedSessionID != oldValue { services?.examSelectionChanged() } }
+        didSet { if selectedSessionID != oldValue { services?.examSelectionChanged(automatic: selectingAutomatically) } }
     }
+    /// True only while `apply` picks a session because none (or a deleted one) was selected: not the learner's navigation.
+    @ObservationIgnored private var selectingAutomatically = false
     var startingExam = false
     var liveExamSessionID: String?
     var examRun: ExamRun?
@@ -89,7 +91,9 @@ final class AppModel {
         vocabulary = st.vocabulary()
         profile = st.profile
         if selectedSessionID == nil || st.sessions[selectedSessionID!]?.deleted == true {
+            selectingAutomatically = true
             selectedSessionID = visibleSessions.first?.id
+            selectingAutomatically = false
         }
         refreshSelection()
     }

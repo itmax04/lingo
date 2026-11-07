@@ -156,6 +156,77 @@ import Testing
         #expect(e.services.exam == nil && e.tc.exam == nil && e.sink.micMuted)
     }
 
+    func journal(_ e: Env, until condition: (HistoryState) -> Bool) async -> HistoryState {
+        for _ in 0..<400 {
+            let st = await e.services.store.state
+            if condition(st) { return st }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        let st = await e.services.store.state
+        #expect(condition(st))
+        return st
+    }
+
+    /// F-1: the app's journal observer (AppServices.start) auto-selects the created session before `createSession` returns.
+    @Test(arguments: ExamKind.allCases, [Lang.de, .en])
+    func journalAutoSelectionDuringStartKeepsTheFirstExamLive(kind: ExamKind, filter: Lang) async throws {
+        let e = try Env(); defer { e.clean() }
+        let m = e.model
+        let observer = await e.services.store.observe { st in Task { @MainActor in m.apply(st) } }
+        defer { Task { await e.services.store.removeObserver(observer) } }
+        e.model.langFilter = filter
+        #expect(e.model.selectedSessionID == nil)
+        e.services.startExam(kind)
+        await wait { !e.model.startingExam }
+        _ = await journal(e) { $0.sessions.count == 1 }
+        try await Task.sleep(for: .milliseconds(20)) // let every queued observer delivery run
+        let sid = try #require(e.services.exam?.sessionID)
+        #expect(e.model.selectedSessionID == sid && e.model.liveExamSessionID == sid && e.model.langFilter == kind.lang)
+        #expect(!e.model.examReadOnly && e.model.examRun != nil && e.tc.exam === e.services.exam)
+    }
+
+    /// F-2: typed "that's all" in a live part ends the session like the button (R-22); no further examiner reply.
+    @Test func typedFinishCommandEndsTheExamSession() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.startExam(.ielts)
+        await wait { !e.model.startingExam && e.sink.isSpeaking }
+        let c = try #require(e.services.exam), sid = try #require(c.sessionID)
+        e.sink.isSpeaking = false
+        await wait { c.canCapture }
+        #expect(c.run?.phase == .ielts1)
+        e.model.draft = "That's all."
+        e.services.sendText()
+        #expect(e.services.exam == nil && e.tc.exam == nil && e.model.draft.isEmpty)
+        let st = await journal(e) { $0.sessions[sid]?.state == .ended }
+        await wait { !e.services.ending }
+        let messages = st.messages[sid] ?? []
+        #expect(messages.filter { $0.role == .user }.map(\.text) == ["That's all."])
+        #expect(messages.filter { $0.text.contains("hometown") }.count == 1, "only the opening examiner turn")
+        #expect(c.run?.phase == .ielts1 && !c.canCapture && e.sink.micMuted)
+    }
+
+    /// The whole-utterance Done word stays part completion, not a session finish.
+    @Test func typedDoneWordReleasesTheMonologueWithoutFinishing() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.startExam(.goetheB1); await wait { !e.model.startingExam }
+        let c = try #require(e.services.exam), sid = try #require(c.sessionID)
+        c.advance(expected: .goethePrep)
+        await wait { e.sink.isSpeaking }; e.sink.isSpeaking = false
+        c.advance(expected: .goethe1)
+        await wait { c.run?.phase == .goethe2 && !c.busy }
+        e.sink.isSpeaking = false
+        await wait { c.canCapture }
+        e.model.draft = "Fertig."
+        e.services.sendText()
+        for _ in 0..<400 {
+            e.sink.isSpeaking = false
+            if c.run?.phase == .goethe3 && !c.busy { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(c.run?.phase == .goethe3 && e.services.exam === c)
+        #expect(await e.services.store.state.sessions[sid]?.state != .ended)
+    }
+
     @Test func selectionBeforeStartTaskRunsCreatesNoExam() async throws {
         let e = try Env(); defer { e.clean() }
         e.services.startExam(.goetheB1)

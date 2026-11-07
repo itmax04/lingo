@@ -79,4 +79,9 @@ public struct ExamRun: Sendable, Equatable {
         let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters)).lowercased()
         return ["fertig", "done", "finished"].contains(cleaned)
     }
+
+    /// "That's all" (R-22) ends the whole exam session, typed or spoken; a Done word only completes the part.
+    public static func isFinishCommand(_ text: String) -> Bool {
+        !isDoneUtterance(text) && CommandDetector.detect(text)?.kind == .finish
+    }
 }

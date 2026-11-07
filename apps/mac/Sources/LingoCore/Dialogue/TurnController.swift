@@ -318,6 +318,14 @@ public final class TurnController {
             self.metrics?.note(turnID, "chars", String(tr.text.count))
             let text = tr.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if let exam, let capture {
+                if ExamRun.isFinishCommand(text), let sid = exam.sessionID {
+                    // R-22: "that's all" ends the exam session; stopping first keeps the timer and replies out of the journal write.
+                    self.metrics?.note(turnID, "command", CommandKind.finish.rawValue)
+                    exam.stop()
+                    _ = try? await self.engine.recordUser(session: sid, text: text, lang: tr.lang)
+                    if !Task.isCancelled { self.onFinishCommand?(sid) }
+                    return
+                }
                 await exam.endCapture(capture, text: text, lang: tr.lang)
                 if !exam.busy { self.state = self.mode == .continuous ? .listening : .idle }
                 return

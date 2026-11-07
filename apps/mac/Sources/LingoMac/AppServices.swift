@@ -147,13 +147,23 @@ final class AppServices {
     func sendText() {
         let text = model.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let sid = model.selectedSessionID, let s = model.selectedSession else { return }
-        guard !ending, !model.examReadOnly, !model.isExam || exam?.canCapture == true else { return }
-        let capture = model.isExam ? exam?.beginCapture() : nil
+        let examFinish = model.isExam && exam?.sessionID == sid && ExamRun.isFinishCommand(text)
+        guard !ending, !model.examReadOnly, !model.isExam || examFinish || exam?.canCapture == true else { return }
+        let capture = model.isExam && !examFinish ? exam?.beginCapture() : nil
         model.draft = ""
         let lang = WhisperEngine.scriptLang(text, candidates: [s.settings.lang, .ru]) ?? s.settings.lang
         let cmd = CommandDetector.detect(text)?.kind
-        if model.isExam, let exam, let capture {
-            Task { await exam.endCapture(capture, text: text, lang: lang) }
+        if examFinish {
+            // R-22 in an exam (F-2): stop the runner first so no timer, transition or reply runs during the journal write.
+            stopExam()
+            Task {
+                _ = try? await engine.recordUser(session: sid, text: text, lang: lang)
+                finishSession(sid)
+            }
+            return
+        }
+        if model.isExam {
+            if let exam, let capture { Task { await exam.endCapture(capture, text: text, lang: lang) } }
             return
         }
         Task {

@@ -163,4 +163,35 @@ private actor ExamAudioRecognizer: SpeechRecognizer {
         #expect(e.log.all.count == 2)
         #expect(await e.store.state.messages[c.sessionID!]?.filter { $0.role == .user }.map(\.text) == ["Complete monologue."])
     }
+
+    /// F-2 voice path: "that's all" ends the session (R-22) in an ordinary part and in a held monologue; it is not an answer.
+    @Test(arguments: [false, true]) func spokenFinishCommandEndsTheExamInsteadOfAnswering(monologuePart: Bool) async throws {
+        let rec = ExamAudioRecognizer(["That's all."])
+        let e = try await TurnControllerTests().env(texts: [], recognizer: rec, requests: CallLog())
+        let clock = ExamControllerTests.Clock()
+        let c: ExamController
+        if monologuePart { c = try await monologue(e, clock) } else {
+            c = try await ExamVoiceTests().setup(e, clock: clock, kind: .ielts)
+            await ExamVoiceTests().drain(e, c)
+            e.tc.startContinuous()
+        }
+        defer { e.tc.stopVoice(cancelTurn: true) }
+        var finished: String?
+        e.tc.onFinishCommand = { finished = $0 }
+        let phase = c.run?.phase, calls = e.log.all.count
+        await e.feed(1200, speech: true); await e.feed(1600, speech: false)
+        await e.waitUntil { finished != nil }
+        #expect(finished == c.sessionID && finished != nil)
+        #expect(await e.store.state.messages[c.sessionID!]?.filter { $0.role == .user }.map(\.text) == ["That's all."])
+        #expect(!c.canCapture && !c.busy && e.sink.micMuted)
+        clock.date.addTimeInterval(400); c.tick(); c.tick()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(c.run?.phase == phase && e.log.all.count == calls, "no release, transition or examiner reply after Finish")
+    }
+
+    @Test func doneWordsAreNotFinishCommands() {
+        for done in ["Fertig!", "done", "Finished."] { #expect(ExamRun.isDoneUtterance(done) && !ExamRun.isFinishCommand(done)) }
+        for finish in ["That's all.", "das war's", "на этом всё"] { #expect(ExamRun.isFinishCommand(finish)) }
+        #expect(!ExamRun.isFinishCommand("I have finished my presentation."))
+    }
 }
