@@ -5,14 +5,14 @@ Update 2026-11-07 ([audit](../../audits/AUDIT-2026-11-07.md)): PR #83 is merged 
 
 ### Audit session 2026-11-07 (Claude Code, docs only)
 - Identity: worktree `.claude/worktrees/lingo-audit-plan-2b8b20`, branch `claude/lingo-audit-plan-2b8b20`, base `1a67e90`.
-  Uncommitted: `docs/audits/AUDIT-2026-11-07.md` (new), `docs/plans/COMPLETION-PLAN-2026-11.md` (v2), `docs/ROADMAP.md`,
-  `docs/README.md`, this file. No code changed; nothing pushed, merged or rebuilt.
+  Published as [PR #85](https://github.com/itmax04/lingo/pull/85) (audit, completion plan v2, ROADMAP, docs index, this file).
+  No code changed; not merged; no rebuild.
 - Verified on `1a67e90`: `swift build` PASS; `swift test` PASS (287 tests, 69 suites); `npm ci && npm test` PASS (302);
   check-english, secret-scan (0 findings), check-core-ios (63 objects), check-design (496 strings), `git diff --check` PASS.
   Live providers/audio/devices NOT RUN.
 - Open owner decisions (completion plan v2 §6): CP-01 live smoke test H-05a after A1; CP-02 acceptance debt in H-05; CP-03 R2/R3
   before LINGO-09; CP-04 web scope at resume. Recommended answers are the first options.
-- Next for this session's work: open a docs PR from this branch (owner asked to choose), independent review, merge under CX-02.
+- Next for this session's work: independent fresh-session review of PR #85, green CI, then merge under CX-02.
   Then the implementation next step below is unchanged: A1 = fix PR #84 F-1/F-2 (plus R1 privacy, audit A-03, in parallel).
 
 
