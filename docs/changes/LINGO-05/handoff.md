@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): review at `a8922d5` was changes-required (F-1 P1, F-2 P2); both fixed at `ea15ee0` with regressions, local checks PASS; fresh re-review pending. Updated 2026-11-07. Owner app remains build 203 (`1a67e90`). #74 is open; #75 waits for its completion.
+Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): independent re-review approve-with-notes at `d358a16` ([review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1, one P3 note answered in the PR); delivery (merge, owner build) recorded in the PR. Updated 2026-11-07. #74 closes on the merge; #75/T-6b is next.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -16,7 +16,7 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 | T-6a1 exam foundations (partial #74) | [#82](https://github.com/itmax04/lingo/pull/82), branch `feat/74-exam-runner`; merged as `fa6146c`; review APPROVE at `925764d` | `swift build` + `swift test` PASS (273); `npm ci && npm test` PASS (302); check-core-ios, check-design (496 strings), check-english, secret-scan (0 findings), diff check PASS | Original catalogue (6 tasks per Goethe part; 8 IELTS topics and linked cue cards/discussions), frozen settings, tolerant decoding, additive `exam.part` in Swift/TS, pure phase/timer state, examiner/max-block snapshots, skip/resume guards. Independent re-review at `925764d`: APPROVE, F-1/F-2 resolved, no new findings; [review](https://github.com/itmax04/lingo/pull/82#issuecomment-6625259451). Voice/UI integration NOT RUN and not implemented in this partial PR. [Evidence](evidence/t6a1-mac-checks.md) |
 
 | T-6a2a core coordination (partial #74) | [#83](https://github.com/itmax04/lingo/pull/83), merged `1a67e90`; independent APPROVE at `f6705f8` | Swift build + 287 tests, iOS core (63 objects), design (496 strings), English, diff, secret scan and CI PASS | `ExamController`, DialogEngine exam snapshots, TurnController capture/flush/speech integration. Owner build 203; [delivery](https://github.com/itmax04/lingo/pull/83#issuecomment-6632843656), [evidence](evidence/t6a2a-mac-checks.md) |
-| T-6a2b Mac wiring/UI (#74) | [#84](https://github.com/itmax04/lingo/pull/84), branch `feat/74-exam-ui`, implementation `3a2046c`, review fixes `ea15ee0`; review changes-required at `a8922d5`, re-review pending | Swift build + 298 tests, iOS core, design (506 strings), English/diff, secret scan (0 findings) PASS at `ea15ee0`; npm 302 and signed worktree bundle PASS at `3a2046c`; CI: see PR checks | Teacher start cards, task/cue panels, timers/Done, service attachment/input/speech lifecycle and transcript-only prior exams. Nine host tests; 24 RU/EN light/dark screenshots. [Evidence](evidence/t6a2b-mac-checks.md) |
+| T-6a2b Mac wiring/UI (#74) | [#84](https://github.com/itmax04/lingo/pull/84), branch `feat/74-exam-ui`, implementation `3a2046c`, review fixes `ea15ee0`; review changes-required at `a8922d5`; **approved** at `d358a16` ([re-review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1) | Swift build + 298 tests, iOS core, design (506 strings), English/diff, secret scan (0 findings) PASS at `ea15ee0`; npm 302 and signed worktree bundle PASS at `3a2046c`; CI: see PR checks | Teacher start cards, task/cue panels, timers/Done, service attachment/input/speech lifecycle and transcript-only prior exams. Nine host tests; 24 RU/EN light/dark screenshots. [Evidence](evidence/t6a2b-mac-checks.md) |
 
 ## Executor decisions
 - D-01 (intent): rule 9 applies when TypeScript implements cards, FSRS, statistics or memory; until then contracts and core-ts event/tag decoding land with each step.
@@ -76,13 +76,8 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 - Debrief remains #75/T-6b, blocked until #74's final runner PR merges. No owner blocker or spec conflict identified.
 
 ## Next step
-**Strong: independent re-review of PR #84 on `feat/74-exam-ui` in a fresh session; do not edit or merge in the review session.**
-1. Verify the PR head; commits after `ea15ee0` must change only this handoff. Check final-head CI (`swift-test`, `hygiene`).
-2. Read CODEX.md §5, the [changes-required review](https://github.com/itmax04/lingo/pull/84#issuecomment-6634057538), D-07/D-08 and
-   evidence/t6a2b-mac-checks.md. Confirm F-1 with the app's journal observer and F-2 typed and spoken; re-check the whole diff
-   against `1a67e90` for regressions in cancellation, duplicate Start/Done and transcript-only prior exams. No live calls.
-3. Run Swift build/tests, iOS core, design/English/diff/secret checks. Publish verdict, exact SHA and findings; no open P0/P1.
-4. After approval, a delivery session may update only this handoff, merge under CODEX.md §6 after green final-head CI,
-   fast-forward clean owner main and rebuild `~/Developer/lingo/dist/Lingo.app`; verify revision/build/codesign and record delivery.
-   #74 closes only on that merge; #75/T-6b starts afterward in its own implementation session.
-Next model: strong → Opus 5.5 high. Start: "Continue the independent T-6a2b re-review from this handoff."
+**Standard/strong: T-6b debrief ([#75](https://github.com/itmax04/lingo/issues/75)) in a new implementation session from `main`.**
+1. Start in a fresh worktree from `origin/main` after T-6a2b (PR #84, #74) is merged; read AGENTS.md, CODEX.md §§3, 5–6, this handoff and the #75 issue.
+2. Build the exam debrief on the T-6a2a/T-6a2b runner and journal; no live provider calls, no pronunciation assessment.
+3. PR #84 delivery (merge SHA, CI links, owner build number/revision, codesign result, NOT RUN items) is recorded in the PR #84 delivery comment.
+Next model: strong → Opus 5.5 high. Start: "Continue LINGO-05 with T-6b debrief (#75) from the handoff."
