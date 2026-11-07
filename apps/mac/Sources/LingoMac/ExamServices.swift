@@ -56,9 +56,11 @@ extension AppServices {
             self.model.examInputAllowed = controller.microphoneAllowed
             self.model.examFollowUp = controller.monologueReleased
         }
-        controller.onFinished = { [weak self, weak tc] in
+        controller.onFinished = { [weak self, weak tc, weak controller] in
             guard let self else { return }
+            let finished = controller?.sessionID
             self.stopExam()
+            if let finished { self.runDebrief(finished) }
             Task {
                 guard self.exam == nil, !self.model.startingExam, self.turn === tc else { return }
                 await self.shutDownVoice()
@@ -70,6 +72,18 @@ extension AppServices {
         }
         do { _ = try await controller.start(kind) }
         catch { controller.onFailure?(error) }
+    }
+
+    /// XR-03: one debrief request for a finished exam; the same call serves the end of the exam and the Retry button.
+    /// A second call while one runs, or for a session that already has a debrief, sends nothing. No automatic retry.
+    func runDebrief(_ sid: String) {
+        guard !model.debriefRunning.contains(sid) else { return }
+        model.debriefRunning.insert(sid)
+        Task {
+            _ = await engine.examDebrief(sid)
+            model.debriefRunning.remove(sid)
+            model.apply(await store.state)
+        }
     }
 
     /// Leaving a live exam stops it. While a start has no session yet, only the learner's navigation cancels it: the journal

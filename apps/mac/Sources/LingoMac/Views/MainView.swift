@@ -69,7 +69,7 @@ struct MainView: View {
                           onDone: { model.services?.exam?.advance(expected: $0) }, onFinish: { model.services?.endTapped() })
                     .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
             }
-            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
             VStack(spacing: Theme.S.s16) {
                 if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -86,6 +86,9 @@ struct MainView: View {
                 }
                 if let sid = model.selectedSessionID, model.selectedSession?.settings.warmupCards != nil {
                     WarmupEndHost(model: model, session: sid)
+                }
+                if let card = model.debriefCard, let sid = model.selectedSessionID {
+                    ExamDebriefCard(running: card == .running, onRetry: { model.services?.runDebrief(sid) })
                 }
                 if model.examReadOnly {
                     Text("Exam transcript — start a new exam from Teacher.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)

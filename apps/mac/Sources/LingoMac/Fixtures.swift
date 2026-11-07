@@ -76,6 +76,20 @@ enum Fixtures {
         model.phrases = []
     }
 
+    /// XR-03 screenshots: a finished IELTS exam with a stored debrief, or without one (the failure card).
+    static func examDebrief(_ model: AppModel, stored: Bool) {
+        exam(model, kind: .ielts, phase: .ielts3, transcript: true)
+        model.sessions[0].state = .ended
+        guard stored else { return }
+        model.messages.append(ChatMessage(id: "exam-debrief", session: "exam-fixture", role: .assistant, text: """
+            Fluency and coherence: ответы связные, паузы редкие. Ориентировочный диапазон: B1–B2
+            Лексика: хороший выбор слов о путешествиях. Ориентировочный диапазон: B1–B2
+            Сильные стороны: ясные примеры; уверенный рассказ
+            Что улучшить: I go to mountains → I went to the mountains — прошедшее время
+            Это оценка для практики, а не официальный балл.
+            """, lang: .ru, createdAt: Date(), kind: .summary))
+    }
+
     /// A synthetic teacher journal for the screenshots (T-4): words to review, 12 minutes of practice today, a goal, a finished
     /// warm-up with one skipped card and one suspended card. Written to the snapshot's temporary journal, never the learner's.
     static func teacherJournal(_ services: AppServices) async -> Bool {

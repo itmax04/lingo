@@ -1293,6 +1293,23 @@
       },
       "extractionState": "manual"
     },
+    "Debrief not available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debrief not available"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разбор недоступен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Delete": {
       "localizations": {
         "en": {
@@ -1662,6 +1679,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Экзамен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Exam debrief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exam debrief"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разбор экзамена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "exam debrief": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "exam debrief"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "разбор экзамена"
           }
         }
       },
@@ -4013,6 +4064,23 @@
       },
       "extractionState": "manual"
     },
+    "Retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Russian": {
       "localizations": {
         "en": {
@@ -5033,6 +5101,23 @@
       },
       "extractionState": "manual"
     },
+    "The models did not answer. Try again in a moment.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The models did not answer. Try again in a moment."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модели не ответили. Попробуйте ещё раз через минуту."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "The provider did not say when it will recover.": {
       "localizations": {
         "en": {
@@ -5657,6 +5742,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Напишите свой промпт"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Writing the debrief…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing the debrief…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готовим разбор…"
           }
         }
       },

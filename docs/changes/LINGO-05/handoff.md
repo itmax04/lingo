@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): independent re-review approve-with-notes at `d358a16` ([review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1, one P3 note answered in the PR); delivery (merge, owner build) recorded in the PR. Updated 2026-11-07. #74 closes on the merge; #75/T-6b is next.
+Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): independent re-review approve-with-notes at `d358a16` ([review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1, one P3 note answered in the PR); delivery (merge, owner build) recorded in the PR. Updated 2026-11-07. #74 closes on the merge; T-6b debrief (#75) implemented locally on `claude/t-6b-debrief-155925`, not yet reviewed or published.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -76,8 +76,9 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 - Debrief remains #75/T-6b, blocked until #74's final runner PR merges. No owner blocker or spec conflict identified.
 
 ## Next step
-**Standard/strong: T-6b debrief ([#75](https://github.com/itmax04/lingo/issues/75)) in a new implementation session from `main`.**
-1. Start in a fresh worktree from `origin/main` after T-6a2b (PR #84, #74) is merged; read AGENTS.md, CODEX.md §§3, 5–6, this handoff and the #75 issue.
-2. Build the exam debrief on the T-6a2a/T-6a2b runner and journal; no live provider calls, no pronunciation assessment.
-3. PR #84 delivery (merge SHA, CI links, owner build number/revision, codesign result, NOT RUN items) is recorded in the PR #84 delivery comment.
-Next model: strong → Opus 5.5 high. Start: "Continue LINGO-05 with T-6b debrief (#75) from the handoff."
+**T-6b debrief (#75): implementation done and verified locally; remaining: delivery.**
+1. Push the branch, open the PR (closes #75), bind it with ccd_pr.
+2. Independent fresh-context review (`sdlc:reviewer`) without open P0/P1; verdict and SHA in a PR comment; fix findings.
+3. Green CI, squash-merge under CODEX.md §6, rebuild the owner's app, record delivery in the PR and here; list live debrief quality and live `no_pronunciation` eval as NOT RUN for H-05.
+Implementation: `PronunciationFilter` (LingoCore, one marker list, used by `DialogRules`), `LLMPurpose.examFeedback`, `PromptBuilder.examFeedbackRequest` (`Teacher/ExamDebrief.swift`), `DialogEngine.examDebrief` (stored `summary` message, no auto retry, no concurrent request), `AppServices.runDebrief` (end of exam, Finish, Retry), `ExamDebriefCard`. [Evidence](evidence/t6b-mac-checks.md).
+Next model: standard → Sonnet 5.5 medium. Start: "Deliver T-6b debrief (#75) from the handoff."

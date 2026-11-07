@@ -26,6 +26,7 @@ public actor DialogEngine {
     private let makeChain: @Sendable () async -> ProviderChain
     public var policy: ContextPolicy
     private var summarizing: Set<String> = []
+    private var debriefing: Set<String> = []
     /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
@@ -604,6 +605,45 @@ public actor DialogEngine {
         guard !clean.isEmpty else { return }
         _ = try? await store.append(EventType.messageCreated, session: session,
                                     Payload.MessageCreated(role: .assistant, text: clean, lang: .ru, kind: .summary))
+    }
+
+    // MARK: Exam debrief (XR-03)
+
+    public enum DebriefResult: Sendable, Equatable {
+        /// One `summary` message was stored.
+        case stored
+        /// Nothing was requested: not an exam, no learner turns, already stored, or another request is running.
+        case skipped
+        /// The request ran and gave nothing usable (chain exhausted, empty reply, or only pronunciation lines).
+        case failed
+    }
+
+    /// The exam debrief: one request, stored as a `summary` message after the pronunciation filter. No automatic retry:
+    /// the caller decides (Retry button). At most one request per session at a time, and none once a debrief is stored.
+    public func examDebrief(_ session: String) async -> DebriefResult {
+        guard !debriefing.contains(session) else { return .skipped }
+        let st = await store.state
+        guard let s = st.sessions[session], s.settings.activity?.kind == .exam else { return .skipped }
+        let msgs = (st.messages[session] ?? [])
+        guard !msgs.contains(where: { $0.kind == .summary }) else { return .skipped }
+        let fixes = (st.fixes[session] ?? []).map(\.fix)
+        guard let req = PromptBuilder.examFeedbackRequest(settings: s.settings, fixes: fixes, messages: msgs) else { return .skipped }
+        debriefing.insert(session)
+        defer { debriefing.remove(session) }
+        var text = ""
+        for await e in await makeChain().run(req) {
+            if case .text(let t) = e { text += t }
+            if case .restart = e { text = "" }
+            if case .exhausted = e { return .failed }
+        }
+        // Pronunciation is never assessed: the prompt forbids it and every line that still mentions it is dropped.
+        let clean = PronunciationFilter.removingMarkedLines(from: ReplyProtocol.stripThinking(text))
+        guard !clean.isEmpty else { return .failed }
+        do {
+            _ = try await store.append(EventType.messageCreated, session: session,
+                                       Payload.MessageCreated(role: .assistant, text: clean, lang: .ru, kind: .summary))
+        } catch { return .failed }
+        return .stored
     }
 
     // MARK: Summary (R-04)

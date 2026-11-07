@@ -123,6 +123,8 @@ struct MessageBubble: View {
     var studyLanguage: Lang?
     var speaking = false
     var fallbackCorrections: [Fix] = []
+    /// The `summary` message of an exam is its debrief (XR-03), not a session recap.
+    var isExamDebrief = false
     var onTap: () -> Void = {}
     var onStar: (Phrase) -> Void = { _ in }
     /// State of "Translate to Russian" for this message and its actions.
@@ -141,7 +143,7 @@ struct MessageBubble: View {
             MaxWidthLayout(max: maxWidth) {
                 VStack(alignment: .leading, spacing: 12) {
                     if message.kind == .summary {
-                        Label("Session recap", systemImage: "checkmark.circle").font(Theme.F.panelTitle)
+                        Label(isExamDebrief ? "Exam debrief" : "Session recap", systemImage: "checkmark.circle").font(Theme.F.panelTitle)
                     } else if message.kind == .error {
                         Label("Models unavailable", systemImage: "exclamationmark.triangle").font(Theme.F.hintPhrase)
                             .foregroundStyle(Theme.C.statusDanger)
@@ -284,6 +286,7 @@ struct MessageList: View {
     var showInlineCorrections = true
     var isSpeaking = false
     var studyLanguage: Lang?
+    var isExam = false
     var onTap: (ChatMessage) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
     var translations: [String: MessageTranslation] = [:]
@@ -303,6 +306,7 @@ struct MessageList: View {
                                           studyLanguage: studyLanguage,
                                           speaking: isSpeaking && message.id == messages.last?.id,
                                           fallbackCorrections: corrections.fallback[message.id] ?? [],
+                                          isExamDebrief: isExam && message.kind == .summary,
                                           onTap: { onTap(message) }, onStar: onStar,
                                           translation: translations[message.id],
                                           onTranslate: { onTranslate(message) },
