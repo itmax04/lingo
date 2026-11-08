@@ -42,7 +42,7 @@ created exactly there (ADR-0004). Update this file in the same PR when a top-lev
 | `apps/mac/Sources/LingoCore/Teacher/ExamController.swift` | Live exam coordination, phase events, monologue release, recognition/speech deadline guards; host attachment before the first reply | Mac | T-6a2a |
 | `apps/mac/Sources/LingoMac/ExamServices.swift`, `Views/ExamPanel.swift` | Live exam attachment/lifecycle, Teacher start actions, task/cue-card panels, timers and Done | Mac | T-6a2b |
 | `apps/mac/Sources/LingoCore/Teacher/` | Teacher logic: cards and FSRS, warm-up, stats/goal/streak, Today plan, scenarios, Progress and weekly report, memory, exam debrief, reminder, exams | Mac | T-1…T-9 |
-| `apps/mac/Sources/LingoMac/Views/{TodayView,TeacherView,ScenarioViews,ProgressScreen,MemoryScreen,ExamDebriefCard}.swift`, `Settings/ReminderSettingsView.swift`, `ReminderServices.swift` | Teacher screens, Reminder setting and the notification adapter | Mac | T-4…T-9 |
+| `apps/mac/Sources/LingoMac/Views/{TodayView,TeacherView,ScenarioViews,ProgressScreen,MemoryScreen,ExamDebriefCard}.swift`, `apps/mac/Sources/LingoMac/Settings/ReminderSettingsView.swift`, `apps/mac/Sources/LingoMac/ReminderServices.swift` | Teacher screens, Reminder setting and the notification adapter | Mac | T-4…T-9 |
 | `docs/changes/LINGO-05/evidence/` | Check logs and RU/EN, light/dark screenshots of the teacher screens (`t6a2b`, `t6b`, `t7`, `t8`, `t9`) | docs | T-6…T-9 |
 | `design/redesign-2026/` | LINGO-07 reference images per platform: `01-directions`, `02-iphone`, `03-ipad`, `04-mac`, `05-web-desktop`, `06-android-windows`, `07-teacher`, `08-design-system`, `09-architecture`, `10-comparison` | both | in PR #33 |
 | `design/redesign/inputs/` | Owner inputs for the redesign | both | current |

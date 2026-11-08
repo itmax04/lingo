@@ -158,7 +158,7 @@ import Testing
         #expect(p.all.allSatisfy { !$0.messages[0].text.contains("Fußball") }, "no transcript in the request")
     }
 
-    @Test func doubleClickSendsOneRequest() async throws {
+    @Test(.timeLimit(.minutes(1))) func doubleClickSendsOneRequest() async throws {
         // Call A is held inside the provider; B and C arrive while it runs and must send nothing.
         let p = DebriefProvider(["Совет.", "Совет 2.", "Совет 3."], hold: true)
         let (engine, store, _) = try await setup("weekly-double", p)

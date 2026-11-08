@@ -106,7 +106,7 @@ and `Tests/LingoMacTests/`.
 - **The teacher is local.** It runs on the Mac's own journal and provider chain; it does not go through the engine (this replaces the earlier
   "teacher via the engine after LINGO-04" plan). The web and the engine reuse the shared contracts when LINGO-03 resumes (D-01).
 - **Reminder:** `AppSettings.reminderOn` / `reminderTime` are device-local. One non-repeating notification with a fixed identifier is replaced on every
-  sync (launch, switch, time change, goal reached, new day). The permission is asked only when the switch is turned on; a refusal is shown next to it.
+  sync (launch, switch, time change, goal reached; the day is part of the signature, checked on the next journal change). The permission is asked only when the switch is turned on; a refusal is shown next to it.
 - **No pronunciation assessment** anywhere in the teacher (rule 7): the exam debrief filters it out.
 
 ### 2.4 Evals
