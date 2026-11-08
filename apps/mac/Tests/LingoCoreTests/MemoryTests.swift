@@ -163,7 +163,8 @@ import Testing
         let p = DebriefProvider(replies)
         let store = try JournalStore(base: tempDir(name), deviceName: "Mac", deviceID: "mac-memory01")
         let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 2)
-        let engine = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: InMemorySecretStore(["k": "synthetic"]), providers: [.groq: p]) }
+        let health = ProviderHealth()  // not the shared one: other suites pause the same provider and model in parallel
+        let engine = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: InMemorySecretStore(["k": "synthetic"]), health: health, providers: [.groq: p]) }
         let id = try await engine.createSession(settings ?? SessionSettings(lang: .de, mode: .free, corrections: []))
         for i in 0..<lines { _ = try await engine.recordUser(session: id, text: "Ich arbeite in der IT \(i).", lang: .de) }
         return (engine, store, id, p)
