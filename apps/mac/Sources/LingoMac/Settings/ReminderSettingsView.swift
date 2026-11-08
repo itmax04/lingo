@@ -36,9 +36,12 @@ struct ReminderSettingsView: View {
 
     @ViewBuilder private var status: some View {
         switch model.reminderStatus {
-        case .blocked:
+        case .blocked(let auth):
             VStack(alignment: .leading, spacing: Theme.S.s8) {
-                Label("Notifications are not allowed for Lingo, so no reminder can be shown. Allow them in System Settings → Notifications.", systemImage: "exclamationmark.triangle")
+                Label(auth == .notDetermined
+                      ? "Lingo has not been allowed to show notifications yet. Turn the switch off and on again, or allow them in System Settings → Notifications."
+                      : "Notifications are not allowed for Lingo, so no reminder can be shown. Allow them in System Settings → Notifications.",
+                      systemImage: "exclamationmark.triangle")
                     .font(Theme.F.hintTranslation).foregroundStyle(Theme.C.statusDanger).fixedSize(horizontal: false, vertical: true)
                 Button("Open Notification Settings") { services.openNotificationSettings() }
             }

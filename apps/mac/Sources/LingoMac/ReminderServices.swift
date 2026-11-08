@@ -47,14 +47,36 @@ extension AppServices {
         return ("Lingo", body)
     }
 
-    /// Makes the pending notification match the journal and the settings (never asks for permission).
+    /// Makes the pending notification match the journal and the settings (never asks for permission). Calls are serialised.
     func syncReminder(state: HistoryState? = nil) async {
-        let st: HistoryState
-        if let state { st = state } else { st = await store.state }
-        let status = await Reminder.sync(state: st, settings: settings, now: Date(), center: SystemReminderCenter(),
-                                         text: { Self.reminderText(minutes: $0, lang: $1) })
-        model.reminderStatus = status
-        reminderSignature = signature(for: st)
+        let previous = reminderSyncTask
+        let task = Task { @MainActor in
+            await previous?.value
+            let st: HistoryState
+            if let state { st = state } else { st = await self.store.state }
+            let status = await Reminder.sync(state: st, settings: self.settings, now: Date(), center: SystemReminderCenter(),
+                                             text: { Self.reminderText(minutes: $0, lang: $1) })
+            self.model.reminderStatus = status
+            self.reminderSignature = self.signature(for: st)
+        }
+        reminderSyncTask = task
+        await task.value
+    }
+
+    /// The day changes, the Mac wakes, or the app comes to the front: the pending time may be stale, or the permission may have changed.
+    func startReminderObservers() {
+        guard reminderObservers.isEmpty else { return }
+        let resync: @Sendable (Notification) -> Void = { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.settings.reminderOn else { return }
+                await self.syncReminder()
+            }
+        }
+        reminderObservers = [
+            NotificationCenter.default.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main, using: resync),
+            NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main, using: resync),
+            NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main, using: resync),
+        ]
     }
 
     /// A journal change: re-sync only when something the reminder depends on changed (goal reached, goal, day).
@@ -63,7 +85,7 @@ extension AppServices {
         Task { await syncReminder(state: state) }
     }
 
-    private func signature(for state: HistoryState) -> String {
+    fileprivate func signature(for state: HistoryState) -> String {
         let t = state.todaySummary(now: Date())
         let day = Calendar.autoupdatingCurrent.startOfDay(for: Date()).timeIntervalSince1970
         return "\(settings.reminderOn)|\(settings.reminderTime)|\(settings.lastLang.rawValue)|\(t.goalReached)|\(t.goalMinutes)|\(day)"
