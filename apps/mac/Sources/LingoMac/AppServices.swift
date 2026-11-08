@@ -31,6 +31,8 @@ final class AppServices {
     var healthTimer: Task<Void, Never>?
     var scheduler: SyncScheduler?
     var backup: BackupScheduler?
+    /// What the last reminder sync depended on (goal reached, goal, day), so journal changes re-sync only when it changes.
+    var reminderSignature: String?
     let reachability = Reachability()
 
     init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil,
@@ -80,14 +82,15 @@ final class AppServices {
 
     func start() async {
         let m = model
-        observer = await store.observe { st in
-            Task { @MainActor in m.apply(st) }
+        observer = await store.observe { [weak self] st in
+            Task { @MainActor in m.apply(st); self?.reminderStateChanged(st) }
         }
         model.readOnly = await store.isReadOnly
         if Permissions.microphone == .granted { prepareVoice() }
         startSyncAndNetwork()
         if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }
         startDailyBackup()
+        await syncReminder()
     }
 
     // MARK: Sessions
