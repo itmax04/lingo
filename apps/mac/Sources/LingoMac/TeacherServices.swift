@@ -67,5 +67,10 @@ extension AppServices {
         }
     }
 
+    /// GR-06: the memory switch, a fact edit and a fact deletion; each one is a journal event.
+    func setMemory(on: Bool) { Task { await engine.setMemory(on: on); model.apply(await store.state) } }
+    func updateMemory(_ fact: String, _ text: String) { Task { await engine.updateMemory(fact, text: text); model.apply(await store.state) } }
+    func removeMemory(_ fact: String) { Task { await engine.removeMemory(fact); model.apply(await store.state) } }
+
     func setCardSuspended(_ card: String, _ suspended: Bool) { Task { await engine.setCardSuspended(card, suspended) } }
 }

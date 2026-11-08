@@ -28,6 +28,7 @@ public actor DialogEngine {
     private var summarizing: Set<String> = []
     private var debriefing: Set<String> = []
     private var reportingWeek = false
+    private var memoryAttempted: Set<String> = []
     /// Dispatcher (R-52): whether a user turn is in progress; background requests wait for it to finish.
     private var dialogInFlight = 0
     private var pendingTopicPhrases: Set<String> = []
@@ -146,8 +147,9 @@ public actor DialogEngine {
         // "Reply again": the context goes up to and including the user's utterance (the old reply is ignored).
         if let r = replyTo, let i = history.firstIndex(where: { $0.id == r }) { history = Array(history[...i]) }
         // The profile is frozen per session (PR-01); the targets use the statistics from before the session (VR-06).
-        let profile = frozenProfiles[session] ?? st.promptProfile(session: session)
-        frozenProfiles[session] = profile
+        let frozen = frozenProfiles[session] ?? st.promptProfile(session: session)
+        frozenProfiles[session] = frozen
+        let profile = frozen.keepingLiveFacts(of: st)  // a deleted fact or the switch applies at once; the rest stays frozen
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
                                               profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
                                               scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)
@@ -586,6 +588,7 @@ public actor DialogEngine {
         guard let s = st.sessions[session], !Self.skipsRecapAndSummary(s.settings) else { return }
         if s.settings.corrections.contains(.after) { await recap(session) }
         await maybeSummarize(session, force: true)
+        await extractMemory(session)
     }
 
     /// Session recap (R-23): 3–5 main mistakes "wrong → right → why", 3 phrases to review, a suggestion to continue at a harder level.
@@ -645,6 +648,55 @@ public actor DialogEngine {
                                        Payload.MessageCreated(role: .assistant, text: clean, lang: .ru, kind: .summary))
         } catch { return .failed }
         return .stored
+    }
+
+    // MARK: Memory (GR-06)
+
+    /// Memory extraction: at most once per session, at its first Finish, with memory on, for an ordinary session with at least four counted
+    /// learner messages and quota (PX-04). One request, no retry. Facts are stored as `memory.noted` after the pronunciation filter and
+    /// the local duplicate check against live and deleted facts. Neither the lines nor the facts are ever logged.
+    public func extractMemory(_ session: String) async {
+        let st = await store.state
+        guard st.memoryOn, let s = st.sessions[session], !Self.skipsRecapAndSummary(s.settings), s.resumedAt == nil,
+              !memoryAttempted.contains(session), !st.memoryFacts.contains(where: { $0.session == session }) else { return }
+        guard let req = PromptBuilder.memoryRequest(lines: st.learnerLines(session: session), known: st.memoryFacts.map(\.text),
+                                                    lang: s.settings.lang) else { return }
+        memoryAttempted.insert(session)
+        guard await quotaAllowsBackground() else { return }
+        var text = ""
+        for await e in await makeChain().run(req) {
+            if case .text(let t) = e { text += t }
+            if case .restart = e { text = "" }
+            if case .exhausted = e { return }
+        }
+        let latest = await store.state
+        guard latest.memoryOn else { return }
+        let blocked = Set(latest.memoryFacts.map(\.key)).union(latest.removedFactKeys)
+        for f in PromptBuilder.memoryProposals(from: text, lang: s.settings.lang, blocked: blocked) {
+            _ = try? await store.append(EventType.memoryNoted, session: session, Payload.MemoryNoted(text: f.text, lang: f.lang?.rawValue ?? ""))
+        }
+    }
+
+    /// Edits a fact's text. False when the fact is gone, the text is empty after cleaning, or another live fact already has it.
+    @discardableResult
+    public func updateMemory(_ fact: String, text: String) async -> Bool {
+        let st = await store.state
+        let clean = MemoryText.clean(text)
+        guard let f = st.memoryFacts.first(where: { $0.id == fact }), !clean.isEmpty, clean != f.text else { return false }
+        let key = MemoryText.key(lang: f.lang, text: clean)
+        guard !st.memoryFacts.contains(where: { $0.id != fact && $0.key == key }) else { return false }
+        return (try? await store.append(EventType.memoryUpdated, session: "", Payload.MemoryUpdated(fact: fact, text: clean))) != nil
+    }
+
+    /// Deletes a fact (final): hidden from Lingo and the screen; the journal keeps the history until data deletion (GR-06).
+    public func removeMemory(_ fact: String) async {
+        guard await store.state.memoryFacts.contains(where: { $0.id == fact }) else { return }
+        _ = try? await store.append(EventType.memoryRemoved, session: "", Payload.MemoryRemoved(fact: fact))
+    }
+
+    public func setMemory(on: Bool) async {
+        guard await store.state.memoryOn != on else { return }
+        _ = try? await store.append(EventType.memorySwitched, session: "", Payload.MemorySwitched(on: on))
     }
 
     // MARK: Weekly report (GR-05)

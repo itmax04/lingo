@@ -1,0 +1,9 @@
+{"device":"synthetic-memory","id":"mem-0","lamport":1,"payload":{"lang":"de","text":"Работает в IT"},"seq":1,"session":"s1","ts":"1970-01-01T00:00:00.001Z","type":"memory.noted","v":1}
+{"device":"synthetic-memory","id":"mem-1","lamport":2,"payload":{"lang":"","text":"Любит футбол"},"seq":2,"session":"s1","ts":"1970-01-01T00:00:00.002Z","type":"memory.noted","v":1}
+{"device":"synthetic-memory","id":"mem-2","lamport":3,"payload":{"fact":"mem-0","text":"Работает в банке"},"seq":3,"session":"","ts":"1970-01-01T00:00:00.003Z","type":"memory.updated","v":1}
+{"device":"synthetic-memory","id":"mem-3","lamport":4,"payload":{"fact":"mem-1"},"seq":4,"session":"","ts":"1970-01-01T00:00:00.004Z","type":"memory.removed","v":1}
+{"device":"synthetic-memory","id":"mem-4","lamport":5,"payload":{"on":false},"seq":5,"session":"","ts":"1970-01-01T00:00:00.005Z","type":"memory.switched","v":1}
+{"device":"synthetic-memory","id":"mem-bad-0","lamport":10,"payload":{"lang":"fr","text":"Любит чай"},"seq":10,"session":"","ts":"1970-01-01T00:00:00.010Z","type":"memory.noted","v":1}
+{"device":"synthetic-memory","id":"mem-bad-1","lamport":11,"payload":{"lang":"","text":"   "},"seq":11,"session":"","ts":"1970-01-01T00:00:00.011Z","type":"memory.noted","v":1}
+{"device":"synthetic-memory","id":"mem-bad-2","lamport":12,"payload":{"fact":"mem-0"},"seq":12,"session":"","ts":"1970-01-01T00:00:00.012Z","type":"memory.updated","v":1}
+{"device":"synthetic-memory","id":"mem-bad-3","lamport":13,"payload":{"on":"yes"},"seq":13,"session":"","ts":"1970-01-01T00:00:00.013Z","type":"memory.switched","v":1}

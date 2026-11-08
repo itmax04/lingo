@@ -70,6 +70,16 @@ const reportWeekly = shape((o, p) => {
   return { week, text: str(field(o, "text"), `${p}.text`) };
 });
 
+// Memory (LINGO-05 GR-06): lang is "de", "en" or ""; a blank text is unknown like in Swift.
+const memoryNoted = shape((o, p) => {
+  const text = str(field(o, "text"), `${p}.text`);
+  if (text.trim() === "") throw new DecodeError(`${p}.text`);
+  return { text, lang: oneOf(["de", "en", ""] as const)(field(o, "lang"), `${p}.lang`) };
+});
+const memoryUpdated = shape((o, p) => ({ fact: str(field(o, "fact"), `${p}.fact`), text: str(field(o, "text"), `${p}.text`) }));
+const memoryRemoved = shape((o, p) => ({ fact: str(field(o, "fact"), `${p}.fact`) }));
+const memorySwitched = shape((o, p) => ({ on: bool(field(o, "on"), `${p}.on`) }));
+
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
   sessionUpdated: (v: JSONValue) => attempt(sessionUpdated, v),
@@ -90,4 +100,8 @@ export const Payload = {
   scenarioTask: (v: JSONValue) => attempt(scenarioTask, v),
   examPart: (v: JSONValue) => attempt(examPart, v),
   reportWeekly: (v: JSONValue) => attempt(reportWeekly, v),
+  memoryNoted: (v: JSONValue) => attempt(memoryNoted, v),
+  memoryUpdated: (v: JSONValue) => attempt(memoryUpdated, v),
+  memoryRemoved: (v: JSONValue) => attempt(memoryRemoved, v),
+  memorySwitched: (v: JSONValue) => attempt(memorySwitched, v),
 };

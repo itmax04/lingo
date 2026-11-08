@@ -72,7 +72,11 @@
         "goal.set",
         "scenario.task",
         "exam.part",
-        "report.weekly"
+        "report.weekly",
+        "memory.noted",
+        "memory.updated",
+        "memory.removed",
+        "memory.switched"
       ]
     },
     "session": {
@@ -405,6 +409,70 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/ReportWeekly"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "memory.noted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MemoryNoted"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "memory.updated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MemoryUpdated"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "memory.removed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MemoryRemoved"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "memory.switched"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/MemorySwitched"
           }
         }
       }
@@ -1048,6 +1116,40 @@
         "text": {
           "type": "string"
         }
+      }
+    },
+    "MemoryNoted": {
+      "type": "object",
+      "description": "memory.noted (LINGO-05 GR-06): a fact the learner said about themselves; the event id is the fact id; session is the session whose Finish produced it. lang is the study language or empty for a general fact.",
+      "required": ["text", "lang"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "lang": { "enum": ["de", "en", ""] }
+      }
+    },
+    "MemoryUpdated": {
+      "type": "object",
+      "description": "memory.updated (LINGO-05 GR-06): the new text of a fact; last writer by (lamport, device). Session is the empty string.",
+      "required": ["fact", "text"],
+      "properties": {
+        "fact": { "type": "string" },
+        "text": { "type": "string" }
+      }
+    },
+    "MemoryRemoved": {
+      "type": "object",
+      "description": "memory.removed (LINGO-05 GR-06): the fact is deleted; final. Session is the empty string.",
+      "required": ["fact"],
+      "properties": {
+        "fact": { "type": "string" }
+      }
+    },
+    "MemorySwitched": {
+      "type": "object",
+      "description": "memory.switched (LINGO-05 GR-06): memory on or off; last writer wins; on by default. Session is the empty string.",
+      "required": ["on"],
+      "properties": {
+        "on": { "type": "boolean" }
       }
     },
     "ExamPart": {

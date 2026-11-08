@@ -63,11 +63,17 @@ public enum EventType {
     public static let examPart = "exam.part"
     /// The weekly advice of the progress screen (LINGO-05 GR-05).
     public static let reportWeekly = "report.weekly"
+    /// Memory facts about the learner (LINGO-05 GR-06).
+    public static let memoryNoted = "memory.noted"
+    public static let memoryUpdated = "memory.updated"
+    public static let memoryRemoved = "memory.removed"
+    public static let memorySwitched = "memory.switched"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
                                          hintAdded, phraseStarred, phraseUnstarred,
-                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask, examPart, reportWeekly]
+                                         vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask, examPart, reportWeekly,
+                                         memoryNoted, memoryUpdated, memoryRemoved, memorySwitched]
 }
 
 // MARK: - JSON Lines row

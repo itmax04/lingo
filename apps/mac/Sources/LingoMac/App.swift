@@ -255,7 +255,8 @@ enum UISnapshot {
         llm.knownModelsAt[.groq] = Date()
         let keys = KeysController(settings: llm, secrets: secrets) { _ in }
         let progressOnly = args.contains("--ui-progress")
-        let examOnly = args.contains("--ui-exams") || progressOnly
+        let memoryOnly = args.contains("--ui-memory")
+        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -263,6 +264,21 @@ enum UISnapshot {
             if option("--ui-all") == nil && !examOnly && name != "conversation-speaking" { return }
             ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
             print("ui-snapshot: " + target.path)
+        }
+        if memoryOnly {
+            // T-8: "What Lingo knows about me" on an empty journal, with synthetic facts, with memory off, an edit in progress, and the Teacher card.
+            model.online = true
+            model.section = .teacher
+            let size = NSSize(width: 720, height: 1500)
+            await capture("memory-empty", MemoryScreen(model: model), size)
+            guard await Fixtures.progressJournal(services), await Fixtures.memoryFacts(services) else { return 1 }
+            await capture("memory-facts", MemoryScreen(model: model), size)
+            await capture("teacher-memory", MainView(model: model))
+            await services.engine.setMemory(on: false)
+            model.apply(await services.store.state)
+            await capture("memory-off", MemoryScreen(model: model), size)
+            await capture("teacher-memory-off", MainView(model: model))
+            return ok ? 0 : 1
         }
         if progressOnly {
             // T-7: Progress on an empty journal, a busy journal without and with the weekly advice, running and failed states, and the Teacher card.

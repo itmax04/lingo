@@ -13,13 +13,25 @@ public struct PromptProfile: Sendable, Hashable {
     public var goals = ""
     public var interests = ""
     public var mistakes: [Mistake] = []
+    /// Memory facts (GR-06): up to `maxFacts`, oldest first, frozen with the profile.
+    public var facts: [String] = []
 
+    /// The frozen profile minus facts that are no longer live (deleted, edited or memory switched off) in `state` (GR-06: hidden from Lingo).
+    public func keepingLiveFacts(of state: HistoryState) -> PromptProfile {
+        var p = self
+        let live = Set(state.memoryFacts.map(\.text))
+        p.facts = state.memoryOn ? facts.filter { live.contains($0) } : []
+        return p
+    }
+
+    public static let maxFacts = 5
     public static let maxMistakes = 3
     public static let minOccurrences = 2
     public static let window: TimeInterval = 30 * 86_400
     public static let exampleLimit = 80
 
-    public init(goals: String = "", interests: String = "", mistakes: [Mistake] = []) {
+    public init(goals: String = "", interests: String = "", mistakes: [Mistake] = [], facts: [String] = []) {
+        self.facts = facts
         self.goals = goals
         self.interests = interests
         self.mistakes = mistakes
@@ -27,7 +39,7 @@ public struct PromptProfile: Sendable, Hashable {
 
     public var isEmpty: Bool {
         goals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && interests.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && mistakes.isEmpty
+            && mistakes.isEmpty && facts.isEmpty
     }
 }
 
@@ -58,12 +70,23 @@ public extension HistoryState {
         guard let s = sessions[session] else { return PromptProfile() }
         let start = s.createdAt
         let p = learnerProfile(before: start)
+        let mistakes = recurringMistakes(lang: s.settings.lang, before: start, excluding: session)
+        // Memory facts (GR-06): the 5 most recent live facts of the session language or general that existed before the session started
+        // (oldest of them first). With memory off, none.
+        let facts = memoryOn ? memoryFacts.filter { ($0.lang == nil || $0.lang == s.settings.lang) && $0.ts < start }.suffix(PromptProfile.maxFacts).map(\.text) : []
+        return PromptProfile(goals: p.goals, interests: p.interests, mistakes: Array(mistakes), facts: facts)
+    }
+
+    /// Up to 3 recurring mistakes of a language (PR-01): `fix.recorded` of non-deleted sessions in that language from the 30 days before
+    /// `date` (a session id in `excluding` is skipped), grouped by the normalised rule text, at least 2 occurrences, most frequent first
+    /// (then the most recent, then the key). Also shown on "What Lingo knows about me" (GR-06).
+    func recurringMistakes(lang: Lang, before date: Date, excluding: String? = nil) -> [PromptProfile.Mistake] {
         struct Group { var count = 0; var last = Date.distantPast; var rule = ""; var examples: [String] = [] }
         var groups: [String: Group] = [:]
         var picked: [(sid: String, f: FixEntry)] = []
-        for (sid, list) in fixes where sid != session {
-            guard let other = sessions[sid], !other.deleted, other.settings.lang == s.settings.lang else { continue }
-            for f in list where f.ts < start && f.ts >= start.addingTimeInterval(-PromptProfile.window) { picked.append((sid, f)) }
+        for (sid, list) in fixes where sid != excluding {
+            guard let other = sessions[sid], !other.deleted, other.settings.lang == lang else { continue }
+            for f in list where f.ts < date && f.ts >= date.addingTimeInterval(-PromptProfile.window) { picked.append((sid, f)) }
         }
         // A fixed order (time, session, message, rule, original), so the rule spelling shown for a group never depends on dictionary order.
         picked.sort { ($0.f.ts, $0.sid, $0.f.message, $0.f.fix.rule, $0.f.fix.original) < ($1.f.ts, $1.sid, $1.f.message, $1.f.fix.rule, $1.f.fix.original) }
@@ -82,7 +105,7 @@ public extension HistoryState {
             if a.value.last != b.value.last { return a.value.last > b.value.last }
             return Array(a.key.utf8).lexicographicallyPrecedes(Array(b.key.utf8))
         }
-        let mistakes = ranked.prefix(PromptProfile.maxMistakes).map { _, g in
+        return ranked.prefix(PromptProfile.maxMistakes).map { _, g in
             let example = g.examples.map(PromptBuilder.oneLine)
                 .filter { $0.unicodeScalars.count <= PromptProfile.exampleLimit }
                 .min { a, b in
@@ -91,6 +114,5 @@ public extension HistoryState {
                 } ?? ""
             return PromptProfile.Mistake(rule: PromptBuilder.cut(PromptBuilder.oneLine(g.rule), PromptProfile.exampleLimit), example: example)
         }
-        return PromptProfile(goals: p.goals, interests: p.interests, mistakes: Array(mistakes))
     }
 }

@@ -176,6 +176,19 @@ enum Fixtures {
         } catch { return false }
     }
 
+    /// Synthetic memory facts and a profile (T-8 screenshots): no personal data.
+    static func memoryFacts(_ services: AppServices) async -> Bool {
+        do {
+            try await services.engine.updateProfile(goals: "Sicher im Alltag und bei der Arbeit sprechen", interests: "Wandern, Kochen, Fotografie")
+            for (text, lang) in [("Работает в небольшой IT-компании", "de"), ("Любит ходить в горы по выходным", ""), ("Готовится к экзамену B1 весной", "de"),
+                                 ("Хочет свободно говорить на встречах по-английски", "en"), ("Учит язык по вечерам, около получаса", "")] {
+                try await services.store.append(EventType.memoryNoted, session: "", Payload.MemoryNoted(text: text, lang: lang))
+            }
+            services.model.apply(await services.store.state)
+            return true
+        } catch { return false }
+    }
+
     /// The stored weekly advice of the current ISO week (T-7 screenshots).
     static func weeklyAdvice(_ services: AppServices) async -> Bool {
         do {

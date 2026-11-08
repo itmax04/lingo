@@ -45,6 +45,10 @@ export const EventType = {
   scenarioTask: "scenario.task",
   examPart: "exam.part",
   reportWeekly: "report.weekly",
+  memoryNoted: "memory.noted",
+  memoryUpdated: "memory.updated",
+  memoryRemoved: "memory.removed",
+  memorySwitched: "memory.switched",
 } as const;
 export const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(EventType));
 

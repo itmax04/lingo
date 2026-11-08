@@ -25,6 +25,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `teacher/exams.json` | Original B1 and IELTS tasks, written by Swift `ExamTests` with `LINGO_RECORD_FIXTURES=1` | Swift catalogue validation; future TS teacher under D-01 |
 | `fixtures/teacher/exam-events.jsonl` | All eight exam phases and four malformed payloads, written by Swift `ExamTests` | Swift/TS round-trip and unknown-event count parity |
 | `fixtures/teacher/weekly-events.jsonl` | Two `report.weekly` events for one week and two malformed ones, written by Swift `WeeklyReportTests` | Swift/TS round-trip and unknown-event count parity |
+| `fixtures/teacher/memory-events.jsonl` | Five valid `memory.*` events (two facts, an update, a removal, a switch) and four malformed ones, written by Swift `MemoryTests` | Swift/TS round-trip and unknown-event count parity |
 | `prompts/prompt-exam-*.txt` | Examiner system rules and a maximal bounded `<exam>` block | Swift `ExamTests`; no live model calls (Q-03) |
 | `api/openapi.yaml` | Engine HTTP API (sign-in, sync, lease, transcribe, turn SSE, budget, export, delete) | engine implementation, web client, later the Mac adapter |
 | `prompts/` *(moved here in plan step P-01)* | System-prompt snapshots (today `Tests/LingoCoreTests/Snapshots/*.txt`) | Swift `PromptBuilderTests`, TS prompt builder tests — byte-identical |

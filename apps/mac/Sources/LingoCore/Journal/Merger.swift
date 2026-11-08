@@ -72,6 +72,10 @@ public struct HistoryState: Sendable {
     public var examParts: [String: [ExamPhase]] = [:]
     /// The stored weekly report per ISO week "YYYY-Www" (GR-05), last writer by (lamport, device).
     public var weeklyReports: [String: WeeklyReport] = [:]
+    /// Live memory facts in event order (GR-06), their duplicate keys, the keys of deleted facts and the switch (on by default).
+    public var memoryFacts: [MemoryFact] = []
+    public var removedFactKeys: Set<String> = []
+    public var memoryOn = true
     public var eventCount = 0
     public var maxLamport = 0
     /// The last `seq` of each device — for this device it is where numbering continues.
@@ -175,6 +179,10 @@ public enum Merger {
         var vocabUseEvents: [(Event, Payload.VocabUsed)] = []
         var starTime: [String: Date] = [:]
         var goals = LWW(""), interests = LWW("")
+        var memNoted: [String: (event: Event, lang: Lang?, text: String)] = [:]
+        var memUpdates: [(Version, Payload.MemoryUpdated)] = []
+        var memRemoved: Set<String> = []
+        var memSwitch = LWW(true)
         var reviewed: Set<String> = [], suspended: [String: LWW<Bool>] = [:]
 
         for e in events {
@@ -271,6 +279,19 @@ public enum Merger {
                 guard let p = try? e.payload.decode(Payload.ReportWeekly.self), HistoryState.isWeekID(p.week) else { st.unknownEvents += 1; continue }
                 if let old = st.weeklyReports[p.week], old.version > ver { continue }
                 st.weeklyReports[p.week] = WeeklyReport(week: p.week, text: p.text, ts: e.ts, version: ver)
+            case EventType.memoryNoted:
+                guard let p = try? e.payload.decode(Payload.MemoryNoted.self), let l = MemoryText.lang(wire: p.lang),
+                      !p.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { st.unknownEvents += 1; continue }
+                memNoted[e.id] = (e, l, MemoryText.clean(p.text))
+            case EventType.memoryUpdated:
+                guard let p = try? e.payload.decode(Payload.MemoryUpdated.self) else { st.unknownEvents += 1; continue }
+                memUpdates.append((ver, p))
+            case EventType.memoryRemoved:
+                guard let p = try? e.payload.decode(Payload.MemoryRemoved.self) else { st.unknownEvents += 1; continue }
+                memRemoved.insert(p.fact)
+            case EventType.memorySwitched:
+                guard let p = try? e.payload.decode(Payload.MemorySwitched.self) else { st.unknownEvents += 1; continue }
+                memSwitch.apply(p.on, ver)
             case EventType.goalSet:
                 guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }
                 st.goalSets.append(GoalSet(minutes: min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, p.minutes)), ts: e.ts, version: ver))
@@ -316,6 +337,23 @@ public enum Merger {
             st.messages[sid] = out
         }
         for (key, reg) in stars where reg.value { st.starred[key] = starPhrase[key] }
+
+        // Memory facts (GR-06): text by last writer, a removal is final, event order, the earliest of equal keys is kept.
+        var memText: [String: LWW<String>] = memNoted.mapValues { LWW($0.text) }
+        for (v, u) in memUpdates {
+            let t = MemoryText.clean(u.text)
+            if !t.isEmpty { memText[u.fact]?.apply(t, v) }
+        }
+        var liveKeys: Set<String> = []
+        for (id, n) in memNoted.sorted(by: { (a, b) in (a.value.event.tsMillis, a.value.event.device, a.value.event.seq, a.key) < (b.value.event.tsMillis, b.value.event.device, b.value.event.seq, b.key) }) {
+            let text = memText[id]?.value ?? ""
+            if text.isEmpty { continue }   // nothing left after cleaning (e.g. only data tags)
+            let key = MemoryText.key(lang: n.lang, text: text)
+            if memRemoved.contains(id) { st.removedFactKeys.insert(key); continue }
+            guard liveKeys.insert(key).inserted else { continue }
+            st.memoryFacts.append(MemoryFact(id: id, lang: n.lang, text: text, ts: n.event.ts, session: n.event.session, key: key))
+        }
+        st.memoryOn = memSwitch.value
 
         // My vocabulary (VR-02). A removal of any item with a given language and text removes every add of that text whose version is
         // below the removal's (removal is final for them); later adds start again. Of the live adds of one text (two devices), the

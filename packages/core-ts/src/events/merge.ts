@@ -206,6 +206,10 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
       case EventType.goalSet: if (!Payload.goalSet(e.payload)) st.unknownEvents++; break;
       case EventType.scenarioTask: if (!Payload.scenarioTask(e.payload)) st.unknownEvents++; break;
       case EventType.reportWeekly: if (!Payload.reportWeekly(e.payload)) st.unknownEvents++; break;
+      case EventType.memoryNoted: if (!Payload.memoryNoted(e.payload)) st.unknownEvents++; break;
+      case EventType.memoryUpdated: if (!Payload.memoryUpdated(e.payload)) st.unknownEvents++; break;
+      case EventType.memoryRemoved: if (!Payload.memoryRemoved(e.payload)) st.unknownEvents++; break;
+      case EventType.memorySwitched: if (!Payload.memorySwitched(e.payload)) st.unknownEvents++; break;
       case EventType.examPart: if (!Payload.examPart(e.payload)) st.unknownEvents++; break;
       default: st.unknownEvents++;
     }

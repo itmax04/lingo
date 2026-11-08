@@ -9329,6 +9329,416 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Memory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Память"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Once per conversation Lingo may note a few short facts you mention, and uses the latest five as background. Turn off to stop both.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once per conversation Lingo may note a few short facts you mention, and uses the latest five as background. Turn off to stop both."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После разговора Lingo может записать несколько коротких фактов, которые вы упомянули, и использует пять последних как фон. Выключите память, чтобы остановить и то и другое."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remember facts about me": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember facts about me"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запоминать факты обо мне"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Profile": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Профиль"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Change goals and interests in Settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change goals and interests in Settings."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цели и интересы меняются в настройках."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Not set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не задано"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Recurring mistakes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurring mistakes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторяющиеся ошибки"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Rules that came up at least twice in the last 30 days.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rules that came up at least twice in the last 30 days."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Правила, которые встретились не меньше двух раз за последние 30 дней."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No recurring mistakes yet.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recurring mistakes yet."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторяющихся ошибок пока нет."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Facts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facts"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Факты"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Short sentences from your own words. Edit or delete any of them.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Short sentences from your own words. Edit or delete any of them."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Короткие фразы с ваших слов. Любую можно изменить или удалить."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No facts yet. After a conversation with at least four of your messages Lingo may note a few here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No facts yet. After a conversation with at least four of your messages Lingo may note a few here."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фактов пока нет. После разговора, где было не меньше четырёх ваших реплик, Lingo может записать здесь несколько фактов."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Memory is off. No facts are noted or used.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory is off. No facts are noted or used."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Память выключена. Факты не записываются и не используются."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Memory is off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory is off"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Память выключена"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "General": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Общее"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Fact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fact"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Факт"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete this fact?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this fact?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить этот факт?"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo stops using it and it disappears from this screen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo stops using it and it disappears from this screen."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo перестанет его использовать, и он исчезнет с этого экрана."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "A deleted fact is hidden from Lingo and from this screen. Its text stays in the journal history, the sync folder and backups until data deletion arrives with the account.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deleted fact is hidden from Lingo and from this screen. Its text stays in the journal history, the sync folder and backups until data deletion arrives with the account."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалённый факт скрыт от Lingo и с этого экрана. Его текст остаётся в истории журнала, папке синхронизации и резервных копиях, пока удаление данных не появится вместе с аккаунтом."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Facts, goals and recurring mistakes that Lingo uses. Edit or delete them.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facts, goals and recurring mistakes that Lingo uses. Edit or delete them."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Факты, цели и повторяющиеся ошибки, которые использует Lingo. Их можно изменить или удалить."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "memory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "memory"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "память"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld facts": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld fact"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld facts"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld факт"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld факта"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld фактов"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld факта"
+                }
+              }
+            }
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

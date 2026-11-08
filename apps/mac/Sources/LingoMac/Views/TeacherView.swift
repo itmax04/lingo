@@ -4,9 +4,6 @@ import SwiftUI
 /// "Teacher" (LINGO-05 GR-07): the warm-up now; the other flows arrive in later steps and stay "Coming soon".
 struct TeacherView: View {
     @Bindable var model: AppModel
-    private let soon: [(title: LocalizedStringKey, symbol: String)] = [
-        ("What Lingo knows about me", "person.text.rectangle"),
-    ]
     var body: some View {
         TimelineView(.everyMinute) { context in content(model.history.todaySummary(now: context.date).plans) }
     }
@@ -22,17 +19,7 @@ struct TeacherView: View {
                     examCard(.goetheB1, title: "German B1 exam")
                     examCard(.ielts, title: "IELTS Speaking")
                     weeklyCard
-                    ForEach(Array(soon.enumerated()), id: \.offset) { index, item in
-                        VStack(alignment: .leading, spacing: 16) {
-                            Image(systemName: item.symbol).font(.system(size: 24))
-                                .foregroundStyle(index.isMultiple(of: 2) ? Theme.C.accentEnglish : Theme.C.accentGerman)
-                            Text(item.title).font(Theme.F.panelTitle)
-                            Label("Coming soon", systemImage: "clock").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
-                        }
-                        .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
-                        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
-                        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
-                    }
+                    memoryCard
                 }
                 suspended
             }.padding(32)
@@ -79,6 +66,25 @@ struct TeacherView: View {
             }
         }
         .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    /// GR-07: "What Lingo knows about me" opens as a sheet (GR-06).
+    private var memoryCard: some View {
+        let facts = model.history.memoryFacts.count
+        return VStack(alignment: .leading, spacing: Theme.S.s12) {
+            Image(systemName: "person.text.rectangle").font(.system(size: 24)).foregroundStyle(Theme.C.accentEnglish)
+            Text("What Lingo knows about me").font(Theme.F.panelTitle)
+            Text("Facts, goals and recurring mistakes that Lingo uses. Edit or delete them.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+            HStack {
+                Text(model.history.memoryOn ? "\(facts) facts" : "Memory is off").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                Spacer()
+                Button("Open") { model.showMemory = true }.buttonStyle(.borderedProminent)
+                    .accessibilityLabel(Text("Open") + Text(": ") + Text("What Lingo knows about me"))
+            }
+        }
+        .padding(Theme.S.s24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
         .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
         .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
     }
