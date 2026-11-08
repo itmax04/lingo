@@ -11,8 +11,8 @@ is always "documents", and nothing after it starts before the owner's H-0.
 
 - **Done and merged:** LINGO-01 (frozen), LINGO-07 redesign (#33), LINGO-03 Stage 0 (P-01…P-06, H-1 accepted 2026-10-31),
   LINGO-03 P-07a…P-07f (`packages/core-ts`, #56–#61), LINGO-08 vocabulary and prompting v2 (#50–#55),
-  LINGO-05 documents (#67) and T-1…T-8 (#68, #70–#73, #82–#84, #86, #88, #89).
-- **In review:** T-9a reminder ([PR #90](https://github.com/itmax04/lingo/pull/90)) and T-9b documentation and screenshots (#78, this stack). Next: the report (#79), then H-05 (#80).
+  LINGO-05 documents (#67) and T-1…T-9 (#68, #70–#73, #82–#84, #86, #88–#91).
+- **In review:** the LINGO-05 report (#79, `docs/changes/LINGO-05/report.md`). Next: H-05 (#80).
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
 - **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with `gh` with links to their PRs (CX-03; #8 was already closed); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),
@@ -31,7 +31,7 @@ Requirements and TACs: [LINGO-05 spec](../changes/LINGO-05/spec.md). Step conten
 | A3 | T-7 Progress screen and weekly report (#76) | GR-04, GR-05, PX-04 (weeklyReport) | T-2 | Swift Charts only |
 | A4 | T-8 memory (#77) | GR-06, PX-04 (memory), GR-07 card | T-4 | privacy-critical; review with extra care |
 | A5 | T-9 reminder, docs, screenshots (#78) | GR-08, TAC-09, TAC-15 | A1…A4 | updates ARCHITECTURE, MAC.md, ROADMAP, AGENTS, contracts README |
-| A6 | LINGO-05 report (#79) | all TAC-01…TAC-16 | A5 | `report.md` with evidence per TAC (CODEX.md §8.3) |
+| A6 (done, in review) | LINGO-05 report (#79) | all TAC-01…TAC-16 | A5 | `report.md` with evidence per TAC (CODEX.md §8.3) |
 | **H-05** | **Owner: try the teacher and accept LINGO-05 (#80)** | — | A6 | live model behaviour of `@grade`, `@task`, exams, debrief, memory, report, the reminder |
 
 ### B. LINGO-09 — new conversation modes (after H-05; owner decision Q-04 "teacher, then the modes")
