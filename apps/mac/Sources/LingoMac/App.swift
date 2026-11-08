@@ -254,7 +254,8 @@ enum UISnapshot {
         llm.knownModels[.groq] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
         llm.knownModelsAt[.groq] = Date()
         let keys = KeysController(settings: llm, secrets: secrets) { _ in }
-        let examOnly = args.contains("--ui-exams")
+        let progressOnly = args.contains("--ui-progress")
+        let examOnly = args.contains("--ui-exams") || progressOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -262,6 +263,25 @@ enum UISnapshot {
             if option("--ui-all") == nil && !examOnly && name != "conversation-speaking" { return }
             ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
             print("ui-snapshot: " + target.path)
+        }
+        if progressOnly {
+            // T-7: Progress on an empty journal, a busy journal without and with the weekly advice, running and failed states, and the Teacher card.
+            model.online = true
+            model.section = .progress
+            await capture("progress-empty", MainView(model: model), NSSize(width: 1280, height: 1500))
+            guard await Fixtures.progressJournal(services) else { return 1 }
+            await capture("progress-busy", MainView(model: model), NSSize(width: 1280, height: 1500))
+            model.weeklyRunning = true
+            await capture("progress-running", MainView(model: model), NSSize(width: 1280, height: 1500))
+            model.weeklyRunning = false
+            model.weeklyFailed = true
+            await capture("progress-failed", MainView(model: model), NSSize(width: 1280, height: 1500))
+            model.weeklyFailed = false
+            guard await Fixtures.weeklyAdvice(services) else { return 1 }
+            await capture("progress-report", MainView(model: model), NSSize(width: 1280, height: 1500))
+            model.section = .teacher
+            await capture("teacher-weekly", MainView(model: model))
+            return ok ? 0 : 1
         }
         if examOnly {
             model.section = .teacher

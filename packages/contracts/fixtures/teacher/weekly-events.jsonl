@@ -1,0 +1,4 @@
+{"device":"synthetic-week","id":"rep-0","lamport":1,"payload":{"text":"Совет недели.","week":"2026-W45"},"seq":1,"session":"","ts":"1970-01-01T00:00:00.001Z","type":"report.weekly","v":1}
+{"device":"synthetic-week","id":"rep-1","lamport":2,"payload":{"text":"Новый совет.","week":"2026-W45"},"seq":2,"session":"","ts":"1970-01-01T00:00:00.002Z","type":"report.weekly","v":1}
+{"device":"synthetic-week","id":"rep-bad-0","lamport":10,"payload":{"text":"bad week","week":"2026-W99"},"seq":10,"session":"","ts":"1970-01-01T00:00:00.010Z","type":"report.weekly","v":1}
+{"device":"synthetic-week","id":"rep-bad-1","lamport":11,"payload":{"week":"2026-W46"},"seq":11,"session":"","ts":"1970-01-01T00:00:00.011Z","type":"report.weekly","v":1}

@@ -76,5 +76,6 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 - Debrief remains #75/T-6b, blocked until #74's final runner PR merges. No owner blocker or spec conflict identified.
 
 ## Next step
-**T-7 Progress screen and weekly report ([#76](https://github.com/itmax04/lingo/issues/76)) in a new implementation session from `main`.** Then T-8 (#77), T-9 (#78), report (#79), owner checkpoint H-05 (#80). Live debrief quality and the live `no_pronunciation` eval are NOT RUN and belong to H-05.
-Next model: standard → Sonnet 5.5 medium. Start: "Continue LINGO-05 with T-7 (#76) from the handoff."
+**T-7 Progress and weekly report (#76, [PR #88](https://github.com/itmax04/lingo/pull/88)): independent review approve-with-notes at `5fd2413` ([review](https://github.com/itmax04/lingo/pull/88#issuecomment-6718747146), no open P0/P1), CI green; merge and delivery are recorded in the PR.** Carry into T-8: tighten `doubleClickSendsOneRequest` with a blocking provider (review F1); fixture advice vs chart trend (F2) and neutral chart colours (F3). [Evidence](evidence/t7-mac-checks.md).
+Implementation: `report.weekly` event (Swift, TS, schema, fixture), `HistoryState.weekSummary`/`progress`/`weeklyReport` (`Teacher/Weekly.swift`, `Progress.swift`), `LLMPurpose.weeklyReport`, `PromptBuilder.weeklyReportRequest`, `DialogEngine.weeklyReport`, `ProgressScreen` (Swift Charts), Teacher "Weekly report" card opens it.
+Next: T-8 memory (#77). Next model: standard → Sonnet 5.5 medium. Start: "Continue LINGO-05 with T-8 (#77) from the handoff."

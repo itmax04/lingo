@@ -58,6 +58,9 @@ final class AppModel {
     /// Languages whose warm-up is being started (a repeated click is ignored).
     var startingWarmup: Set<Lang> = []
     var startingScenario = false
+    /// The weekly advice request is running / the last one gave nothing (memory only; the advice itself is a `report.weekly` event).
+    var weeklyRunning = false
+    var weeklyFailed = false
     var readOnly = false
     var memoryNote: String?
     var showNewSession = false

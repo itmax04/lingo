@@ -16,6 +16,7 @@ struct MainView: View {
                 else if model.section == .dictionary { VocabularyView(model: model) }
                 else if model.section == .today { TodayView(model: model) }
                 else if model.section == .teacher { TeacherView(model: model) }
+                else if model.section == .progress { ProgressScreen(model: model) }
                 else { PlannedSectionView(section: model.section) { model.section = .conversations } }
                 if model.section == .conversations && wide && model.hintsVisible {
                     ColumnDivider()

@@ -143,6 +143,13 @@ public enum Payload {
         public init(part: ExamPhase) { self.part = part }
     }
 
+    /// LINGO-05 GR-05: the advice for one ISO week ("YYYY-Www"); the last writer per week wins.
+    public struct ReportWeekly: Codable, Sendable, Hashable {
+        public var week: String
+        public var text: String
+        public init(week: String, text: String) { self.week = week; self.text = text }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

@@ -63,6 +63,13 @@ const scenarioTask = shape((o, p) => {
 
 const examPart = shape((o, p) => ({ part: oneOf(["goethe_b1.1.prep", "goethe_b1.1", "goethe_b1.2", "goethe_b1.3", "ielts.1", "ielts.2.prep", "ielts.2", "ielts.3"] as const)(field(o, "part"), `${p}.part`) }));
 
+// The weekly advice (LINGO-05 GR-05); the week is an ISO week id, anything else is unknown like in Swift.
+const reportWeekly = shape((o, p) => {
+  const week = str(field(o, "week"), `${p}.week`);
+  if (!/^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(week)) throw new DecodeError(`${p}.week`);
+  return { week, text: str(field(o, "text"), `${p}.text`) };
+});
+
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
   sessionUpdated: (v: JSONValue) => attempt(sessionUpdated, v),
@@ -82,4 +89,5 @@ export const Payload = {
   goalSet: (v: JSONValue) => attempt(goalSet, v),
   scenarioTask: (v: JSONValue) => attempt(scenarioTask, v),
   examPart: (v: JSONValue) => attempt(examPart, v),
+  reportWeekly: (v: JSONValue) => attempt(reportWeekly, v),
 };

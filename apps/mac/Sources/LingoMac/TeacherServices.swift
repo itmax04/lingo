@@ -54,5 +54,18 @@ extension AppServices {
     func setDailyGoal(_ minutes: Int) { Task { try? await engine.setDailyGoal(minutes: minutes) } }
 
     /// "Don't practise this card" and its undo (WR-05).
+    /// GR-05: one weekly-advice request per click ("Advice from Lingo", "Update", "Retry"); a click while one runs sends nothing.
+    func runWeeklyReport() {
+        guard !model.weeklyRunning else { return }
+        model.weeklyRunning = true
+        model.weeklyFailed = false
+        Task {
+            let result = await engine.weeklyReport()
+            model.weeklyRunning = false
+            model.weeklyFailed = result == .failed
+            model.apply(await store.state)
+        }
+    }
+
     func setCardSuspended(_ card: String, _ suspended: Bool) { Task { await engine.setCardSuspended(card, suspended) } }
 }
