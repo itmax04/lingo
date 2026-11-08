@@ -14,10 +14,13 @@ public struct AppSettings: Codable, Sendable, Hashable {
     public var backupBookmark: Data?
     public var onboardingDone = false
     public var voice = VoiceSettings()
+    /// Daily reminder (GR-08): device-local by design, off by default. `reminderTime` is minutes after local midnight.
+    public var reminderOn = false
+    public var reminderTime = Reminder.defaultTime
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice }
+    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -29,6 +32,8 @@ public struct AppSettings: Codable, Sendable, Hashable {
         backupBookmark = try? c.decodeIfPresent(Data.self, forKey: .backupBookmark)
         onboardingDone = (try? c.decodeIfPresent(Bool.self, forKey: .onboardingDone)) ?? false
         voice = (try? c.decodeIfPresent(VoiceSettings.self, forKey: .voice)) ?? VoiceSettings()
+        reminderOn = (try? c.decodeIfPresent(Bool.self, forKey: .reminderOn)) ?? false
+        reminderTime = Reminder.clamp((try? c.decodeIfPresent(Int.self, forKey: .reminderTime)) ?? Reminder.defaultTime)
     }
 }
 

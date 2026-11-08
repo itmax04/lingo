@@ -15,6 +15,8 @@ final class AppModel {
     /// True only while `apply` picks a session because none (or a deleted one) was selected: not the learner's navigation.
     @ObservationIgnored private var selectingAutomatically = false
     var startingExam = false
+    /// The daily reminder's state for Settings (GR-08).
+    var reminderStatus: ReminderStatus = .off
     var liveExamSessionID: String?
     var examRun: ExamRun?
     var examBusy = false

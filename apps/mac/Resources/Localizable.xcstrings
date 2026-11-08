@@ -307,6 +307,23 @@
       },
       "extractionState": "manual"
     },
+    "A notification on this Mac at the chosen time while today's goal is not reached. It is local to this Mac; nothing is sent anywhere.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A notification on this Mac at the chosen time while today's goal is not reached. It is local to this Mac; nothing is sent anywhere."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Уведомление на этом Mac в выбранное время, пока цель дня не достигнута. Оно работает только на этом Mac, ничего никуда не отправляется."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "A review of your last utterances when you ask “were there mistakes?”": {
       "localizations": {
         "en": {
@@ -1254,6 +1271,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "План на день · 4 × 30 мин"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Daily reminder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily reminder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ежедневное напоминание"
           }
         }
       },
@@ -3010,6 +3044,23 @@
       },
       "extractionState": "manual"
     },
+    "Next reminder: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next reminder: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Следующее напоминание: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Next review: %@": {
       "localizations": {
         "en": {
@@ -3248,6 +3299,40 @@
       },
       "extractionState": "manual"
     },
+    "Notifications are not allowed for Lingo, so no reminder can be shown. Allow them in System Settings → Notifications.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications are not allowed for Lingo, so no reminder can be shown. Allow them in System Settings → Notifications."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для Lingo отключены уведомления, поэтому напоминание показать нельзя. Включите их в Системных настройках → Уведомления."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Lingo has not been allowed to show notifications yet. Turn the switch off and on again, or allow them in System Settings → Notifications.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo has not been allowed to show notifications yet. Turn the switch off and on again, or allow them in System Settings → Notifications."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo ещё не получил разрешение на уведомления. Выключите и снова включите переключатель или разрешите их в Системных настройках → Уведомления."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Offline": {
       "localizations": {
         "en": {
@@ -3379,6 +3464,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Открыть разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Open Notification Settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Notification Settings"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки уведомлений"
           }
         }
       },
@@ -3940,6 +4042,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Обновить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remind me to practise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remind me to practise"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напоминать о занятии"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Reminder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Напоминание"
           }
         }
       },
@@ -5215,6 +5351,129 @@
           "stringUnit": {
             "state": "translated",
             "value": "Этой модели нет в списке GET /models"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Время"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Time for %lld minutes of English?": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Time for %lld minute of English?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Time for %lld minutes of English?"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минута английского?"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минуты английского?"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минут английского?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минуты английского?"
+                }
+              }
+            }
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Time for %lld minutes of German?": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Time for %lld minute of German?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Time for %lld minutes of German?"
+                }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минута немецкого?"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минуты немецкого?"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минут немецкого?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пора позаниматься: %lld минуты немецкого?"
+                }
+              }
+            }
           }
         }
       },
