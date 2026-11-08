@@ -150,6 +150,32 @@ public enum Payload {
         public init(week: String, text: String) { self.week = week; self.text = text }
     }
 
+    /// LINGO-05 GR-06: a memory fact the learner said about themselves; `lang` is "de", "en" or "" (general). The event id is the fact id.
+    public struct MemoryNoted: Codable, Sendable, Hashable {
+        public var text: String
+        public var lang: String
+        public init(text: String, lang: String) { self.text = text; self.lang = lang }
+    }
+
+    /// LINGO-05 GR-06: the new text of a fact (last writer by lamport, device).
+    public struct MemoryUpdated: Codable, Sendable, Hashable {
+        public var fact: String
+        public var text: String
+        public init(fact: String, text: String) { self.fact = fact; self.text = text }
+    }
+
+    /// LINGO-05 GR-06: the fact is deleted (final).
+    public struct MemoryRemoved: Codable, Sendable, Hashable {
+        public var fact: String
+        public init(fact: String) { self.fact = fact }
+    }
+
+    /// LINGO-05 GR-06: memory on or off (last writer wins; on by default).
+    public struct MemorySwitched: Codable, Sendable, Hashable {
+        public var on: Bool
+        public init(on: Bool) { self.on = on }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

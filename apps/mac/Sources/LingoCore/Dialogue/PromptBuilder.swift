@@ -117,12 +117,17 @@ public enum PromptBuilder {
         var lines: [String] = []
         let goals = cut(oneLine(profile.goals).trimmingCharacters(in: .whitespaces), 300)
         let interests = cut(oneLine(profile.interests).trimmingCharacters(in: .whitespaces), 300)
-        guard !goals.isEmpty || !interests.isEmpty || !profile.mistakes.isEmpty else { return nil }  // emptiness after cleaning
+        let facts = profile.facts.prefix(PromptProfile.maxFacts).map(MemoryText.clean).filter { !$0.isEmpty }
+        guard !goals.isEmpty || !interests.isEmpty || !profile.mistakes.isEmpty || !facts.isEmpty else { return nil }  // emptiness after cleaning
         if !goals.isEmpty { lines.append("Goals: \(goals)") }
         if !interests.isEmpty { lines.append("Interests: \(interests)") }
         if !profile.mistakes.isEmpty {
             lines.append("Recurring mistakes:")
             for m in profile.mistakes { lines.append("- \(oneLine(m.rule))" + (m.example.isEmpty ? "" : " (\(oneLine(m.example)))")) }
+        }
+        if !facts.isEmpty {
+            lines.append("Facts about the learner:")
+            for f in facts { lines.append("- \(f)") }
         }
         return "<profile>\n" + lines.joined(separator: "\n") + "\n</profile>"
     }

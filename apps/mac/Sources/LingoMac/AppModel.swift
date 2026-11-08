@@ -66,6 +66,8 @@ final class AppModel {
     var showNewSession = false
     /// The scenario picker (LINGO-05 SR-01).
     var showScenarios = false
+    /// "What Lingo knows about me" (GR-06) is open.
+    var showMemory = false
     var continuous = false
     var networkUp = true
     var hasKey = false

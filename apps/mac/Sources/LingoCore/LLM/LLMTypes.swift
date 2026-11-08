@@ -32,6 +32,8 @@ public enum LLMPurpose: String, Sendable {
     case examFeedback
     /// The weekly advice of the Progress screen (GR-05): one request on the learner's click.
     case weeklyReport
+    /// Memory extraction (GR-06): once per session, at its first Finish.
+    case memory
 }
 
 public struct LLMRequest: Sendable, Equatable {

@@ -43,6 +43,7 @@ struct MainView: View {
                             onCancel: { model.editing = nil })
         }
         .sheet(isPresented: $model.showScenarios) { ScenarioPicker(model: model) }
+        .sheet(isPresented: $model.showMemory) { MemoryScreen(model: model) }
         .sheet(isPresented: $model.showNewSession) {
             NewSessionView(lang: model.langFilter, lastCorrections: model.services?.settings.lastCorrections ?? [],
                            vocabularyCount: { l in model.vocabulary.filter { $0.lang == l }.count },
