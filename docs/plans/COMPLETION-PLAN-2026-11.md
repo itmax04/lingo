@@ -7,11 +7,12 @@ This is the single ordered queue of the remaining work. Each row is one GitHub i
 top to bottom and stops at every **H-x** (owner checkpoint). Changes after LINGO-05 have no accepted documents yet: their first row
 is always "documents", and nothing after it starts before the owner's H-0.
 
-## 1. Where things stand (2026-11-03)
+## 1. Where things stand (2026-11-08)
 
 - **Done and merged:** LINGO-01 (frozen), LINGO-07 redesign (#33), LINGO-03 Stage 0 (P-01…P-06, H-1 accepted 2026-10-31),
   LINGO-03 P-07a…P-07f (`packages/core-ts`, #56–#61), LINGO-08 vocabulary and prompting v2 (#50–#55),
-  LINGO-05 documents (#67) and T-1…T-5 (#68, #70–#73).
+  LINGO-05 documents (#67) and T-1…T-8 (#68, #70–#73, #82–#84, #86, #88, #89).
+- **In review:** T-9a reminder ([PR #90](https://github.com/itmax04/lingo/pull/90)) and T-9b documentation and screenshots (#78, this stack). Next: the report (#79), then H-05 (#80).
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
 - **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with `gh` with links to their PRs (CX-03; #8 was already closed); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),

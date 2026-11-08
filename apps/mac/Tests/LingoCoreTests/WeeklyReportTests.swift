@@ -159,12 +159,18 @@ import Testing
     }
 
     @Test func doubleClickSendsOneRequest() async throws {
-        let p = DebriefProvider(["Совет.", "Совет 2.", "Совет 3."])
-        let (engine, _, _) = try await setup("weekly-double", p)
-        async let a = engine.weeklyReport(), b = engine.weeklyReport(), c = engine.weeklyReport()
-        let results = await [a, b, c]
-        #expect(results.filter { $0 == .stored }.count >= 1 && p.all.count == results.filter { $0 == .stored }.count)
-        #expect(results.filter { $0 == .skipped }.count >= 1, "a call while one runs sends nothing")
+        // Call A is held inside the provider; B and C arrive while it runs and must send nothing.
+        let p = DebriefProvider(["Совет.", "Совет 2.", "Совет 3."], hold: true)
+        let (engine, store, _) = try await setup("weekly-double", p)
+        async let a = engine.weeklyReport()
+        for _ in 0..<400 where p.all.isEmpty { try await Task.sleep(nanoseconds: 5_000_000) }
+        #expect(p.all.count == 1, "A reached the provider")
+        let b = await engine.weeklyReport(), c = await engine.weeklyReport()
+        #expect(b == .skipped && c == .skipped)
+        #expect(p.all.count == 1, "B and C sent nothing")
+        p.release()
+        let first = await a, stored = await store.state.weeklyReports.count
+        #expect(first == .stored && p.all.count == 1 && stored == 1)
     }
 
     @Test func failureStoresNothingAndRetryWorks() async throws {

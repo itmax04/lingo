@@ -64,7 +64,8 @@ flowchart LR
 | `Audio/` | `VoiceIO` · `EnergyVAD` · `PCMConverter`, `AudioFileReader` · `VoiceDefaults` · `Permissions` · `AudioRestartLimiter` | One `AVAudioEngine` for mic + speech output (voice processing, channel 0 of 5), adaptive energy VAD, conversion to 16 kHz mono Float32, TCC permission checks, bounded engine restarts |
 | `Speech/` | `WhisperEngine` · `SpeechRecognizer`, `UtteranceBuffer`, `RecognitionContext` · `TurnSegmenter`, `TurnConfig` · `AppleSpeechEngine` · `ModelStore` · `Voices`, `SlowChunks`, `SpeechPace` · `WER` | Recognition, end of utterance and merging (pause T, merge G), model download with SHA256, voice choice (Premium → Enhanced → Default), slower speech, WER for evals |
 | `Commands/` | `CommandDetector`, `CommandMatch` · `CommandKind` | "repeat", "slower", "how do I say …", "explain", "continue", "any mistakes", "finish" in ru/de/en, incl. misrecognised variants |
-| `Teacher/` | `Exams`, `ExamRun`, `ExamPrompt`, `ExamController` | Original B1/IELTS tasks, frozen selections, timed phases, bounded prompt data; live coordinator serializes recognition, held monologues, replies and speech, mutes preparation, and journals phase starts. TurnController attaches via `exam` and `consumeExamReply`; `LingoMac/ExamServices` attaches before input/first reply and stops on selection/deletion/Finish; Teacher starts exams and `ExamPanel` shows tasks/timers. Prior exams are transcript-only |
+| `Teacher/` (cards, plans, memory, reports) | `Cards`, `FSRS` · `Warmup` · `Stats`, `Today` · `Scenarios` · `Progress`, `Weekly` · `TeacherMemory` · `ExamDebrief` · `Reminder` | Spaced repetition of the learner's own mistakes and words (FSRS port, `card.reviewed`/`card.suspended`), the warm-up as a pure function of journal and time, daily goal and streak from the journal (`goal.set`), the Today plan, nine DE / six EN scenarios with a task checklist (`scenario.task`), Progress charts and the weekly advice (`report.weekly`), memory facts about the learner (`memory.*`, viewable, editable, deletable, switchable), the exam debrief with the pronunciation filter, and the daily reminder (pure `Reminder.next` / `Reminder.sync` against a `ReminderCenter`; no UserNotifications import in LingoCore) |
+| `Teacher/` (exams) | `Exams`, `ExamRun`, `ExamPrompt`, `ExamController` | Original B1/IELTS tasks, frozen selections, timed phases, bounded prompt data; live coordinator serializes recognition, held monologues, replies and speech, mutes preparation, and journals phase starts. TurnController attaches via `exam` and `consumeExamReply`; `LingoMac/ExamServices` attaches before input/first reply and stops on selection/deletion/Finish; Teacher starts exams and `ExamPanel` shows tasks/timers. Prior exams are transcript-only |
 | `Dialogue/` | `TurnController`, `SpeechSink` · `DialogEngine`, `TurnEvent` · `PromptBuilder` · `ContextPolicy` · `ReplyProtocol`, `ReplyStreamParser` | Voice-turn state machine (listening → thinking → speaking, barge-in), one dialogue turn end to end, system wrapper (English instructions), context window + summary, streaming parser of `@say / @fix / @hint / @heard` lines |
 | `Journal/` | `Event`, `EventType` · `Payloads` · `JSONValue` · `JournalIO` · `JournalStore` · `Merger` (`HistoryState`, `LWW`) · `SyncFolder`, `SyncScheduler` · `ULID` | Append-only event journal per device, merge of all devices (union, LWW, tombstones), folder sync, ULIDs — mirrors `packages/contracts/events` |
 | `LLM/` | `ProviderChain` · `OpenAICompatibleProvider` · `SSEClient` · `LLMTypes` (`LLMRequest`, `LLMPurpose`) · `LLMSettings` (`KeyRecord`, `ChainEntry`) · `ProviderID` · `RateLimits` (`UsageRecorder`) · `KeyVerifier` | Provider + model + key chain with fallback on 429/5xx/network/timeout and cooldowns, streaming chat completions, rate-limit parsing, usage log, key checks |
@@ -91,8 +92,22 @@ flowchart LR
 | `Fixtures.swift` | Synthetic data for UI snapshots only |
 
 PR #33 (LINGO-07) adds `Design/InterfacePreferences.swift` (interface language and theme), `Design/LingoMark.swift` (vector mark),
-`Views/PlannedViews.swift` (Today / Vocabulary / Progress / Teacher "Coming soon" sections), `Resources/*.xcstrings` (String Catalogs)
-and `Tests/LingoMacTests/`. Update this table when it is merged.
+`Views/PlannedViews.swift` (the remaining "Coming soon" previews; Today, Progress and Teacher became real screens in LINGO-05), `Resources/*.xcstrings` (String Catalogs)
+and `Tests/LingoMacTests/`.
+
+### Teacher on the Mac (LINGO-05)
+- **Screens** (`LingoMac/Views`): `TodayView` (goal ring, streak, plan), `TeacherView` (warm-up, scenarios, exams, memory and weekly cards),
+  `ScenarioViews`, `ExamPanel`, `ExamDebriefCard`, `ProgressScreen`, `MemoryScreen` (sheet from the Teacher card),
+  Settings → Reminder (`Settings/ReminderSettingsView`). `ExamServices`, `ReminderServices` and `AppServices` wire them to the engine and the system.
+- **Events** (additive journal v1, Swift and TS decode them): `card.reviewed`, `card.suspended`, `goal.set`, `scenario.task`, `exam.part`,
+  `report.weekly`, `memory.noted`, `memory.updated`, `memory.removed`, `memory.switched`. Unknown or malformed payloads count as unknown.
+- **Request purposes** (`LLMPurpose`): `dialog`, `summary`, `topicPhrases`, `recap`, `judge`, `translate`, plus the teacher's `examFeedback` (one request per exam),
+  `weeklyReport` (one per click) and `memory` (once per session, at its first Finish). The warm-up, scenarios and exams use `dialog` with extra prompt blocks.
+- **The teacher is local.** It runs on the Mac's own journal and provider chain; it does not go through the engine (this replaces the earlier
+  "teacher via the engine after LINGO-04" plan). The web and the engine reuse the shared contracts when LINGO-03 resumes (D-01).
+- **Reminder:** `AppSettings.reminderOn` / `reminderTime` are device-local. One non-repeating notification with a fixed identifier is replaced on every
+  sync (launch, switch, time change, goal reached, new day). The permission is asked only when the switch is turned on; a refusal is shown next to it.
+- **No pronunciation assessment** anywhere in the teacher (rule 7): the exam debrief filters it out.
 
 ### 2.4 Evals
 
