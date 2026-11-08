@@ -147,8 +147,9 @@ public actor DialogEngine {
         // "Reply again": the context goes up to and including the user's utterance (the old reply is ignored).
         if let r = replyTo, let i = history.firstIndex(where: { $0.id == r }) { history = Array(history[...i]) }
         // The profile is frozen per session (PR-01); the targets use the statistics from before the session (VR-06).
-        let profile = frozenProfiles[session] ?? st.promptProfile(session: session)
-        frozenProfiles[session] = profile
+        let frozen = frozenProfiles[session] ?? st.promptProfile(session: session)
+        frozenProfiles[session] = frozen
+        let profile = frozen.keepingLiveFacts(of: st)  // a deleted fact or the switch applies at once; the rest stays frozen
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
                                               profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
                                               scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)

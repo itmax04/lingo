@@ -392,7 +392,7 @@ public enum PromptBuilder {
     static func stripTags(_ s: String) -> String {
         var out = s
         while true {
-            let next = out.replacingOccurrences(of: #"<\s*/?\s*(session_prompt|profile|summary|transcript|vocabulary|card|next_card|scenario|scenario_progress|exam)\b[^<>]*>"#, with: "",
+            let next = out.replacingOccurrences(of: #"<\s*/?\s*(session_prompt|profile|summary|transcript|vocabulary|card|next_card|scenario|scenario_progress|exam|known_facts|learner_lines)\b[^<>]*>"#, with: "",
                                                 options: [.regularExpression, .caseInsensitive])
             if next == out { return out }
             out = next

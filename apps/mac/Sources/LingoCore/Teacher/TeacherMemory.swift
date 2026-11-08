@@ -65,7 +65,7 @@ extension PromptBuilder {
         var picked: [String] = []
         var used = 0
         for raw in lines.suffix(memoryLinesMax).reversed() {
-            let line = cut(oneLine(raw).trimmingCharacters(in: .whitespacesAndNewlines), memoryLinesCap)
+            let line = cut(oneLine(raw).trimmingCharacters(in: .whitespacesAndNewlines), memoryLinesCap - 1)
             guard !line.isEmpty else { continue }
             let n = line.unicodeScalars.count + 1
             if used + n > memoryLinesCap { break }

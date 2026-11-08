@@ -16,6 +16,14 @@ public struct PromptProfile: Sendable, Hashable {
     /// Memory facts (GR-06): up to `maxFacts`, oldest first, frozen with the profile.
     public var facts: [String] = []
 
+    /// The frozen profile minus facts that are no longer live (deleted, edited or memory switched off) in `state` (GR-06: hidden from Lingo).
+    public func keepingLiveFacts(of state: HistoryState) -> PromptProfile {
+        var p = self
+        let live = Set(state.memoryFacts.map(\.text))
+        p.facts = state.memoryOn ? facts.filter { live.contains($0) } : []
+        return p
+    }
+
     public static let maxFacts = 5
     public static let maxMistakes = 3
     public static let minOccurrences = 2
