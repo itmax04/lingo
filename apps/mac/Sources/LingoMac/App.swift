@@ -256,7 +256,8 @@ enum UISnapshot {
         let keys = KeysController(settings: llm, secrets: secrets) { _ in }
         let progressOnly = args.contains("--ui-progress")
         let memoryOnly = args.contains("--ui-memory")
-        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly
+        let reminderOnly = args.contains("--ui-reminder")
+        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -264,6 +265,17 @@ enum UISnapshot {
             if option("--ui-all") == nil && !examOnly && name != "conversation-speaking" { return }
             ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
             print("ui-snapshot: " + target.path)
+        }
+        if reminderOnly {
+            // T-9: Settings → Reminder off, scheduled and blocked. Fixture state only: the system notification centre is never touched.
+            let size = NSSize(width: 1280, height: 800)
+            await capture("reminder-off", SettingsView(keys: keys, services: services, tab: .reminder), size)
+            services.updateSettings { $0.reminderOn = true; $0.reminderTime = 19 * 60 }
+            model.reminderStatus = .scheduled(Calendar.current.date(bySettingHour: 19, minute: 0, second: 0, of: Date().addingTimeInterval(86_400)) ?? Date())
+            await capture("reminder-scheduled", SettingsView(keys: keys, services: services, tab: .reminder), size)
+            model.reminderStatus = .blocked(.denied)
+            await capture("reminder-blocked", SettingsView(keys: keys, services: services, tab: .reminder), size)
+            return ok ? 0 : 1
         }
         if memoryOnly {
             // T-8: "What Lingo knows about me" on an empty journal, with synthetic facts, with memory off, an edit in progress, and the Teacher card.

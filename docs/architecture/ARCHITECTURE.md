@@ -73,7 +73,8 @@ flowchart LR
 | Lingo for Mac | **working** (LINGO-01 MVP); redesign LINGO-07 in PR #33; Stage 0 stabilisation next |
 | Contracts | event schema v1, OpenAPI, golden fixtures — **written**; prompts and evals move in P-01 |
 | Lingo Engine, Lingo Web, core-ts | **not written yet** — LINGO-03 Stages 1–2; design references ready in `design/redesign-2026` |
-| Mac ↔ account, teacher, native iPhone | planned — LINGO-04, LINGO-05, LINGO-06 |
+| Mac ↔ account, native iPhone | planned — LINGO-04, LINGO-06 |
+| Teacher on the Mac | built in LINGO-05 (T-1…T-9); see [MAC.md](MAC.md) |
 
 ## 3. Containers and code layout
 
@@ -138,7 +139,7 @@ flowchart TB
 | Prompt building, context window, summary | ✔ (Swift `PromptBuilder`, `ContextPolicy`) | — | ✔ (TS port, **same snapshots**) |
 | Model routing, fallback, quota, usage ledger | ✔ (own chain, own keys) | — | ✔ (pools, budgets) |
 | History of record | own journal (+ engine from LINGO-04) | IndexedDB copy | ✔ D1 |
-| Teacher features (memory, spaced repetition, plans, reports) — LINGO-05 | via engine after LINGO-04 | via engine | ✔ |
+| Teacher features (memory, spaced repetition, plans, reports) — LINGO-05 | ✔ local on the Mac (shipped; own journal and chain) | planned (shared contracts, D-01) | planned |
 
 **Rule:** the model proposes content; code decides state. Saving an utterance, switching language, cancelling a reply,
 ending a session and writing results are done by application code, never by the model (pattern confirmed by Speak's published architecture).
@@ -218,7 +219,7 @@ The history is a set of immutable **events** (schema: `packages/contracts/events
 | `seq` | per-device sequence, strictly increasing |
 | `lamport` | Lamport clock for last-writer-wins on mutable fields |
 | `ts` | ISO 8601 UTC with milliseconds; ordering unit is the millisecond |
-| `type` | `session.created`, `session.updated`, `session.deleted`, `session.ended`, `session.resumed`, `message.created`, `message.edited`, `message.interrupted`, `summary.updated`, `fix.recorded`, `hint.added`, `phrase.starred`, `phrase.unstarred` (LINGO-05 also decodes `card.reviewed`, `card.suspended`, `goal.set`, `scenario.task`, `exam.part`; exam phases are additive v1 events) |
+| `type` | `session.created`, `session.updated`, `session.deleted`, `session.ended`, `session.resumed`, `message.created`, `message.edited`, `message.interrupted`, `summary.updated`, `fix.recorded`, `hint.added`, `phrase.starred`, `phrase.unstarred` (LINGO-05 adds `card.reviewed`, `card.suspended`, `goal.set`, `scenario.task`, `exam.part`, `report.weekly`, `memory.noted`, `memory.updated`, `memory.removed`, `memory.switched`; all are additive v1 events) |
 | `session` | session id (empty for account-wide events such as stars) |
 | `payload` | type-specific object; unknown fields preserved |
 

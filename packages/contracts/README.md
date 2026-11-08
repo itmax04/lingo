@@ -23,6 +23,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07b), with negative cases and accepted misses | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/events.jsonl` | One event of every vocabulary/profile type, written by the real Swift code | round-trip tests |
 | `teacher/exams.json` | Original B1 and IELTS tasks, written by Swift `ExamTests` with `LINGO_RECORD_FIXTURES=1` | Swift catalogue validation; future TS teacher under D-01 |
+| `teacher/scenarios.json` | Scenario catalogue (9 DE, 6 EN, tasks and titles), written by Swift `ScenarioTests` | Swift catalogue validation; future TS teacher under D-01 |
 | `fixtures/teacher/exam-events.jsonl` | All eight exam phases and four malformed payloads, written by Swift `ExamTests` | Swift/TS round-trip and unknown-event count parity |
 | `fixtures/teacher/weekly-events.jsonl` | Two `report.weekly` events for one week and two malformed ones, written by Swift `WeeklyReportTests` | Swift/TS round-trip and unknown-event count parity |
 | `fixtures/teacher/memory-events.jsonl` | Five valid `memory.*` events (two facts, an update, a removal, a switch) and four malformed ones, written by Swift `MemoryTests` | Swift/TS round-trip and unknown-event count parity |

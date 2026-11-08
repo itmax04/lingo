@@ -9,15 +9,22 @@ final class DebriefProvider: LLMProvider, @unchecked Sendable {
     private let lock = NSLock()
     private var outcomes: [String?]
     private(set) var requests: [LLMRequest] = []
-    init(_ outcomes: [String?]) { self.outcomes = outcomes }
+    private var held: Bool
+    /// `hold: true` keeps every reply inside the provider until `release()` (tests of calls made while a request is running).
+    init(_ outcomes: [String?], hold: Bool = false) { self.outcomes = outcomes; held = hold }
+    func release() { lock.withLock { held = false } }
+    var isHolding: Bool { lock.withLock { held } }
     var all: [LLMRequest] { lock.withLock { requests } }
     func stream(_ request: LLMRequest, model: String, key: String) -> AsyncThrowingStream<LLMEvent, Error> {
         let outcome: String? = lock.withLock { requests.append(request); return outcomes.isEmpty ? nil : outcomes.removeFirst() }
         return AsyncThrowingStream { c in
-            if let text = outcome {
-                c.yield(.model(model)); c.yield(.text(text)); c.yield(.done(stopReason: "stop")); c.finish()
-            } else {
-                c.finish(throwing: LLMError.http(status: 500, message: "synthetic failure"))
+            Task {
+                while self.isHolding { try? await Task.sleep(nanoseconds: 5_000_000) }
+                if let text = outcome {
+                    c.yield(.model(model)); c.yield(.text(text)); c.yield(.done(stopReason: "stop")); c.finish()
+                } else {
+                    c.finish(throwing: LLMError.http(status: 500, message: "synthetic failure"))
+                }
             }
         }
     }
