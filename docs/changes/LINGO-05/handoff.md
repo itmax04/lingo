@@ -76,7 +76,7 @@ Status: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com
 - Debrief remains #75/T-6b, blocked until #74's final runner PR merges. No owner blocker or spec conflict identified.
 
 ## Next step
-**T-8 Memory (#77): implemented on `feat/77-memory`; remaining: independent review with privacy notes, green CI, merge, delivery comment.** [Evidence](evidence/t8-mac-checks.md). T-7 delivered: [PR #88](https://github.com/itmax04/lingo/pull/88) merged as `56a762d`, owner build 207.
+**T-8 Memory (#77, [PR #89](https://github.com/itmax04/lingo/pull/89)): review approve-with-notes at `0cdd7f5`, no P0/P1, but P2 F1 is open: `frozenProfiles` is not invalidated by memory-off/Delete (fix + engine test; also P3 F3–F6 listed in the PR comment). Then re-review of the new head, green CI, merge, owner build, delivery comment.** [Evidence](evidence/t8-mac-checks.md). T-7 delivered: [PR #88](https://github.com/itmax04/lingo/pull/88) merged as `56a762d`, owner build 207.
 Implementation: `memory.noted/updated/removed/switched` (Swift, TS, schema, fixture), `Teacher/TeacherMemory.swift` (facts, request, proposals), `HistoryState.memoryFacts/removedFactKeys/memoryOn`, `PromptProfile.facts` in `<profile>`, `DialogEngine.extractMemory/updateMemory/removeMemory/setMemory` (extraction after the summary on the first Finish), `MemoryScreen` (sheet from the Teacher card).
 Carried from T-7 review: tighten `doubleClickSendsOneRequest` with a blocking provider (F1); fixture advice vs chart trend (F2); neutral chart colours (F3).
-Next after T-8: T-9 reminder and docs update (#78), report (#79), owner checkpoint H-05 (#80). Next model: standard → Sonnet 5.5 medium. Start: "Deliver T-8 (#77) from the handoff, then start T-9."
+Next after T-8: T-9 reminder and docs update (#78), report (#79), owner checkpoint H-05 (#80). Next model: standard → Sonnet 5.5 medium. Start: "Fix the review findings of PR #89 (T-8), re-review, deliver it, then start T-9."
