@@ -3316,6 +3316,23 @@
       },
       "extractionState": "manual"
     },
+    "Lingo has not been allowed to show notifications yet. Turn the switch off and on again, or allow them in System Settings → Notifications.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo has not been allowed to show notifications yet. Turn the switch off and on again, or allow them in System Settings → Notifications."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingo ещё не получил разрешение на уведомления. Выключите и снова включите переключатель или разрешите их в Системных настройках → Уведомления."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Offline": {
       "localizations": {
         "en": {

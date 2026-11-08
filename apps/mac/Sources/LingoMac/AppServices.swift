@@ -33,6 +33,9 @@ final class AppServices {
     var backup: BackupScheduler?
     /// What the last reminder sync depended on (goal reached, goal, day), so journal changes re-sync only when it changes.
     var reminderSignature: String?
+    /// The last queued reminder sync: syncs run one after another so an older one never overwrites a newer one.
+    var reminderSyncTask: Task<Void, Never>?
+    var reminderObservers: [NSObjectProtocol] = []
     let reachability = Reachability()
 
     init(model: AppModel, settingsStore: SettingsStore = SettingsStore(), secrets: SecretStore = KeychainStore(), base: URL? = nil,
@@ -90,6 +93,7 @@ final class AppServices {
         startSyncAndNetwork()
         if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }
         startDailyBackup()
+        startReminderObservers()
         await syncReminder()
     }
 
