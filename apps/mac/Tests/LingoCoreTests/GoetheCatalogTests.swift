@@ -131,6 +131,11 @@ import Testing
             let n = Self.normal(text)
             for o in official { #expect(!n.contains(o), "\(id) repeats an official title: \(o)") }
             for word in ["aussprache", "akzent", "betonung"] { #expect(!n.contains(word), "\(id): \(word)") }
+            // Near-copies of the official themes (review F3): stems that name them, and children paired with phone or television.
+            for stem in ["köln", "krankenhaus", "hochzeit", "mobiltelefon", "ohne auto"] { #expect(!n.contains(stem), "\(id): official theme \(stem)") }
+            for sentence in text.split(whereSeparator: { ".!?".contains($0) }).map({ Self.normal(String($0)) }) {
+                for medium in ["fernseh", "handy"] { #expect(!(sentence.contains(medium) && sentence.contains("kinder")), "\(id): children with \(medium)") }
+            }
         }
         // The deny-list works on real input: the mockup's excluded topic (spec BR-06) and a re-punctuated title are caught.
         #expect(Self.normal("Thema: Ohne Auto leben?").contains(Self.normal("Ohne Auto leben")))
