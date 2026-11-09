@@ -173,26 +173,51 @@ extension AppServices {
         model.streaming = nil
         let note = String(localized: "Finishing the session…")
         model.banner = note
+        finishNote = note
+        let fid = UUID()
+        finishID = fid
+        // 15 s: the goodbye wait (8 s) plus the teardown. Whatever happens to the task below, `ending` is released here.
+        finishWatchdog?.cancel()
+        finishWatchdog = Task { [weak self] in
+            guard let timeout = self?.finishTimeout else { return }
+            try? await Task.sleep(for: timeout)
+            guard !Task.isCancelled else { return }
+            self?.releaseFinish(fid, timedOut: true)
+        }
         Task {
-            defer {
-                ending = false
-                if model.banner == note { model.banner = nil }
-            }
+            defer { releaseFinish(fid) }
             // `farewell` is nil for a missing or already finished session: then nothing is added or spoken.
-            if let bye = await engine.farewell(session: sid), let io = voiceIO {
+            if let bye = await engine.farewell(session: sid), let io = voiceIO, finishID == fid {
                 io.speak(bye.text, lang: bye.lang, voiceID: settings.voice.voiceIDs[bye.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 9_000)
             }
             // The finished state is written first; once the goodbye has played the microphone is switched off and the app is free again.
             // The recap and the summary (model calls, they can take a while on a degraded chain) follow without blocking anything.
             let ended = await engine.markEnded(sid)
-            await shutDownVoice()
-            ending = false
-            if model.banner == note { model.banner = nil }
+            // After a release (the watchdog fired) this task must not touch the audio any more.
+            if finishID == fid {
+                if let teardown = finishTeardown { await teardown() } else { await shutDownVoice() }
+            }
+            releaseFinish(fid)
             // The recap and summary belong to the finished part, so they are written before a queued "Continue".
             if ended { await engine.finalizeEnded(sid) }
             if ended, model.sessions.first(where: { $0.id == sid })?.settings.activity?.kind == .exam { runDebrief(sid) }
             if let c = pendingContinue { pendingContinue = nil; try? await engine.resume(c) }
             await scheduler?.trigger(.sessionEnded)
+        }
+    }
+
+    /// The one place that ends "finishing": idempotent, and only for the finish it belongs to.
+    func releaseFinish(_ id: UUID, timedOut: Bool = false) {
+        guard finishID == id else { return }
+        finishID = nil
+        finishWatchdog?.cancel()
+        finishWatchdog = nil
+        ending = false
+        if model.banner == finishNote || model.banner == Self.stillFinishingText { model.banner = nil }
+        finishNote = nil
+        if timedOut {
+            pendingContinue = nil
+            model.banner = String(localized: "Finishing the session took too long and was stopped. You can start again.")
         }
     }
 
@@ -211,6 +236,8 @@ extension AppServices {
         if let io = voiceIO {
             let deadline = Date().addingTimeInterval(8)
             while io.isSpeaking, Date() < deadline { try? await Task.sleep(for: .milliseconds(100)) }
+            // The controller stops the speech through the sink, so it goes first: after `io.stop()` the audio objects are gone.
+            turn?.stopVoice(cancelTurn: true)
             io.stop()
             // Release everything that keeps the old audio and loop alive (they are rebuilt by the next voice action).
             io.onSamples = nil

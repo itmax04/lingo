@@ -7536,6 +7536,57 @@
         }
       }
     },
+    "The session is still finishing. Try again in a moment.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The session is still finishing. Try again in a moment."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сессия ещё завершается. Попробуйте через минуту."
+          }
+        }
+      }
+    },
+    "An exam is already starting.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An exam is already starting."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экзамен уже запускается."
+          }
+        }
+      }
+    },
+    "Finishing the session took too long and was stopped. You can start again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finishing the session took too long and was stopped. You can start again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завершение сессии заняло слишком много времени и было остановлено. Можно начинать заново."
+          }
+        }
+      }
+    },
     "Finishing the session…": {
       "extractionState": "manual",
       "localizations": {

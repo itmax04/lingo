@@ -4,8 +4,14 @@ import LingoCore
 /// One live runner; selecting another session permanently leaves its exam transcript-only.
 @MainActor
 extension AppServices {
+    static var stillFinishingText: String { String(localized: "The session is still finishing. Try again in a moment.") }
+    static var examStartingText: String { String(localized: "An exam is already starting.") }
+
     func startExam(_ kind: ExamKind) {
-        guard !model.startingExam, !ending, !model.readOnly else { return }
+        // A refused click must say why instead of doing nothing (H-05).
+        if ending { model.banner = Self.stillFinishingText; return }
+        if model.startingExam { model.banner = Self.examStartingText; return }
+        if model.readOnly { model.banner = model.disabledReason; return }
         stopExam()
         let startID = UUID()
         examStartID = startID
@@ -14,6 +20,7 @@ extension AppServices {
             defer {
                 if examStartID == startID {
                     model.startingExam = false
+                    if model.banner == Self.examStartingText { model.banner = nil }
                     examStartID = nil
                     if let tc = turn { restoreExamMicrophone(on: tc.sink) }
                 }

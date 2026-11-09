@@ -25,6 +25,7 @@ import Testing
             }
         }
     }
+    final class Flag: @unchecked Sendable { var value = false }
     @MainActor final class Env {
         let base = FileManager.default.temporaryDirectory.appendingPathComponent("lingo-exam-host-" + UUID().uuidString)
         let suite = "lingo-exam-host-" + UUID().uuidString
@@ -136,6 +137,68 @@ import Testing
         #expect(e.model.examReadOnly && !e.sink.isSpeaking && e.sink.micMuted)
         #expect(e.services.exam == nil && e.services.turn == nil)
         #expect(await e.services.store.state.messages[sid]?.filter { $0.kind == .summary }.isEmpty == true)
+    }
+
+    /// H-05: after an exam is finished the next "Start exam" must work and the "Finishing" banner must be gone.
+    @Test func examCanBeStartedAgainAfterFinish() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.startExam(.goetheB1); await wait { !e.model.startingExam }
+        let first = try #require(e.services.exam?.sessionID)
+        e.services.finishSession(first)
+        await wait { !e.services.ending }
+        #expect(e.model.banner == nil)
+        e.services.turn = e.tc // the app rebuilds voice in ensureVoice; the test reuses the fake one
+        e.services.startExam(.ielts); await wait { !e.model.startingExam }
+        let second = try #require(e.services.exam?.sessionID)
+        #expect(second != first)
+        #expect(await e.services.store.state.sessions.count == 2)
+    }
+
+    /// H-05: if the finish task never returns (or dies on an exception), the watchdog releases `ending` and the banner.
+    @Test func watchdogReleasesFinishWhenTeardownNeverReturns() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.finishTimeout = .milliseconds(150)
+        // Never returns during the test; the flag lets the stand-in end at the end so no task outlives the test.
+        let release = Flag(); defer { release.value = true }
+        e.services.finishTeardown = { while !release.value { try? await Task.sleep(for: .milliseconds(50)) } }
+        e.services.startExam(.goetheB1); await wait { !e.model.startingExam }
+        let sid = try #require(e.services.exam?.sessionID)
+        e.services.pendingContinue = sid
+        e.services.finishSession(sid)
+        #expect(e.services.ending && e.model.banner == String(localized: "Finishing the session…"))
+        await wait { !e.services.ending }
+        #expect(e.services.pendingContinue == nil)
+        #expect(e.model.banner == String(localized: "Finishing the session took too long and was stopped. You can start again."))
+        // Releasing again (the late task, a second watchdog) is a no-op and does not touch a newer finish.
+        e.services.releaseFinish(UUID())
+        #expect(!e.services.ending)
+        e.services.startExam(.ielts); await wait { !e.model.startingExam }
+        #expect(e.services.exam != nil)
+    }
+
+    @Test func refusedStartShowsWhy() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.ending = true
+        e.services.startExam(.ielts)
+        #expect(e.model.banner == String(localized: "The session is still finishing. Try again in a moment."))
+        e.services.ending = false; e.model.banner = nil
+        e.model.startingExam = true
+        e.services.startExam(.ielts)
+        #expect(e.model.banner == String(localized: "An exam is already starting."))
+        e.model.startingExam = false; e.model.banner = nil
+        #expect(e.services.exam == nil)
+    }
+
+    /// A refusal text does not outlive the finish.
+    @Test func finishReleaseClearsRefusalBanner() async throws {
+        let e = try Env(); defer { e.clean() }
+        e.services.startExam(.goetheB1); await wait { !e.model.startingExam }
+        e.services.finishTeardown = { try? await Task.sleep(for: .milliseconds(100)) }
+        e.services.finishSession(try #require(e.services.exam?.sessionID))
+        e.services.startExam(.ielts)
+        #expect(e.model.banner == String(localized: "The session is still finishing. Try again in a moment."))
+        await wait { !e.services.ending }
+        #expect(e.model.banner == nil)
     }
 
     @Test func naturalEndLeavesOnlyTranscriptAndNoController() async throws {

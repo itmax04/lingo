@@ -19,6 +19,15 @@ final class AppServices {
     var turnTask: Task<Void, Never>?
     /// True while "Finish" is being processed, so a second click does not start a second goodbye.
     var ending = false
+    /// Identifies the finish in progress; `releaseFinish` only acts for the current one, so a late task cannot undo a newer finish.
+    var finishID: UUID?
+    /// The "Finishing the session…" banner of the finish in progress.
+    var finishNote: String?
+    /// Main-actor watchdog of the finish: unlike the finish task it survives an exception that unwinds that task (H-05).
+    var finishWatchdog: Task<Void, Never>?
+    var finishTimeout: Duration = .seconds(15)
+    /// Test seam: replaces `shutDownVoice` in the finish task (a stand-in that never returns).
+    var finishTeardown: (() async -> Void)?
     /// "Continue session" pressed while finishing: resumed right after it.
     var pendingContinue: String?
     /// Speech without the audio engine (replay in a finished session): the microphone stays off.

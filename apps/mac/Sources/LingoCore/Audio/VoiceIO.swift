@@ -370,6 +370,9 @@ public final class VoiceIO: @unchecked Sendable {
     }
 
     private func playerSample() -> Int64? {
+        // Reading `lastRenderTime` on a node without an engine raises an NSException that Swift cannot catch (H-05):
+        // only an attached, running player is read (never before start, never after `resetEngine` replaced the node).
+        guard hasOutput, running, player.engine != nil, engine.isRunning else { return nil }
         guard let nt = player.lastRenderTime, let pt = player.playerTime(forNodeTime: nt) else { return nil }
         return pt.sampleTime
     }
