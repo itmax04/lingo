@@ -55,6 +55,36 @@ final class CallLog: @unchecked Sendable {
     var all: [String] { lock.withLock { items } }
 }
 
+/// Virtual time for the chain's timeouts and waits. A sleep that `advances` returns at once and moves the clock by its length;
+/// any other sleep only yields for 1 ms of real time, so the clock never moves because of a scheduler stall.
+final class VirtualClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var offset: Duration = .zero
+    private var on = true
+    private let base = Date()
+    private let advances: @Sendable (Duration) -> Bool
+    init(advancesOn: @escaping @Sendable (Duration) -> Bool = { _ in true }) { advances = advancesOn }
+
+    /// Lets a test stop time while a step that must not time out is running.
+    func setRunning(_ v: Bool) { lock.withLock { on = v } }
+    var elapsed: Double { lock.withLock { Double(offset.components.seconds) + Double(offset.components.attoseconds) / 1e18 } }
+
+    var clock: ChainClock {
+        ChainClock(date: { [self] in base.addingTimeInterval(elapsed) },
+                   uptimeNanos: { [self] in UInt64(elapsed * 1e9) },
+                   sleep: { [self] d in
+            try Task.checkCancellation()
+            if lock.withLock({ on }) && advances(d) {
+                lock.withLock { offset += d }
+                await Task.yield()
+            } else {
+                try await Task.sleep(for: .milliseconds(1))
+            }
+            try Task.checkCancellation()
+        })
+    }
+}
+
 func collect(_ s: AsyncStream<ChainEvent>) async -> [ChainEvent] {
     var out: [ChainEvent] = []
     for await e in s { out.append(e) }
@@ -120,12 +150,15 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
     }
 
     @Test func firstTokenTimeoutGoesNext() async {
-        let c = chain({ m, _ in m == "A" ? .hang : .text(["B ok"]) }, keys: ["k1"])
-        let t0 = Date()
+        // Virtual time runs only while the hung model A is being waited for, so model B can never time out because of a slow machine.
+        let vc = VirtualClock()
+        var c = chain({ m, _ in vc.setRunning(m == "A"); return m == "A" ? .hang : .text(["B ok"]) }, keys: ["k1"])
+        c.clock = vc.clock
         let ev = await collect(c.run(req))
         #expect(text(ev) == "B ok")
         #expect(ev.contains { if case .stepFailed(_, .firstTokenTimeout) = $0 { return true }; return false })
-        #expect(Date().timeIntervalSince(t0) < 4)
+        // The settings give a 2 s first-token timeout: A is abandoned at 2 s, not earlier and not much later.
+        #expect(vc.elapsed >= 2 && vc.elapsed < 4)
     }
 
     @Test func midStreamFailureRestarts() async {
@@ -152,14 +185,16 @@ let req = LLMRequest(system: "s", messages: [LLMMessage(role: .user, text: "u")]
 
     @Test func shortRateLimitWaitsAndRetries() async {
         let calls = CallLog()
-        let c = chain({ _, _ in
+        // Only the rate-limit wait (longer than the 50 ms poll) moves virtual time, so failing mocks cannot race the timer.
+        let vc = VirtualClock(advancesOn: { $0 > ProviderChain.pollInterval })
+        var c = chain({ _, _ in
             calls.add("x")
             return calls.all.count <= 2 ? .fail(.http(status: 429, message: "", retryAfter: 1)) : .text(["Hallo"])
         }, keys: ["k1"])
-        let t0 = Date()
+        c.clock = vc.clock
         let ev = await collect(c.run(req))
         #expect(text(ev) == "Hallo")
-        #expect(Date().timeIntervalSince(t0) >= 0.9 && Date().timeIntervalSince(t0) < 5)
+        #expect(vc.elapsed >= 0.9 && vc.elapsed < 5)
     }
 
     @Test func defaultPauseWithoutRetryAfter() {
@@ -279,5 +314,16 @@ struct FixedTransport: StreamingTransport, HTTPTransport {
         #expect(s.primaryLabel == "Groq · B")
         s.pinnedEntryID = nil
         #expect(ChainFactory.chain(settings: s, secrets: InMemorySecretStore(["g": "v"]), health: ProviderHealth()).steps.count == 2)
+    }
+}
+
+@Suite struct ChainClockTests {
+    @Test func liveClockMovesForwardAndSleepsAtLeastTheRequestedTime() async throws {
+        let c = ChainClock.live
+        let d0 = c.date(), u0 = c.uptimeNanos()
+        try await c.sleep(.milliseconds(30))
+        // Lower bounds only: a loaded machine may sleep longer, never shorter.
+        #expect(c.uptimeNanos() - u0 >= 25_000_000)
+        #expect(c.date().timeIntervalSince(d0) >= 0.025)
     }
 }
