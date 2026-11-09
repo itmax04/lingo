@@ -77,11 +77,26 @@ import Testing
 
     @Test func olderBuildRollbackShape() throws {
         // BR-39a: an older build knows only the pinned ids. A mock of old ids is a normal exam to it; a mock with a new id is not.
+        // BAC-19: `olderBuildAccepts` is the validator of the build before LINGO-10, which knew the 18 pinned ids only.
         let old = Set(Self.oldIDs.flatMap { $0 })
-        let ids = ExamKind.goetheB1.drawTasks()
-        #expect(ids.allSatisfy(old.contains))  // the catalogue is unchanged in G-1; G-2 adds ids, and this test then pins the rule.
-        #expect(!["b1-plan-new", ids[1], ids[2]].allSatisfy(old.contains))
-        #expect(![ids[0]].isEmpty && ids.count == 3)  // a training has one id: an older build requires three and decodes no activity
+        func olderBuildAccepts(_ ids: [String]) -> Bool {
+            ids.count == 3 && ids.allSatisfy(old.contains) && ExamCatalog.validSelection(.goetheB1, ids: ids)
+        }
+        let plans = ExamCatalog.tasks(.goetheB1, part: 1).map(\.id), talks = ExamCatalog.tasks(.goetheB1, part: 2).map(\.id)
+        let discuss = { (talk: String) in ExamCatalog.tasks(.goetheB1, part: 3).first { $0.linkedTo == talk }!.id }
+        let newPlans = plans.filter { !old.contains($0) }, newTalks = talks.filter { !old.contains($0) }
+        #expect(newPlans.count == 6 && newTalks.count == 6)
+        for (i, talk) in Self.oldIDs[1].enumerated() {
+            let ids = [Self.oldIDs[0][i], talk, discuss(talk)]
+            // A mock of old ids is a normal exam to the older build, whatever the partner's talk is.
+            #expect(olderBuildAccepts(ids) && ExamCatalog.validMock(ids: ids, partnerTask: newTalks[i]))
+            // One new id anywhere, and the older build decodes no activity.
+            #expect(!olderBuildAccepts([newPlans[i], talk, discuss(talk)]))
+            #expect(!olderBuildAccepts([Self.oldIDs[0][i], newTalks[i], discuss(newTalks[i])]))
+            #expect(ExamCatalog.validSelection(.goetheB1, ids: [newPlans[i], newTalks[i], discuss(newTalks[i])]))
+        }
+        // A training has one id: an older build requires three and decodes no activity.
+        for id in plans + talks { #expect(!olderBuildAccepts([id])) }
     }
 
     @Test func newPartValuesAreAdditive() {

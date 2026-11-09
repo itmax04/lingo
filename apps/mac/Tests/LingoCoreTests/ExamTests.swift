@@ -32,10 +32,18 @@ import Testing
             }
             if t.part == 3 { #expect(t.linkedTo.flatMap(ExamCatalog.task)?.part == 2) }
         }
+        try Self.fixture("teacher/exams.json", try Self.catalogueJSON())
+    }
+
+    /// The exported catalogue. Keys sort as goetheExaminerLines, goethePhrases, rule, tasks, so the IELTS entries stay the tail of the file.
+    static func catalogueJSON() throws -> String {
         let enc = JSONEncoder(); enc.outputFormatting = [.sortedKeys, .withoutEscapingSlashes, .prettyPrinted]
-        struct File: Encodable { let rule: String; let tasks: [ExamTask] }
-        let data = File(rule: "LINGO-05 XR-01: original Lingo practice material, not real exam questions. Written by Swift ExamTests (LINGO_RECORD_FIXTURES=1).", tasks: ExamCatalog.all)
-        try Self.fixture("teacher/exams.json", String(decoding: enc.encode(data), as: UTF8.self) + "\n")
+        struct File: Encodable {
+            let goetheExaminerLines: [String: String]; let goethePhrases: [String: [GoethePhrase]]; let rule: String; let tasks: [ExamTask]
+        }
+        let data = File(goetheExaminerLines: ExamCatalog.goetheExaminerLines, goethePhrases: ExamCatalog.goethePhrasesByTeil,
+                        rule: "LINGO-05 XR-01: original Lingo practice material, not real exam questions. Written by Swift ExamTests (LINGO_RECORD_FIXTURES=1).", tasks: ExamCatalog.all)
+        return String(decoding: try enc.encode(data), as: UTF8.self) + "\n"
     }
 
     @Test func settingsFreezeTasksAndDecodeTolerantly() throws {
