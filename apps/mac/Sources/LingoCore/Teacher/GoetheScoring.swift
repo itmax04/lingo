@@ -92,7 +92,8 @@ public enum GoetheDebriefParser {
     /// `[T2]` → 2.
     private static func header(_ line: String) -> Int? {
         guard line.hasPrefix("[T"), let close = line.firstIndex(of: "]"), line.index(after: close) == line.endIndex else { return nil }
-        return Int(line[line.index(line.startIndex, offsetBy: 2)..<close])
+        let digits = line[line.index(line.startIndex, offsetBy: 2)..<close]
+        return digits.allSatisfy({ $0.isASCII && $0.isNumber }) ? Int(digits) : nil
     }
 
     /// `[1E] B: one sentence` → (.e1, .b, "one sentence").

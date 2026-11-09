@@ -82,3 +82,12 @@ DESIGN.md §8 asks to keep the exact ImageGen prompt; it is in the parent sessio
 1. Commit the documents and `design/goethe-b1-2026/` only when the owner asks, then create the issues of plan steps G-1...G-6.
 2. Start G-1 (data and contracts) on its own branch: tests, independent AI review and green CI before merge, per `plan.md`.
 3. If the owner changes a decision or an assumption, update the documents and record it here before any code.
+
+## G-1 (data and contracts), 2026-11-09
+- Docs PR [#96](https://github.com/itmax04/lingo/pull/96); issues #97 (G-1), #98 (G-2), #99 (G-3), #100 (G-4), #101 (G-5a), #102 (G-5b), #103 (G-6), #104 (H-10), milestone "LINGO-10 · Goethe B1 Sprechen". G-1 is [#105](https://github.com/itmax04/lingo/pull/105), stacked on #96 (retarget to `main` after #96 merges). Nothing is merged: CX-02 covers the completion-plan steps only.
+- Checks at the reviewed head: `swift test --package-path apps/mac` 361 tests passed; `npm test` 304 passed; `apps/mac/scripts/check-core-ios.sh` PASS; `check-english` PASS; `secret-scan` 0 findings. No IELTS snapshot or assertion edited (BAC-20); the only existing-test edit is the exam-events length 12 → 16 in TS.
+- Independent review (`sdlc:reviewer`, pr mode): approve-with-notes, no P0/P1/P2. P3 fixed: schema `format`/`teil` constraints dropped (tolerant readers), contracts README, `[T+1]` header, BR-29 wording (points kept without headers). Open P3 for G-2: `olderBuildRollbackShape` is weak until new ids exist; add a real pinned-18-ids validator test (BAC-19) in G-2.
+- CI: `hygiene` and `test` green; `swift-test` was pending when this was written.
+
+## Next
+G-2 (#98): catalogue content (12 tasks per part, titles, glosses, categories, talks, phrases, Examiner lines), with the BAC-19 old-build test and an independent originality review. Not started.

@@ -590,17 +590,11 @@
             },
             "format": {
               "type": "string",
-              "enum": [
-                "mock",
-                "training"
-              ],
-              "description": "LINGO-10 BR-01, goethe_b1 only: mock = three linked tasks plus partnerTask; training = one task of the given teil"
+              "description": "LINGO-10 BR-01, goethe_b1 only: mock | training (informative; readers decode tolerantly, PX-05). mock = three linked tasks plus partnerTask; training = one task of the given teil"
             },
             "teil": {
               "type": "integer",
-              "minimum": 1,
-              "maximum": 3,
-              "description": "LINGO-10 BR-01: the Teil of a training session"
+              "description": "LINGO-10 BR-01: the Teil (1-3) of a training session"
             },
             "partnerTask": {
               "type": "string",
