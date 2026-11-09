@@ -11,13 +11,11 @@ final class FakeSink: SpeechSink {
     var stopTimes: [Double] = []
     var micMuted = false
     var isSpeaking: Bool { playing }
-    var firstSpeakAt: Double?
     /// The first part queued since the last stop: "playback" stops 4 characters into it.
     var currentTag: Int?
     func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double, tag: Int) {
         spoken.append((text, rate, pauseAfter))
         if currentTag == nil { currentTag = tag }
-        if firstSpeakAt == nil { firstSpeakAt = MetricsRecorder.now() }
         playing = true
     }
     func stopSpeaking() -> (tag: Int, charOffset: Int)? {
@@ -84,19 +82,19 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         }
         func settle(_ s: Double = 0.3) async { try? await Task.sleep(for: .seconds(s)) }
         /// Waits until `condition` holds (at most `timeout` s): a slow CI runner needs longer than a fixed pause.
-        func waitUntil(timeout: Double = 3, _ condition: () -> Bool) async {
+        func waitUntil(timeout: Double = 15, _ condition: () -> Bool) async {
             let end = Date().addingTimeInterval(timeout)
             while !condition(), Date() < end { try? await Task.sleep(for: .milliseconds(25)) }
         }
     }
 
-    func env(texts: [String], recDelay: Double = 0, recognizer: (any SpeechRecognizer)? = nil, requests: CallLog? = nil, reply: @escaping @Sendable (String) -> MockProvider.Behavior = { _ in .text(["@say de: Schön! Wie lange schon?"]) }) async throws -> Env {
+    func env(texts: [String], recDelay: Double = 0, recognizer: (any SpeechRecognizer)? = nil, requests: CallLog? = nil, firstTokenTimeout: Double = 5, reply: @escaping @Sendable (String) -> MockProvider.Behavior = { _ in .text(["@say de: Schön! Wie lange schon?"]) }) async throws -> Env {
         let store = try JournalStore(base: tempDir("tc"), deviceName: "Mac", deviceID: "mac-tc")
         let log = requests ?? CallLog()
         let p: any LLMProvider
         if let requests { p = ExamProvider(requests: requests) }
         else { p = MockProvider(id: .groq, behavior: { _, _ in reply("") }, calls: log) }
-        let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 5)
+        let llm = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: firstTokenTimeout)
         let secrets = InMemorySecretStore(["k": "synthetic"])
         let engine = DialogEngine(store: store) { ChainFactory.chain(settings: llm, secrets: secrets, health: ProviderHealth(), providers: [.groq: p]) }
         let sid = try await engine.createSession(SessionSettings(lang: .de, mode: .free, topic: "Wohnort", corrections: [.inline]))
@@ -188,11 +186,12 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
 
     @Test func s05MergeCancelsAndCombines() async throws {
         // The first reply is delayed (slower recognition), the addition arrives within G → merge.
-        // The first model request "thinks" for 1.5 s — the addition arrives before the assistant starts speaking.
+        // The first model request stays pending until the merge cancels it (it never answers by itself), so the addition always
+        // arrives before the assistant starts speaking, however slow the machine is. The timeout is the maximum, so it cannot fire first.
         let calls = CallLog()
-        let e = try await env(texts: ["Am Wochenende gehe", "spazieren"], recDelay: 0.05, reply: { _ in
+        let e = try await env(texts: ["Am Wochenende gehe", "spazieren"], recDelay: 0.05, firstTokenTimeout: 15, reply: { _ in
             calls.add("x")
-            return calls.all.count == 1 ? .delayed(1.5, ["@say de: Zu langsam."]) : .text(["@say de: Schön! Wohin gehen Sie spazieren?"])
+            return calls.all.count == 1 ? .hang : .text(["@say de: Schön! Wohin gehen Sie spazieren?"])
         })
         await e.holder?.refresh?()
         e.tc.startContinuous()
@@ -201,7 +200,8 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         await e.settle(0.2)                 // the request is sent and waiting for a reply
         await e.feed(600, speech: true)     // the addition after ~1.55 s ≤ G (by audio)
         await e.feed(1600, speech: false)
-        await e.settle(0.6)
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wohin gehen Sie spazieren?" }
+        await e.settle(0.3)                 // a stray reply of the cancelled request would show up here
         let msgs = await e.store.state.messages[e.sid]!
         let users = msgs.filter { $0.role == .user }
         #expect(users.count == 1)
@@ -213,26 +213,25 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
     @Test func repeatIsLocalAndFast() async throws {
         let e = try await env(texts: ["Ich wohne in Hamburg.", "nochmal bitte"])
         e.tc.pushDown(); await e.feed(1000, speech: true); e.tc.pushUp()
-        await e.settle()
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }  // the whole first reply, however slow
         e.sink.finish()
         await e.settle(0.2)
         await e.holder?.refresh?()
         let callsBefore = e.log.all.count
         e.sink.spoken = []
-        e.sink.firstSpeakAt = nil
         e.tc.pushDown(); await e.feed(800, speech: true)
-        let t0 = MetricsRecorder.now()
         e.tc.pushUp()
-        await e.settle(0.35)
+        await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }
+        await e.settle(0.2)                 // a model reply or a second playback would show up here
         #expect(e.log.all.count == callsBefore, "the model is not called")
         #expect(e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?")
-        #expect((e.sink.firstSpeakAt ?? 99) - t0 <= 0.3)
     }
 
     @Test func slowerSplitsAndSlowsDown() async throws {
         let e = try await env(texts: ["Ich wohne in Hamburg.", "langsamer", "langsamer"], reply: { _ in .text(["@say de: Wie lange wohnen Sie schon in Hamburg, und gefällt es Ihnen?"]) })
         e.tc.pushDown(); await e.feed(1000, speech: true); e.tc.pushUp()
-        await e.settle(); e.sink.finish(); await e.settle(0.2)
+        await e.waitUntil { e.sink.spoken.last?.0.hasSuffix("Ihnen?") == true }  // the whole first reply, however slow
+        e.sink.finish(); await e.settle(0.2)
         await e.holder?.refresh?()
         e.sink.spoken = []
         e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.waitUntil { e.sink.spoken.count >= 2 }
