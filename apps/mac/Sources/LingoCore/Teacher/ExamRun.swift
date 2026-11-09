@@ -4,6 +4,8 @@ import Foundation
 public enum ExamPhase: String, Codable, Sendable, CaseIterable {
     case goethePrep = "goethe_b1.1.prep", goethe1 = "goethe_b1.1", goethe2 = "goethe_b1.2", goethe3 = "goethe_b1.3"
     case ielts1 = "ielts.1", ieltsPrep = "ielts.2.prep", ielts2 = "ielts.2", ielts3 = "ielts.3"
+    /// LINGO-10 BR-02a: additive part values. No run uses them before G-3; `goetheEnd` is a marker, not a timed part.
+    case goetheIntro = "goethe_b1.intro", goethePartner = "goethe_b1.2.partner", goetheFeedback = "goethe_b1.3.feedback", goetheEnd = "goethe_b1.end"
     public var isPreparation: Bool { self == .goethePrep || self == .ieltsPrep }
     public var isMonologue: Bool { self == .goethe2 || self == .ielts2 }
     public var seconds: Int {
@@ -12,7 +14,10 @@ public enum ExamPhase: String, Codable, Sendable, CaseIterable {
         case .goethe1, .goethe2: 180
         case .goethe3, .ielts2: 120
         case .ielts1, .ielts3: 300
-        case .ieltsPrep: 60
+        case .ieltsPrep, .goetheIntro: 60
+        case .goetheFeedback: 120
+        case .goethePartner: 300
+        case .goetheEnd: 0
         }
     }
     public var role: String {
@@ -23,13 +28,17 @@ public enum ExamPhase: String, Codable, Sendable, CaseIterable {
         case .goethe3: "partner; one short reaction and one question, then close"
         case .ielts1, .ielts3: "neutral examiner; ask the listed questions in order, one at a time"
         case .ielts2: "after the monologue, ask the one follow-up question"
+        case .goetheIntro: "examiner; greet and let the learner introduce themselves (not assessed)"
+        case .goethePartner: "partner; present the prepared talk"
+        case .goetheFeedback: "partner; answer the learner's feedback and question"
+        case .goetheEnd: "none; end marker"
         }
     }
     public var taskIndex: Int {
         switch self {
-        case .goethePrep, .goethe1, .ielts1: 0
-        case .goethe2, .ieltsPrep, .ielts2: 1
-        case .goethe3, .ielts3: 2
+        case .goethePrep, .goethe1, .ielts1, .goetheIntro: 0
+        case .goethe2, .ieltsPrep, .ielts2, .goethePartner, .goetheFeedback: 1
+        case .goethe3, .ielts3, .goetheEnd: 2
         }
     }
 }

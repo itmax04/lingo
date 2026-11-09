@@ -11,7 +11,22 @@ public struct ExamTask: Codable, Sendable, Hashable, Identifiable {
     public var questions: [String]
     /// Part 3 is linked to this Part 2 id; Part 2's one IELTS follow-up is in `questions`.
     public var linkedTo: String?
+    /// LINGO-10 BR-04: Goethe-only optional fields. Absent for IELTS, so those catalogue entries encode byte-identically.
+    public var title: String?
+    public var gloss: String?
+    public var category: ExamCategory?
+    public var talk: String?
+    public var talkSummary: String?
+
+    public init(id: String, exam: ExamKind, part: Int, task: String, points: [String], questions: [String], linkedTo: String? = nil,
+                title: String? = nil, gloss: String? = nil, category: ExamCategory? = nil, talk: String? = nil, talkSummary: String? = nil) {
+        self.id = id; self.exam = exam; self.part = part; self.task = task; self.points = points; self.questions = questions
+        self.linkedTo = linkedTo; self.title = title; self.gloss = gloss; self.category = category
+        self.talk = talk; self.talkSummary = talkSummary
+    }
 }
+
+public enum ExamCategory: String, Codable, Sendable, CaseIterable { case alltag, arbeit, freizeit, umwelt, gesundheit }
 
 public enum ExamKind: String, Codable, Sendable, CaseIterable {
     case goetheB1 = "goethe_b1", ielts
@@ -38,6 +53,16 @@ public enum ExamKind: String, Codable, Sendable, CaseIterable {
 public enum ExamCatalog {
     public static func task(_ id: String) -> ExamTask? { all.first { $0.id == id } }
     public static func tasks(_ exam: ExamKind, part: Int) -> [ExamTask] { all.filter { $0.exam == exam && $0.part == part } }
+    /// LINGO-10 BR-01: a Goethe Training session holds exactly one task, of the chosen Teil.
+    public static func validTraining(teil: Int, ids: [String]) -> Bool {
+        guard (1...3).contains(teil), ids.count == 1, let t = task(ids[0]) else { return false }
+        return t.exam == .goetheB1 && t.part == teil
+    }
+    /// LINGO-10 BR-01: a Mock holds the linked triple and a partner's talk (a Teil 2 id other than the learner's own).
+    public static func validMock(ids: [String], partnerTask: String) -> Bool {
+        guard validSelection(.goetheB1, ids: ids), let p = task(partnerTask) else { return false }
+        return p.exam == .goetheB1 && p.part == 2 && partnerTask != ids[1]
+    }
     public static func validSelection(_ exam: ExamKind, ids: [String]) -> Bool {
         guard ids.count == 3 else { return false }
         return ids.enumerated().allSatisfy { i, id in task(id).map { $0.exam == exam && $0.part == i + 1 } == true }

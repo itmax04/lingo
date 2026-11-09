@@ -587,6 +587,24 @@
               "items": {
                 "type": "string"
               }
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "mock",
+                "training"
+              ],
+              "description": "LINGO-10 BR-01, goethe_b1 only: mock = three linked tasks plus partnerTask; training = one task of the given teil"
+            },
+            "teil": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3,
+              "description": "LINGO-10 BR-01: the Teil of a training session"
+            },
+            "partnerTask": {
+              "type": "string",
+              "description": "LINGO-10 BR-01: id of the partner's talk (a part 2 task other than tasks[1]) in a mock"
             }
           }
         }
@@ -1166,6 +1184,10 @@
             "goethe_b1.1",
             "goethe_b1.2",
             "goethe_b1.3",
+            "goethe_b1.intro",
+            "goethe_b1.2.partner",
+            "goethe_b1.3.feedback",
+            "goethe_b1.end",
             "ielts.1",
             "ielts.2.prep",
             "ielts.2",
