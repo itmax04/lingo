@@ -82,6 +82,14 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         }
         func settle(_ s: Double = 0.3) async { try? await Task.sleep(for: .seconds(s)) }
         /// Waits until `condition` holds (at most `timeout` s): a slow CI runner needs longer than a fixed pause.
+        /// The same for a condition that reads the journal.
+        func waitUntilStored(timeout: Double = 15, _ condition: ([ChatMessage]) -> Bool) async {
+            let end = Date().addingTimeInterval(timeout)
+            while Date() < end {
+                if condition(await store.state.messages[sid] ?? []) { return }
+                try? await Task.sleep(for: .milliseconds(25))
+            }
+        }
         func waitUntil(timeout: Double = 15, _ condition: () -> Bool) async {
             let end = Date().addingTimeInterval(timeout)
             while !condition(), Date() < end { try? await Task.sleep(for: .milliseconds(25)) }
@@ -197,7 +205,8 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         e.tc.startContinuous()
         await e.feed(1300, speech: true)
         await e.feed(1550, speech: false)   // > T: the first utterance is over, the turn has started
-        await e.settle(0.2)                 // the request is sent and waiting for a reply
+        await e.waitUntilStored { $0.contains { $0.role == .user } }  // the first utterance is saved: the controller can merge
+        await e.settle(0.05)                // lets the controller consume the "saved" event
         await e.feed(600, speech: true)     // the addition after ~1.55 s ≤ G (by audio)
         await e.feed(1600, speech: false)
         await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wohin gehen Sie spazieren?" }
@@ -210,12 +219,13 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         #expect(assistants.map(\.spokenText) == ["Schön! Wohin gehen Sie spazieren?"], "the first request is cancelled, one reply")
     }
 
-    @Test func repeatIsLocalAndFast() async throws {
+    @Test func repeatIsLocal() async throws {
         let e = try await env(texts: ["Ich wohne in Hamburg.", "nochmal bitte"])
         e.tc.pushDown(); await e.feed(1000, speech: true); e.tc.pushUp()
         await e.waitUntil { e.sink.spoken.map(\.0).joined(separator: " ") == "Schön! Wie lange schon?" }  // the whole first reply, however slow
         e.sink.finish()
-        await e.settle(0.2)
+        await e.waitUntilStored { $0.contains { $0.role == .assistant } }  // the reply is saved: "repeat" has something to repeat
+        await e.settle(0.1)
         await e.holder?.refresh?()
         let callsBefore = e.log.all.count
         e.sink.spoken = []
@@ -231,7 +241,9 @@ func audio(_ ms: Int, speech: Bool, phase: inout Int) -> [Float] {
         let e = try await env(texts: ["Ich wohne in Hamburg.", "langsamer", "langsamer"], reply: { _ in .text(["@say de: Wie lange wohnen Sie schon in Hamburg, und gefällt es Ihnen?"]) })
         e.tc.pushDown(); await e.feed(1000, speech: true); e.tc.pushUp()
         await e.waitUntil { e.sink.spoken.last?.0.hasSuffix("Ihnen?") == true }  // the whole first reply, however slow
-        e.sink.finish(); await e.settle(0.2)
+        e.sink.finish()
+        await e.waitUntilStored { $0.contains { $0.role == .assistant } }
+        await e.settle(0.1)
         await e.holder?.refresh?()
         e.sink.spoken = []
         e.tc.pushDown(); await e.feed(800, speech: true); e.tc.pushUp(); await e.waitUntil { e.sink.spoken.count >= 2 }
