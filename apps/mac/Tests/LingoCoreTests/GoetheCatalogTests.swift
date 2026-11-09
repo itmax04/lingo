@@ -22,6 +22,7 @@ import Testing
         "Reise nach Köln planen", "Hochzeit – großes Fest oder private Feier?", "Der schönste Tag im Leben", "Ohne Auto leben",
         "Ich brauch kein eigenes Auto!", "Besuch im Krankenhaus und Hilfe planen", "Brauchen Kinder Mobiltelefone?",
         "Papa, ich will ein Handy!", "Sehen Kinder zu viel fern?",
+        "Sprachkurs für zwei Personen in Köln", "Wie hinkommen", "Was mitnehmen", "Rückmeldung zur Präsentation",
     ]
 
     @Test func twelveLinkedTasksPerPart() {

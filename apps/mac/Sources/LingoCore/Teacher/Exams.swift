@@ -138,16 +138,16 @@ public enum ExamCatalog {
                  ["Termin und Küche", "Gerichte und Allergien", "Einkauf und Kosten", "Verteilung der Aufgaben"]),
         // LINGO-10 BR-03: six more planning tasks.
         planning("cleanup", "Am Flussufer in Ihrem Viertel liegt viel Müll. Organisieren Sie gemeinsam eine Aufräumaktion.",
-                 ["Termin und Treffpunkt", "Handschuhe und Müllsäcke", "Helfer finden", "Abtransport des Mülls"]),
+                 ["Termin und Treffpunkt", "Handschuhe und Müllsäcke", "Hilfe finden", "Abtransport des Mülls"]),
         planning("courtyard", "Der Innenhof Ihres Hauses ist grau und leer. Planen Sie gemeinsam, wie Sie ihn mit den Nachbarn bepflanzen.",
                  ["Termin und Helfer", "Pflanzen und Erde", "Kosten und Einkauf", "Gießen im Sommer"]),
         planning("running", "Sie möchten mit Kolleginnen und Kollegen eine Laufgruppe gründen. Planen Sie gemeinsam.",
-                 ["Wochentag und Uhrzeit", "Strecke und Treffpunkt", "Tempo für Anfänger", "Plan bei schlechtem Wetter"]),
+                 ["Wochentag und Uhrzeit", "Strecke und Treffpunkt", "Tempo für Einsteiger", "Plan bei schlechtem Wetter"]),
         planning("firstaid", "Ihr Sportverein möchte einen Erste-Hilfe-Kurs für seine Mitglieder anbieten. Organisieren Sie ihn gemeinsam.",
                  ["Termin und Raum", "Kursleitung finden", "Kosten und Anmeldung", "Material und Pausen"]),
         planning("move", "Ihr Team zieht in ein neues Büro um. Planen Sie gemeinsam den Umzugstag.",
                  ["Termin und Reihenfolge", "Kartons und Packen", "Technik und Telefon", "Einrichtung der Arbeitsplätze"]),
-        planning("interns", "In Ihrer Firma beginnen drei Praktikanten. Planen Sie gemeinsam ihren ersten Arbeitstag.",
+        planning("interns", "In Ihrer Firma beginnen drei Praktikantinnen und Praktikanten. Planen Sie gemeinsam ihren ersten Arbeitstag.",
                  ["Begrüßung und Rundgang", "Arbeitsplatz und Technik", "Gemeinsames Mittagessen", "Erste Aufgaben"]),
     ]
     private static let presentationTasks = [

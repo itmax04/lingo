@@ -21,15 +21,15 @@ enum GoetheContent {
         "running": Plan(title: "Laufgruppe nach der Arbeit", gloss: "Беговая группа с коллегами", category: .gesundheit),
         "firstaid": Plan(title: "Erste-Hilfe-Kurs im Verein", gloss: "Курс первой помощи в клубе", category: .gesundheit),
         "move": Plan(title: "Umzug ins neue Büro", gloss: "Переезд команды в новый офис", category: .arbeit),
-        "interns": Plan(title: "Erster Tag der Praktikanten", gloss: "Первый день практикантов", category: .arbeit),
+        "interns": Plan(title: "Erster Tag der Praktikantinnen und Praktikanten", gloss: "Первый день практикантов", category: .arbeit),
     ]
 
     static let examinerLines: [GoetheExaminerLine: String] = [
         .intro: "Guten Tag und willkommen zur mündlichen Übungsprüfung. Erzählen Sie zuerst kurz etwas über sich: Wer sind Sie, wo leben Sie und warum lernen Sie Deutsch?",
         .introEnd: "Danke schön, jetzt kennen wir Sie ein wenig. Dann fangen wir mit den Aufgaben an.",
-        .teil1: "Teil eins: Sie planen jetzt zu zweit. Gehen Sie die Punkte auf Ihrem Blatt durch, machen Sie Vorschläge und einigen Sie sich am Ende auf einen Plan.",
+        .teil1: "Teil eins: Sie planen jetzt zu zweit. Gehen Sie die Punkte auf Ihrem Blatt durch, schlagen Sie etwas vor und einigen Sie sich am Ende auf einen Plan.",
         .teil2: "Teil zwei: Jetzt halten Sie Ihren Vortrag. Sie haben dafür drei bis vier Minuten. Ihre fünf Folien helfen Ihnen bei der Reihenfolge. Sie können anfangen.",
-        .teil3: "Teil drei: Wir sprechen jetzt über Ihren Vortrag. Sie hören zuerst eine kurze Reaktion und eine Frage, danach habe ich selbst noch eine Frage an Sie.",
+        .teil3: "Teil drei: Wir sprechen jetzt über Ihren Vortrag. Es gibt eine Reaktion und Fragen, und Sie antworten darauf.",
         .partnerTalk: "Jetzt hören Sie einen Vortrag. Achten Sie auf den Inhalt und notieren Sie, was Sie danach dazu sagen oder fragen möchten.",
         .feedback: "Jetzt sind Sie dran: Wie fanden Sie den Vortrag? Sagen Sie kurz Ihre Meinung dazu und fragen Sie etwas, das Sie noch wissen möchten.",
     ]
@@ -60,9 +60,9 @@ enum GoetheContent {
             GoethePhrase(de: "Vielen Dank fürs Zuhören. Haben Sie Fragen?", ru: "Спасибо за внимание. Есть вопросы?"),
         ],
         3: [
-            GoethePhrase(de: "Der Vortrag hat mir gut gefallen, vor allem der Teil über …", ru: "Доклад мне понравился, особенно часть о …"),
-            GoethePhrase(de: "Für mich war neu, dass …", ru: "Для меня было новым, что …"),
-            GoethePhrase(de: "Besonders interessant fand ich das Beispiel mit …", ru: "Особенно интересным мне показался пример с …"),
+            GoethePhrase(de: "Ich fand besonders gelungen, dass …", ru: "Особенно удачным мне показалось то, что …"),
+            GoethePhrase(de: "Das wusste ich noch nicht: …", ru: "Этого я ещё не знал(а): …"),
+            GoethePhrase(de: "Spannend war für mich das Beispiel mit …", ru: "Интересным для меня был пример с …"),
             GoethePhrase(de: "Ich hätte noch eine Frage: …", ru: "У меня есть ещё вопрос: …"),
             GoethePhrase(de: "Mich würde interessieren, wie das im Alltag funktioniert.", ru: "Мне интересно, как это работает в повседневной жизни."),
             GoethePhrase(de: "Könnten Sie das noch etwas genauer erklären?", ru: "Не могли бы вы объяснить это подробнее?"),
@@ -110,9 +110,9 @@ enum GoetheContent {
             summary: "Hat Deutsch zuerst allein mit einer App gelernt, konnte aber kaum sprechen; im Abendkurs verlor sich die Angst vor Fehlern. Im Heimatland: große Schulklassen, viel Grammatik, teure Sprachschulen. Meinung: Wörter lernt man gut allein, sprechen nur mit anderen; eine Mischung ist am besten.",
             slides: [
                 "Guten Tag. In meinem Vortrag geht es um die Frage, ob man eine Sprache besser in einer Gruppe oder allein lernt. Ich beginne mit meinen persönlichen Erfahrungen. Im zweiten Teil berichte ich, wie man in meinem Heimatland Sprachen lernt. Danach nenne ich Vorteile und Nachteile von beiden Wegen und sage meine eigene Meinung. Zum Schluss fasse ich das Wichtigste zusammen.",
-                "Ich habe beides ausprobiert. Mit Deutsch habe ich allein angefangen, mit einer App auf dem Handy. Jeden Morgen habe ich in der Bahn zehn Minuten Wörter gelernt. Das war praktisch, und ich habe schnell viele Wörter verstanden. Aber als ich zum ersten Mal in einer Bäckerei etwas bestellen wollte, konnte ich fast nichts sagen. Deshalb habe ich mich für einen Abendkurs angemeldet. Dort musste ich von der ersten Stunde an sprechen. Das war mir zuerst peinlich, aber nach ein paar Wochen hatte ich viel weniger Angst vor Fehlern.",
+                "Ich habe beides ausprobiert. Deutsch habe ich zuerst allein gelernt, mit einer App auf dem Handy. Jeden Morgen habe ich in der Bahn zehn Minuten Wörter gelernt. Das war praktisch, und ich habe schnell viele Wörter verstanden. Aber als ich zum ersten Mal in einer Bäckerei etwas bestellen wollte, konnte ich fast nichts sagen. Deshalb habe ich mich für einen Abendkurs angemeldet. Dort musste ich von der ersten Stunde an sprechen. Das war mir zuerst peinlich, aber nach ein paar Wochen hatte ich viel weniger Angst vor Fehlern.",
                 "In meinem Heimatland lernen die Kinder Fremdsprachen vor allem in der Schule, meistens in großen Klassen. Man schreibt viele Tests und lernt Grammatikregeln, aber man spricht leider wenig. Deshalb bezahlen viele Eltern zusätzlich einen privaten Lehrer. Erwachsene lernen heute oft mit Videos oder Apps, weil das nichts oder nur wenig kostet. Sprachschulen gibt es fast nur in den größeren Städten, und sie sind für viele Menschen zu teuer.",
-                "Wenn man allein lernt, kann man selbst entscheiden, wann, wo und wie schnell man lernt. Das passt gut zu einem vollen Arbeitstag. Man kann eine Übung so oft wiederholen, wie man möchte, und niemand lacht über Fehler. Der Nachteil ist, dass man viel Disziplin braucht. Außerdem korrigiert niemand die Fehler, und man übt das Sprechen kaum. In einer Gruppe ist das anders. Man hört andere Menschen, stellt Fragen und bekommt sofort eine Antwort. Die anderen motivieren, und oft findet man neue Freunde. Dafür hat ein Kurs feste Zeiten, und manchmal ist das Tempo zu schnell oder zu langsam. Meiner Meinung nach ist eine Mischung am besten: Wörter lernt man gut allein, sprechen lernt man nur mit anderen Menschen.",
+                "Wenn man allein lernt, kann man selbst entscheiden, wann, wo und wie schnell man lernt. Das passt gut zu einem vollen Arbeitstag. Man kann eine Übung so oft wiederholen, wie man möchte, und niemand lacht über Fehler. Der Nachteil ist, dass man viel Disziplin braucht. Außerdem korrigiert niemand die Fehler, und man übt das Sprechen kaum. In einer Gruppe ist das anders. Man hört andere Menschen, stellt Fragen und bekommt sofort eine Antwort. Die Gruppe motiviert, und oft findet man neue Freunde. Dafür hat ein Kurs feste Zeiten, und manchmal ist das Tempo zu schnell oder zu langsam. Meiner Meinung nach ist eine Mischung am besten: Wörter lernt man gut allein, sprechen lernt man nur mit anderen Menschen.",
                 "Ich komme zum Schluss. Beide Wege haben ihre Stärken, und sie ergänzen sich gut. Wer wirklich sprechen möchte, braucht aber irgendwann andere Menschen. Vielen Dank, dass Sie mir zugehört haben. Jetzt beantworte ich gern Ihre Fragen.",
             ]),
         "garden": Topic(
@@ -171,7 +171,7 @@ enum GoetheContent {
             slides: [
                 "Guten Tag. Mein Thema heute ist: Abends ohne Bildschirm? Viele von uns schauen bis kurz vor dem Schlafen auf das Handy, den Computer oder den Fernseher. Ich berichte zuerst von einem Versuch, den ich selbst gemacht habe. Dann beschreibe ich die Gewohnheiten in meinem Heimatland. Danach spreche ich über Vorteile und Nachteile und über meine Meinung. Zum Schluss fasse ich alles kurz zusammen.",
                 "Früher habe ich jeden Abend im Bett noch Nachrichten gelesen und kurze Videos angeschaut. Oft war es dann plötzlich nach Mitternacht, und am nächsten Morgen war ich furchtbar müde. Im Frühling habe ich deshalb einen Versuch gemacht. Ab neun Uhr abends lag mein Handy im Flur, und ich habe mir einen alten Wecker neben das Bett gestellt. Die ersten Tage waren schwer. Ich wusste nicht, was ich mit meinen Händen machen sollte. Dann habe ich wieder angefangen, Romane zu lesen. Nach zwei Wochen bin ich viel schneller eingeschlafen, und morgens hatte ich bessere Laune.",
-                "In meinem Heimatland läuft in vielen Familien den ganzen Abend der Fernseher, auch beim Essen. Fast alle haben ein Handy, auch ältere Menschen. Meine Tante schickt mir zum Beispiel jeden Abend lustige Bilder. In der Bahn oder im Café sieht man kaum noch jemanden mit einer Zeitung oder einem Buch. Über die Folgen spricht man aber selten. Nur in manchen Schulen bittet man die Eltern inzwischen, dass die Kinder ihr Handy abends abgeben.",
+                "In meinem Heimatland läuft in vielen Familien den ganzen Abend der Fernseher, auch beim Essen. Fast alle haben ein Handy, auch ältere Menschen. Meine Tante schickt mir zum Beispiel jeden Abend lustige Bilder. In der Bahn oder im Café sieht man kaum noch jemanden mit einer Zeitung oder einem Buch. Über die Folgen spricht man aber selten. Nur in manchen Schulen bittet man die Eltern inzwischen darum, dass die Kinder ihr Handy abends abgeben.",
                 "Ein Abend ohne Bildschirm hat einige Vorteile. Man schläft besser und länger. Man hat Zeit für Gespräche, für ein Buch, für ein Spiel mit der Familie oder für einen Spaziergang. Die Augen und der Kopf können sich ausruhen. Es gibt aber auch Nachteile. Man verpasst vielleicht eine wichtige Nachricht von Freunden oder von der Arbeit. Viele Menschen entspannen sich gerade bei einem Film oder einer Serie. Und wer Familie im Ausland hat, kann wegen der Zeitverschiebung oft nur am Abend telefonieren. Ich finde, man muss nicht ganz auf den Bildschirm verzichten. Aber die letzte Stunde vor dem Schlafen sollte frei davon sein. Mir hat diese einfache Regel sehr geholfen.",
                 "Ich fasse zusammen: Weniger Bildschirm am Abend bedeutet besseren Schlaf und mehr Zeit für andere Dinge, aber ein strenges Verbot braucht man nicht. Probieren Sie es einfach einmal eine Woche lang aus. Vielen Dank für Ihre Aufmerksamkeit. Jetzt bin ich neugierig auf Ihre Fragen.",
             ]),
