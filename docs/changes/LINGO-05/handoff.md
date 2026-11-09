@@ -82,7 +82,6 @@ Status: T-1…T-9 merged (last: T-9b, PR #91, `82357ac`). The LINGO-05 report (#
 **LINGO-05 report (#79): written in [report.md](report.md) (PR in review); then owner checkpoint H-05 (#80).** T-9b is merged as PR #91 (`82357ac`).
 Next after the report: H-05 (#80). Next model: standard → Sonnet 5.5 medium. Start: "Post the Russian H-05 checklist on #80 after the report PR merges."
 
-<<<<<<< HEAD
 ## Open: H-05 finding, "Start exam" does nothing after the first exam (2026-11-08, owner build 211, `b7b8171`)
 - Facts: the German B1 exam started at 08:58:56Z (journal `session.created`, `exam.part` prep → part 1, examiner reply), then ended at 08:59:43Z with the fixed farewell and `session.ended`, no learner turn in between (unknown who pressed Finish). After that both "Start exam" buttons on Teacher (German B1, IELTS) do nothing: no new `session.created`, no banner seen by the owner. The buttons look dimmed in the owner's screenshot (possibly disabled: `model.startingExam || !model.online || model.readOnly` in `TeacherView.examCard`), unconfirmed.
 - Checked in code, no cause found: `ExamServices.startExam` guards (`startingExam`, `ending`, `readOnly`), `finishSession` resets `ending`, `stopExam` resets `startingExam`, `shutDownVoice` is bounded to 8 s, banners are shown on Teacher. Not reproduced: the app cannot be clicked from the agent session.
@@ -112,8 +111,7 @@ Nothing hangs: an Objective-C exception kills the finish task. Evidence from the
 4. (done) Banner when `startExam` is refused: `ending` → "The session is still finishing. Try again in a moment."; `startingExam` → "An exam is already starting." (cleared when the start ends); `readOnly` → `model.disabledReason`. Add RU to `Localizable.xcstrings`. A refusal text must not outlive the finish.
 5. Checks: full `swift test`, `apps/mac/scripts/check-core-ios.sh`, check-design, `scripts/check-english.sh`, `scripts/secret-scan.sh`; independent review; PR (it may need #93 first or a rebase on it). The owner confirms on a new build: Finish, then Start exam. Build 211 (pid 52582) can be quit. Then continue H-05 (#80, checklist posted in the issue).
 
-=======
+
 ## Exam stuck in "Finishing the session…" (H-05 fix)
 **[PR #94](https://github.com/itmax04/lingo/pull/94) is squash-merged as `030eaa3`** (Fix exam stuck in "Finishing the session…" after Finish). The `mac` workflow on `main` for `030eaa3` is green ([run 42582778329](https://github.com/itmax04/lingo/actions/runs/42582778329), 1m31s), and so is `repo` (run 42582778300).
 CI download failure: the first `mac` run on the PR branch ([run 42582512051](https://github.com/itmax04/lingo/actions/runs/42582512051)) failed in "Build and test" with `failed downloading '…/whisper.cpp/releases/download/b5454/whisper-b5454-xcframework.zip' … badResponseStatusCode(504)` — a transient GitHub release-download error while SwiftPM resolved the `whisper` binary target, not a code failure. The re-run on the same code succeeded (the zip downloaded in 14.5 s). No change needed; if it repeats, consider caching the SwiftPM binary artifact in the `mac` workflow.
->>>>>>> 98d00a5 (LINGO-05 handoff: record #94 merge 030eaa3 and the transient CI download failure)
