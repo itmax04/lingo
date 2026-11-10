@@ -103,8 +103,8 @@ import Testing
         let raw = ExamPhase.allCases.map(\.rawValue)
         #expect(raw.prefix(8) == ["goethe_b1.1.prep", "goethe_b1.1", "goethe_b1.2", "goethe_b1.3", "ielts.1", "ielts.2.prep", "ielts.2", "ielts.3"])
         #expect(Set(raw).isSuperset(of: ["goethe_b1.intro", "goethe_b1.2.partner", "goethe_b1.3.feedback", "goethe_b1.end"]))
-        #expect(ExamPhase.goethe2.seconds == 180)  // unchanged until G-3
-        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2])
+        #expect(ExamPhase.goethe2.seconds == 240)  // BR-07, since G-3
+        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2, .goetheIntro])
         #expect(ExamPhase.allCases.filter(\.isPreparation) == [.goethePrep, .ieltsPrep])
     }
 }

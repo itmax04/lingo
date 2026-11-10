@@ -74,7 +74,7 @@ private actor ExamAudioRecognizer: SpeechRecognizer {
         await waitForCalls(rec, 1)
         await e.feed(800, speech: true); await e.feed(2300, speech: false)
         await e.feed(900, speech: true) // still open when the deadline flushes it
-        clock.date.addTimeInterval(181); c.tick(); c.tick()
+        clock.date.addTimeInterval(241); c.tick(); c.tick()
         #expect(await rec.measurements().counts.count == 1, "STT is serial")
         #expect(c.run?.phase == .goethe2 && e.log.all.count == 1)
         await rec.release()
@@ -134,7 +134,7 @@ private actor ExamAudioRecognizer: SpeechRecognizer {
         #expect(e.log.all.count == 1 && e.sink.micMuted)
     }
 
-    @Test(arguments: [65, 120, 180]) func longMonologueRetainsBeginningThroughDeadline(duration: Int) async throws {
+    @Test(arguments: [65, 120, 180, 240]) func longMonologueRetainsBeginningThroughDeadline(duration: Int) async throws {
         let rec = ExamAudioRecognizer(["Complete monologue."])
         let e = try await TurnControllerTests().env(texts: [], recognizer: rec, requests: CallLog())
         let clock = ExamControllerTests.Clock()
@@ -153,7 +153,7 @@ private actor ExamAudioRecognizer: SpeechRecognizer {
             if frame % 50 == 0 { await Task.yield() }
         }
         #expect(e.log.all.count == 1, "model requests remain held")
-        clock.date.addTimeInterval(181); c.tick()
+        clock.date.addTimeInterval(241); c.tick()
         await e.waitUntil { c.monologueReleased || c.run?.phase == .goethe3 }
         await ExamVoiceTests().drain(e, c)
         let measurements = await rec.measurements()

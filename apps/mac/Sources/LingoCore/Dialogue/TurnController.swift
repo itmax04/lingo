@@ -75,6 +75,21 @@ public final class TurnController {
         await runTurn(stream, turnID: id, ctx: ctx)
     }
 
+    /// LINGO-10 BR-10: an Examiner line or the partner's talk. Returns when the speech has ended or was stopped. There is no barge-in:
+    /// the exam keeps the microphone closed, so `feed` and `pushDown` ignore input meanwhile.
+    public func speakExam(_ parts: [String], lang: Lang, voiceID: String?) async {
+        guard exam != nil, !parts.isEmpty else { return }
+        let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        speakingTurn = nil; spokenParts = []; speakingMessageID = nil // not a reply: stopping it marks no message as interrupted
+        for p in parts {
+            sink.speak(p, lang: lang, voiceID: voiceID ?? voice.voiceIDs[lang], rate: rate, pauseAfter: 0, tag: nextTag)
+            nextTag += 1
+        }
+        state = .speaking
+        await waitSpeechEnd()
+        if state == .speaking, !Task.isCancelled { state = paused ? .paused : (mode == .continuous ? .listening : .idle) }
+    }
+
     private func flushExamUtterance() {
         let events = segmenter.flush(at: seconds)
         recording = false
@@ -391,7 +406,9 @@ public final class TurnController {
                     answerStarted = true
                     segmenter.assistantStartedSpeaking()
                 }
-                sink.speak(t, lang: l, voiceID: voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
+                // LINGO-10 BR-23: a reply in a Goethe run with a format is the partner's, in the partner's voice.
+                let partner = l == ctx.session.settings.lang ? exam?.replyVoice : nil
+                sink.speak(t, lang: l, voiceID: partner ?? voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
                 state = .speaking
             case .restart:
                 if speakingTurn == turnID { sink.stopSpeaking(); spokenParts = [] }

@@ -75,7 +75,7 @@ import Testing
     @Test(arguments: ExamKind.allCases) func orderedTimersAndQueuedTransition(kind: ExamKind) {
         var r = Self.run(kind)
         let phases: [ExamPhase] = kind == .goetheB1 ? [.goethePrep, .goethe1, .goethe2, .goethe3] : [.ielts1, .ieltsPrep, .ielts2, .ielts3]
-        #expect(phases.map(\.seconds) == (kind == .goetheB1 ? [900, 180, 180, 120] : [300, 60, 120, 300]))
+        #expect(phases.map(\.seconds) == (kind == .goetheB1 ? [900, 180, 240, 120] : [300, 60, 120, 300]))
         for (i, p) in phases.enumerated() {
             #expect(r.phase == p && r.index == i && r.task.part == p.taskIndex + 1)
             #expect(r.microphoneAllowed == !p.isPreparation)
@@ -103,7 +103,7 @@ import Testing
         #expect(r.phase == .goethe1 && !r.timeIsUp)
         for text in ["fertig", " Done! ", "finished.", "FERTIG"] { #expect(ExamRun.isDoneUtterance(text)) }
         for text in ["I am done with school", "noch nicht fertig", "unfinished", "", "done now"] { #expect(!ExamRun.isDoneUtterance(text)) }
-        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2])
+        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2, .goetheIntro])
     }
 
     @Test func examEventsMatchSwiftAndTSIncludingMalformedPayloads() throws {

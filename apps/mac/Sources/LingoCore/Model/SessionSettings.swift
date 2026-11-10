@@ -211,12 +211,9 @@ public struct Activity: Codable, Sendable, Hashable {
         case .warmup: valid = !(cards ?? []).isEmpty
         case .scenario: valid = !(id ?? "").isEmpty
         case .exam:
-            let kind = exam.flatMap(ExamKind.init(rawValue:))
-            switch format {
-            case nil: valid = teil == nil && partnerTask == nil && (kind.map { ExamCatalog.validSelection($0, ids: tasks ?? []) } ?? false)
-            case .mock: valid = kind == .goetheB1 && teil == nil && partnerTask.map { ExamCatalog.validMock(ids: tasks ?? [], partnerTask: $0) } == true
-            case .training: valid = kind == .goetheB1 && partnerTask == nil && teil.map { ExamCatalog.validTraining(teil: $0, ids: tasks ?? []) } == true
-            }
+            valid = exam.flatMap(ExamKind.init(rawValue:)).map {
+                ExamCatalog.valid($0, ids: tasks ?? [], format: format, teil: teil, partnerTask: partnerTask)
+            } ?? false
         }
         guard valid else { throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "activity without its fields") }
     }

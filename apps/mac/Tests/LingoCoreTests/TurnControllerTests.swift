@@ -6,6 +6,7 @@ import Testing
 @MainActor
 final class FakeSink: SpeechSink {
     var spoken: [(String, Float, Double)] = []
+    var voices: [String?] = []
     var playing = false
     var stops = 0
     var stopTimes: [Double] = []
@@ -16,6 +17,7 @@ final class FakeSink: SpeechSink {
     var currentTag: Int?
     func speak(_ text: String, lang: Lang, voiceID: String?, rate: Float, pauseAfter: Double, tag: Int) {
         spoken.append((text, rate, pauseAfter))
+        voices.append(voiceID)
         if currentTag == nil { currentTag = tag }
         if firstSpeakAt == nil { firstSpeakAt = MetricsRecorder.now() }
         playing = true

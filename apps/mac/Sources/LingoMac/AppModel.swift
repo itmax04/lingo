@@ -22,6 +22,8 @@ final class AppModel {
     var examBusy = false
     var examInputAllowed = false
     var examFollowUp = false
+    /// LINGO-10 BR-23: who the app is speaking as in a Goethe run with a format.
+    var examSpeaker: ExamSpeaker?
     var isExam: Bool { selectedSession?.settings.activity?.kind == .exam }
     var canContinue: Bool { !isExam }
     /// Exam sessions whose debrief request is running (memory only; a stored debrief is a `summary` message in the journal).
