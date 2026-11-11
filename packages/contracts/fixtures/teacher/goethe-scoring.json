@@ -1,4 +1,71 @@
 {
+  "filterCases" : [
+    {
+      "dropped" : true,
+      "line" : "Teil 1 · 18/28",
+      "name" : "fraction"
+    },
+    {
+      "dropped" : true,
+      "line" : "Итого 18 / 28",
+      "name" : "fraction with spaces"
+    },
+    {
+      "dropped" : true,
+      "line" : "Результат: 18 из 28.",
+      "name" : "russian of"
+    },
+    {
+      "dropped" : true,
+      "line" : "Примерно 18 баллов",
+      "name" : "points word after number"
+    },
+    {
+      "dropped" : true,
+      "line" : "Баллы: 18",
+      "name" : "points word before number"
+    },
+    {
+      "dropped" : true,
+      "line" : "Punktzahl 18 von 28",
+      "name" : "german score"
+    },
+    {
+      "dropped" : true,
+      "line" : "Your score is 18",
+      "name" : "english score"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1E] B: Охвачено 3 из 10 пунктов плана.",
+      "name" : "two-digit total of plan points kept"
+    },
+    {
+      "dropped" : true,
+      "line" : "Всего 18 из 28 возможных",
+      "name" : "russian of with a word after"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1E] B: Охвачено 3 из 4 пунктов плана.",
+      "name" : "plan points kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "> Du sprichst über den Punkt → Der erste Punkt — порядок",
+      "name" : "plain point word kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1W] C: Хороший балл не нужен, но слов хватает.",
+      "name" : "no number kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "[2K] A: Ясный порядок.",
+      "name" : "letters kept"
+    }
+  ],
   "letterPoints" : {
     "12" : {
       "A" : 12,
@@ -222,7 +289,7 @@
       ]
     }
   ],
-  "rule" : "LINGO-10 BR-28, BR-29, BR-40: scoring contract. Written by Swift GoetheScoringTests (LINGO_RECORD_FIXTURES=1). Parser cases: text and requested Teile in, points per Teil (null = text without points) out.",
+  "rule" : "LINGO-10 BR-28, BR-29, BR-40: scoring contract. Written by Swift GoetheScoringTests (LINGO_RECORD_FIXTURES=1). Parser cases: text and requested Teile in, points per Teil (null = text without points) out. Filter cases: a debrief line in, whether the score filter drops it.",
   "teilMaxima" : {
     "1" : 28,
     "2" : 40,

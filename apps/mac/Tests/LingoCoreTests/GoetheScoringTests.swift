@@ -109,15 +109,17 @@ import Testing
             var letterPoints: [String: [String: Int]]
             var zeroRule: String
             var parserCases: [Case]
+            /// LINGO-10 BR-30a: lines the Goethe score filter drops (`dropped` true) and lines it keeps.
+            var filterCases: [GoetheDebriefTests.FilterCase]
         }
         var letterPoints: [String: [String: Int]] = [:]
         for m in [4, 8, 12, 16] {
             letterPoints[String(m)] = Dictionary(uniqueKeysWithValues: GoetheLetter.allCases.map { ($0.rawValue, $0.points(maximum: m)!) })
         }
-        let file = File(rule: "LINGO-10 BR-28, BR-29, BR-40: scoring contract. Written by Swift GoetheScoringTests (LINGO_RECORD_FIXTURES=1). Parser cases: text and requested Teile in, points per Teil (null = text without points) out.",
+        let file = File(rule: "LINGO-10 BR-28, BR-29, BR-40: scoring contract. Written by Swift GoetheScoringTests (LINGO_RECORD_FIXTURES=1). Parser cases: text and requested Teile in, points per Teil (null = text without points) out. Filter cases: a debrief line in, whether the score filter drops it.",
                         maxima: Dictionary(uniqueKeysWithValues: GoetheCriterion.allCases.map { ($0.rawValue, $0.maximum) }),
                         teilMaxima: ["1": 28, "2": 40, "3": 16], letterPoints: letterPoints,
-                        zeroRule: "1E = E scores Teil 1 as 0 in total; no other criterion zeroes a Teil.", parserCases: Self.cases)
+                        zeroRule: "1E = E scores Teil 1 as 0 in total; no other criterion zeroes a Teil.", parserCases: Self.cases, filterCases: GoetheDebriefTests.filterCases)
         let enc = JSONEncoder(); enc.outputFormatting = [.sortedKeys, .withoutEscapingSlashes, .prettyPrinted]
         try ExamTests.fixture("fixtures/teacher/goethe-scoring.json", String(decoding: enc.encode(file), as: UTF8.self) + "\n")
     }
