@@ -76,9 +76,12 @@ public final class TurnController {
     }
 
     /// LINGO-10 BR-10: an Examiner line or the partner's talk. Returns when the speech has ended or was stopped. There is no barge-in:
-    /// the exam keeps the microphone closed, so `feed` and `pushDown` ignore input meanwhile.
+    /// the exam keeps the microphone closed, so `feed` and `pushDown` ignore input meanwhile, and Esc, Space, Pause, a bubble click
+    /// and turning continuous mode off leave this speech alone. Only the exam itself (Done, Finish, `stop`) ends it early.
     public func speakExam(_ parts: [String], lang: Lang, voiceID: String?) async {
         guard exam != nil, !parts.isEmpty else { return }
+        examSpeech += 1
+        defer { examSpeech -= 1 }
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
         speakingTurn = nil; spokenParts = []; speakingMessageID = nil // not a reply: stopping it marks no message as interrupted
         for p in parts {
@@ -109,6 +112,8 @@ public final class TurnController {
     // Turn
     private var turnTask: Task<Void, Never>?
     private var examRecognitionTask: Task<Void, Never>?
+    /// Examiner lines or partner's talks being spoken (BR-10). A count: a restarted talk overlaps the cancelled one for a moment.
+    private var examSpeech = 0
     private var turnSeq = 0
     private var currentTurnID = ""
     private var spokenParts: [(tag: Int, text: String)] = []
@@ -159,6 +164,7 @@ public final class TurnController {
         interrupt(reason: "stop")
         if cancelTurn {
             exam?.stop()
+            sink.stopSpeaking() // an Examiner line or the talk, which `interrupt` leaves alone
             examRecognitionTask?.cancel(); examRecognitionTask = nil
             turnTask?.cancel()
             turnTask = nil
@@ -175,6 +181,7 @@ public final class TurnController {
             paused = false
             state = mode == .continuous ? .listening : .idle
         } else {
+            guard examSpeech == 0 else { return } // BR-10: an Examiner line or the talk cannot be paused
             paused = true
             interrupt(reason: "pause")
             state = .paused
@@ -208,6 +215,7 @@ public final class TurnController {
 
     /// Esc (R-06, R-12): cancel the utterance and stop speech.
     public func cancel() {
+        guard examSpeech == 0 else { return } // BR-10: no barge-in on an Examiner line or the talk
         recording = false
         segmenter = TurnSegmenter(config: voice.turn)
         interrupt(reason: "esc")
@@ -471,6 +479,7 @@ public final class TurnController {
 
     /// Stop speech; remember where it was interrupted (R-12).
     private func interrupt(reason: String) {
+        guard examSpeech == 0 else { return } // BR-10
         guard let stop = sink.stopSpeaking() else { return }
         // Only a part of the current reply moves the mark: stopping a replayed bubble (other tags) never marks a reply that was
         // heard in full as interrupted.
@@ -525,13 +534,16 @@ public final class TurnController {
 
     /// Replay speech when the assistant's bubble is clicked (R-41).
     public func replay(_ m: ChatMessage) {
+        guard examSpeech == 0 else { return } // BR-10: a bubble click neither stops nor queues behind an Examiner line or the talk
         interrupt(reason: "replay")
         let rate = SpeechPace(base: voice.pace).rate(multiplier: slowPace ? 0.75 : 1)
+        // BR-23: a reply of a Goethe run with a format is replayed in the partner's voice, as it was spoken.
+        let study = exam.flatMap { $0.sessionID == m.session ? $0.run?.kind.lang : nil }
         for seg in m.segments {
             if case .say(let l, let t) = seg {
                 let tag = nextTag
                 nextTag += 1
-                sink.speak(t, lang: l, voiceID: voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
+                sink.speak(t, lang: l, voiceID: (l == study ? exam?.replyVoice : nil) ?? voice.voiceIDs[l], rate: rate, pauseAfter: 0, tag: tag)
             }
         }
     }

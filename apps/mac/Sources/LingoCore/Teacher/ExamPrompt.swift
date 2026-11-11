@@ -35,7 +35,9 @@ extension PromptBuilder {
     }
 
     /// BR-14: the request of Mock Teil 3 sees the learner's whole talk as one turn (every line shortened evenly within the cap)
-    /// instead of the last turns. Nil for any other part, or when the learner said nothing.
+    /// instead of the last turns. Nil for any other part, or when the learner said nothing (the usual window is sent then).
+    /// Known limits: budget unused by short lines is not redistributed, and beyond about 97 lines the 40-character floor
+    /// exceeds the cap, so the outer cut drops the tail.
     static func examOwnTalk(_ run: ExamRun?, _ messages: [ChatMessage]) -> [ChatMessage]? {
         guard let run, run.format == .mock, run.phase == .goethe3 else { return nil }
         let lines = messages.filter { run.ownTalk.contains($0.id) && $0.role == .user }

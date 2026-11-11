@@ -19,6 +19,8 @@ import Testing
         var closed: [Bool] = []
         /// The voice whose speech does not end until this is cleared.
         var hold: String?
+        /// A line whose speech does not end while this names it.
+        var holdLine: String?
         var lines: [String] { spoken.flatMap(\.parts) }
     }
     func env() throws -> (ExamControllerTests.Env, ExamController, Speech) {
@@ -28,7 +30,7 @@ import Testing
         c.speak = { [weak c] parts, voice in
             s.spoken.append((voice, parts))
             s.closed.append(e.sink.micMuted && c?.canCapture == false && c?.beginCapture() == nil)
-            while s.hold == voice, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
+            while s.hold == voice || s.holdLine.map(parts.contains) == true, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(5)) }
         }
         return (e, c, s)
     }
@@ -148,7 +150,9 @@ import Testing
             for i in runs.indices {
                 while !runs[i].finished {
                     let b = block(runs[i])
-                    #expect(b.unicodeScalars.count <= 720 && ExamTests.tokens(b) <= 250, "\(runs[i].phase.rawValue) \(two.id)")
+                    // BAC-10: the 700-scalar limit covers what stands between the tags.
+                    let content = b.dropFirst("<exam>\n".count).dropLast("\n</exam>".count)
+                    #expect(content.unicodeScalars.count <= 700 && ExamTests.tokens(b) <= 250, "\(runs[i].phase.rawValue) \(two.id)")
                     #expect(b.hasSuffix("\n</exam>") && ExamRun.sentences(two.talk ?? "").allSatisfy { !b.contains($0) })
                     runs[i].advance(expected: runs[i].phase, timeUp: false, turnRunning: false, now: ExamTests.start)
                 }
@@ -272,6 +276,93 @@ import Testing
         #expect(await e.store.state.sessions[c.sessionID!]?.state != .ended)
     }
 
+    func until(_ condition: () -> Bool) async {
+        for _ in 0..<400 where !condition() { try? await Task.sleep(for: .milliseconds(5)) }
+        #expect(condition())
+    }
+
+    @Test func doneDuringTheGreetingOrTheThanksIsAppliedAfterTheLine() async throws {
+        let (e, c, s) = try env(); s.holdLine = GoetheExaminerLine.intro.text
+        let sid = try #require(try await c.start(.goetheB1, tasks: [Self.plan, Self.talk, Self.discuss], format: .mock,
+                                                 partnerTask: Self.partner, automaticTimer: false))
+        await until { s.spoken.count == 1 }
+        c.advance(expected: .goetheIntro) // Done during the greeting
+        #expect(c.run?.phase == .goetheIntro && c.busy && e.sink.micMuted, "the line is not cut short")
+        s.holdLine = GoetheExaminerLine.introEnd.text
+        await until { s.lines.last == GoetheExaminerLine.introEnd.text }
+        #expect(c.run?.phase == .goethe1 && e.sink.micMuted && c.beginCapture() == nil && c.speaker == .examiner)
+        c.advance(expected: .goethe1) // Done during the thanks
+        e.clock.date.addTimeInterval(999); c.tick()
+        s.holdLine = GoetheExaminerLine.teil1.text
+        await until { s.lines.last == GoetheExaminerLine.teil1.text }
+        #expect(c.run?.phase == .goethe1 && e.sink.micMuted && e.requests.all.isEmpty, "Teil 1 still gets its line")
+        s.holdLine = nil; await idle(c)
+        #expect(c.run?.phase == .goethe2 && e.requests.all.isEmpty && !e.sink.micMuted, "the queued Done ends Teil 1 right after its line")
+        #expect(s.lines == [GoetheExaminerLine.intro, .introEnd, .teil1, .teil2].map(\.text) && s.closed.allSatisfy { $0 })
+        #expect(await e.store.state.examParts[sid] == [.goetheIntro, .goethe1, .goethe2])
+        c.stop()
+    }
+
+    @Test func mockTimersWaitForAReplyACaptureAndALineAndTheTalkHasItsSafetyLimit() async throws {
+        let (e, c, s) = try env()
+        _ = try await c.start(.goetheB1, tasks: [Self.plan, Self.talk, Self.discuss], format: .mock, partnerTask: Self.partner, automaticTimer: false)
+        await idle(c); await go(c, .goetheIntro)
+        // Teil 1: zero during the partner's reply (BR-09).
+        e.holdSpeech = true
+        await c.submit("Wir treffen uns am Samstag.", lang: .de)
+        e.clock.date.addTimeInterval(180); c.tick()
+        #expect(c.run?.phase == .goethe1 && c.busy)
+        e.holdSpeech = false; await idle(c)
+        #expect(c.run?.phase == .goethe2 && e.requests.all.count == 2)
+        // Teil 2: zero during a running capture; its text still belongs to the talk.
+        let token = try #require(c.beginCapture())
+        e.clock.date.addTimeInterval(240); c.tick()
+        #expect(c.run?.phase == .goethe2)
+        await c.endCapture(token, text: "Mein Thema ist das Fahrrad.", lang: .de); await idle(c)
+        #expect(c.run?.phase == .goethe3 && e.requests.all.count == 3 && e.requests.all[2].contains("learner (de): Mein Thema ist das Fahrrad."))
+        // Teil 3: Done and zero during the Examiner's question.
+        let question = try #require(Self.text(Self.discuss).questions.first)
+        s.holdLine = question
+        await c.submit("Weil es gesund ist.", lang: .de)
+        await until { s.lines.last == question }
+        c.advance(expected: .goethe3)
+        e.clock.date.addTimeInterval(120); c.tick()
+        #expect(c.run?.phase == .goethe3 && e.sink.micMuted && c.beginCapture() == nil)
+        // The talk: closed, strict, and ended by its 300 s safety limit, which stops the speech.
+        s.hold = "voice-partner"; s.holdLine = nil
+        await until { s.spoken.last?.voice == "voice-partner" }
+        #expect(c.run?.phase == .goethePartner && c.speaker == .partner)
+        e.sink.playing = true
+        e.clock.date.addTimeInterval(299); c.tick()
+        #expect(c.run?.phase == .goethePartner && e.sink.stops == 0)
+        e.clock.date.addTimeInterval(1); c.tick()
+        #expect(e.sink.stops == 1)
+        s.hold = nil; await idle(c)
+        #expect(c.run?.phase == .goetheFeedback && !e.sink.micMuted && e.requests.all.count == 3 && c.speaker == nil)
+        // The feedback part ends at zero too, and the run is finished.
+        e.clock.date.addTimeInterval(120); c.tick(); await idle(c)
+        #expect(c.run?.finished == true && s.closed.allSatisfy { $0 })
+    }
+
+    @Test func anAnswerCutOffByThePartEndIsNotAnsweredInTheNextPart() async throws {
+        let (e, c, _) = try env()
+        let sid = try #require(try await c.start(.goetheB1, tasks: [Self.plan, Self.talk, Self.discuss], format: .mock,
+                                                 partnerTask: Self.partner, automaticTimer: false))
+        await idle(c)
+        for p in [ExamPhase.goetheIntro, .goethe1, .goethe2] { await go(c, p) }
+        #expect(c.run?.phase == .goethe3 && e.requests.all.count == 2)
+        let token = try #require(c.beginCapture())
+        e.clock.date.addTimeInterval(120); c.tick()
+        await c.endCapture(token, text: "Weil es gesund ist.", lang: .de); await idle(c)
+        #expect(c.run?.phase == .goetheFeedback && e.requests.all.count == 2)
+        #expect(await e.store.state.messages[sid]?.contains { $0.text == "Weil es gesund ist." } == true)
+        await c.submit("", lang: .de); await idle(c) // noise: an empty transcript
+        #expect(e.requests.all.count == 2, "no reply before the learner has said anything in the new part")
+        await c.submit("Kaufen Sie auch Kleidung gebraucht?", lang: .de); await idle(c)
+        #expect(e.requests.all.count == 3 && e.requests.all[2].contains("part: goethe_b1.3.feedback"))
+        c.stop()
+    }
+
     // MARK: Training (BAC-08)
 
     @Test func trainingTeil1HasSoftTimersAndEndsWithDone() async throws {
@@ -334,7 +425,65 @@ import Testing
         #expect(talk.allSatisfy { !stored.contains($0) && !e.requests.all.joined().contains($0) }, "the talk is neither stored nor sent")
     }
 
+    @Test func replayRestartsATalkThatIsStillBeingSpoken() async throws {
+        let (e, c, s) = try env(); s.hold = "voice-partner"
+        _ = try await c.start(.goetheB1, tasks: [Self.discuss], format: .training, teil: 3, automaticTimer: false)
+        await until { s.spoken.count == 2 }
+        e.sink.playing = true
+        c.replayTalk()
+        #expect(e.sink.stops == 1, "Replay stops the running speech")
+        await until { s.spoken.count == 3 }
+        #expect(s.spoken[2].parts == s.spoken[1].parts && c.run?.phase == .goethePartner && c.speaker == .partner && c.busy && e.sink.micMuted)
+        s.hold = nil; await idle(c)
+        #expect(s.spoken.count == 3 && c.run?.phase == .goethePartner && c.speaker == nil && e.sink.micMuted && e.requests.all.isEmpty)
+        c.stop()
+    }
+
     // MARK: Voice loop (BR-10, BR-23)
+
+    /// BR-10: Esc, Space or the microphone button in continuous mode, Pause, a bubble click and turning continuous mode off
+    /// leave an Examiner line and the partner's talk alone; Replay of the talk and Finish still stop them.
+    @Test func hostControlsDoNotStopAnExaminerLineOrTheTalk() async throws {
+        let e = try await TurnControllerTests().env(texts: [])
+        let clock = ExamControllerTests.Clock()
+        let c = ExamController(engine: e.engine, sink: e.sink, now: { clock.date }) { [weak tc = e.tc] stream in await tc?.consumeExamReply(stream) }
+        c.voices = ExamVoices(examiner: "voice-examiner", partner: "voice-partner")
+        c.speak = { [weak tc = e.tc] parts, voice in await tc?.speakExam(parts, lang: .de, voiceID: voice) }
+        e.tc.exam = c
+        defer { e.tc.stopVoice(cancelTurn: true) }
+        let sid = try #require(try await c.start(.goetheB1, tasks: [Self.discuss], format: .training, teil: 3, automaticTimer: false))
+        let bubble = ChatMessage(id: "m", session: sid, role: .assistant, text: "Guten Tag.", lang: .de,
+                                 segments: [.say(.de, "Guten Tag.")], createdAt: ExamTests.start)
+        func poke() {
+            e.tc.cancel(); e.tc.togglePause(); e.tc.replay(bubble); e.tc.stopVoice(); e.tc.startContinuous(); e.tc.cancel()
+        }
+        await e.waitUntil { e.sink.spoken.count == 1 }
+        e.tc.startContinuous(); poke()
+        #expect(e.sink.playing && e.sink.stops == 0 && e.sink.spoken.count == 1 && e.tc.state != .paused, "the Examiner line plays on")
+        #expect(c.speaker == .examiner && c.busy && e.sink.micMuted)
+        e.sink.finish()
+        let talk = ExamRun.sentences(try #require(Self.text(Self.talk).talk))
+        await e.waitUntil { e.sink.spoken.count == 1 + talk.count }
+        poke()
+        #expect(e.sink.playing && e.sink.stops == 0 && e.sink.spoken.count == 1 + talk.count && e.tc.state != .paused, "the talk plays on")
+        #expect(c.speaker == .partner && c.run?.phase == .goethePartner)
+        c.replayTalk()
+        #expect(e.sink.stops == 1)
+        await e.waitUntil { e.sink.spoken.count == 1 + 2 * talk.count }
+        e.sink.finish()
+        await e.waitUntil { !c.busy }
+        // After the speech the ordinary controls work again, and a replayed reply keeps the partner's voice (BR-23).
+        #expect(c.speaker == nil && c.run?.phase == .goethePartner)
+        e.tc.replay(bubble)
+        #expect(e.sink.spoken.last?.0 == "Guten Tag." && e.sink.voices.last == "voice-partner")
+        e.tc.cancel()
+        #expect(!e.sink.playing && e.sink.stops == 2)
+        // Finish stops a running talk.
+        c.replayTalk()
+        await e.waitUntil { e.sink.playing }
+        e.tc.stopVoice(cancelTurn: true)
+        #expect(!e.sink.playing && e.sink.stops == 3 && c.run?.finished == false)
+    }
 
     @Test func voiceLoopSpeaksLinesAsTheExaminerAndRepliesAsThePartner() async throws {
         let e = try await TurnControllerTests().env(texts: [])

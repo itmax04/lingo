@@ -300,8 +300,8 @@ public final class VoiceIO: @unchecked Sendable {
                          pauseAfter: Double, tag: Int, generation gen: Int) {
         lock.lock()
         guard gen == generation else { lock.unlock(); return }
-        pendingSynth = max(0, pendingSynth - 1)
         guard running else {
+            pendingSynth = max(0, pendingSynth - 1)
             let idle = pendingBuffers == 0 && pendingSynth == 0
             lock.unlock()
             if idle { onIdle?() }
@@ -325,6 +325,11 @@ public final class VoiceIO: @unchecked Sendable {
         let total = out.reduce(Int64(0)) { $0 + Int64($1.frameLength) }
         let ratio = srcRate > 0 ? outFormat.sampleRate / srcRate : 1
         lock.lock()
+        // A stop during the conversion dropped this phrase and reset the counters.
+        guard gen == generation else { lock.unlock(); return }
+        // The phrase moves from "being synthesized" to "queued" in one step, so `isSpeaking` never reads false in between
+        // (a single-phrase Examiner line would otherwise "end" before its audio, LINGO-10 BR-10).
+        pendingSynth = max(0, pendingSynth - 1)
         let wasIdle = pendingBuffers == 0
         // After the queue is paused, playback resumes from the player's current position.
         if wasIdle, let now = playerSample() { scheduledTotal = max(scheduledTotal, now) }

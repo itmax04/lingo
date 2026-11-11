@@ -209,7 +209,8 @@ public final class ExamController {
     /// LINGO-10 BR-10: a part of a run with a format opens with its Examiner line; then its timer starts and the part begins.
     private func open() {
         guard !stopped, let r = run, !r.finished else { return }
-        answers = 0
+        // A turn left unanswered by the previous part's end is not answered in this one.
+        answers = 0; userWaiting = false
         line(r.examinerOpening) { c in
             c.run?.restart(now: c.now())
             c.updateMicrophone()
