@@ -8,6 +8,15 @@ enum Fixtures {
     static let corrected = "Ich habe seit zwei Tagen Kopfschmerzen."
     static let russianExplanation = "После seit нужен дательный падеж: seit zwei Tagen."
     static let rule = "Nach seit steht der Dativ."
+    /// The learner's own scenarios for snapshots (synthetic language data).
+    static let customScenarios = [
+        CustomScenario(id: "custom-fixture-heating", lang: .de, title: "Heizung kaputt", level: "B1", role: "mein Vermieter, streng aber fair",
+                       situation: "Seit einer Woche funktioniert die Heizung in meiner Wohnung nicht. Ich möchte, dass sie vor dem Wochenende repariert wird.",
+                       tasks: ["Beschreiben Sie das Problem.", "Fragen Sie, wann der Handwerker kommt.", "Bitten Sie um eine Mietminderung."]),
+        CustomScenario(id: "custom-fixture-kita", lang: .de, title: "Gespräch in der Kita", level: "A2", role: "Erzieherin in der Kita meiner Tochter",
+                       situation: "Я забираю дочь из садика, воспитательница хочет рассказать, как прошёл день.", tasks: []),
+    ]
+
     static func fill(_ m: AppModel, now: Date = Date(timeIntervalSince1970: 1793109600)) {
         let settings = SessionSettings(lang: .de, mode: .customPrompt, topic: "Beim Arzt", level: "B1", corrections: [.inline])
         m.sessions = [

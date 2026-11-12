@@ -17,10 +17,12 @@ public struct AppSettings: Codable, Sendable, Hashable {
     /// Daily reminder (GR-08): device-local by design, off by default. `reminderTime` is minutes after local midnight.
     public var reminderOn = false
     public var reminderTime = Reminder.defaultTime
+    /// The learner's own scenarios, both study languages (device-local like the reminder; sessions keep their own copy).
+    public var customScenarios: [CustomScenario] = []
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime }
+    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime, customScenarios }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -34,7 +36,14 @@ public struct AppSettings: Codable, Sendable, Hashable {
         voice = (try? c.decodeIfPresent(VoiceSettings.self, forKey: .voice)) ?? VoiceSettings()
         reminderOn = (try? c.decodeIfPresent(Bool.self, forKey: .reminderOn)) ?? false
         reminderTime = Reminder.clamp((try? c.decodeIfPresent(Int.self, forKey: .reminderTime)) ?? Reminder.defaultTime)
+        customScenarios = ((try? c.decodeIfPresent([Lossy<CustomScenario>].self, forKey: .customScenarios)) ?? []).compactMap(\.value).filter(\.isValid)
     }
+}
+
+/// Decodes one array element or keeps nil, so one bad element (for example from a newer build) does not drop the whole list.
+private struct Lossy<T: Decodable>: Decodable {
+    let value: T?
+    init(from decoder: Decoder) throws { value = try? decoder.singleValueContainer().decode(T.self) }
 }
 
 /// Settings stored in UserDefaults (available on iOS too).

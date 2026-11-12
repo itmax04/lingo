@@ -115,8 +115,11 @@ final class AppModel {
     var readOnly = false
     var memoryNote: String?
     var showNewSession = false
-    /// The scenario picker (LINGO-05 SR-01).
+    /// The scenario picker (LINGO-05 SR-01); `scenarioTabMine` opens it on the learner's own scenarios.
     var showScenarios = false
+    var scenarioTabMine = false
+    /// The learner's own scenarios (a mirror of the settings, which the views cannot observe).
+    var customScenarios: [CustomScenario] = []
     /// "What Lingo knows about me" (GR-06) is open.
     var showMemory = false
     var continuous = false

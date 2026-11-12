@@ -11198,6 +11198,397 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Ready-made": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready-made"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Готовые"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "My scenarios": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My scenarios"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мои сценарии"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "New scenario": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New scenario"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новый сценарий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Edit scenario": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit scenario"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменить сценарий"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Delete the scenario?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete the scenario?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Удалить сценарий?"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "“%@” will be removed from the list. Conversations you already had with it stay.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” will be removed from the list. Conversations you already had with it stay."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%@» исчезнет из списка. Разговоры, которые уже были по нему, останутся."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Describe a situation you want to practise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe a situation you want to practise"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Опишите ситуацию, которую хотите потренировать"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Who Lingo plays, what is going on and, if you like, what you want to get done. Lingo plays the scene in the study language and adapts to your answers. You can write the description in Russian.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who Lingo plays, what is going on and, if you like, what you want to get done. Lingo plays the scene in the study language and adapts to your answers. You can write the description in Russian."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кого играет Lingo, что происходит и, если хотите, чего нужно добиться. Lingo разыграет сцену на изучаемом языке и подстроится под ваши ответы. Описание можно писать по-русски."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Goals: %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goals: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цели: %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "for example: Talking to my landlord": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "for example: Talking to my landlord"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "например: разговор с арендодателем"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Who Lingo plays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who Lingo plays"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кого играет Lingo"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "for example: my landlord, strict but fair": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "for example: my landlord, strict but fair"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "например: мой арендодатель, строгий, но справедливый"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Situation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Situation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ситуация"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "What is going on, where you are, what you need. For example: the heating in my flat has not worked for a week, and I want it repaired before the weekend.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is going on, where you are, what you need. For example: the heating in my flat has not worked for a week, and I want it repaired before the weekend."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Что происходит, где вы, что вам нужно. Например: в квартире неделю не работает отопление, и я хочу, чтобы его починили до выходных."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Your goals (optional)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your goals (optional)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши цели (необязательно)"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "One goal per line, up to 5. For example:\nDescribe the problem\nAsk when the repair can happen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One goal per line, up to 5. For example:\nDescribe the problem\nAsk when the repair can happen"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Одна цель на строку, до 5. Например:\nОписать проблему\nУзнать, когда будет ремонт"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Title, role and situation are required.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title, role and situation are required."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название, роль и ситуация обязательны."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Only the first 5 goals are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the first 5 goals are kept."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранятся только первые 5 целей."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "A goal is longer than %lld characters; shorten it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A goal is longer than %lld characters; shorten it."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цель длиннее %lld символов — сократите её."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "With goals Lingo leads you through them and ticks them off; without goals the scene runs freely.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With goals Lingo leads you through them and ticks them off; without goals the scene runs freely."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "С целями Lingo проведёт вас по ним и отметит выполненные; без целей сцена идёт свободно."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "You can write in Russian: Lingo plays the scene in the study language and adapts to what you say.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can write in Russian: Lingo plays the scene in the study language and adapts to what you say."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Можно писать по-русски: Lingo разыграет сцену на изучаемом языке и подстроится под ваши ответы."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "%lld of %lld characters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld characters"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld из %lld символов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "This scenario is incomplete: give it a title, a role and a situation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This scenario is incomplete: give it a title, a role and a situation."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сценарий не заполнен: укажите название, роль и ситуацию."
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

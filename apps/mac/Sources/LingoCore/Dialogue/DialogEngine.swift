@@ -152,7 +152,7 @@ public actor DialogEngine {
         let profile = frozen.keepingLiveFacts(of: st)  // a deleted fact or the switch applies at once; the rest stays frozen
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
                                               profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
-                                              scenarioDone: s.settings.scenarioID != nil ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)
+                                              scenarioDone: s.settings.scenario?.tasks.isEmpty == false ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?
@@ -257,7 +257,18 @@ public actor DialogEngine {
     /// A scenario session (SR-02); its phrases become topic hints at once, without a model call.
     public func startScenario(_ id: String, corrections: Set<CorrectionMode>, level: String = "") async throws -> String? {
         guard let sc = ScenarioCatalog.scenario(id) else { return nil }
-        let sid = try await createSession(sc.settings(corrections: corrections, level: level), title: sc.title)
+        return try await startScenario(sc, settings: sc.settings(corrections: corrections, level: level))
+    }
+
+    /// A session of the learner's own scenario: a copy of it is stored in the session; there are no phrases, so no hints.
+    public func startCustomScenario(_ custom: CustomScenario, corrections: Set<CorrectionMode>) async throws -> String? {
+        let c = custom.normalized
+        guard c.isValid else { return nil }
+        return try await startScenario(c.scenario, settings: c.settings(corrections: corrections))
+    }
+
+    private func startScenario(_ sc: Scenario, settings: SessionSettings) async throws -> String {
+        let sid = try await createSession(settings, title: sc.title)
         let hints = try sc.phrases.map { (EventType.hintAdded, sid, try JSONValue.from(Payload.HintAdded(phrase: Phrase(lang: sc.lang, text: $0.text, translation: $0.translation, source: .topic)))) }
         if !hints.isEmpty { _ = try await store.appendBatch(hints) }
         return sid
@@ -266,7 +277,7 @@ public actor DialogEngine {
     /// `@task` lines of a reply → `scenario.task`, each task once per session (SR-03).
     func recordScenarioTasks(_ session: String, reply: String, message: String) async {
         let st = await store.state
-        guard let sc = st.sessions[session]?.settings.scenarioID.flatMap(ScenarioCatalog.scenario) else { return }
+        guard let sc = st.sessions[session]?.settings.scenario else { return }
         var done = Set(st.scenarioTasks[session] ?? [])
         var items: [(type: String, session: String, payload: JSONValue)] = []
         for n in sc.completedTasks(in: reply) where done.insert(n).inserted {

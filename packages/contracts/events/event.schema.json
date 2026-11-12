@@ -576,7 +576,7 @@
             },
             "id": {
               "type": "string",
-              "description": "scenario: the catalogue id"
+              "description": "scenario: the catalogue id, or the id of custom"
             },
             "exam": {
               "type": "string",
@@ -599,6 +599,52 @@
             "partnerTask": {
               "type": "string",
               "description": "LINGO-10 BR-01: id of the partner's talk (a part 2 task other than tasks[1]) in a mock"
+            },
+            "custom": {
+              "type": "object",
+              "description": "scenario only: the learner's own scenario, a copy frozen at the start; its id equals id and starts with custom-. Invalid content makes the whole activity ignored (PX-05). Readers that do not know it degrade: they treat it as a catalogue scenario with an unknown id (no scenario block, but the task protocol line is still sent). The Mac app is the only client today.",
+              "required": [
+                "id",
+                "lang",
+                "title",
+                "level",
+                "role",
+                "situation",
+                "tasks"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "lang": {
+                  "type": "string",
+                  "description": "de | en"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "at most 60 characters"
+                },
+                "level": {
+                  "type": "string",
+                  "description": "A2 | B1 | B2"
+                },
+                "role": {
+                  "type": "string",
+                  "description": "who Lingo plays, at most 80 characters"
+                },
+                "situation": {
+                  "type": "string",
+                  "description": "at most 300 characters"
+                },
+                "tasks": {
+                  "type": "array",
+                  "maxItems": 5,
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "0-5 goals, each at most 120 characters; none = a free scene without @task lines"
+                }
+              }
             }
           }
         }

@@ -86,7 +86,7 @@ struct MainView: View {
                         .help(model.disabledReason)
                     }
                 }
-                if let sid = model.selectedSessionID, let sc = model.selectedSession?.settings.scenarioID.flatMap(ScenarioCatalog.scenario) {
+                if let sid = model.selectedSessionID, let sc = model.selectedSession?.settings.scenario, !sc.tasks.isEmpty {
                     ScenarioChecklist(scenario: sc, done: model.history.scenarioTasks[sid] ?? [])
                 }
                 if let sid = model.selectedSessionID, model.selectedSession?.settings.warmupCards != nil {

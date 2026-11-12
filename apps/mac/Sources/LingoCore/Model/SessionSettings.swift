@@ -110,6 +110,13 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     /// The catalogue id of a scenario session (SR-02), nil for other sessions.
     public var scenarioID: String? { activity?.kind == .scenario ? activity?.id : nil }
 
+    /// The scenario of a scenario session: the learner's own copy stored in the session, else the catalogue entry.
+    public var scenario: Scenario? {
+        guard let id = scenarioID else { return nil }
+        if let c = activity?.custom { return c.scenario }
+        return ScenarioCatalog.scenario(id)
+    }
+
     /// The frozen card queue of a warm-up (WR-01), nil for other sessions.
     public var warmupCards: [String]? { activity?.kind == .warmup ? activity?.cards : nil }
 
@@ -183,16 +190,18 @@ public struct Activity: Codable, Sendable, Hashable {
     public var format: Format?
     public var teil: Int?
     public var partnerTask: String?
+    /// Scenario: the learner's own scenario (its id equals `id`); nil for a catalogue scenario.
+    public var custom: CustomScenario?
 
     public init(kind: Kind, cards: [String]? = nil, id: String? = nil, exam: String? = nil, tasks: [String]? = nil,
-                format: Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
+                format: Format? = nil, teil: Int? = nil, partnerTask: String? = nil, custom: CustomScenario? = nil) {
         self.kind = kind; self.cards = cards; self.id = id; self.exam = exam; self.tasks = tasks
-        self.format = format; self.teil = teil; self.partnerTask = partnerTask
+        self.format = format; self.teil = teil; self.partnerTask = partnerTask; self.custom = custom
     }
 
     public static func warmup(_ cards: [String]) -> Activity { Activity(kind: .warmup, cards: cards) }
 
-    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks, format, teil, partnerTask }
+    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks, format, teil, partnerTask, custom }
 
     /// Malformed content for its kind throws, so `SessionSettings` decodes it as no activity (PX-05).
     public init(from decoder: Decoder) throws {
@@ -206,10 +215,11 @@ public struct Activity: Codable, Sendable, Hashable {
         format = try c.decodeIfPresent(Format.self, forKey: .format)
         teil = try c.decodeIfPresent(Int.self, forKey: .teil)
         partnerTask = try c.decodeIfPresent(String.self, forKey: .partnerTask)
+        custom = try c.decodeIfPresent(CustomScenario.self, forKey: .custom)
         let valid: Bool
         switch kind {
         case .warmup: valid = !(cards ?? []).isEmpty
-        case .scenario: valid = !(id ?? "").isEmpty
+        case .scenario: valid = !(id ?? "").isEmpty && custom.map { $0.id == id && $0.isValid } ?? true
         case .exam:
             valid = exam.flatMap(ExamKind.init(rawValue:)).map {
                 ExamCatalog.valid($0, ids: tasks ?? [], format: format, teil: teil, partnerTask: partnerTask)

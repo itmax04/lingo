@@ -104,8 +104,10 @@ public enum PromptBuilder {
         r.append("9. You see only a summary and the last \(policy.maxTurns) turns.")
         p.append(r.joined(separator: "\n"))
 
-        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (s.scenarioID != nil ? [scenarioProtocolLine] : [])))
-        if let sc = s.scenarioID.flatMap(ScenarioCatalog.scenario) { p.append(scenarioBlock(sc)) }
+        let scenario = s.scenario
+        let taskLine = scenario.map { !$0.tasks.isEmpty } ?? false
+        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (taskLine ? [scenarioProtocolLine] : [])))
+        if let sc = scenario { p.append(scenarioBlock(sc)) }
 
         if s.mode == .customPrompt {
             let cp = stripTags(s.customPrompt).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -136,6 +138,7 @@ public enum PromptBuilder {
 
     static func modeText(_ s: SessionSettings) -> String {
         if s.warmupCards != nil { return warmupModeText }
+        if let sc = s.scenario { return sc.tasks.isEmpty ? freeSceneModeText : scenarioModeText }
         if s.scenarioID != nil { return scenarioModeText }
         if s.examKind != nil { return s.activity?.format == .training ? goetheTrainingRule : examinerRule }
         if s.isVocabularyFocus {
@@ -268,14 +271,24 @@ public enum PromptBuilder {
     /// The scenario mode (≤ 150 provider tokens).
     static let scenarioModeText = "Scenario. Play the role in <scenario>; its situation and tasks are the learner's. Lead them through the tasks in order without naming them as tasks; react to what they say. <scenario_progress> lists tasks already done: never mark them again; continue with the first one not done. When the learner has completed a task, add the silent line @task: <number>. After the last task, close the situation naturally."
 
+    /// A learner's scenario without goals: the same role play, without tasks or `@task` lines.
+    static let freeSceneModeText = "Scenario. Play the role in <scenario>; its situation is the learner's. React to what they say and move the situation on step by step, with realistic complications; when it is resolved, close it naturally."
+
     static let scenarioProtocolLine = "@task: <number> (scenario only, once per completed task, not spoken)"
 
     /// `<scenario>` with the role, the situation and the numbered tasks — constant within the session, so it lives in the system part.
     static func scenarioBlock(_ sc: Scenario) -> String {
         func clean(_ s: String, _ n: Int) -> String { cut(oneLine(s).trimmingCharacters(in: .whitespaces), n) }
-        var lines = ["<scenario>", "role: " + clean(sc.role, Scenario.roleLimit), "situation: " + clean(sc.situation, Scenario.situationLimit), "tasks:"]
-        for (i, t) in sc.tasks.enumerated() { lines.append("\(i + 1). " + clean(t, Scenario.taskLimit)) }
+        var lines = ["<scenario>", "role: " + clean(sc.role, Scenario.roleLimit), "situation: " + clean(sc.situation, Scenario.situationLimit)]
+        if sc.tasks.isEmpty {
+            lines.append("tasks: none (a free scene)")
+        } else {
+            lines.append("tasks:")
+            for (i, t) in sc.tasks.enumerated() { lines.append("\(i + 1). " + clean(t, Scenario.taskLimit)) }
+        }
         lines.append("</scenario>")
+        // The learner wrote it, possibly in Russian: the scene is still played in the study language (rule 1).
+        if sc.isCustom { lines.append("The learner wrote this <scenario>, maybe in Russian; play it in \(langName(sc.lang)).") }
         return lines.joined(separator: "\n")
     }
 
