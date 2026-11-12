@@ -181,3 +181,11 @@ G-4 and G-5a: see their sections; the last "Next" at the end of the file is curr
 - BAC-17: ±4 pt NOT measured; differences are listed in `report.md` §6.
 - Open after G-6: F3 (BR-34 wording for a one-message Mock, owner decision), F4, F5, F6, F8 (P3). H-10 (#104) is the owner's checkpoint, not started.
 - Next: owner checkpoint H-10 (#104). BAC-21 and the Russian re-shoot are open until a flag exists or H-10 runs them.
+
+## G-6 update (2026-11-12, after review of #115), HEAD 81a521d
+- PR [#115](https://github.com/itmax04/lingo/pull/115) (`closes #103`) on `feat/103-goethe-g6`, commits 49b0d1e and 81a521d. Worktree clean.
+- Independent review (`sdlc:reviewer`, pr mode): approve-with-notes, no P0/P1. Notes R-1…R-7 applied in 81a521d: report caveat on N1 (not revert-tested), Retry assertion in the N1 test, comment on Done during a start, parser/prompt file names in MAC.md, N3/N4 listed, branch name, status words.
+- Checks after the review fixes: GoetheMockHostTests 15 passed; `check-english` PASS; `secret-scan` 0 findings. Full `swift test` (436 before the review fixes), `check-design`, `check-core-ios` not rerun after 81a521d.
+- CI on 81a521d: `hygiene` pending, `swift-test` queued at the time of writing. Not green yet; not merged.
+- **Next:** wait for green CI on #115; if the independent review has no open P0/P1 (it has none), squash-merge under CX-02 with `gh pr merge 115 --squash`. If the merge is denied, stop and tell the owner. Then H-10 (#104) is the owner's checkpoint.
+- Still NOT RUN: BAC-21 live debrief requests (no single-request flag), Russian snapshot re-shoot, BAC-18 `npm test`, BAC-06 audio test. BAC-17 ±4 pt not measured.
