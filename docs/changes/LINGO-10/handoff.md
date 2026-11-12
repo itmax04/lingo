@@ -129,3 +129,19 @@ DESIGN.md §8 asks to keep the exact ImageGen prompt; it is in the parent sessio
 ## Next
 1. The PR of G-3 against `feat/98-goethe-catalogue` is open ("Part of #99"); the owner merges. Rebase onto `main` once #96, #105 and #110 are merged. Watch the `swift-test` workflow of that PR.
 2. Then G-4 (#100, debrief, tier standard) in a new session.
+
+## G-4 (debrief), 2026-11-11
+- Worktree `~/Developer/lingo-100`, branch `feat/100-goethe-debrief` from `feat/99-goethe-exam-engine` (`dfa9e4c`; PR #111 open, not merged, stays so). UNCOMMITTED and unpushed; no PR yet.
+- Done: `Merger` records `HistoryState.examMessageParts` (message id → last `exam.part` before it, BR-26). New `apps/mac/Sources/LingoCore/Teacher/GoetheDebrief.swift`: `GoetheDebrief.plan` (finished Teile, notAssessed, unfinished, lines per Teil; Teil 2 learner lines only; a part is finished when a later part event exists; Teil 3 needs `goethe_b1.3` and `.3.feedback`), `GoetheDebrief.card` (scored / unscored / notAssessed / unfinished per Teil, no total), `GoetheScoreFilter` (BR-30a; plan-point counts such as "3 of 4 planning points" are kept), `PromptBuilder.goetheFeedbackRequest` (caps 3000/4000/2000 incl. talk summary, fixes 1500 of learner lines in asked Teile only, maxTokens 1600 Mock / 900 Training, closing tags stripped). `DialogEngine.examDebrief` branches on `activity.format`; IELTS and legacy German keep the old request (`examFeedbackRequest` now returns nil for a format). `ExamDebrief.swift`: `shortenEvenly` extracted, behaviour unchanged. Tests: `GoetheDebriefTests.swift` (14), fixture `goethe-scoring.json` gained `filterCases` (written by `GoetheScoringTests`).
+- Executor decision D-G4-1: each Teil block starts with a short `task:` (and Teil 1 `points:`) line, outside the line caps. Card heading text and UI are G-5a; `AppModel.debriefCard` and `ExamDebriefCard` are NOT changed (Goethe card UI, "Nothing finished to assess", Incomplete marker are G-5a, using `GoetheDebrief.plan/card`).
+- Verified (uncommitted tree on `dfa9e4c`): `swift test --package-path apps/mac` 405 passed; `npm test` 304 passed; `check-core-ios.sh` PASS; `check-english` PASS; `secret-scan` 0 findings. No IELTS snapshot or assertion edited (BAC-20).
+- Independent review (`sdlc:reviewer`, 2026-11-11): approve-with-notes, no P0/P1.
+  - F1 (P2) fixed: the "N of M" pattern of `GoetheScoreFilter` backtracked, so a two-digit total of planning points was dropped. It is now possessive with an explicit negative look-ahead for the Russian word for "points"; golden cases for a two-digit total of plan points (kept) and for a total followed by another word (dropped) were added to `filterCases`; `goethe-scoring.json` re-recorded.
+  - F3 (P3) fixed: BAC-12 snapshots `prompts/request-goethe-debrief-mock.txt` and `request-goethe-debrief-training.txt` (system + request over fixed synthetic lines), test `theDebriefRequestSnapshots`.
+  - F2 (P3, spec-conformant: German "18 von 28" and "18 Punkte" pass the filter; the prompt forbids them) and F4 (P3, inherited `shortenEvenly` drops trailing turns beyond about 70 turns): no action.
+  - Not live-tested with a real model (G-6). The F1/F3 fixes were not re-reviewed by a second independent pass.
+- Checks after the fixes: `swift test` 406 passed; `npm test` 304 passed; `check-core-ios.sh` PASS; `check-english` PASS; `secret-scan` 0 findings.
+
+## Next
+1. The PR of G-4 against `feat/99-goethe-exam-engine` is open ("Part of #100"); the owner merges; #111 is not merged. Watch `swift-test` (known `TurnControllerTests` timing flake).
+2. Then G-5a (#101) in a new session.

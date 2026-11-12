@@ -632,8 +632,16 @@ public actor DialogEngine {
         guard let s = st.sessions[session], s.settings.activity?.kind == .exam else { return .skipped }
         let msgs = (st.messages[session] ?? [])
         guard !msgs.contains(where: { $0.kind == .summary }) else { return .skipped }
-        let fixes = (st.fixes[session] ?? []).map(\.fix)
-        guard let req = PromptBuilder.examFeedbackRequest(settings: s.settings, fixes: fixes, messages: msgs) else { return .skipped }
+        // LINGO-10 BR-26: a Goethe run with a format asks only about its finished Teile; IELTS and a legacy German exam keep the old request (BR-39).
+        let goethe = s.settings.activity?.format != nil
+        let request: LLMRequest?
+        if goethe {
+            request = GoetheDebrief.plan(settings: s.settings, parts: st.examParts[session] ?? [], messages: msgs, messageParts: st.examMessageParts)
+                .flatMap { PromptBuilder.goetheFeedbackRequest(settings: s.settings, fixes: st.fixes[session] ?? [], plan: $0) }
+        } else {
+            request = PromptBuilder.examFeedbackRequest(settings: s.settings, fixes: (st.fixes[session] ?? []).map(\.fix), messages: msgs)
+        }
+        guard let req = request else { return .skipped }
         var text = ""
         for await e in await makeChain().run(req) {
             if case .text(let t) = e { text += t }
@@ -641,7 +649,9 @@ public actor DialogEngine {
             if case .exhausted = e { return .failed }
         }
         // Pronunciation is never assessed: the prompt forbids it and every line that still mentions it is dropped.
-        let clean = PronunciationFilter.removingMarkedLines(from: ReplyProtocol.stripThinking(text))
+        // A Goethe debrief also drops every line that gives a score; the app computes the points from the letters (BR-28, BR-30a).
+        var clean = PronunciationFilter.removingMarkedLines(from: ReplyProtocol.stripThinking(text))
+        if goethe { clean = GoetheScoreFilter.removingScoreLines(from: clean) }
         guard !clean.isEmpty else { return .failed }
         do {
             _ = try await store.append(EventType.messageCreated, session: session,
