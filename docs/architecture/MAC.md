@@ -113,8 +113,8 @@ and `Tests/LingoMacTests/`.
 - **Content and rules** (`LingoCore/Teacher`): `GoetheContent` (German task text, Teil 1–3, bundled data only), `GoetheHub` (the Goethe
   screen's model: Training Start rules, `MockDraw` — one planning task and two topics, the topic not chosen becomes the partner's;
   `drawMock` uses `SystemRandomNumberGenerator`), `GoetheScoring` (criteria, letters, `GoetheTeilResult`) and `GoetheDebrief`
-  (prompt parts, `GoetheDebriefParser`, `GoetheScoreFilter`; no pronunciation criterion, rule 7). Goethe runs use the exam classes
-  (`ExamRun`, `ExamController`, `ExamPrompt`) with `format` `.training` (one Teil, one task) or `.mock` (three parts plus partner talk).
+  (prompt parts, `GoetheScoreFilter`; no pronunciation criterion, rule 7); `GoetheDebriefParser` is in `GoetheScoring.swift`. Goethe runs use the exam classes
+  (`ExamRun`, `ExamController`, and the `PromptBuilder` extension in `ExamPrompt.swift`) with `format` `.training` (one Teil, one task) or `.mock` (three parts plus partner talk).
 - **Screen** (`LingoMac/Views`): `GoetheScreen` — tabs Training, Mock, Debriefs, with `SegmentBar`; during a Mock or a live Training the
   tabs and the Start rows are disabled and a note says why (BR-37). `GoetheDebriefCard` shows one parsed debrief (scores per Teil,
   criteria, letters; no pronunciation). The Mock tab shows the preparation (15 minutes, topic choice, notes, Done/Retry/Finish).
@@ -122,7 +122,7 @@ and `Tests/LingoMacTests/`.
   (BR-08, BR-08a); `finishMockPrep` (Done, timer, Retry) creates the session with the frozen selection; `discardMockPrep` drops the
   preparation and its notes and shuts the voice down unless an exam took it over. `startExam` refuses another start during a live Mock
   or its preparation (BR-37). A failed or cancelled creation keeps the preparation as failed and retryable, with its notes (review
-  findings N1, N2 of #114, fixed in G-6). `AppModel.mockPrep`, `mockActive`, `goetheLocked`, `goetheNotes` hold this state; notes are cleared when the run stops (BR-22).
+  findings N1–N4 of #114, fixed in G-6; N3 guards the discard's voice shutdown). `AppModel.mockPrep`, `mockActive`, `goetheLocked`, `goetheNotes` hold this state; notes are cleared when the run stops (BR-22).
 - **Aids off in a Mock** (BR-20): no Hints column, no Translate, no In Russian button or ⌥R; the input bar is hidden. Training keeps them.
 - **Debrief**: one request per finished session through `Engine.examDebrief`; the result is journaled, and a failed request shows the
   unavailable card. The debrief is never run in bulk.

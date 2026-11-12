@@ -42,7 +42,7 @@ extension AppServices {
     /// Done, the timer, or Retry: the session is created with the frozen selection and the introduction begins (BR-08a).
     func finishMockPrep() {
         guard var prep = model.mockPrep, let selection = prep.draw.selection, !model.startingExam || prep.failed else { return }
-        // N2: a refused Done or Retry changes nothing; the preparation stays as it was and says why.
+        // N2: a refused Retry changes nothing; the preparation stays as it was and says why. A Done during a running start is ignored (guard above).
         if let why = startRefusal { model.banner = why; return }
         prep.ended = true; prep.failed = false
         model.mockPrep = prep

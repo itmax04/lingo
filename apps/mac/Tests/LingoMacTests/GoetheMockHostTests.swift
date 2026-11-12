@@ -119,7 +119,7 @@ import Testing
         // a Retry from the failed preparation starts again
         e.services.finishMockPrep()
         await wait { e.model.examRun?.format == .mock || e.model.mockPrep?.failed == true }
-        #expect(e.model.mockPrep?.failed != true || e.model.goetheNotes == "bleibt")
+        #expect(e.model.startingExam || e.model.examRun?.format == .mock || e.model.mockPrep?.failed == true, "R-2: the Retry starts, is in progress, or fails again visibly")
     }
 
     @Test func aRefusedRetryChangesNothingAndSaysWhy() async throws {

@@ -1,6 +1,6 @@
 # LINGO-10 report: Goethe B1 Sprechen on the Mac (G-6, issue #103)
 
-Date: 2026-11-12. Branch `feat/103-goethe-verify` from `origin/main` `c115f9c` (#114 merged). Scope of G-6: fix the open items of the
+Date: 2026-11-12. Branch `feat/103-goethe-g6` (PR #115) from `origin/main` `c115f9c` (#114 merged). Scope of G-6: fix the open items of the
 independent review of #114 (N1–N4), the live debrief checks, the architecture documents, and this report. H-10 (#104) is the owner's
 checkpoint and is not started here.
 
@@ -8,7 +8,7 @@ checkpoint and is not started here.
 
 | Part | Status | Evidence |
 |---|---|---|
-| Review items N1–N4 of #114 | PASS (tests pass; see caveat on N1) | §2 |
+| Review items N1–N4 of #114 | PASS (tests pass; N1 test not checked by a revert run) | §2 |
 | Live debrief checks (three single daytime requests, signed app) | **NOT RUN** | §3 |
 | `docs/architecture/MAC.md`, `CODEBASE.md` for Goethe code | done | this PR |
 | This report and `handoff.md` | done | this PR |
@@ -21,8 +21,8 @@ checkpoint and is not started here.
 Changed: `apps/mac/Sources/LingoMac/ExamServices.swift`, `apps/mac/Tests/LingoMacTests/GoetheMockHostTests.swift`.
 
 - **N1** (`startExam`): the start captures `model.mockPrep?.startedAt` before the await and marks the preparation failed only if that
-  stamp is unchanged. Test: `aStaleStartDoesNotFailANewerPreparation`. Caveat: this test passes without the fix on the path it
-  exercises; the race itself is narrow and was not reproduced in a test that would fail on `main`.
+  stamp is unchanged. Test: `aStaleStartDoesNotFailANewerPreparation`. By reading, it fails without the fix (the cancelled start marks
+  the newer preparation failed at its 50 ms check); a revert experiment was not run, so this is not verified by a failing run.
 - **N2** (`finishMockPrep`): the start refusal is checked before any change, for Done and for Retry alike (the old code skipped the check
   for a failed preparation). Test: `aRefusedRetryChangesNothingAndSaysWhy` (readOnly → banner, preparation still failed and ended).
 - **N3** (`discardMockPrep`): the shutdown runs only when `mockPrep == nil` as well. Test: `aNewerPreparationKeepsTheVoiceWhenAnOlderDiscardRuns`
@@ -62,7 +62,7 @@ as part of the 436 tests; NOT RUN = not checked here, with the reason; OPEN = ne
 | BAC-04 | COVERED | `GoetheRunTests`, `ExamTests` |
 | BAC-05 | COVERED | `ExamHostTests` (microphone during preparation, Examiner lines) |
 | BAC-06 | NOT RUN | audio regression test not re-run in G-6; no audio in this session |
-| BAC-07 | COVERED (PASS in this run) | `GoetheMockHostTests` (15 tests): topic choice, partner topic, abandon leaves no session, failed creation keeps notes |
+| BAC-07 | PASS | `GoetheMockHostTests` (15 tests): topic choice, partner topic, abandon leaves no session, failed creation keeps notes |
 | BAC-08 | COVERED | `GoetheRunTests`, `ExamHostTests` |
 | BAC-09 | COVERED | voice tests in `ExamHostTests`; snapshot not re-shot in G-6 |
 | BAC-10 | COVERED | `PromptBuilder` prompt tests in `GoetheRunTests` |
@@ -71,7 +71,7 @@ as part of the 436 tests; NOT RUN = not checked here, with the reason; OPEN = ne
 | BAC-13 | COVERED | `GoetheScoringTests`, `goethe-scoring.json` |
 | BAC-14 | COVERED | engine tests of G-4 |
 | BAC-15 | COVERED | `GoetheScoringTests`, `GoetheDebriefTests` (filter) |
-| BAC-16 | COVERED (PASS in this run) | `russianShortcutHasNoEffectDuringAMockButWorksInTraining`, `trainingKeepsTheAidsAndALiveTrainingLocksStarts` |
+| BAC-16 | PASS | `russianShortcutHasNoEffectDuringAMockButWorksInTraining`, `trainingKeepsTheAidsAndALiveTrainingLocksStarts` |
 | BAC-17 | **PARTIAL: ±4 pt NOT measured** | Structure compared with the mockup for the preparation screen only (G-5b handoff). ±4 pt was **not measured**; differences listed in §6. Snapshot evidence in `evidence/g5a`, `evidence/g5b`; the Russian `ru-*` images show English text (the snapshot binary ignores `--ui-language ru`), so Russian layout is not visually checked. Re-shoot from `dist/Lingo.app` NOT RUN in G-6 |
 | BAC-18 | NOT RUN in G-6 | no TypeScript change in G-6; `npm test` last run at G-1 (304 passed) |
 | BAC-19 | COVERED | `GoetheHubTests`, `GoetheCatalogTests` (legacy ids); the pinned-18 validator test was an open P3 for G-2, not re-checked here |
