@@ -1,6 +1,6 @@
 # LINGO-05 handoff
 
-Status: T-1…T-9 merged (last: T-9b, PR #91, `82357ac`). The LINGO-05 report (#79) is in [PR #92](https://github.com/itmax04/lingo/pull/92); then owner checkpoint H-05 (#80). Updated 2026-11-08. Earlier status, kept for history: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): independent re-review approve-with-notes at `d358a16` ([review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1, one P3 note answered in the PR); delivery (merge, owner build) recorded in the PR. Updated 2026-11-07. #74 closes on the merge; T-6b debrief (#75) merged in [PR #86](https://github.com/itmax04/lingo/pull/86) as `b2aa6ff` (review approve-with-notes at `3753531`, F-1/F-3 fixed in `d921f9c`; owner build 205; [delivery](https://github.com/itmax04/lingo/pull/86#issuecomment-6707615848)). #75 closed. #76/T-7 is next.
+Status: **LINGO-05 ACCEPTED by the owner on 2026-11-12 (H-05, #80); see "H-05 acceptance" below.** T-1…T-9 merged (last: T-9b, PR #91, `82357ac`). The LINGO-05 report (#79) is in [PR #92](https://github.com/itmax04/lingo/pull/92); then owner checkpoint H-05 (#80). Updated 2026-11-08. Earlier status, kept for history: T-1…T-6a2a merged. T-6a2b Mac wiring/UI in [PR #84](https://github.com/itmax04/lingo/pull/84): independent re-review approve-with-notes at `d358a16` ([review](https://github.com/itmax04/lingo/pull/84#issuecomment-6705310503), no open P0/P1, one P3 note answered in the PR); delivery (merge, owner build) recorded in the PR. Updated 2026-11-07. #74 closes on the merge; T-6b debrief (#75) merged in [PR #86](https://github.com/itmax04/lingo/pull/86) as `b2aa6ff` (review approve-with-notes at `3753531`, F-1/F-3 fixed in `d921f9c`; owner build 205; [delivery](https://github.com/itmax04/lingo/pull/86#issuecomment-6707615848)). #75 closed. #76/T-7 is next.
 
 ## Done
 | Step | PR | Checks | Notes |
@@ -111,3 +111,10 @@ Nothing hangs: an Objective-C exception kills the finish task. Evidence from the
 4. (done) Banner when `startExam` is refused: `ending` → "The session is still finishing. Try again in a moment."; `startingExam` → "An exam is already starting." (cleared when the start ends); `readOnly` → `model.disabledReason`. Add RU to `Localizable.xcstrings`. A refusal text must not outlive the finish.
 5. Checks: full `swift test`, `apps/mac/scripts/check-core-ios.sh`, check-design, `scripts/check-english.sh`, `scripts/secret-scan.sh`; independent review; PR (it may need #93 first or a rebase on it). The owner confirms on a new build: Finish, then Start exam. Build 211 (pid 52582) can be quit. Then continue H-05 (#80, checklist posted in the issue).
 
+
+## H-05 acceptance (2026-11-12)
+- The owner accepted LINGO-05 in chat ("I accept LINGO-05", written in Russian), after trying the teacher on the Mac and the learner's own scenarios (PR #117, merged `e0ab5cb`).
+- The exam "Finishing the session…" finding was fixed in PR #94 (`030eaa3`).
+- Not independently evidenced by the executor: live-model behaviour of `@grade`, `@task`, exams and memory is covered only by the owner's own use (Q-03, no night evals).
+- Follow-ups outside LINGO-05: golden fixture for `activity.custom`; `custom.lang` against the session language; signal 6 at test exit on `main` not checked; #108 flaky TurnControllerTests.
+- Next: close #80 and epic #29; then LINGO-09 (completion plan row B1), which starts with questions to the owner about the HFL and Stand Your Ground modes.
