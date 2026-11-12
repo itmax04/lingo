@@ -211,7 +211,7 @@ struct ExamProvider: LLMProvider {
         c.advance(expected: .goethe1); await drain(e, c)
         e.tc.startContinuous()
         await e.feed(1200, speech: true)
-        clock.date.addTimeInterval(181); c.tick(); c.tick()
+        clock.date.addTimeInterval(241); c.tick(); c.tick()
         #expect(c.run?.phase == .goethe2 && e.log.all.count == 1)
         await e.waitUntil(timeout: 5) { c.run?.phase == .goethe3 }; await drain(e, c)
         #expect(c.run?.phase == .goethe3 && e.log.all.count == 2)

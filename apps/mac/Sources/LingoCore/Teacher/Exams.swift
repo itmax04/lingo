@@ -28,6 +28,22 @@ public struct ExamTask: Codable, Sendable, Hashable, Identifiable {
 
 public enum ExamCategory: String, Codable, Sendable, CaseIterable { case alltag, arbeit, freizeit, umwelt, gesundheit }
 
+/// LINGO-10 BR-05: a useful phrase for one Teil, shown in Training only.
+public struct GoethePhrase: Codable, Sendable, Hashable {
+    public var de: String
+    public var ru: String
+    public init(de: String, ru: String) { self.de = de; self.ru = ru }
+}
+
+/// LINGO-10 BR-05a: fixed lines spoken by the app as the Examiner; never stored and never sent to a model.
+/// Raw values are the catalogue keys: the `exam.part` value the line opens, plus the thanks that closes the introduction.
+public enum GoetheExaminerLine: String, Codable, Sendable, CaseIterable {
+    case intro = "goethe_b1.intro", introEnd = "goethe_b1.intro.end"
+    case teil1 = "goethe_b1.1", teil2 = "goethe_b1.2", teil3 = "goethe_b1.3"
+    case partnerTalk = "goethe_b1.2.partner", feedback = "goethe_b1.3.feedback"
+    public var text: String { GoetheContent.examinerLines[self] ?? "" }
+}
+
 public enum ExamKind: String, Codable, Sendable, CaseIterable {
     case goetheB1 = "goethe_b1", ielts
     public var lang: Lang { self == .goetheB1 ? .de : .en }
@@ -42,11 +58,13 @@ public enum ExamKind: String, Codable, Sendable, CaseIterable {
         return [first.id, second.id, third.id]
     }
 
-    public func settings(tasks: [String]) -> SessionSettings? {
-        guard ExamCatalog.validSelection(self, ids: tasks) else { return nil }
-        return SessionSettings(lang: lang, mode: .free, topic: title, role: role, level: self == .goetheB1 ? "B1" : "",
-                               corrections: [.after], starter: .assistant, useVocabulary: false,
-                               activity: Activity(kind: .exam, exam: rawValue, tasks: tasks))
+    /// BR-02: a session with a format stores the partner's role, and inline corrections in Training.
+    public func settings(tasks: [String], format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) -> SessionSettings? {
+        guard ExamCatalog.valid(self, ids: tasks, format: format, teil: teil, partnerTask: partnerTask) else { return nil }
+        return SessionSettings(lang: lang, mode: .free, topic: title, role: format == nil ? role : "Gesprächspartner",
+                               level: self == .goetheB1 ? "B1" : "",
+                               corrections: [format == .training ? .inline : .after], starter: .assistant, useVocabulary: false,
+                               activity: Activity(kind: .exam, exam: rawValue, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask))
     }
 }
 
@@ -63,22 +81,46 @@ public enum ExamCatalog {
         guard validSelection(.goetheB1, ids: ids), let p = task(partnerTask) else { return false }
         return p.exam == .goetheB1 && p.part == 2 && partnerTask != ids[1]
     }
+    /// BR-01: the content of an exam activity for its format (the table of valid combinations).
+    public static func valid(_ exam: ExamKind, ids: [String], format: Activity.Format?, teil: Int?, partnerTask: String?) -> Bool {
+        switch format {
+        case nil: teil == nil && partnerTask == nil && validSelection(exam, ids: ids)
+        case .mock: exam == .goetheB1 && teil == nil && partnerTask.map { validMock(ids: ids, partnerTask: $0) } == true
+        case .training: exam == .goetheB1 && partnerTask == nil && teil.map { validTraining(teil: $0, ids: ids) } == true
+        }
+    }
     public static func validSelection(_ exam: ExamKind, ids: [String]) -> Bool {
         guard ids.count == 3 else { return false }
         return ids.enumerated().allSatisfy { i, id in task(id).map { $0.exam == exam && $0.part == i + 1 } == true }
             && task(ids[2])?.linkedTo == ids[1]
     }
 
-    private static func planning(_ id: String, _ task: String, _ points: [String]) -> ExamTask {
-        ExamTask(id: "b1-plan-" + id, exam: .goetheB1, part: 1, task: task, points: points, questions: [])
+    /// LINGO-10 BR-05: 8–12 original phrases for Teil 1, 2 or 3; empty for any other number.
+    public static func goethePhrases(teil: Int) -> [GoethePhrase] { GoetheContent.phrases[teil] ?? [] }
+    /// The export shape of the phrases and Examiner lines (`exams.json`): keys "1"…"3" and the `GoetheExaminerLine` raw values.
+    public static var goethePhrasesByTeil: [String: [GoethePhrase]] {
+        Dictionary(uniqueKeysWithValues: GoetheContent.phrases.map { (String($0.key), $0.value) })
     }
+    public static var goetheExaminerLines: [String: String] {
+        Dictionary(uniqueKeysWithValues: GoetheExaminerLine.allCases.map { ($0.rawValue, $0.text) })
+    }
+
+    /// Title, gloss and category (BR-04) come from `GoetheContent.planning`, so the task lines below keep their text.
+    private static func planning(_ id: String, _ task: String, _ points: [String]) -> ExamTask {
+        let meta = GoetheContent.planning[id]
+        return ExamTask(id: "b1-plan-" + id, exam: .goetheB1, part: 1, task: task, points: points, questions: [],
+                        title: meta?.title, gloss: meta?.gloss, category: meta?.category)
+    }
+    /// The topic is also the title of both tasks (BR-04); gloss, category, talk and summary come from `GoetheContent.topics`.
     private static func presentation(_ id: String, _ topic: String, _ question: String) -> [ExamTask] {
-        let key = "b1-talk-" + id
+        let key = "b1-talk-" + id, meta = GoetheContent.topics[id]
         return [ExamTask(id: key, exam: .goetheB1, part: 2, task: "Präsentieren Sie das Thema: " + topic,
                          points: ["Thema und Aufbau", "Meine persönliche Erfahrung", "Die Situation in meinem Heimatland",
-                                  "Vor- und Nachteile; meine Meinung", "Zusammenfassung und Dank"], questions: []),
+                                  "Vor- und Nachteile; meine Meinung", "Zusammenfassung und Dank"], questions: [],
+                         title: topic, gloss: meta?.gloss, category: meta?.category,
+                         talk: meta?.slides.joined(separator: "\n"), talkSummary: meta?.summary),
                 ExamTask(id: "b1-discuss-" + id, exam: .goetheB1, part: 3, task: "Sprechen Sie über das Thema: " + topic,
-                         points: [], questions: [question], linkedTo: key)]
+                         points: [], questions: [question], linkedTo: key, title: topic, gloss: meta?.gloss, category: meta?.category)]
     }
     private static func topic(_ id: String, _ title: String, _ questions: [String]) -> ExamTask {
         ExamTask(id: "ielts-topic-" + id, exam: .ielts, part: 1, task: title, points: [], questions: questions)
@@ -104,6 +146,19 @@ public enum ExamCatalog {
                  ["Treffpunkt und Dauer", "Interessante Stationen", "Einladung und Anmeldung", "Pause unterwegs"]),
         planning("cooking", "Ihr Sprachkurs möchte zusammen kochen. Organisieren Sie gemeinsam den Kochabend.",
                  ["Termin und Küche", "Gerichte und Allergien", "Einkauf und Kosten", "Verteilung der Aufgaben"]),
+        // LINGO-10 BR-03: six more planning tasks.
+        planning("cleanup", "Am Flussufer in Ihrem Viertel liegt viel Müll. Organisieren Sie gemeinsam eine Aufräumaktion.",
+                 ["Termin und Treffpunkt", "Handschuhe und Müllsäcke", "Hilfe finden", "Abtransport des Mülls"]),
+        planning("courtyard", "Der Innenhof Ihres Hauses ist grau und leer. Planen Sie gemeinsam, wie Sie ihn mit den Nachbarn bepflanzen.",
+                 ["Termin und Helfer", "Pflanzen und Erde", "Kosten und Einkauf", "Gießen im Sommer"]),
+        planning("running", "Sie möchten mit Kolleginnen und Kollegen eine Laufgruppe gründen. Planen Sie gemeinsam.",
+                 ["Wochentag und Uhrzeit", "Strecke und Treffpunkt", "Tempo für Einsteiger", "Plan bei schlechtem Wetter"]),
+        planning("firstaid", "Ihr Sportverein möchte einen Erste-Hilfe-Kurs für seine Mitglieder anbieten. Organisieren Sie ihn gemeinsam.",
+                 ["Termin und Raum", "Kursleitung finden", "Kosten und Anmeldung", "Material und Pausen"]),
+        planning("move", "Ihr Team zieht in ein neues Büro um. Planen Sie gemeinsam den Umzugstag.",
+                 ["Termin und Reihenfolge", "Kartons und Packen", "Technik und Telefon", "Einrichtung der Arbeitsplätze"]),
+        planning("interns", "In Ihrer Firma beginnen drei Praktikantinnen und Praktikanten. Planen Sie gemeinsam ihren ersten Arbeitstag.",
+                 ["Begrüßung und Rundgang", "Arbeitsplatz und Technik", "Gemeinsames Mittagessen", "Erste Aufgaben"]),
     ]
     private static let presentationTasks = [
         presentation("bicycle", "Mit dem Fahrrad zur Arbeit?", "Was würde mehr Menschen motivieren, mit dem Fahrrad zu fahren?"),
@@ -112,6 +167,13 @@ public enum ExamCatalog {
         presentation("courses", "Gemeinsam oder allein eine Sprache lernen?", "Was kann eine Lerngruppe besser als eine App?"),
         presentation("garden", "Ein gemeinsamer Garten in der Stadt?", "Wie sollten Nachbarn die Arbeit im Garten verteilen?"),
         presentation("travel", "Urlaub in der Nähe oder weit weg?", "Was könnte Urlaub in der eigenen Region interessanter machen?"),
+        // LINGO-10 BR-03: six more topics.
+        presentation("homeoffice", "Zu Hause arbeiten oder im Büro?", "Welche Regeln braucht ein Team, das oft zu Hause arbeitet?"),
+        presentation("parttime", "Weniger arbeiten, mehr freie Zeit?", "Für wen ist Teilzeitarbeit besonders sinnvoll?"),
+        presentation("club", "Sport im Verein oder allein?", "Wie kann man Menschen motivieren, regelmäßig Sport zu machen?"),
+        presentation("screens", "Abends ohne Bildschirm?", "Was hilft Ihnen, am Abend zur Ruhe zu kommen?"),
+        presentation("secondhand", "Gebraucht kaufen statt neu?", "Welche Dinge würden Sie nie gebraucht kaufen, und warum?"),
+        presentation("neighbours", "Braucht man gute Nachbarn?", "Wie kann man neue Nachbarn am besten kennenlernen?"),
     ].flatMap { $0 }
     private static let topics = [
         topic("home", "Your home and neighbourhood", [
