@@ -132,6 +132,8 @@ struct MessageBubble: View {
     var onTranslate: () -> Void = {}
     var onHideTranslation: () -> Void = {}
     var onCopy: (String) -> Void = { _ in }
+    /// LINGO-10 BR-20: false in a Mock, where "Translate to Russian" is off.
+    var translateAllowed = true
     @State private var showCorrection = false
     private var isUser: Bool { message.role == .user }
     /// Messages in Russian need no translation into Russian; recaps and errors are not dialogue lines.
@@ -212,6 +214,7 @@ struct MessageBubble: View {
             HStack(spacing: Theme.S.s12) {
                 Button { onCopy(message.spokenText) } label: { Label("Copy", systemImage: "doc.on.doc") }
                     .buttonStyle(LingoButtonStyle())
+                if translateAllowed {
                 Divider().frame(height: 14)
                 Button {
                     if translation == nil { onTranslate() } else if translation != .loading { onHideTranslation() }
@@ -222,9 +225,10 @@ struct MessageBubble: View {
                 .disabled(translation == .loading)
                 .accessibilityLabel(translation == nil ? "Translate to Russian" : "Hide translation")
                 if translation == .loading { ProgressView().controlSize(.mini).accessibilityLabel("Translating…") }
+                }
             }
             .font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
-            switch translation {
+            switch translateAllowed ? translation : nil {
             case .done(let text):
                 HStack(alignment: .top, spacing: Theme.S.s8) {
                     Image(systemName: "translate").foregroundStyle(Theme.C.textSecondary).accessibilityHidden(true)
@@ -295,6 +299,7 @@ struct MessageList: View {
     var onTranslate: (ChatMessage) -> Void = { _ in }
     var onHideTranslation: (String) -> Void = { _ in }
     var onCopy: (String) -> Void = { _ in }
+    var translateAllowed = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var corrections = MessageCorrections()
     var body: some View {
@@ -316,7 +321,7 @@ struct MessageList: View {
                                           translation: translations[message.id],
                                           onTranslate: { onTranslate(message) },
                                           onHideTranslation: { onHideTranslation(message.id) },
-                                          onCopy: onCopy).id(message.id)
+                                          onCopy: onCopy, translateAllowed: translateAllowed).id(message.id)
                             }
                         }
                     }.padding(24)

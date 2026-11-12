@@ -6,7 +6,7 @@ import Observation
 @MainActor
 @Observable
 final class AppModel {
-    enum GoetheTab: String { case training, debriefs }
+    enum GoetheTab: String { case mock, training, debriefs }
     var section: AppSection = .conversations
     var sessionSearch = ""
     var sessions: [Session] = []
@@ -28,6 +28,25 @@ final class AppModel {
     /// LINGO-10 BR-33…BR-36: the Goethe screen opens from the Teacher card; its state lives only in memory.
     var showGoethe = false
     var goetheTab: GoetheTab = .training
+    /// LINGO-10 BR-08a: the Mock preparation. It exists before any session does (A-01) and only in memory; nil when no Mock is being prepared.
+    struct MockPrep: Equatable {
+        var draw: GoetheHub.MockDraw
+        var startedAt: Date
+        /// Done or the timer has ended the preparation and the session is being created.
+        var ended = false
+        /// The session could not be created: the screen stays in preparation with its notes until Retry succeeds or the learner leaves.
+        var failed = false
+        static let duration = ExamPhase.goethePrep.seconds
+        func remaining(now: Date) -> Int { max(0, Int(ceil(Double(Self.duration) - now.timeIntervalSince(startedAt)))) }
+    }
+    var mockPrep: MockPrep?
+    /// BR-37: from the start of preparation to the end of the run the other tabs and every Start control are disabled.
+    var mockActive: Bool { mockPrep != nil || (examRun?.format == .mock && examRun?.finished == false) }
+    /// BR-20: no Hints column, no Translate, no In Russian (button and ⌥R), no typing while a Mock is active.
+    var mockAidsOff: Bool { mockActive }
+    /// F2 (G-5a review): a live Training would be stopped silently by another start or by opening a debrief.
+    var trainingLive: Bool { examRun?.format == .training && examRun?.finished == false }
+    var goetheLocked: Bool { mockActive || trainingLive || startingExam }
     var goetheTeil = 1
     var goetheCategory: ExamCategory?
     var goetheTask: String?

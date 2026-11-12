@@ -7553,6 +7553,23 @@
         }
       }
     },
+    "Finish the Mock exam first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the Mock exam first."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала завершите пробный экзамен."
+          }
+        }
+      }
+    },
     "An exam is already starting.": {
       "extractionState": "manual",
       "localizations": {
@@ -10977,6 +10994,210 @@
           }
         }
       }
+    },
+    "Read the tasks, choose a topic and prepare your notes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the tasks, choose a topic and prepare your notes."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Прочитайте задания, выберите тему и подготовьте заметки."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Teil 2 — Choose a topic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teil 2 — Choose a topic"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teil 2 — выберите тему"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Choose one of two topics for your presentation:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose one of two topics for your presentation:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите одну из двух тем для презентации:"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Your five slides": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your five slides"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваши 5 слайдов"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Notes stay on screen during the exam. Dictionary and translation are off.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes stay on screen during the exam. Dictionary and translation are off."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Заметки остаются на экране во время экзамена. Словарь и перевод отключены."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The whole speaking exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The whole speaking exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Весь устный экзамен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "You get a planning task and a choice of two presentation topics, and 15 minutes to prepare with notes. Then the examiner and a partner take you through all parts. Hints, translation, Russian and typing are off for the whole run.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You get a planning task and a choice of two presentation topics, and 15 minutes to prepare with notes. Then the examiner and a partner take you through all parts. Hints, translation, Russian and typing are off for the whole run."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вы получаете задание на планирование и выбор из двух тем для презентации, затем 15 минут на подготовку с заметками. После этого экзаменатор и партнёр проведут вас по всем частям. Подсказки, перевод, русский и ввод текста отключены на всё время."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Start mock exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start mock exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать пробный экзамен"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "A mock exam is running. Finish it before starting anything else.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A mock exam is running. Finish it before starting anything else."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт пробный экзамен. Завершите его, прежде чем начинать что-то другое."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "A training is running. Finish it before starting anything else.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A training is running. Finish it before starting anything else."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Идёт тренировка. Завершите её, прежде чем начинать что-то другое."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Back to the exam": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the exam"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вернуться к экзамену"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not start the Mock exam. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not start the Mock exam. Try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось начать пробный экзамен. Попробуйте ещё раз."
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"

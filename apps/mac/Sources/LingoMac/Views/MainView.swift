@@ -18,14 +18,14 @@ struct MainView: View {
                 else if model.section == .teacher { if model.showGoethe { GoetheScreen(model: model) } else { TeacherView(model: model) } }
                 else if model.section == .progress { ProgressScreen(model: model) }
                 else { PlannedSectionView(section: model.section) { model.section = .conversations } }
-                if model.section == .conversations && wide && model.hintsVisible {
+                if model.section == .conversations && wide && model.hintsVisible && !model.mockAidsOff {
                     ColumnDivider()
                     hints
                 }
             }
             .overlay(alignment: .trailing) {
                 // R-40: below a width of 1280 the hints slide out over the feed.
-                if model.section == .conversations && !wide && model.hintsVisible {
+                if model.section == .conversations && !wide && model.hintsVisible && !model.mockAidsOff {
                     HStack(spacing: 0) { ColumnDivider(); hints }
                         .transition(reduceMotion ? .opacity : .move(edge: .trailing))
                 }
@@ -74,7 +74,7 @@ struct MainView: View {
                           onReplay: { model.services?.exam?.replayTalk() })
                     .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
             }
-            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, goetheCard: model.goetheCard, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, goetheCard: model.goetheCard, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) }, translateAllowed: !model.mockAidsOff)
             VStack(spacing: Theme.S.s16) {
                 if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -102,7 +102,7 @@ struct MainView: View {
                 } else if !model.disabledReason.isEmpty, model.selectedSession != nil, !model.isExam {
                     Text(model.disabledReason).font(Theme.F.rowMeta).foregroundStyle(Theme.C.statusDanger)
                 }
-                if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
+                if !model.examReadOnly && !model.mockAidsOff && (!model.isExam || model.examInputAllowed) {
                     InputBar(text: $model.draft, enabled: model.disabledReason.isEmpty,
                              disabledReason: model.disabledReason,
                              onSend: { model.services?.sendText() })
@@ -114,7 +114,7 @@ struct MainView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.C.bgWindow)
         .overlay(alignment: .topTrailing) {
-            if !model.hintsVisible {
+            if !model.hintsVisible && !model.mockAidsOff {
                 Button { model.hintsVisible = true } label: {
                     Image(systemName: "book").font(.system(size: 18)).foregroundStyle(Theme.C.textPrimary)
                 }
@@ -134,7 +134,7 @@ struct VoiceToggles: View {
     var body: some View {
         HStack(spacing: Theme.S.s8) {
             toggle("Continuous", symbol: "infinity", on: model.continuous) { model.services?.toggleContinuous() }
-            toggle("In Russian", symbol: "character.bubble", on: model.russianOnce) { model.services?.toggleRussian() }
+            if !model.mockAidsOff { toggle("In Russian", symbol: "character.bubble", on: model.russianOnce) { model.services?.toggleRussian() } }
             toggle("Slowly", symbol: "tortoise", on: model.slowPace) { model.services?.toggleSlowPace() }
         }
     }

@@ -53,4 +53,27 @@ public enum GoetheHub {
     public static func tasks(teil: Int, category: ExamCategory?) -> [ExamTask] {
         ExamCatalog.tasks(.goetheB1, part: teil).filter { category == nil || $0.category == category }
     }
+
+    /// LINGO-10 BR-08: the draw of a Mock's preparation: one planning task and two different presentation topics (the first is preselected).
+    public struct MockDraw: Sendable, Equatable {
+        public var planning: String
+        public var topics: [String]
+        public var chosen = 0
+        public init(planning: String, topics: [String], chosen: Int = 0) { self.planning = planning; self.topics = topics; self.chosen = chosen }
+        /// The three ids of the session (planning, own topic, linked discussion) and the partner's topic (BR-08, A-03).
+        public var selection: (tasks: [String], partner: String)? {
+            guard topics.indices.contains(chosen), let discussion = ExamCatalog.tasks(.goetheB1, part: 3).first(where: { $0.linkedTo == topics[chosen] }) else { return nil }
+            return ([planning, topics[chosen], discussion.id], topics[1 - chosen])
+        }
+        public static func == (a: MockDraw, b: MockDraw) -> Bool { a.planning == b.planning && a.topics == b.topics && a.chosen == b.chosen }
+    }
+
+    public static func drawMock<G: RandomNumberGenerator>(using generator: inout G) -> MockDraw? {
+        guard let planning = ExamCatalog.tasks(.goetheB1, part: 1).randomElement(using: &generator) else { return nil }
+        let topics = Array(ExamCatalog.tasks(.goetheB1, part: 2).filter { t in ExamCatalog.tasks(.goetheB1, part: 3).contains { $0.linkedTo == t.id } }
+            .shuffled(using: &generator).prefix(2))
+        guard topics.count == 2 else { return nil }
+        return MockDraw(planning: planning.id, topics: topics.map(\.id))
+    }
+    public static func drawMock() -> MockDraw? { var g = SystemRandomNumberGenerator(); return drawMock(using: &g) }
 }
