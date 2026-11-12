@@ -50,8 +50,9 @@ Common definitions:
 - **MR-08 Tone block.** In a tone session the first line drops "friendly" and states that the learner chose harsh practice for
   training. The default role line ("a friendly conversation partner") is replaced when hostility ≥ 1. A `# Tone` block follows the
   session block: the two levels with their MR-05 sentences (only the chosen ones), profanity yes or no, and the MR-06 limits. The block
-  is ≤ 170 estimated provider tokens; the whole system prompt of a tone session with a maximal profile is ≤ 1 100 (PR-09 measures it
-  the same way).
+  is ≤ 170 estimated tokens (`TokenEstimate`, chars/3.5), and a tone prompt is at most the same session's prompt without a tone plus
+  170 (estimate). There is no absolute ceiling: today's prompts already exceed 1 100 estimated tokens (LINGO-08 Q-06). M-2 also records
+  the provider's `prompt_tokens` and the extra output tokens per turn (`@fix`, `@help`, `@hint`, `@next`) in `evidence/model-check.md`.
 - **MR-09 Rules kept.** Rules 1–5 and 7–9 stay word for word. Rule 3 (pronunciation) is unchanged. `tone` is a setting: the
   `<session_prompt>` block cannot raise or lower it. With harshness ≥ 2 and "As we go" corrections, rule 6 says: give the correct
   form and demand a repeat.
@@ -70,7 +71,9 @@ Common definitions:
   nothing when harshness = 0. If the reply has no `@fix`, every sentence of that speech containing a blame marker is removed before it
   is spoken, shown or stored as a segment. If nothing remains, a neutral local line replaces it. The markers are a list per language
   in a contracts fixture (for example falsch, Fehler, wrong, mistake). The count is recorded as `tone.filtered`
-  `{session, message, removed}`; no text. The raw reply text is stored as always.
+  `{session, message, removed}`; no text. The raw reply text is stored as always. Tutor speech is buffered: `@say` lines of tutor speech are held until the first `@fix` or
+  the end of the stream, because the filter can only be decided then (this belongs to the judge-first order of MR-10; ordinary
+  sessions still speak lines as they arrive). M-2 measures the effect on speech_end → first audio (MAC.md target 3.5 s median).
 
 ## 3. Local drive
 - **MR-16 Drill start.** In a tone session with harshness ≥ 2 and inline corrections, a reply with at least one `@fix` starts a
@@ -83,15 +86,18 @@ Common definitions:
   drill with a local "move on" line. After the end, the `@next` question is spoken as a new assistant message; without `@next` the app
   sends the ordinary "next step" request. "Not a repeat" ends the drill silently and the utterance goes to the model as an ordinary
   turn (rule 4b). Local lines and the `@next` question are journaled as assistant messages, so the transcript stays whole. A drill
-  makes no model request for the attempts.
-- **MR-19 Result and card.** `drill.result` `{session, message, attempts: 1…2, ok}`. A failed drill makes a mistake card at once: the
+  makes no model request for the attempts. `local` messages (and the `@next` question) are excluded from the ContextPolicy window of
+  eight turns and from the LINGO-05 counted-message statistics; they are shown in the transcript only. MAC-09 tests both.
+- **MR-19 Result and card.** `drill.result` `{session, message, attempts: 1…2, ok}`. The card of a failed drill uses `createdAt` = the `drill.result` timestamp, a key with the prefix `drill:` plus the normalised
+  corrected text (never equal to a rule key), and the first `@fix` of the message identified by its index in `drill.result.message`.
+  A failed drill makes a mistake card at once: the
   card derivation (CR-01) counts that fix as recurring, keyed by its rule, or by the normalised corrected text when the rule is empty.
 - **MR-20 Silence.** In a tone session with L ≥ 2, when Lingo has finished speaking and the learner is expected to answer: after 8 s
   without speech a local pressure line of the level; after 8 s more, help step 1 is revealed (MR-22); then nothing. The timers stop
   while the session is paused, while the learner types, during a drill's own speech and after a technical failure of the last turn.
   Settings → Voice: "Pressure, then help" (default), "Only pressure", "Wait silently"; the delay is 5–20 s.
 - **MR-21 Local lines.** A catalogue in LingoCore, written to `packages/contracts/teacher/tone-lines.json` by the tests. Kinds:
-  pressure, again, pass, move on, calm, neutral, interjection. Per language (de, en) and band (L 2, 3, 4, 5); profane variants are
+  pressure, again, pass, move on, calm, neutral, interjection. Per language (de, en) and band (L 1, 2, 3, 4, 5; at L 1 only the neutral and calm kinds); profane variants are
   separate and used only with profanity on. At least four lines per kind, language and band; a line is not used twice in a row. All
   lines are original and meet MR-06; a test checks them against a deny-list (violence, protected traits, pronunciation words).
 
@@ -100,8 +106,10 @@ Common definitions:
   step for the current turn: 1 the strategy (Russian), 2 the first words, 3 the full phrase (the first `@hint`). Text only; a ▶ button
   speaks steps 2 and 3. If the last reply has no `@help`, steps 1 and 2 are skipped; with no `@hint` either, the panel says there is no
   help for this turn. No model request is made. Sessions without a tone keep today's Hints panel.
-- **MR-23 Record.** Each reveal appends `hint.shown` `{session, message, step}`. The debrief (MR-29) counts the turns answered without
-  help. The help word is a new local command (`help`) in the commands fixture, Swift and TypeScript.
+- **MR-23 Record.** Each reveal appends `help.revealed` `{session, message, step}`. The debrief (MR-29) counts the turns answered without
+  help. The help word is a new local command (`help`) in the commands fixture, Swift and TypeScript. It is detected only in tone
+  sessions; in a 0/0 session "help me" or "Hilfe" is ordinary speech. Negative fixture cases: "Can you help me", "Ich brauche Hilfe
+  beim Umzug".
 
 ## 5. Conflict scenarios
 - **MR-24 Catalogue.** `Scenario` gets two optional fields: `group` (`authorities`, `housing`, `work`, `services`) and `hostility`
@@ -122,7 +130,9 @@ Common definitions:
   the next request uses them. The popover shows the number of settings changes in this session. Not available in a trial session.
 - **MR-28 Calm.** A "Calm down" button, a key and a local command (`calm`; the words per language in the commands fixture, O-5).
   Effect: speech stops, a drill and the silence timers are cancelled, the tone becomes 0/0/off through `session.updated`, a calm local
-  line is spoken and the session continues as an ordinary one. It always works, also in a trial session (MR-39).
+  line is spoken and the session continues as an ordinary one. It always works in a tone or trial session (MR-39); in a 0/0 session it is detected only if a tone was used earlier in the same
+  session, otherwise the words are ordinary speech (negative fixture cases as for `help`). The commands are part of the MR-07
+  invariant: with L = 0 and no earlier tone, detection and requests are byte-identical to today's.
 - **MR-29 Ending.** The farewell of every session is today's fixed neutral line, never a tone line. A finished session that ever had
   L ≥ 3 offers a debrief: one request (purpose `toneDebrief`) built from the summary, the fixes and the scenario goals. It returns, in
   Russian: two things that worked, three phrases to keep (study language with translation) and one next step. No score, no
@@ -135,14 +145,14 @@ Common definitions:
   the character): L 0–1 unchanged; 2: rate ×1.05; 3: ×1.10, pitch 1.05; 4: ×1.15, pitch 1.10; 5: ×1.20, pitch 1.15. The factor is
   applied on top of the learner's pace; "slower" and replay keep their own rate.
 - **MR-31 Two voices.** In a combined session the character speaks with a different installed voice of the language, chosen as the
-  partner voice of LINGO-10 BR-23; the tutor uses the learner's voice. With one installed voice both use it.
+  partner voice of LINGO-10 BR-23, generalised per language (an English partner voice is chosen the same way); the tutor uses the learner's voice. With one installed voice both use it.
 - **MR-32 Voice probe.** No product code. `evidence/voice-probe.md` compares the same ten German lines through the system voice,
   Piper `thorsten_emotional` and Chatterbox Multilingual: time to first audio, peak memory on the owner's Mac, size, licence. Each tool
   is installed only after the owner's explicit yes. Using one of them in the app needs an ADR-0001 entry and its own step, outside
   this plan.
 
 ## 8. Pauses and interjections
-- **MR-33 Pause after a connective.** In a tone session, at a pause of 0.6 s inside an utterance the last ≤ 3 s of audio are
+- **MR-33 Pause after a connective.** In a tone session (with the segmenter pause T > 0.6 s; otherwise the check runs at T − 0.2 s), at a pause of 0.6 s inside an utterance the last ≤ 3 s of audio are
   recognised. If the last word is in the connective list of the language (contracts fixture: weil, dass, ob, wenn, und, aber,
   articles, common prepositions and auxiliaries; because, that, and, the, to …), the pause that ends this utterance becomes 3.0 s. The
   tail audio is never stored. **Kill criterion:** if the median tail recognition on the owner's Mac is above 500 ms, the feature
@@ -150,7 +160,7 @@ Common definitions:
 - **MR-34 Interjection.** Conditions: hostility ≥ 3, voice processing on, the utterance has run ≥ 12 s, a pause of ≥ 0.6 s whose tail
   is not a connective (MR-33; without MR-33 no interjections). Then one local interjection of at most four words is played without
   ending the utterance. At most one per utterance and one per 45 s ("rare", default) or 20 s ("often"); "off" in Settings → Voice. It
-  is recorded as `tone.interjected` `{session, line}` and is not a message. An interjection never produces a `@fix`.
+  is recorded as `tone.interjected` `{session, lineId}` (ids and numbers only, MR-46; a schema test checks that the new payloads carry no free text) and is not a message. An interjection never produces a `@fix`.
 
 ## 9. Model check
 - **MR-35 One small live run** (B-10, O-2) before anything after M-1 is built: at most 40 requests on the 20b model through
@@ -158,7 +168,7 @@ Common definitions:
   each axis, at least ten learner turns that contain no mistake. Checks: valid protocol; no blame on the correct turns before the
   filter; no pronunciation remark; no hit of the MR-06 deny-list; refusals and out-of-role replies counted by reading the outputs.
 - **MR-36 Consequences.** Blame on correct turns above 2 of 10, any pronunciation remark, or any deny-list hit stops the plan for a
-  prompt fix and one more run on another day. If more than 20 % of the replies at L ≥ 4 are softened or refused, the plan continues
+  prompt fix and one more run on another day. If more than 20 % of the replies at level 5 (cases at levels 1, 3, 5 plus two at level 4) are softened or refused, the plan continues
   and the sliders say "the model may soften this level". Lingo never retries or rewrites a request to defeat a refusal.
 
 ## 10. Personal experiment
@@ -167,24 +177,25 @@ Common definitions:
   the first trial session; later changes are dated amendments.
 - **MR-38 Material.** 64 German expressions (O-4) in 32 pairs matched by length (±2 words) and function; each has one training
   situation and one different test situation. Within a pair a seeded shuffle, recorded in the protocol, assigns the condition (calm or
-  harsh) and, balanced across conditions, the test day (7 or 21).
+  harsh) and, the test day (7 or 21) is assigned to the pair, so both members are tested on the same day and the day is balanced across pairs.
 - **MR-39 Trial session.** A new activity kind `trial` `{set, block, condition, cards}`. Eight blocks of eight expressions in the
   order A B B A A B B A. Calm is tone 0/0; harsh is harshness 4, hostility 0, with profanity fixed for the whole experiment in the
-  protocol. Both show the same 20 s answer timer. Live control is off. If Calm (MR-28) is used, the session is marked aborted
+  protocol. Both show the same 20 s answer timer. Drills, silence pressure, help reveals and the Help panel are off in both arms, so the two
+  conditions differ only in tone. Live control is off. If Calm (MR-28) is used, the session is marked aborted
   (`trial.aborted`) and its expressions are excluded.
 - **MR-40 Lock.** Until an expression is tested it does not appear in the warm-up queue, in "My words" or in the `<vocabulary>` block.
 - **MR-41 Test and blind grading.** On day 7 (±1) and day 21 (±2) Today shows that a test is due. The test session has no tone, no
   help and no feedback: one new situation per expression, one answer each. Grading is a separate request (purpose `trialGrade`, eight
   expressions per request) that sees the target expression, the situation and the answer, never the condition. Result per expression:
   correct, partial, not used; stored as `trial.graded`.
-- **MR-42 Met in real life.** The owner can mark an expression as met outside Lingo; marked expressions are excluded.
+- **MR-42 Met in real life.** The owner can mark an expression as met outside Lingo; marked expressions are excluded; the mark is stored as `trial.met`.
 - **MR-43 Export.** `--trial-export <csv>`: one row per expression (ids, pair, condition, block, dates, test day, result, highest help
   step, exclusions), no utterance text. `scripts/trial-report.py` prints the paired difference and an exact sign test.
 
 ## 11. Contracts, compatibility and privacy
 - **MR-44 Additive.** New optional fields (`tone`, `Scenario.group`, `Scenario.hostility`, the `local` mark of a message), a new
-  activity kind (`trial`), new events (`tone.filtered`, `drill.result`, `hint.shown`, `tone.interjected`, `tone.rated`,
-  `trial.aborted`, `trial.graded`), new silent tags and two local commands. `event.schema.json`, the fixtures and the TypeScript
+  activity kinds (`trial` and `trialTest`, the test session of MR-41), new events (`tone.filtered`, `drill.result`, `help.revealed`, `tone.interjected`, `tone.rated`,
+  `trial.aborted`, `trial.graded`, `trial.met`, `trial.debriefed`), new silent tags and two local commands. `event.schema.json`, the fixtures and the TypeScript
   decoders change in the same PR as the Swift code (AGENTS.md §6.9). Prompt snapshots are added for a strict session, a conflict
   scenario, a combined session and profanity on.
 - **MR-45 Older build.** The build before this change opens a tone or trial session as an ordinary session and can continue it; it
@@ -203,7 +214,7 @@ Common definitions:
 | MAC-02 | Malformed and out-of-range tone objects decode as no tone; the session opens | MR-01, MR-45 |
 | MAC-03 | A warm-up and both exams ignore a tone in settings (prompt equal to the one without it) | MR-02 |
 | MAC-04 | Without consent the levels cannot be raised; with it the presets set the documented values | MR-03, MR-04 |
-| MAC-05 | Tone snapshots exist; the tone block is ≤ 170 and the whole prompt ≤ 1 100 estimated tokens; rules 3 and 7 are present verbatim; a `<session_prompt>` that asks for a harsher tone changes nothing in the block | MR-05, MR-06, MR-08, MR-09 |
+| MAC-05 | Tone snapshots exist; the tone block is ≤ 170 estimated tokens and a tone prompt ≤ the same session's prompt without a tone + 170; rules 3 and 7 are present verbatim; a `<session_prompt>` that asks for a harsher tone changes nothing in the block | MR-05, MR-06, MR-08, MR-09 |
 | MAC-06 | Protocol tests: `@next`, `@help` are never spoken and never segments; `@tutor` becomes a `say` segment; a reply with them decodes with the previous decoder | MR-10…MR-14, MR-45 |
 | MAC-07 | Blame filter: golden cases per language (blame without `@fix` removed; with `@fix` kept; character speech untouched; empty result replaced) | MR-15 |
 | MAC-08 | Drill golden cases pass in Swift and TypeScript: pass, miss, not a repeat, command first | MR-16, MR-17 |
@@ -211,7 +222,7 @@ Common definitions:
 | MAC-10 | A failed drill yields a mistake card; a passed one does not change the cards | MR-19 |
 | MAC-11 | Silence: lines at 8 s and help at 16 s on a fake clock; nothing while paused, typing or after a technical failure; the three settings | MR-20 |
 | MAC-12 | Line catalogue: counts per kind, language and band; export equals `tone-lines.json`; deny-list test passes; profane lines only with the switch | MR-06, MR-21, MR-47 |
-| MAC-13 | Help reveals steps in order without a model request; `hint.shown` per reveal; fallbacks without `@help` or `@hint` | MR-22, MR-23 |
+| MAC-13 | Help reveals steps in order without a model request; `help.revealed` per reveal; fallbacks without `@help` or `@hint` | MR-22, MR-23 |
 | MAC-14 | Conflict catalogue: twelve scenarios with the required fields; export equals `scenarios.json`; independent review of originality and level recorded | MR-24 |
 | MAC-15 | Screenshots in both themes, Russian and English: Tone section, consent sheet, Conflicts tab, Teacher card, live popover, header label; `check-design` passes | MR-25, MR-26, MR-27 |
 | MAC-16 | Live change: the running reply is cut, `session.updated` is appended, the next request carries the new tone | MR-27 |

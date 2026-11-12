@@ -71,6 +71,7 @@ change the rules, so a custom prompt cannot make Lingo harsh.
 | O-2 | B-10 allowed one daytime run of 30–40 requests. | Confirm it once more for step M-2: one run, at most 40 requests, on the 20b model, with a budget. Otherwise the run happens at night. | AGENTS.md §6.5 allows batches only at night |
 | O-3 | B-18 file import into the vocabulary. | Its own small change after LINGO-09. | It is not a conversation mode; pasting a list already works |
 | O-4 | Language of the experiment. | German only; it starts after the owner has tried the modes (H-09-1). | One language keeps 64 expressions comparable |
+| O-6 | Provider policy risk of levels 4–5 on the free account. | The owner accepts that abuse and profanity are generated through the same free account(s); a suspension is possible. | Groq's terms were not checked in this review; AGENTS.md §8 treats extra accounts as an accepted risk |
 | O-5 | The calm-down words. | The owner names one Russian, one German and one English word or phrase in step M-4; until then only the key and the button work. | A word the owner will remember under pressure must be his own |
 
 ## Assumptions (executor, R2: recorded, not blocking)

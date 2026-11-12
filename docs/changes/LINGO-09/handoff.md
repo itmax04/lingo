@@ -28,7 +28,7 @@ and copied into [intent.md](intent.md) without change. The owner's concept paper
 - D-03: Help in three steps comes with every reply of a tone session (`@help` plus `@hint`), so that help and silence cost no request.
 - D-04: The follow-up question travels with the correcting reply (`@next`), so that a passed repeat costs no request.
 - D-05: The blame filter covers tutor speech only; a hostile character may say that the learner is wrong about the matter.
-- D-06: The FSRS grading of the warm-up is not changed; independence is recorded (`hint.shown`) and used by the debrief and the experiment.
+- D-06: The FSRS grading of the warm-up is not changed; independence is recorded (`help.revealed`) and used by the debrief and the experiment.
 - D-07: The experiment is part of this change as steps X-1…X-3 after H-09-1; acceptance does not wait for its 21 days (A-07).
 
 ## Open
@@ -38,3 +38,6 @@ and copied into [intent.md](intent.md) without change. The owner's concept paper
 ## Next step
 After H-09-0: step M-1a (data, contracts and parsing). Tier: standard. Start: "Continue LINGO-09 with M-1a from
 docs/changes/LINGO-09/handoff.md".
+
+## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)
+Verdict changes-required: P1 F1 (token budget made relative), F2 (help and calm detected only in tone sessions); P2 F3–F11 and P3 F12–F16 fixed in the follow-up commit (step order M-1a → M-3a → M-1b, buffering rule, local messages out of the context window, experiment arms differ only in tone, new events, risk row and O-6). Milestone and issues #120–#138 created; stop at H-09-0 (#135).
