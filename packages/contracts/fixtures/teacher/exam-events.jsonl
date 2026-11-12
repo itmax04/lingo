@@ -6,6 +6,10 @@
 {"device":"synthetic-exam","id":"exam-5","lamport":6,"payload":{"part":"ielts.2.prep"},"seq":6,"session":"s1","ts":"1970-01-01T00:00:00.006Z","type":"exam.part","v":1}
 {"device":"synthetic-exam","id":"exam-6","lamport":7,"payload":{"part":"ielts.2"},"seq":7,"session":"s1","ts":"1970-01-01T00:00:00.007Z","type":"exam.part","v":1}
 {"device":"synthetic-exam","id":"exam-7","lamport":8,"payload":{"part":"ielts.3"},"seq":8,"session":"s1","ts":"1970-01-01T00:00:00.008Z","type":"exam.part","v":1}
+{"device":"synthetic-exam","id":"exam-8","lamport":9,"payload":{"part":"goethe_b1.intro"},"seq":9,"session":"s1","ts":"1970-01-01T00:00:00.009Z","type":"exam.part","v":1}
+{"device":"synthetic-exam","id":"exam-9","lamport":10,"payload":{"part":"goethe_b1.2.partner"},"seq":10,"session":"s1","ts":"1970-01-01T00:00:00.010Z","type":"exam.part","v":1}
+{"device":"synthetic-exam","id":"exam-10","lamport":11,"payload":{"part":"goethe_b1.3.feedback"},"seq":11,"session":"s1","ts":"1970-01-01T00:00:00.011Z","type":"exam.part","v":1}
+{"device":"synthetic-exam","id":"exam-11","lamport":12,"payload":{"part":"goethe_b1.end"},"seq":12,"session":"s1","ts":"1970-01-01T00:00:00.012Z","type":"exam.part","v":1}
 {"device":"synthetic-exam","id":"bad-0","lamport":20,"payload":{},"seq":20,"session":"s1","ts":"1970-01-01T00:00:00.020Z","type":"exam.part","v":1}
 {"device":"synthetic-exam","id":"bad-1","lamport":21,"payload":{"part":2},"seq":21,"session":"s1","ts":"1970-01-01T00:00:00.021Z","type":"exam.part","v":1}
 {"device":"synthetic-exam","id":"bad-2","lamport":22,"payload":{"part":"ielts.4"},"seq":22,"session":"s1","ts":"1970-01-01T00:00:00.022Z","type":"exam.part","v":1}

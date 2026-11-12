@@ -96,6 +96,22 @@ public final class ProviderHealth: @unchecked Sendable {
 }
 
 /// Chain of steps with automatic fallback (R-29). Fallback on: 429, 5xx, network error, model refusal, no first token within the timeout.
+/// Time source of the chain: wall-clock date, monotonic uptime and sleeping. `.live` is the real clock; tests inject a virtual one
+/// so that timeouts and rate-limit waits are checked in virtual time and do not depend on how loaded the machine is.
+public struct ChainClock: Sendable {
+    public var date: @Sendable () -> Date
+    public var uptimeNanos: @Sendable () -> UInt64
+    public var sleep: @Sendable (Duration) async throws -> Void
+    public init(date: @escaping @Sendable () -> Date, uptimeNanos: @escaping @Sendable () -> UInt64,
+                sleep: @escaping @Sendable (Duration) async throws -> Void) {
+        self.date = date
+        self.uptimeNanos = uptimeNanos
+        self.sleep = sleep
+    }
+    public static let live = ChainClock(date: { Date() }, uptimeNanos: { DispatchTime.now().uptimeNanoseconds },
+                                        sleep: { try await Task.sleep(for: $0) })
+}
+
 public struct ProviderChain: Sendable {
     public struct Step: Sendable {
         public var info: StepInfo
@@ -117,6 +133,8 @@ public struct ProviderChain: Sendable {
     public var autoRetryWithin: TimeInterval
     /// Usage log (R-52): one record per attempt.
     public var usage: UsageRecorder?
+    /// Real clock in production; replaced only by tests.
+    public var clock: ChainClock = .live
 
     public init(steps: [Step], firstTokenTimeout: Double = 6, health: ProviderHealth = ProviderHealth(), autoRetryWithin: TimeInterval = 12,
                 usage: UsageRecorder? = nil) {
@@ -160,11 +178,11 @@ public struct ProviderChain: Sendable {
                     return
                 }
                 let needed = TokenEstimate.input(request) + request.maxTokens / 2
-                var (usable, soonest) = plan(needed: needed)
+                var (usable, soonest) = plan(now: clock.date(), needed: needed)
                 // All steps are on a short pause (429) — wait for the nearest one instead of giving up at once.
-                if usable.isEmpty, let s = soonest, s.timeIntervalSinceNow <= autoRetryWithin {
-                    try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
-                    (usable, soonest) = plan(needed: needed)
+                if usable.isEmpty, let s = soonest, s.timeIntervalSince(clock.date()) <= autoRetryWithin {
+                    try? await clock.sleep(.seconds(max(0.2, s.timeIntervalSince(clock.date()) + 0.2)))
+                    (usable, soonest) = plan(now: clock.date(), needed: needed)
                 }
                 var attempted = 0
                 var invalidKeys = Set<String>()
@@ -183,7 +201,7 @@ public struct ProviderChain: Sendable {
                     let t0 = Date()
                     do {
                         try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation,
-                                               health: health, stats: stats)
+                                               health: health, stats: stats, clock: clock)
                         health.reportSuccess(step.info)
                         record(step, request, status: "ok", error: nil, stats: stats, since: t0)
                         continuation.finish()
@@ -200,17 +218,17 @@ public struct ProviderChain: Sendable {
                             invalidKeys.insert(step.info.keyID)
                             continuation.yield(.keyInvalid(keyID: step.info.keyID, e))
                         } else {
-                            health.reportFailure(step.info, e)
+                            health.reportFailure(step.info, e, now: clock.date())
                         }
                         reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")
                     }
                 }
                 // Every step failed on a rate limit and the nearest frees up soon — a second pass (once).
-                if !Task.isCancelled, let s = plan(needed: needed).soonest, s.timeIntervalSinceNow <= autoRetryWithin, attempted > 0,
+                if !Task.isCancelled, let s = plan(now: clock.date(), needed: needed).soonest, s.timeIntervalSince(clock.date()) <= autoRetryWithin, attempted > 0,
                    allRateLimited {
-                    try? await Task.sleep(for: .seconds(max(0.2, s.timeIntervalSinceNow + 0.2)))
+                    try? await clock.sleep(.seconds(max(0.2, s.timeIntervalSince(clock.date()) + 0.2)))
                     limitedPools.removeAll()  // a new pass: the pauses were re-planned above
-                    for step in plan(needed: needed).run where !invalidKeys.contains(step.info.keyID) {
+                    for step in plan(now: clock.date(), needed: needed).run where !invalidKeys.contains(step.info.keyID) {
                         if Task.isCancelled { break }
                         if limitedPools.contains(ProviderHealth.key(step.info)) { continue }
                         continuation.yield(.attempt(step.info))
@@ -219,7 +237,7 @@ public struct ProviderChain: Sendable {
                         let t0 = Date()
                         do {
                             try await Self.runStep(step, request: request, timeout: firstTokenTimeout, start: start, continuation: continuation,
-                                                   health: health, stats: stats)
+                                                   health: health, stats: stats, clock: clock)
                             health.reportSuccess(step.info)
                             record(step, request, status: "ok", error: nil, stats: stats, since: t0)
                             continuation.finish()
@@ -230,13 +248,13 @@ public struct ProviderChain: Sendable {
                             if e == .cancelled { break }
                             if e.status == 429 { limitedPools.insert(ProviderHealth.key(step.info)) }
                             continuation.yield(.stepFailed(step.info, e))
-                            health.reportFailure(step.info, e)
+                            health.reportFailure(step.info, e, now: clock.date())
                             reasons.append("\(step.info.label) (" + String(localized: "key \(step.info.keyIndex)") + "): \(e.description)")
                         }
                     }
                 }
                 if !Task.isCancelled {
-                    let now = Date()
+                    let now = clock.date()
                     let next = plan(now: now, needed: needed).soonest ?? soonest
                     let wait = next.map { max(0, $0.timeIntervalSince(now)) }
                     let reason = reasons.isEmpty ? String(localized: "all steps are paused after errors") : reasons.joined(separator: "; ")
@@ -259,12 +277,16 @@ public struct ProviderChain: Sendable {
                                  finishReason: stats.stopReason))
     }
 
+    /// How often the first-token race looks at the clock.
+    static let pollInterval: Duration = .milliseconds(50)
+
     /// One step; throws if a fallback is needed. The first-token timeout is a race against the clock.
     static func runStep(_ step: Step, request: LLMRequest, timeout: Double, start: UInt64,
-                        continuation: AsyncStream<ChainEvent>.Continuation, health: ProviderHealth? = nil, stats: StepStats = StepStats()) async throws {
+                        continuation: AsyncStream<ChainEvent>.Continuation, health: ProviderHealth? = nil, stats: StepStats = StepStats(),
+                        clock: ChainClock = .live) async throws {
         let stream = step.provider.stream(request, model: step.info.model, key: step.key)
         let gotFirst = FirstTokenFlag()
-        let stepStart = DispatchTime.now().uptimeNanoseconds
+        let stepStart = clock.uptimeNanos()
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 var model = step.info.model
@@ -294,9 +316,9 @@ public struct ProviderChain: Sendable {
             }
             group.addTask {
                 while true {
-                    try await Task.sleep(for: .milliseconds(50))
+                    try await clock.sleep(pollInterval)
                     if gotFirst.isSet { return }
-                    if Double(DispatchTime.now().uptimeNanoseconds - stepStart) / 1e9 >= timeout {
+                    if Double(clock.uptimeNanos() - stepStart) / 1e9 >= timeout {
                         throw LLMError.firstTokenTimeout
                     }
                 }

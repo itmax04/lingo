@@ -178,14 +178,21 @@ public struct Activity: Codable, Sendable, Hashable {
     /// Exam: "goethe_b1" or "ielts", and the tasks drawn at the start.
     public var exam: String?
     public var tasks: [String]?
+    /// LINGO-10 BR-01: Goethe exam format ("mock" or "training"), the Teil of a training, the partner's talk of a mock.
+    public enum Format: String, Codable, Sendable { case mock, training }
+    public var format: Format?
+    public var teil: Int?
+    public var partnerTask: String?
 
-    public init(kind: Kind, cards: [String]? = nil, id: String? = nil, exam: String? = nil, tasks: [String]? = nil) {
+    public init(kind: Kind, cards: [String]? = nil, id: String? = nil, exam: String? = nil, tasks: [String]? = nil,
+                format: Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
         self.kind = kind; self.cards = cards; self.id = id; self.exam = exam; self.tasks = tasks
+        self.format = format; self.teil = teil; self.partnerTask = partnerTask
     }
 
     public static func warmup(_ cards: [String]) -> Activity { Activity(kind: .warmup, cards: cards) }
 
-    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks }
+    enum CodingKeys: String, CodingKey { case kind, cards, id, exam, tasks, format, teil, partnerTask }
 
     /// Malformed content for its kind throws, so `SessionSettings` decodes it as no activity (PX-05).
     public init(from decoder: Decoder) throws {
@@ -195,11 +202,18 @@ public struct Activity: Codable, Sendable, Hashable {
         id = try c.decodeIfPresent(String.self, forKey: .id)
         exam = try c.decodeIfPresent(String.self, forKey: .exam)
         tasks = try c.decodeIfPresent([String].self, forKey: .tasks)
+        // An unknown format value throws (no activity); so does a field of the wrong type.
+        format = try c.decodeIfPresent(Format.self, forKey: .format)
+        teil = try c.decodeIfPresent(Int.self, forKey: .teil)
+        partnerTask = try c.decodeIfPresent(String.self, forKey: .partnerTask)
         let valid: Bool
         switch kind {
         case .warmup: valid = !(cards ?? []).isEmpty
         case .scenario: valid = !(id ?? "").isEmpty
-        case .exam: valid = exam.flatMap(ExamKind.init(rawValue:)).map { ExamCatalog.validSelection($0, ids: tasks ?? []) } ?? false
+        case .exam:
+            valid = exam.flatMap(ExamKind.init(rawValue:)).map {
+                ExamCatalog.valid($0, ids: tasks ?? [], format: format, teil: teil, partnerTask: partnerTask)
+            } ?? false
         }
         guard valid else { throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "activity without its fields") }
     }

@@ -67,7 +67,7 @@ struct MainView: View {
                        sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
             BannerLine(model: model)
             if model.isExam, let run = model.examRun, model.liveExamSessionID == model.selectedSessionID {
-                ExamPanel(run: run, busy: model.examBusy, followUp: model.examFollowUp,
+                ExamPanel(run: run, busy: model.examBusy, followUp: model.examFollowUp, speaker: model.examSpeaker,
                           onDone: { model.services?.exam?.advance(expected: $0) }, onFinish: { model.services?.endTapped() })
                     .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
             }

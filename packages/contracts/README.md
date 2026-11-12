@@ -22,9 +22,10 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/vocab/selection.json` | Which vocabulary items the model practises next (LINGO-08 VR-06) | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/matching.json` | Whether an utterance uses an item (VR-07b), with negative cases and accepted misses | Swift `VocabularyContractTests`, the TS port |
 | `fixtures/vocab/events.jsonl` | One event of every vocabulary/profile type, written by the real Swift code | round-trip tests |
-| `teacher/exams.json` | Original B1 and IELTS tasks, written by Swift `ExamTests` with `LINGO_RECORD_FIXTURES=1` | Swift catalogue validation; future TS teacher under D-01 |
+| `teacher/exams.json` | Original B1 and IELTS tasks; for the B1 exam also titles, Russian glosses, categories, the partner's talks with summaries, `goethePhrases` (keys `1`…`3`) and `goetheExaminerLines` (LINGO-10). Written by Swift `ExamTests` with `LINGO_RECORD_FIXTURES=1` | Swift catalogue validation; future TS teacher under D-01 |
 | `teacher/scenarios.json` | Scenario catalogue (9 DE, 6 EN, tasks and titles), written by Swift `ScenarioTests` | Swift catalogue validation; future TS teacher under D-01 |
-| `fixtures/teacher/exam-events.jsonl` | All eight exam phases and four malformed payloads, written by Swift `ExamTests` | Swift/TS round-trip and unknown-event count parity |
+| `fixtures/teacher/exam-events.jsonl` | All twelve exam phases (LINGO-10 adds four) and four malformed payloads, written by Swift `ExamTests` | Swift/TS round-trip and unknown-event count parity |
+| `fixtures/teacher/goethe-scoring.json` | Goethe B1 letter-to-points table, zero rule and debrief parser golden cases (LINGO-10 BR-28, BR-29, BR-40), written by Swift `GoetheScoringTests` | Swift tests; TS shape test; a later web port |
 | `fixtures/teacher/weekly-events.jsonl` | Two `report.weekly` events for one week and two malformed ones, written by Swift `WeeklyReportTests` | Swift/TS round-trip and unknown-event count parity |
 | `fixtures/teacher/memory-events.jsonl` | Five valid `memory.*` events (two facts, an update, a removal, a switch) and four malformed ones, written by Swift `MemoryTests` | Swift/TS round-trip and unknown-event count parity |
 | `prompts/prompt-exam-*.txt` | Examiner system rules and a maximal bounded `<exam>` block | Swift `ExamTests`; no live model calls (Q-03) |
