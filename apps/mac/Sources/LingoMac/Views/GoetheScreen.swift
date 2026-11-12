@@ -79,12 +79,12 @@ struct GoetheScreen: View {
                 main(wide: wide)
                 if training && wide {
                     ColumnDivider()
-                    panel
+                    panel(docked: true)
                 }
             }
             .overlay(alignment: .trailing) {
                 if training && !wide && panelOpen {
-                    HStack(spacing: 0) { ColumnDivider(); panel }
+                    HStack(spacing: 0) { ColumnDivider(); panel(docked: false) }
                 }
             }
         }
@@ -227,14 +227,14 @@ struct GoetheScreen: View {
 
     // MARK: Right panel (BR-35)
 
-    private var panel: some View {
+    private func panel(docked: Bool) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.S.s16) {
                 if let t = selected {
                     HStack {
                         Text("Selected topic").font(Theme.F.panelTitle)
                         Spacer()
-                        if panelOpen { Button { panelOpen = false } label: { Image(systemName: "xmark") }.buttonStyle(LingoButtonStyle()).accessibilityLabel("Close") }
+                        if !docked { Button { panelOpen = false } label: { Image(systemName: "xmark") }.buttonStyle(LingoButtonStyle()).accessibilityLabel("Close") }
                     }
                     VStack(alignment: .leading, spacing: Theme.S.s4) {
                         Text(verbatim: t.title ?? t.task).font(Theme.F.panelTitle)
@@ -266,7 +266,7 @@ struct GoetheScreen: View {
                             .background(Theme.accent(lang), in: RoundedRectangle(cornerRadius: Theme.R.button))
                     }
                     .buttonStyle(LingoButtonStyle())
-                    .disabled(model.startingExam || !model.online || model.readOnly)
+                    .disabled(!model.online)
                     .accessibilityLabel(Text("Start training") + Text(": ") + Text(verbatim: t.title ?? t.task))
                     if !model.online { Text(model.disabledReason).font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger) }
                 }
