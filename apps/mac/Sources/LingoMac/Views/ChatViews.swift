@@ -287,6 +287,8 @@ struct MessageList: View {
     var isSpeaking = false
     var studyLanguage: Lang?
     var isExam = false
+    /// LINGO-10 BR-30: the stored debrief of a Goethe session with a format is drawn as a card instead of a bubble.
+    var goetheCard: GoetheDebrief.Card?
     var onTap: (ChatMessage) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
     var translations: [String: MessageTranslation] = [:]
@@ -301,6 +303,9 @@ struct MessageList: View {
                 ScrollView {
                     LazyVStack(spacing: Theme.S.messageGap) {
                         ForEach(messages) { message in
+                            if message.kind == .summary, isExam, let goetheCard {
+                                GoetheDebriefCard(card: goetheCard).id(message.id)
+                            } else {
                             MessageBubble(message: message, maxWidth: max(160, geometry.size.width * Theme.S.bubbleMaxFraction),
                                           correction: corrections.inline[message.id],
                                           studyLanguage: studyLanguage,
@@ -312,6 +317,7 @@ struct MessageList: View {
                                           onTranslate: { onTranslate(message) },
                                           onHideTranslation: { onHideTranslation(message.id) },
                                           onCopy: onCopy).id(message.id)
+                            }
                         }
                     }.padding(24)
                 }

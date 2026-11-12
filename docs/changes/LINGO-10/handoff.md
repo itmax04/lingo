@@ -142,6 +142,23 @@ DESIGN.md §8 asks to keep the exact ImageGen prompt; it is in the parent sessio
   - Not live-tested with a real model (G-6). The F1/F3 fixes were not re-reviewed by a second independent pass.
 - Checks after the fixes: `swift test` 406 passed; `npm test` 304 passed; `check-core-ios.sh` PASS; `check-english` PASS; `secret-scan` 0 findings.
 
+## Next (older, done)
+G-4 and G-5a: see their sections; the last "Next" at the end of the file is current.
+
+## G-5a (Goethe screen part 1, #101), 2026-11-12
+- Worktree `.claude/worktrees/keen-spence-171b93`, branch `feat/101-goethe-screen-1` from `origin/main` `9b65a0b` (G-1…G-4 and the docs PR #96 are merged). UNCOMMITTED and unpushed; no PR yet.
+- Done: `LingoCore/Teacher/GoetheHub.swift` (practice counts BR-34, Debriefs list BR-36, categories, task list); `Views/GoetheScreen.swift` (Training and Debriefs tabs, steps strip, Teil segments, category chips, task cards, 272 pt right panel with phrases and plan, slide-over below 1280 pt); `Views/GoetheDebriefCard.swift` (BR-30, BR-31, BR-29 fallback); `ExamPanel` (R-1 Done during the partner's talk, R-5 labels `PartLabel`, Replay, visible talk, Training notes for Teil 2 and 3, Done/Finish note); `HintsPanel` (useful phrases for Teil N in Training, BR-19); `AppModel` (`showGoethe`, tab/Teil/category/task state, `goetheNotes`, `goethePlan`, `goetheCard`, `debriefCard .nothingToAssess`, `trainingTeil`); `ExamServices.startGoetheTraining` (notes kept for Teil 2/3, cleared in `stopExam`); `ExamDebriefCard` (nothing to assess, no Retry); `TeacherView` (German card opens the screen); `MainView`/`ChatViews` wiring; 56 new strings in `Localizable.xcstrings` (ru included); `Fixtures.goetheJournal`/`trainingLive` and the `--ui-goethe` snapshot mode in `App.swift`.
+- Executor decisions: D-G5a-1 Training notes also live in `ExamPanel` for Teil 2 and 3 (Mock notes stay G-5b); D-G5a-2 the Mock tab is not shown until G-5b; D-G5a-3 "Debriefs" lists ended sessions with a format (dates are the last event); D-G5a-4 unstructured fallback shows headings with points plus the whole stored text.
+- Verified (uncommitted tree on `9b65a0b`): `swift test --package-path apps/mac` 420 passed (14 new: `GoetheHubTests` 4, `GoetheScreenHostTests` 10); `scripts/check-design.py` PASS (639 strings); `scripts/check-english.sh` PASS; `scripts/secret-scan.sh` 0 findings.
+- Snapshots done with the debug binary (`apps/mac/.build/debug/Lingo --ui-snapshot x.png --ui-goethe --ui-theme <t> --ui-language <l>`): 48 PNGs in `docs/changes/LINGO-10/evidence/g5a/{ru,en}-{light,dark}/` (Training Teil 1/2/3, narrow 1100, Debriefs, Teacher card, four debrief cards, live Training Teil 3 and Teil 2). Looked at: ru-dark Training screen (matches the mockup layout), en-dark incomplete Mock card (18 / 28 = B6+A4+C4+C4 correct), ru-light live Teil 3. Not looked at one by one: the other 45.
+- FIXED defect (BR-17): the panel body `ScrollView` had only a `maxHeight`, so the greedy message list squeezed it to the task lines and the partner's talk (and the Teil 2 plan points) never appeared. `ExamPanel.bodyHeight` now gives a minimum (200 for the Training talk, 160 otherwise); test `thePartnersTalkIsInTheTrainingPanelWithAGuaranteedHeight`. All 48 snapshots re-shot; the talk is visible in ru-dark and en-light Teil 3, Teil 2 plan points visible, narrow 1100 and the en-dark incomplete card looked at.
+- Not yet checked against the mockup in both themes beyond the one image (DESIGN.md §8); the BAC-17 comparison table is still to write (`report` lives in G-6; keep a short note in the PR).
+- NOT RUN: `apps/mac/scripts/check-core-ios.sh`; `npm test` (no TS change); independent review; CI.
+
 ## Next
-1. The PR of G-4 against `feat/99-goethe-exam-engine` is open ("Part of #100"); the owner merges; #111 is not merged. Watch `swift-test` (known `TurnControllerTests` timing flake).
-2. Then G-5a (#101) in a new session.
+1. Fix the OPEN DEFECT above (talk text invisible in the Training Teil 3 panel), re-run the snapshots, look at the remaining images (layout, truncation, contrast) and fix defects. `dist/Lingo.app` is built (not needed for snapshots; the debug binary works).
+2. Run `check-core-ios.sh`, `check-english`, `secret-scan`, `check-design`; update this file; commit only the files listed above; push; open the PR against `main` ("Closes #101", with `Co-Authored-By`/Claude Code footer per the attribution reminder); bind it with `bind_pr`.
+3. Independent review with a fresh `sdlc:reviewer` (pr mode); fix P0/P1; green CI (known `TurnControllerTests` timing flake: rerun once); then squash-merge under CX-02. Then G-5b (#102).
+
+## Next (G-5a, 2026-11-12, after the fix)
+1. Checks PASS on the final tree: `swift test` 421, `check-core-ios`, `check-english`, `secret-scan` 0, `check-design`. PR for #101 is open; independent review, CI and CX-02 squash-merge follow, then G-5b (#102).

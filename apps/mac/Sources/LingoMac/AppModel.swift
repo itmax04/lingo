@@ -6,6 +6,7 @@ import Observation
 @MainActor
 @Observable
 final class AppModel {
+    enum GoetheTab: String { case training, debriefs }
     var section: AppSection = .conversations
     var sessionSearch = ""
     var sessions: [Session] = []
@@ -24,17 +25,44 @@ final class AppModel {
     var examFollowUp = false
     /// LINGO-10 BR-23: who the app is speaking as in a Goethe run with a format.
     var examSpeaker: ExamSpeaker?
+    /// LINGO-10 BR-33…BR-36: the Goethe screen opens from the Teacher card; its state lives only in memory.
+    var showGoethe = false
+    var goetheTab: GoetheTab = .training
+    var goetheTeil = 1
+    var goetheCategory: ExamCategory?
+    var goetheTask: String?
+    /// LINGO-10 BR-22: "My presentation plan" / "My notes". Memory only for one run; never sent to a model, the journal, a file or a log.
+    var goetheNotes = ""
+    static let notesLimit = 2_000
     var isExam: Bool { selectedSession?.settings.activity?.kind == .exam }
     var canContinue: Bool { !isExam }
     /// Exam sessions whose debrief request is running (memory only; a stored debrief is a `summary` message in the journal).
     var debriefRunning: Set<String> = []
-    enum DebriefCard { case running, unavailable }
+    enum DebriefCard { case running, unavailable, nothingToAssess }
+    /// LINGO-10 BR-26, BR-31: what a Goethe session with a format would ask about, from the stored journal. Nil for every other session.
+    var goethePlan: GoetheDebrief.Plan? {
+        guard let s = selectedSession, s.settings.activity?.format != nil else { return nil }
+        return GoetheDebrief.plan(settings: s.settings, parts: history.examParts[s.id] ?? [], messages: messages, messageParts: history.examMessageParts)
+    }
+    /// LINGO-10 BR-30: the stored debrief of a Goethe session parsed for the card (nil when none is stored or the session is not Goethe).
+    var goetheCard: GoetheDebrief.Card? {
+        guard let plan = goethePlan, let summary = messages.last(where: { $0.kind == .summary }) else { return nil }
+        return GoetheDebrief.card(text: summary.text, plan: plan)
+    }
     /// XR-03: the card under a finished exam. Nil while the exam is live, without learner turns, or once the debrief is stored.
+    /// BR-31: a Goethe run with nothing finished to assess says so instead of offering a Retry that would send nothing.
     var debriefCard: DebriefCard? {
         guard isExam, let sid = selectedSessionID, selectedSession?.state == .ended, liveExamSessionID != sid,
-              messages.contains(where: { $0.role == .user && $0.kind == .normal }),
               !messages.contains(where: { $0.kind == .summary }) else { return nil }
+        if selectedSession?.settings.activity?.format != nil {
+            if goethePlan?.nothingToAssess != false { return .nothingToAssess }
+        } else if !messages.contains(where: { $0.role == .user && $0.kind == .normal }) { return nil }
         return debriefRunning.contains(sid) ? .running : .unavailable
+    }
+    /// The Teil of a Goethe Training session, for its Hints column (BR-19).
+    var trainingTeil: Int? {
+        guard let a = selectedSession?.settings.activity, a.kind == .exam, a.format == .training else { return nil }
+        return a.teil
     }
     var examReadOnly: Bool { isExam && (liveExamSessionID != selectedSessionID || examRun?.finished == true) }
     var langFilter: Lang = .en

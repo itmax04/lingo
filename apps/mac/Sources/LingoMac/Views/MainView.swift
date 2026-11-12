@@ -15,7 +15,7 @@ struct MainView: View {
                 if model.section == .conversations { center }
                 else if model.section == .dictionary { VocabularyView(model: model) }
                 else if model.section == .today { TodayView(model: model) }
-                else if model.section == .teacher { TeacherView(model: model) }
+                else if model.section == .teacher { if model.showGoethe { GoetheScreen(model: model) } else { TeacherView(model: model) } }
                 else if model.section == .progress { ProgressScreen(model: model) }
                 else { PlannedSectionView(section: model.section) { model.section = .conversations } }
                 if model.section == .conversations && wide && model.hintsVisible {
@@ -55,6 +55,8 @@ struct MainView: View {
     private var hints: some View {
         HintsPanel(phrases: model.phrases, starred: model.starred, corrections: model.corrections,
                    dictionary: model.dictionary.filter { $0.lang == (model.selectedSession?.settings.lang ?? model.langFilter) },
+                   usefulTitle: model.trainingTeil.map { String(localized: "Useful phrases for Teil \($0)") },
+                   useful: model.trainingTeil.map { teil in ExamCatalog.goethePhrases(teil: teil).map { Phrase(lang: .de, text: $0.de, translation: $0.ru, source: .topic) } } ?? [],
                    onPlay: { model.services?.playPhrase($0) }, onStar: { model.services?.toggleStar($0) },
                    onClose: { model.hintsVisible = false })
     }
@@ -67,11 +69,12 @@ struct MainView: View {
                        sourceMenu: AnyView(SourceMenu(model: model)), settingsMenu: AnyView(SessionMenu(model: model)))
             BannerLine(model: model)
             if model.isExam, let run = model.examRun, model.liveExamSessionID == model.selectedSessionID {
-                ExamPanel(run: run, busy: model.examBusy, followUp: model.examFollowUp, speaker: model.examSpeaker,
-                          onDone: { model.services?.exam?.advance(expected: $0) }, onFinish: { model.services?.endTapped() })
+                ExamPanel(run: run, busy: model.examBusy, followUp: model.examFollowUp, speaker: model.examSpeaker, notes: $model.goetheNotes,
+                          onDone: { model.services?.exam?.advance(expected: $0) }, onFinish: { model.services?.endTapped() },
+                          onReplay: { model.services?.exam?.replayTalk() })
                     .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
             }
-            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, goetheCard: model.goetheCard, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) })
             VStack(spacing: Theme.S.s16) {
                 if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -90,7 +93,7 @@ struct MainView: View {
                     WarmupEndHost(model: model, session: sid)
                 }
                 if let card = model.debriefCard, let sid = model.selectedSessionID {
-                    ExamDebriefCard(running: card == .running, onRetry: { model.services?.runDebrief(sid) })
+                    ExamDebriefCard(running: card == .running, nothingToAssess: card == .nothingToAssess, onRetry: { model.services?.runDebrief(sid) })
                 }
                 if model.examReadOnly {
                     Text("Exam transcript — start a new exam from Teacher.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)

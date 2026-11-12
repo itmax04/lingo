@@ -8,6 +8,9 @@ struct HintsPanel: View {
     let starred: Set<String>
     var corrections: [Phrase] = []
     var dictionary: [Phrase] = []
+    /// LINGO-10 BR-19: in a Goethe Training the catalogue's phrases for the Teil replace the topic phrases (no model call).
+    var usefulTitle: String? = nil
+    var useful: [Phrase] = []
     var onPlay: (Phrase) -> Void = { _ in }
     var onStar: (Phrase) -> Void = { _ in }
     var onClose: () -> Void = {}
@@ -16,7 +19,8 @@ struct HintsPanel: View {
     var sections: [(String, String, [Phrase])] {
         let topic = phrases.filter { $0.source == .topic || $0.source == .hint }
         let how = phrases.filter { $0.source == .howToSay }
-        return [("topic", String(localized: "Topic phrases"), topic), ("fix", String(localized: "Corrections"), uniq(corrections)), ("how", String(localized: "How to say"), how), ("dict", String(localized: "Vocabulary ★"), dictionary)].filter { !$0.2.isEmpty }
+        let base: [(String, String, [Phrase])] = [("useful", usefulTitle ?? "", useful)]
+        return (base + [("topic", String(localized: "Topic phrases"), topic), ("fix", String(localized: "Corrections"), uniq(corrections)), ("how", String(localized: "How to say"), how), ("dict", String(localized: "Vocabulary ★"), dictionary)]).filter { !$0.2.isEmpty }
     }
 
     func uniq(_ p: [Phrase]) -> [Phrase] {

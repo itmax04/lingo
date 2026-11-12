@@ -176,6 +176,114 @@ enum Fixtures {
         } catch { return false }
     }
 
+    /// LINGO-10 G-5a screenshots: four ended Goethe sessions on a synthetic journal (a scored Training, an incomplete Mock, a Training whose
+    /// reply lost a criterion, a Training with nothing finished). Written to the snapshot's temporary journal, never the learner's.
+    static func goetheJournal(_ services: AppServices) async -> [String: String]? {
+        let e = services.engine, store = services.store
+        let day = Date()
+        var ids: [String: String] = [:]
+        do {
+            func part(_ sid: String, _ p: ExamPhase) async throws { _ = try await store.append(EventType.examPart, session: sid, Payload.ExamPart(part: p)) }
+            func say(_ sid: String, _ role: Role, _ text: String) async throws {
+                _ = try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: role, text: text, lang: .de, kind: .normal))
+            }
+            func debrief(_ sid: String, _ text: String) async throws {
+                _ = try await store.append(EventType.messageCreated, session: sid, Payload.MessageCreated(role: .assistant, text: text, lang: .ru, kind: .summary))
+            }
+            func end(_ sid: String, _ minutes: Double) async throws { _ = try await store.append(EventType.sessionEnded, session: sid, at: day.addingTimeInterval(minutes * 60)) }
+            let teil1 = """
+            [1E] B: Все четыре пункта обсуждены, одну идею партнёра вы оставили без ответа.
+            [1I] A: Вы хорошо реагируете на предложения и задаёте встречные вопросы.
+            [1W] C: Слова простые и подходят к теме, но часто повторяются.
+            [1S] C: Есть ошибки в порядке слов, они не мешают понять вас.
+            [T1]
+            + Ясные предложения: «Wir könnten am Samstag gehen.»
+            + Вежливые вопросы партнёру
+            > ich bin gegangen gestern → gestern bin ich gegangen — порядок слов
+            > weil ich habe Zeit → weil ich Zeit habe — глагол в конце придаточного
+            > mit der Fahrrad → mit dem Fahrrad — Dativ после mit
+            """
+            let a = try await e.createSession(ExamKind.goetheB1.settings(tasks: ["b1-plan-park"], format: .training, teil: 1)!)
+            try await part(a, .goethe1)
+            try await say(a, .assistant, "Hallo! Wollen wir am Wochenende etwas im Park organisieren?")
+            try await say(a, .user, "Ja, gern. Wir könnten am Samstag ein Picknick machen.")
+            try await say(a, .assistant, "Gute Idee. Wer bringt das Essen mit?")
+            try await say(a, .user, "Ich kann Brot und Obst mitbringen, weil ich Zeit habe.")
+            try await part(a, .goetheEnd)
+            try await debrief(a, teil1)
+            try await end(a, 1)
+            ids["training"] = a
+
+            let b = try await e.createSession(ExamKind.goetheB1.settings(tasks: ["b1-plan-park", "b1-talk-bicycle", "b1-discuss-bicycle"], format: .mock, partnerTask: "b1-talk-secondhand")!)
+            try await part(b, .goetheIntro); try await say(b, .user, "Guten Tag, ich heiße Anna und komme aus Russland.")
+            try await part(b, .goethe1); try await say(b, .user, "Wir könnten zusammen in den Park gehen."); try await say(b, .assistant, "Das klingt gut.")
+            try await part(b, .goethe2); try await say(b, .user, "Mein Thema ist das Fahrrad in der Stadt. Ich möchte über Vorteile sprechen.")
+            let mockText = teil1 + """
+
+            [2E] B: Alle Folien kommen vor, das Ende fehlt etwas.
+            [2K] B: Klare Reihenfolge, wenige Verbindungswörter.
+            [2W] B: Passende Wörter zum Thema.
+            [2S] C: Einige Fehler bei Artikeln.
+            [T2]
+            + Gute Einleitung
+            + Eigene Meinung genannt
+            > in die Stadt → in der Stadt — Dativ bei Ort
+            > die Vorteile ist → die Vorteile sind — Plural
+            > ich denke dass → ich denke, dass — Komma
+            """
+            try await debrief(b, mockText)
+            try await end(b, 2)
+            ids["mock"] = b
+
+            let c = try await e.createSession(ExamKind.goetheB1.settings(tasks: ["b1-talk-bicycle"], format: .training, teil: 2)!)
+            try await part(c, .goethe2); try await say(c, .user, "Mein Thema ist das Fahrrad in der Stadt.")
+            try await part(c, .goetheEnd)
+            try await debrief(c, """
+            [2E] B: Alle Folien kommen vor.
+            [2K] A: Klare Reihenfolge.
+            [2S] C: Einige Fehler bei Artikeln.
+            [T2]
+            + Gute Einleitung
+            + Eigene Meinung genannt
+            > in die Stadt → in der Stadt — Dativ bei Ort
+            > die Vorteile ist → die Vorteile sind — Plural
+            > ich denke dass → ich denke, dass — Komma
+            """)
+            try await end(c, 3)
+            ids["unscored"] = c
+
+            let d = try await e.createSession(ExamKind.goetheB1.settings(tasks: ["b1-discuss-bicycle"], format: .training, teil: 3)!)
+            try await part(d, .goethePartner)
+            try await end(d, 4)
+            ids["nothing"] = d
+            services.model.apply(await store.state)
+            return ids
+        } catch { return nil }
+    }
+
+    /// A live Goethe Training run for the panel screenshots: the partner's talk of Teil 3 (visible, with Replay) or a Teil 2 monologue with notes.
+    static func trainingLive(_ model: AppModel, teil: Int, task: String, notes: String = "") {
+        let now = Date()
+        guard let settings = ExamKind.goetheB1.settings(tasks: [task], format: .training, teil: teil),
+              let run = ExamRun(kind: .goetheB1, tasks: [task], format: .training, teil: teil, now: now) else { return }
+        model.sessions = [Session(id: "exam-fixture", title: ExamKind.goetheB1.title, settings: settings, createdAt: now, lastActivity: now)]
+        model.selectedSessionID = "exam-fixture"
+        model.section = .conversations
+        model.langFilter = .de
+        model.hintsVisible = true
+        model.messages = teil == 2 ? [] : []
+        model.liveExamSessionID = "exam-fixture"
+        model.examRun = run
+        model.examBusy = teil == 3
+        model.examInputAllowed = run.microphoneAllowed
+        model.examFollowUp = false
+        model.examSpeaker = teil == 3 ? .partner : nil
+        model.goetheNotes = notes
+        model.voiceState = teil == 3 ? .speaking : .listening
+        model.levels = []
+        model.phrases = []
+    }
+
     /// Synthetic memory facts and a profile (T-8 screenshots): no personal data.
     static func memoryFacts(_ services: AppServices) async -> Bool {
         do {

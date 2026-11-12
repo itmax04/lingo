@@ -257,7 +257,8 @@ enum UISnapshot {
         let progressOnly = args.contains("--ui-progress")
         let memoryOnly = args.contains("--ui-memory")
         let reminderOnly = args.contains("--ui-reminder")
-        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly
+        let goetheOnly = args.contains("--ui-goethe")
+        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly || goetheOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -265,6 +266,35 @@ enum UISnapshot {
             if option("--ui-all") == nil && !examOnly && name != "conversation-speaking" { return }
             ok = await render(view.modifier(InterfaceAppearance()), size: size, to: target) && ok
             print("ui-snapshot: " + target.path)
+        }
+        if goetheOnly {
+            // LINGO-10 G-5a: the Goethe screen (Training, Debriefs), the four debrief cards and a live Training (panel, Hints), on a synthetic journal.
+            model.online = true
+            model.section = .teacher
+            model.showGoethe = true
+            guard let ids = await Fixtures.goetheJournal(services) else { return 1 }
+            await capture("goethe-training", MainView(model: model))
+            model.goetheTeil = 2
+            await capture("goethe-training-teil2", MainView(model: model))
+            model.goetheTeil = 3; model.goetheCategory = .arbeit
+            await capture("goethe-training-teil3-work", MainView(model: model))
+            await capture("goethe-training-narrow", MainView(model: model), NSSize(width: 1100, height: 800))
+            model.goetheTab = .debriefs
+            await capture("goethe-debriefs", MainView(model: model))
+            model.showGoethe = false
+            await capture("goethe-teacher-card", MainView(model: model))
+            model.section = .conversations
+            model.hintsVisible = false
+            for (name, key) in [("card-training", "training"), ("card-mock-incomplete", "mock"), ("card-unscored", "unscored"), ("nothing-to-assess", "nothing")] {
+                model.selectedSessionID = ids[key]
+                model.refreshSelection()
+                await capture("goethe-" + name, MainView(model: model), NSSize(width: 1280, height: 1500))
+            }
+            Fixtures.trainingLive(model, teil: 3, task: "b1-discuss-bicycle")
+            await capture("goethe-live-teil3-talk", MainView(model: model))
+            Fixtures.trainingLive(model, teil: 2, task: "b1-talk-bicycle", notes: "Einleitung: Fahrrad in der Stadt\nVorteile: schnell, gesund, günstig\nMeine Meinung")
+            await capture("goethe-live-teil2-notes", MainView(model: model))
+            return ok ? 0 : 1
         }
         if reminderOnly {
             // T-9: Settings → Reminder off, scheduled and blocked. Fixture state only: the system notification centre is never touched.

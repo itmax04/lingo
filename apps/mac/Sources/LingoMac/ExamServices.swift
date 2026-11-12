@@ -7,12 +7,21 @@ extension AppServices {
     static var stillFinishingText: String { String(localized: "The session is still finishing. Try again in a moment.") }
     static var examStartingText: String { String(localized: "An exam is already starting.") }
 
-    func startExam(_ kind: ExamKind) {
+    /// LINGO-10 BR-16, BR-33: a Goethe Training of one Teil on one task; the same conditions as any exam start (a refused click says why).
+    func startGoetheTraining(teil: Int, task: String) {
+        guard ExamCatalog.validTraining(teil: teil, ids: [task]) else { return }
+        startExam(.goetheB1, tasks: [task], format: .training, teil: teil)
+    }
+
+    func startExam(_ kind: ExamKind, tasks: [String]? = nil, format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
         // A refused click must say why instead of doing nothing (H-05).
         if ending { model.banner = Self.stillFinishingText; return }
         if model.startingExam { model.banner = Self.examStartingText; return }
         if model.readOnly { model.banner = model.disabledReason; return }
+        // BR-22: a Training plan written before Start stays for the run (Teil 2 and 3); stopping the old run clears it.
+        let notes = model.goetheNotes
         stopExam()
+        model.goetheNotes = format == .training && (teil == 2 || teil == 3) ? notes : ""
         let startID = UUID()
         examStartID = startID
         model.startingExam = true
@@ -27,11 +36,12 @@ extension AppServices {
             }
             // Navigation during voice setup cancels this task (examSelectionChanged); journal auto-selection does not.
             guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else { return }
-            await attachExam(kind, to: tc)
+            await attachExam(kind, to: tc, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask)
         }
     }
 
-    func attachExam(_ kind: ExamKind, to tc: TurnController) async {
+    func attachExam(_ kind: ExamKind, to tc: TurnController, tasks: [String]? = nil, format: Activity.Format? = nil, teil: Int? = nil,
+                    partnerTask: String? = nil) async {
         turnTask?.cancel()
         tc.stopVoice(cancelTurn: true)
         model.streaming = nil
@@ -84,7 +94,7 @@ extension AppServices {
             self?.stopExam()
             self?.model.banner = String(localized: "Could not continue the exam. Start a new exam from Teacher.")
         }
-        do { _ = try await controller.start(kind) }
+        do { _ = try await controller.start(kind, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask) }
         catch { controller.onFailure?(error) }
     }
 
@@ -121,6 +131,7 @@ extension AppServices {
         model.examInputAllowed = false
         model.examFollowUp = false
         model.examSpeaker = nil
+        model.goetheNotes = ""
         model.continuous = false
         model.streaming = nil
         model.thinking = false
