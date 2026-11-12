@@ -33,6 +33,8 @@ struct MemoryScreen: View {
         .foregroundStyle(Theme.C.textPrimary)
         .frame(minWidth: 640, idealWidth: 720, minHeight: 520, idealHeight: 680)
         .background(Theme.C.bgWindow)
+        // A sheet does not get the main window's interface language; set it here like the other sheets.
+        .modifier(InterfaceAppearance())
         .confirmationDialog("Delete this fact?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), presenting: deleting) { fact in
             Button("Delete", role: .destructive) { model.services?.removeMemory(fact.id) }
             Button("Cancel", role: .cancel) {}

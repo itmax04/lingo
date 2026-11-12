@@ -208,7 +208,65 @@ public enum ScenarioCatalog {
     ]
 }
 
+/// A scenario the learner wrote themself, in either study language. The texts may be in the study language or in Russian; Lingo plays
+/// the role in the study language. Saved ones live in the app settings; a session stores its own copy in `Activity.custom`, so editing
+/// or deleting the saved scenario never changes a session that already ran.
+public struct CustomScenario: Codable, Sendable, Hashable, Identifiable {
+    public var id: String
+    public var lang: Lang
+    public var title: String
+    /// A2 | B1 | B2.
+    public var level: String
+    /// Who Lingo plays.
+    public var role: String
+    public var situation: String
+    /// 0–5 goals for the learner, in order; none = a free scene without a checklist.
+    public var tasks: [String]
+
+    public static let idPrefix = "custom-"
+    public static let titleLimit = 60, maxTasks = 5
+
+    public init(id: String = CustomScenario.idPrefix + UUID().uuidString.lowercased(), lang: Lang, title: String = "", level: String = "A2",
+                role: String = "", situation: String = "", tasks: [String] = []) {
+        self.id = id; self.lang = lang; self.title = title; self.level = level; self.role = role; self.situation = situation; self.tasks = tasks
+    }
+
+    /// Trimmed texts, empty tasks dropped, at most `maxTasks`; an unknown level becomes A2. Lengths are checked by `isValid`.
+    public var normalized: CustomScenario {
+        func t(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+        var c = self
+        c.title = t(title); c.role = t(role); c.situation = t(situation)
+        c.tasks = Array(tasks.map(t).filter { !$0.isEmpty }.prefix(Self.maxTasks))
+        if !Scenario.levels.contains(c.level) { c.level = "A2" }
+        return c
+    }
+
+    /// Title, role and situation are required; every text fits the prompt limits of the catalogue (the block budget stays the same).
+    public var isValid: Bool {
+        id.hasPrefix(Self.idPrefix) && id.count > Self.idPrefix.count && lang != .ru && Scenario.levels.contains(level)
+            && !title.isEmpty && title.count <= Self.titleLimit
+            && !role.isEmpty && role.count <= Scenario.roleLimit
+            && !situation.isEmpty && situation.count <= Scenario.situationLimit
+            && tasks.count <= Self.maxTasks && tasks.allSatisfy { !$0.isEmpty && $0.count <= Scenario.taskLimit }
+    }
+
+    /// As a catalogue scenario: the learner's title in every interface language, no phrases.
+    public var scenario: Scenario {
+        Scenario(id: id, lang: lang, title: title, title_en: title, title_ru: title, level: level, role: role, situation: situation, tasks: tasks, phrases: [])
+    }
+
+    /// A session of this scenario: the catalogue settings with the scenario's own level and its copy in the activity.
+    public func settings(corrections: Set<CorrectionMode>) -> SessionSettings {
+        var s = scenario.settings(corrections: corrections, level: level)
+        s.activity?.custom = self
+        return s
+    }
+}
+
 public extension Scenario {
+    /// A learner-written scenario (`CustomScenario`).
+    var isCustom: Bool { id.hasPrefix(CustomScenario.idPrefix) }
+
     /// A scenario session (SR-02): "Free conversation" with the role and the title as topic for older builds.
     func settings(corrections: Set<CorrectionMode>, level: String = "") -> SessionSettings {
         SessionSettings(lang: lang, mode: .free, topic: title, role: role, level: level.isEmpty ? self.level : level,
@@ -217,8 +275,9 @@ public extension Scenario {
 
     /// A completed task number from a reply's `@task` lines: the leading digits, within 1…tasks.count.
     func completedTasks(in reply: String) -> [Int] {
-        // "@task: 0" and negative numbers are not tasks.
-        ReplyProtocol.silentValues(reply, tag: "task").compactMap { Int($0.prefix { $0.isNumber }) }.filter { (1...tasks.count).contains($0) }
+        // "@task: 0" and negative numbers are not tasks; a scenario without tasks has none to complete.
+        guard !tasks.isEmpty else { return [] }
+        return ReplyProtocol.silentValues(reply, tag: "task").compactMap { Int($0.prefix { $0.isNumber }) }.filter { (1...tasks.count).contains($0) }
     }
 }
 

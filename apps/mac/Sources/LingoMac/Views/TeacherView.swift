@@ -62,7 +62,8 @@ struct TeacherView: View {
             HStack {
                 Text("\(done) of \(ScenarioCatalog.all.count) done").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
                 Spacer()
-                Button("Choose") { model.showScenarios = true }.buttonStyle(.borderedProminent)
+                Button("My scenarios") { model.scenarioTabMine = true; model.showScenarios = true }
+                Button("Choose") { model.scenarioTabMine = false; model.showScenarios = true }.buttonStyle(.borderedProminent)
             }
         }
         .padding(24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)

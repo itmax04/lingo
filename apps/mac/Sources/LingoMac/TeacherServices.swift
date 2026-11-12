@@ -50,6 +50,41 @@ extension AppServices {
         }
     }
 
+    /// Starts the learner's own scenario: like a catalogue one, at the level the learner gave it.
+    func startCustomScenario(_ custom: CustomScenario) {
+        guard !model.startingScenario else { return }
+        model.startingScenario = true
+        Task {
+            defer { model.startingScenario = false }
+            do {
+                let corrections = settings.lastCorrections.isEmpty ? [CorrectionMode.inline] : settings.lastCorrections
+                guard let sid = try await engine.startCustomScenario(custom, corrections: corrections) else {
+                    model.banner = String(localized: "This scenario is incomplete: give it a title, a role and a situation.")
+                    return
+                }
+                updateSettings { $0.lastLang = custom.lang }
+                model.langFilter = custom.lang
+                model.selectedSessionID = sid
+                model.section = .conversations
+                run(engine.respond(session: sid))
+            } catch { model.banner = String(localized: "Could not create the session: \(String(describing: error))") }
+        }
+    }
+
+    /// Saves a new or edited scenario of the learner (normalized; an invalid one is not saved).
+    @discardableResult
+    func saveCustomScenario(_ custom: CustomScenario) -> Bool {
+        let c = custom.normalized
+        guard c.isValid else { return false }
+        updateSettings { s in
+            if let i = s.customScenarios.firstIndex(where: { $0.id == c.id }) { s.customScenarios[i] = c } else { s.customScenarios.append(c) }
+        }
+        return true
+    }
+
+    /// Removes a saved scenario; sessions that already ran keep their own copy.
+    func deleteCustomScenario(_ id: String) { updateSettings { $0.customScenarios.removeAll { $0.id == id } } }
+
     /// The daily goal in minutes (GR-02), a journal event.
     func setDailyGoal(_ minutes: Int) { Task { try? await engine.setDailyGoal(minutes: minutes) } }
 

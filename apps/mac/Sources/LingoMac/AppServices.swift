@@ -70,6 +70,7 @@ final class AppServices {
             ChainFactory.chain(settings: settingsRef.value.llm, secrets: secretsRef, usage: usage)
         })
         model.langFilter = s.lastLang
+        model.customScenarios = s.customScenarios
         model.sourceLabel = s.llm.primaryLabel ?? String(localized: "No key")
         model.hasKey = s.llm.hasUsableKey
         model.recomputeOnline()
@@ -86,6 +87,7 @@ final class AppServices {
         if keys?.settings != settings.llm { keys?.replace(settings.llm) }
         settingsStore.save(settings)
         settingsRef.value = settings
+        model.customScenarios = settings.customScenarios
         model.sourceLabel = settings.llm.primaryLabel ?? String(localized: "No key")
         model.hasKey = settings.llm.hasUsableKey
         model.recomputeOnline()

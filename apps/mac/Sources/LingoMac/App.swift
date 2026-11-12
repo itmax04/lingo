@@ -258,7 +258,8 @@ enum UISnapshot {
         let memoryOnly = args.contains("--ui-memory")
         let reminderOnly = args.contains("--ui-reminder")
         let goetheOnly = args.contains("--ui-goethe")
-        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly || goetheOnly
+        let scenariosOnly = args.contains("--ui-scenarios")
+        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly || goetheOnly || scenariosOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -313,6 +314,24 @@ enum UISnapshot {
             // F2: a live Training disables Start and the Debriefs rows (the sidebar can still bring the learner here).
             model.section = .teacher; model.showGoethe = true; model.goetheTab = .debriefs
             await capture("goethe-debriefs-training-live", MainView(model: model))
+            return ok ? 0 : 1
+        }
+        if scenariosOnly {
+            // The scenario picker: ready-made, the learner's own (empty and filled) and the editor; synthetic scenarios in isolated settings.
+            let size = NSSize(width: 640, height: 620)
+            model.langFilter = .de
+            model.scenarioTabMine = false
+            await capture("scenario-picker", ScenarioPicker(model: model), size)
+            model.scenarioTabMine = true
+            await capture("scenario-picker-mine-empty", ScenarioPicker(model: model), size)
+            for c in Fixtures.customScenarios { services.saveCustomScenario(c) }
+            await capture("scenario-picker-mine", ScenarioPicker(model: model), size)
+            func editor(_ c: CustomScenario) -> some View {
+                CustomScenarioEditor(draft: c, onCancel: {}, onSave: { _ in })
+                    .padding(Theme.S.s24).frame(width: size.width, height: size.height).background(Theme.C.bgWindow)
+            }
+            await capture("scenario-editor", editor(Fixtures.customScenarios[0]), size)
+            await capture("scenario-editor-new", editor(CustomScenario(lang: .en, level: "B1")), size)
             return ok ? 0 : 1
         }
         if reminderOnly {
