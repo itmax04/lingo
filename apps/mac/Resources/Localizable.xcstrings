@@ -10049,6 +10049,38 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Examiner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Examiner"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экзаменатор"
+          }
+        }
+      }
+    },
+    "Partner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partner"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Партнёр"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

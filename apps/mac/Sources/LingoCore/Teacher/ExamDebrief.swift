@@ -17,12 +17,16 @@ extension PromptBuilder {
 
     /// The learner's turns, in order, within the cap. A longer exam shortens every turn evenly instead of dropping a whole part.
     static func examLearnerTurns(_ messages: [ChatMessage]) -> [String] {
-        let turns = messages.filter { $0.kind == .normal && $0.role == .user }
-            .map { oneLine($0.text).trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        shortenEvenly(messages.filter { $0.kind == .normal && $0.role == .user }
+            .map { oneLine($0.text).trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }, cap: examFeedbackTurnCap)
+    }
+
+    /// The turns within `cap` characters; longer input shortens every turn evenly. Shared with the Goethe debrief (LINGO-10 BR-27).
+    static func shortenEvenly(_ turns: [String], cap: Int) -> [String] {
         let total = turns.reduce(0) { $0 + $1.unicodeScalars.count + 1 }
-        guard total > examFeedbackTurnCap, !turns.isEmpty else { return turns }
-        let each = max(40, examFeedbackTurnCap / turns.count - 1)
-        var left = examFeedbackTurnCap
+        guard total > cap, !turns.isEmpty else { return turns }
+        let each = max(40, cap / turns.count - 1)
+        var left = cap
         return turns.map { t in
             let c = cut(t, min(each, max(0, left - 1)))
             left -= c.unicodeScalars.count + 1
@@ -32,7 +36,7 @@ extension PromptBuilder {
 
     /// The exam debrief (XR-03). Nil without learner turns (PX-04: no request). The transcript is data, never instructions.
     public static func examFeedbackRequest(settings: SessionSettings, fixes: [Fix], messages: [ChatMessage]) -> LLMRequest? {
-        guard let kind = settings.activity?.exam.flatMap(ExamKind.init(rawValue:)) else { return nil }
+        guard settings.activity?.format == nil, let kind = settings.activity?.exam.flatMap(ExamKind.init(rawValue:)) else { return nil }
         let turns = examLearnerTurns(messages)
         guard !turns.isEmpty else { return nil }
         let criteria = examCriteria(kind)

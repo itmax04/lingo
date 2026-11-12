@@ -6,6 +6,8 @@ struct ExamPanel: View {
     let run: ExamRun
     let busy: Bool
     let followUp: Bool
+    /// LINGO-10 BR-23: the panel names who is speaking.
+    var speaker: ExamSpeaker? = nil
     var onDone: (ExamPhase) -> Void
     var onFinish: () -> Void
 
@@ -16,6 +18,9 @@ struct ExamPanel: View {
                     if run.phase.isPreparation { Text("Preparation — microphone off") }
                     else { Text("Part \(run.phase.taskIndex + 1)") }
                 }.font(Theme.F.hintPhrase)
+                if let speaker {
+                    Text(speaker == .examiner ? "Examiner" : "Partner").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+                }
                 Spacer()
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     let seconds = run.remaining(now: context.date)
@@ -30,7 +35,7 @@ struct ExamPanel: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.S.s8) {
                     task(run.task)
-                    if run.phase == .goethePrep, let presentation = ExamCatalog.task(run.tasks[1]) { task(presentation) }
+                    if run.phase == .goethePrep, run.tasks.count > 1, let presentation = ExamCatalog.task(run.tasks[1]) { task(presentation) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }.frame(maxHeight: 160)
             if followUp {

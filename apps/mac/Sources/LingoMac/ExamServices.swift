@@ -45,6 +45,12 @@ extension AppServices {
         }
         exam = controller
         tc.exam = controller
+        // LINGO-10 BR-10, BR-23: Examiner lines and the partner's talk go through the voice loop, each in its own voice.
+        controller.voices = ExamVoices.pick(preferred: settings.voice.voiceIDs[kind.lang], available: Voices.available(kind.lang))
+        controller.speak = { [weak self, weak tc, weak controller] parts, voiceID in
+            guard let self, let tc, let controller, self.exam === controller, tc.exam === controller else { return }
+            await tc.speakExam(parts, lang: kind.lang, voiceID: voiceID)
+        }
         controller.onStarted = { [weak self, weak controller] sid in
             guard let self, self.exam === controller else { return }
             self.model.langFilter = kind.lang
@@ -62,6 +68,7 @@ extension AppServices {
             self.model.examBusy = controller.busy
             self.model.examInputAllowed = controller.microphoneAllowed
             self.model.examFollowUp = controller.monologueReleased
+            self.model.examSpeaker = controller.speaker
         }
         controller.onFinished = { [weak self, weak tc, weak controller] in
             guard let self else { return }
@@ -113,6 +120,7 @@ extension AppServices {
         model.examBusy = false
         model.examInputAllowed = false
         model.examFollowUp = false
+        model.examSpeaker = nil
         model.continuous = false
         model.streaming = nil
         model.thinking = false

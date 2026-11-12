@@ -70,6 +70,8 @@ public struct HistoryState: Sendable {
     /// Completed scenario tasks per session, each once, in traversal order (SR-03).
     public var scenarioTasks: [String: [Int]] = [:]
     public var examParts: [String: [ExamPhase]] = [:]
+    /// LINGO-10 BR-26: the last `exam.part` before each message in event order, by message id (absent before the first part).
+    public var examMessageParts: [String: ExamPhase] = [:]
     /// The stored weekly report per ISO week "YYYY-Www" (GR-05), last writer by (lamport, device).
     public var weeklyReports: [String: WeeklyReport] = [:]
     /// Live memory facts in event order (GR-06), their duplicate keys, the keys of deleted facts and the switch (on by default).
@@ -184,6 +186,7 @@ public enum Merger {
         var memRemoved: Set<String> = []
         var memSwitch = LWW(true)
         var reviewed: Set<String> = [], suspended: [String: LWW<Bool>] = [:]
+        var lastExamPart: [String: ExamPhase] = [:]
 
         for e in events {
             st.maxLamport = max(st.maxLamport, e.lamport)
@@ -223,6 +226,7 @@ public enum Merger {
             case EventType.messageCreated:
                 guard let p = try? e.payload.decode(Payload.MessageCreated.self) else { st.unknownEvents += 1; continue }
                 messages[e.id] = MessageAcc(event: e, payload: p, text: LWW(p.text))
+                if let part = lastExamPart[e.session] { st.examMessageParts[e.id] = part }
             case EventType.messageEdited:
                 guard let p = try? e.payload.decode(Payload.MessageEdited.self) else { st.unknownEvents += 1; continue }
                 edits[p.message, default: []].append((ver, p.text))
@@ -275,6 +279,7 @@ public enum Merger {
             case EventType.examPart:
                 guard let p = try? e.payload.decode(Payload.ExamPart.self) else { st.unknownEvents += 1; continue }
                 st.examParts[e.session, default: []].append(p.part)
+                lastExamPart[e.session] = p.part
             case EventType.reportWeekly:
                 guard let p = try? e.payload.decode(Payload.ReportWeekly.self), HistoryState.isWeekID(p.week) else { st.unknownEvents += 1; continue }
                 if let old = st.weeklyReports[p.week], old.version > ver { continue }

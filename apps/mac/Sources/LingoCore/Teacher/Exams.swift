@@ -58,11 +58,13 @@ public enum ExamKind: String, Codable, Sendable, CaseIterable {
         return [first.id, second.id, third.id]
     }
 
-    public func settings(tasks: [String]) -> SessionSettings? {
-        guard ExamCatalog.validSelection(self, ids: tasks) else { return nil }
-        return SessionSettings(lang: lang, mode: .free, topic: title, role: role, level: self == .goetheB1 ? "B1" : "",
-                               corrections: [.after], starter: .assistant, useVocabulary: false,
-                               activity: Activity(kind: .exam, exam: rawValue, tasks: tasks))
+    /// BR-02: a session with a format stores the partner's role, and inline corrections in Training.
+    public func settings(tasks: [String], format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) -> SessionSettings? {
+        guard ExamCatalog.valid(self, ids: tasks, format: format, teil: teil, partnerTask: partnerTask) else { return nil }
+        return SessionSettings(lang: lang, mode: .free, topic: title, role: format == nil ? role : "Gesprächspartner",
+                               level: self == .goetheB1 ? "B1" : "",
+                               corrections: [format == .training ? .inline : .after], starter: .assistant, useVocabulary: false,
+                               activity: Activity(kind: .exam, exam: rawValue, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask))
     }
 }
 
@@ -78,6 +80,14 @@ public enum ExamCatalog {
     public static func validMock(ids: [String], partnerTask: String) -> Bool {
         guard validSelection(.goetheB1, ids: ids), let p = task(partnerTask) else { return false }
         return p.exam == .goetheB1 && p.part == 2 && partnerTask != ids[1]
+    }
+    /// BR-01: the content of an exam activity for its format (the table of valid combinations).
+    public static func valid(_ exam: ExamKind, ids: [String], format: Activity.Format?, teil: Int?, partnerTask: String?) -> Bool {
+        switch format {
+        case nil: teil == nil && partnerTask == nil && validSelection(exam, ids: ids)
+        case .mock: exam == .goetheB1 && teil == nil && partnerTask.map { validMock(ids: ids, partnerTask: $0) } == true
+        case .training: exam == .goetheB1 && partnerTask == nil && teil.map { validTraining(teil: $0, ids: ids) } == true
+        }
     }
     public static func validSelection(_ exam: ExamKind, ids: [String]) -> Bool {
         guard ids.count == 3 else { return false }
