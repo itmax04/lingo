@@ -602,7 +602,7 @@
             },
             "custom": {
               "type": "object",
-              "description": "scenario only: the learner's own scenario, a copy frozen at the start; its id equals id and starts with custom-. Invalid content makes the whole activity ignored (PX-05). Readers that do not know it fall back to the session's role and topic.",
+              "description": "scenario only: the learner's own scenario, a copy frozen at the start; its id equals id and starts with custom-. Invalid content makes the whole activity ignored (PX-05). Readers that do not know it degrade: they treat it as a catalogue scenario with an unknown id (no scenario block, but the task protocol line is still sent). The Mac app is the only client today.",
               "required": [
                 "id",
                 "lang",

@@ -233,7 +233,8 @@ public struct CustomScenario: Codable, Sendable, Hashable, Identifiable {
 
     /// Trimmed texts, empty tasks dropped, at most `maxTasks`; an unknown level becomes A2. Lengths are checked by `isValid`.
     public var normalized: CustomScenario {
-        func t(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+        // NFC so that decomposed umlauts count and are cut the same way in the prompt.
+        func t(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping }
         var c = self
         c.title = t(title); c.role = t(role); c.situation = t(situation)
         c.tasks = Array(tasks.map(t).filter { !$0.isEmpty }.prefix(Self.maxTasks))
