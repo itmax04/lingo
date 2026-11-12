@@ -112,4 +112,13 @@ import Testing
                                   tasks: Array(repeating: String(repeating: "Aufgabe ", count: 15), count: CustomScenario.maxTasks))
         #expect(tokens(PromptBuilder.scenarioBlock(full.scenario)) <= 400)
     }
+
+    @Test func oneUndecodableScenarioDoesNotDropTheOthers() throws {
+        let good = try JSONEncoder().encode(Self.landlord())
+        let goodObj = try #require(try JSONSerialization.jsonObject(with: good) as? [String: Any])
+        var garbage = goodObj; garbage["lang"] = "xx"
+        let json = try JSONSerialization.data(withJSONObject: ["customScenarios": [garbage, goodObj, "junk"]])
+        let s = try JSONDecoder().decode(AppSettings.self, from: json)
+        #expect(s.customScenarios.map(\.id) == ["custom-landlord"])
+    }
 }

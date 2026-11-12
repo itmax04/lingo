@@ -11471,6 +11471,23 @@
       },
       "extractionState": "manual"
     },
+    "Title, role and situation are required.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title, role and situation are required."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Название, роль и ситуация обязательны."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "Only the first 5 goals are kept.": {
       "localizations": {
         "en": {

@@ -36,8 +36,14 @@ public struct AppSettings: Codable, Sendable, Hashable {
         voice = (try? c.decodeIfPresent(VoiceSettings.self, forKey: .voice)) ?? VoiceSettings()
         reminderOn = (try? c.decodeIfPresent(Bool.self, forKey: .reminderOn)) ?? false
         reminderTime = Reminder.clamp((try? c.decodeIfPresent(Int.self, forKey: .reminderTime)) ?? Reminder.defaultTime)
-        customScenarios = ((try? c.decodeIfPresent([CustomScenario].self, forKey: .customScenarios)) ?? []).filter(\.isValid)
+        customScenarios = ((try? c.decodeIfPresent([Lossy<CustomScenario>].self, forKey: .customScenarios)) ?? []).compactMap(\.value).filter(\.isValid)
     }
+}
+
+/// Decodes one array element or keeps nil, so one bad element (for example from a newer build) does not drop the whole list.
+private struct Lossy<T: Decodable>: Decodable {
+    let value: T?
+    init(from decoder: Decoder) throws { value = try? decoder.singleValueContainer().decode(T.self) }
 }
 
 /// Settings stored in UserDefaults (available on iOS too).

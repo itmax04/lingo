@@ -213,6 +213,9 @@ struct CustomScenarioEditor: View {
                 }
                 .padding(.trailing, Theme.S.s8)
             }
+            if !result.isValid {
+                Text("Title, role and situation are required.").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+            }
             HStack {
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
@@ -273,9 +276,12 @@ struct ScenarioChecklist: View {
     let scenario: Scenario
     let recorded: [Int]
     /// Only numbers of this scenario's tasks count (another writer could have stored more).
-    private var done: [Int] { recorded.filter { (1...scenario.tasks.count).contains($0) } }
+    private var done: [Int] { recorded.filter { $0 >= 1 && $0 <= scenario.tasks.count } }
     init(scenario: Scenario, done: [Int]) { self.scenario = scenario; self.recorded = done }
     var body: some View {
+        if scenario.tasks.isEmpty { EmptyView() } else { content }
+    }
+    private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(scenarioTitle(scenario)).font(Theme.F.hintPhrase)
