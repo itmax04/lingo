@@ -45,8 +45,10 @@ struct ExamPanel: View {
     /// and without it the scroll view was squeezed to the task lines and the talk text never appeared.
     var bodyHeight: (min: CGFloat, max: CGFloat) { training && talkPart ? (200, 320) : (160, 160) }
 
-    private var notesTitle: LocalizedStringKey? {
-        guard training, notes != nil else { return nil }
+    var notesTitle: LocalizedStringKey? {
+        guard notes != nil else { return nil }
+        if run.format == .mock { return "My notes" }  // BR-22: one field for the whole Mock
+        guard training else { return nil }
         switch run.teil {
         case 2?: return "My presentation plan"
         case 3?: return "My notes"

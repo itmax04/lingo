@@ -91,6 +91,8 @@ struct GoetheScreen: View {
         .foregroundStyle(Theme.C.textPrimary)
         .background(Theme.C.bgWindow)
         .environment(\.studyLanguage, lang)
+        // BR-08a: leaving the screen discards a preparation that has not ended; a Mock being created is never cancelled by it.
+        .onDisappear { if let prep = model.mockPrep, !prep.ended { model.services?.discardMockPrep() } }
     }
 
     // MARK: Main column
@@ -100,8 +102,14 @@ struct GoetheScreen: View {
             VStack(alignment: .leading, spacing: Theme.S.s24) {
                 BannerLine(model: model)
                 header
-                SegmentBar(items: [(AppModel.GoetheTab.training, Text("Training")), (.debriefs, Text("Debriefs"))], selection: $model.goetheTab)
-                if model.goetheTab == .training { training(wide: wide) } else { debriefs }
+                // BR-37: the tabs are disabled (visibly, not hidden) from the start of a Mock's preparation to the end of its run.
+                SegmentBar(items: [(AppModel.GoetheTab.training, Text("Training")), (.mock, Text("Mock exam")), (.debriefs, Text("Debriefs"))], selection: $model.goetheTab)
+                    .disabled(model.mockActive)
+                switch model.goetheTab {
+                case .training: training(wide: wide)
+                case .mock: mock
+                case .debriefs: debriefs
+                }
             }.padding(Theme.S.s32)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -258,7 +266,7 @@ struct GoetheScreen: View {
                         }
                     }
                     if teil == 2 {
-                        disclosure(Text("My presentation plan"), open: $showPlan) { notesField }
+                        disclosure(Text("My presentation plan"), open: $showPlan) { notesField() }
                     }
                     Button { model.services?.startGoetheTraining(teil: teil, task: t.id) } label: {
                         Text("Start training").font(Theme.F.button).foregroundStyle(Theme.C.accentButtonText)
@@ -266,9 +274,11 @@ struct GoetheScreen: View {
                             .background(Theme.accent(lang), in: RoundedRectangle(cornerRadius: Theme.R.button))
                     }
                     .buttonStyle(LingoButtonStyle())
-                    .disabled(!model.online)
+                    .disabled(!model.online || model.goetheLocked)
+                    .opacity(model.goetheLocked ? 0.5 : 1)
                     .accessibilityLabel(Text("Start training") + Text(": ") + Text(verbatim: t.title ?? t.task))
-                    if !model.online { Text(model.disabledReason).font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger) }
+                    if model.goetheLocked, let why = lockedNote { Text(why).font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary) }
+                    else if !model.online { Text(model.disabledReason).font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger) }
                 }
             }
             .padding(Theme.S.s20)
@@ -286,13 +296,13 @@ struct GoetheScreen: View {
     }
 
     /// BR-22: memory only for the run; at most 2 000 characters; never sent anywhere.
-    private var notesField: some View {
+    private func notesField(label: LocalizedStringKey = "My presentation plan") -> some View {
         TextEditor(text: Binding(get: { model.goetheNotes }, set: { model.goetheNotes = String($0.prefix(AppModel.notesLimit)) }))
             .font(Theme.F.subtitle).scrollContentBackground(.hidden).padding(Theme.S.s8)
             .frame(height: 140)
             .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.button))
             .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.button))
-            .accessibilityLabel("My presentation plan")
+            .accessibilityLabel(label)
     }
 
     private func disclosure<Content: View>(_ title: Text, open: Binding<Bool>, @ViewBuilder content: () -> Content) -> some View {
@@ -344,8 +354,171 @@ struct GoetheScreen: View {
                     .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
                 }
                 .buttonStyle(LingoButtonStyle())
+                .disabled(model.trainingLive)  // F2: opening a debrief would silently stop the live Training
+                .opacity(model.trainingLive ? 0.5 : 1)
                 .accessibilityElement(children: .combine)
             }
+            if model.trainingLive, let why = lockedNote { Text(why).font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary) }
         }
+    }
+
+    /// Why Start is disabled: a run is live (F2, BR-37).
+    private var lockedNote: LocalizedStringKey? {
+        if model.mockActive { return "A mock exam is running. Finish it before starting anything else." }
+        if model.trainingLive { return "A training is running. Finish it before starting anything else." }
+        return nil
+    }
+}
+
+// MARK: Mock tab (BR-08, BR-08a, BR-37)
+
+extension GoetheScreen {
+    @ViewBuilder var mock: some View {
+        if let prep = model.mockPrep { preparation(prep) }
+        else if model.mockActive { runningNote }
+        else { mockIntro }
+    }
+
+    var mockIntro: some View {
+        VStack(alignment: .leading, spacing: Theme.S.s24) {
+            steps
+            VStack(alignment: .leading, spacing: Theme.S.s12) {
+                Text("The whole speaking exam").font(Theme.F.panelTitle)
+                Text("You get a planning task and a choice of two presentation topics, and 15 minutes to prepare with notes. Then the examiner and a partner take you through all parts. Hints, translation, Russian and typing are off for the whole run.")
+                    .font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Button { model.services?.beginMockPrep() } label: {
+                    Text("Start mock exam").font(Theme.F.button).foregroundStyle(Theme.C.accentButtonText)
+                        .padding(.horizontal, Theme.S.s24).frame(minHeight: Theme.R.primaryButtonHeight)
+                        .background(Theme.accent(.de), in: RoundedRectangle(cornerRadius: Theme.R.button))
+                }
+                .buttonStyle(LingoButtonStyle())
+                .disabled(!model.online || model.goetheLocked).opacity(model.goetheLocked ? 0.5 : 1)
+                if model.goetheLocked, let why = lockedNote { Text(why).font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary) }
+                else if !model.online { Text(model.disabledReason).font(Theme.F.meta).foregroundStyle(Theme.C.statusDanger) }
+            }
+            .padding(Theme.S.s20).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+            .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+        }
+    }
+
+    /// A Mock is live in the conversation view: this tab only points the way back (Finish there is the way out).
+    var runningNote: some View {
+        HStack(spacing: Theme.S.s16) {
+            Image(systemName: "waveform").foregroundStyle(Theme.accent(.de)).accessibilityHidden(true)
+            Text("A mock exam is running. Finish it before starting anything else.").font(Theme.F.subtitle)
+            Spacer()
+            Button("Back to the exam") {
+                if let sid = model.liveExamSessionID { model.langFilter = .de; model.selectedSessionID = sid; model.section = .conversations }
+            }.buttonStyle(.borderedProminent)
+        }
+        .padding(Theme.S.s20).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    func preparation(_ prep: AppModel.MockPrep) -> some View {
+        let planning = ExamCatalog.task(prep.draw.planning)
+        return VStack(alignment: .leading, spacing: Theme.S.s16) {
+            HStack(spacing: Theme.S.s16) {
+                Image(systemName: "mic.slash").font(Theme.F.title).foregroundStyle(Theme.accent(.de)).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: Theme.S.s4) {
+                    Text("Preparation — microphone off").font(Theme.F.panelTitle)
+                    Text("Read the tasks, choose a topic and prepare your notes.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+                }
+                Spacer()
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    let seconds = prep.remaining(now: context.date)
+                    Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60)).font(Theme.F.title).monospacedDigit()
+                        .accessibilityLabel(Text("Time remaining") + Text(": \(seconds / 60):\(String(format: "%02d", seconds % 60))"))
+                }
+                if prep.failed {
+                    Button("Retry") { model.services?.finishMockPrep() }.buttonStyle(.borderedProminent)
+                } else {
+                    Button("Done") { model.services?.finishMockPrep() }.buttonStyle(.borderedProminent).disabled(prep.ended)
+                }
+                Button("Finish") { model.services?.discardMockPrep() }.buttonStyle(LingoButtonStyle()).disabled(prep.ended && !prep.failed)
+            }
+            .padding(Theme.S.s16)
+            .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+            .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+            .task(id: prep.startedAt) {
+                // The timer ends the preparation like Done (BR-08a). Leaving the screen cancels this task.
+                try? await Task.sleep(for: .seconds(prep.remaining(now: Date())))
+                if !Task.isCancelled, model.mockPrep?.ended == false { model.services?.finishMockPrep() }
+            }
+            if prep.failed {
+                Text("Could not start the Mock exam. Try again.").font(Theme.F.subtitle).foregroundStyle(Theme.C.statusDanger)
+            }
+            HStack(alignment: .top, spacing: Theme.S.s16) {
+                if let planning {
+                    prepCard(Text(verbatim: "Teil 1 — Gemeinsam etwas planen"), symbol: "person.2") {
+                        Text(verbatim: planning.task).font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        numbered(planning.points)
+                    }
+                }
+                prepCard(Text("Teil 2 — Choose a topic"), symbol: "rectangle.on.rectangle") {
+                    Text("Choose one of two topics for your presentation:").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+                    HStack(spacing: Theme.S.s8) {
+                        ForEach(Array(prep.draw.topics.enumerated()), id: \.offset) { i, id in topicChoice(i, id: id, on: i == prep.draw.chosen, locked: prep.ended) }
+                    }
+                    if let chosen = ExamCatalog.task(prep.draw.topics[prep.draw.chosen]) {
+                        Text("Your five slides").font(Theme.F.hintPhrase)
+                        numbered(chosen.points)
+                    }
+                }
+            }
+            VStack(alignment: .leading, spacing: Theme.S.s8) {
+                Label("My notes", systemImage: "note.text").font(Theme.F.panelTitle)
+                notesField(label: "My notes")
+                Text("Notes stay on screen during the exam. Dictionary and translation are off.").font(Theme.F.meta).foregroundStyle(Theme.C.textSecondary)
+            }
+            .padding(Theme.S.s16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+            .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+        }
+    }
+
+    func prepCard<Content: View>(_ title: Text, symbol: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: Theme.S.s12) {
+            Label { title.font(Theme.F.panelTitle) } icon: { Image(systemName: symbol).foregroundStyle(Theme.accent(.de)) }
+            content()
+        }
+        .padding(Theme.S.s16).frame(maxWidth: .infinity, alignment: .topLeading)
+        .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
+        .subtleStroke(RoundedRectangle(cornerRadius: Theme.R.card))
+    }
+
+    func numbered(_ points: [String]) -> some View {
+        VStack(alignment: .leading, spacing: Theme.S.s8) {
+            ForEach(Array(points.enumerated()), id: \.offset) { i, p in
+                HStack(alignment: .top, spacing: Theme.S.s12) {
+                    Text(verbatim: "\(i + 1)").font(Theme.F.meta).frame(width: 24, height: 24)
+                        .overlay(Circle().strokeBorder(Theme.C.borderSubtle, lineWidth: Theme.R.stroke)).accessibilityHidden(true)
+                    Text(verbatim: p).font(Theme.F.subtitle).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    func topicChoice(_ index: Int, id: String, on: Bool, locked: Bool) -> some View {
+        let task = ExamCatalog.task(id)
+        return Button { model.services?.chooseMockTopic(index) } label: {
+            HStack(spacing: Theme.S.s12) {
+                Image(systemName: on ? "largecircle.fill.circle" : "circle").foregroundStyle(on ? Theme.accent(.de) : Theme.C.textSecondary).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: "Thema \(index + 1)").font(Theme.F.hintPhrase)
+                    Text(verbatim: task?.title ?? task?.task ?? "").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(Theme.S.s12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.button))
+            .overlay(RoundedRectangle(cornerRadius: Theme.R.button).strokeBorder(on ? Theme.accent(.de) : Theme.C.borderSubtle, lineWidth: on ? 2 : Theme.R.stroke))
+        }
+        .buttonStyle(LingoButtonStyle())
+        .disabled(locked)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

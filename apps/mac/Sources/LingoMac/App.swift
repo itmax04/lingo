@@ -279,6 +279,22 @@ enum UISnapshot {
             model.goetheTeil = 3; model.goetheCategory = .arbeit
             await capture("goethe-training-teil3-work", MainView(model: model))
             await capture("goethe-training-narrow", MainView(model: model), NSSize(width: 1100, height: 800))
+            // LINGO-10 G-5b: the Mock tab, its preparation (14:44 left, notes), a failed creation, and the locked tabs while a Mock runs.
+            model.goetheTab = .mock
+            await capture("goethe-mock", MainView(model: model))
+            model.goetheNotes = "Kein eigenes Auto, Bus und Zug\nIn der Ukraine: Auto oft notwendig\nVorteile: Geld sparen, Umwelt\nNachteile: weniger flexibel, Fahrplan"
+            model.mockPrep = AppModel.MockPrep(draw: GoetheHub.MockDraw(planning: "b1-plan-park", topics: ["b1-talk-bicycle", "b1-talk-secondhand"]), startedAt: Date().addingTimeInterval(-16))
+            await capture("goethe-mock-prep", MainView(model: model))
+            await capture("goethe-mock-prep-narrow", MainView(model: model), NSSize(width: 1100, height: 800))
+            model.mockPrep?.draw.chosen = 1
+            model.mockPrep?.ended = true; model.mockPrep?.failed = true
+            model.banner = String(localized: "Could not start the Mock exam. Try again.")
+            await capture("goethe-mock-prep-failed", MainView(model: model))
+            model.banner = nil
+            model.mockPrep = nil; model.goetheNotes = ""
+            model.examRun = ExamRun(kind: .goetheB1, tasks: ["b1-plan-park", "b1-talk-bicycle", "b1-discuss-bicycle"], format: .mock, partnerTask: "b1-talk-secondhand", now: Date())
+            await capture("goethe-mock-running-locked", MainView(model: model))
+            model.examRun = nil
             model.goetheTab = .debriefs
             await capture("goethe-debriefs", MainView(model: model))
             model.showGoethe = false
@@ -294,6 +310,9 @@ enum UISnapshot {
             await capture("goethe-live-teil3-talk", MainView(model: model))
             Fixtures.trainingLive(model, teil: 2, task: "b1-talk-bicycle", notes: "Einleitung: Fahrrad in der Stadt\nVorteile: schnell, gesund, günstig\nMeine Meinung")
             await capture("goethe-live-teil2-notes", MainView(model: model))
+            // F2: a live Training disables Start and the Debriefs rows (the sidebar can still bring the learner here).
+            model.section = .teacher; model.showGoethe = true; model.goetheTab = .debriefs
+            await capture("goethe-debriefs-training-live", MainView(model: model))
             return ok ? 0 : 1
         }
         if reminderOnly {

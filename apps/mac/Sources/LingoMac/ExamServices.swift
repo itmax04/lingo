@@ -13,15 +13,56 @@ extension AppServices {
         startExam(.goetheB1, tasks: [task], format: .training, teil: teil)
     }
 
+    /// Why an exam cannot start now (BR-33); a refused click must say so instead of doing nothing (H-05).
+    private var startRefusal: String? {
+        if ending { return Self.stillFinishingText }
+        if model.startingExam { return Self.examStartingText }
+        if model.readOnly { return model.disabledReason }
+        return nil
+    }
+
+    /// LINGO-10 BR-08, BR-08a: the Mock tab's Start draws the tasks and opens the preparation. No session exists yet (A-01), the microphone
+    /// stays closed, and voice setup starts now so that the end of preparation does not wait for it.
+    func beginMockPrep() {
+        if let why = startRefusal { model.banner = why; return }
+        guard model.mockPrep == nil, !model.goetheLocked, let draw = GoetheHub.drawMock() else { return }
+        stopExam()
+        model.russianOnce = false; turn?.forceRussianOnce = false
+        model.mockPrep = AppModel.MockPrep(draw: draw, startedAt: Date())
+        Task { if let tc = await ensureVoice(forExamStart: true) { restoreExamMicrophone(on: tc.sink) } }
+    }
+
+    /// BR-08: the learner may change the topic until preparation ends; the other one becomes the partner's.
+    func chooseMockTopic(_ index: Int) {
+        guard var prep = model.mockPrep, !prep.ended, prep.draw.topics.indices.contains(index) else { return }
+        prep.draw.chosen = index
+        model.mockPrep = prep
+    }
+
+    /// Done, the timer, or Retry: the session is created with the frozen selection and the introduction begins (BR-08a).
+    func finishMockPrep() {
+        guard var prep = model.mockPrep, let selection = prep.draw.selection, !model.startingExam || prep.failed else { return }
+        if let why = startRefusal, !prep.failed { model.banner = why; return }
+        prep.ended = true; prep.failed = false
+        model.mockPrep = prep
+        model.banner = nil
+        startExam(.goetheB1, tasks: selection.tasks, format: .mock, partnerTask: selection.partner)
+    }
+
+    /// Finish or leaving the screen discards the preparation: no session, no event, no debrief (BR-08a).
+    func discardMockPrep() {
+        guard model.mockPrep != nil else { return }
+        model.mockPrep = nil
+        model.goetheNotes = ""
+        stopExam()
+    }
+
     func startExam(_ kind: ExamKind, tasks: [String]? = nil, format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
-        // A refused click must say why instead of doing nothing (H-05).
-        if ending { model.banner = Self.stillFinishingText; return }
-        if model.startingExam { model.banner = Self.examStartingText; return }
-        if model.readOnly { model.banner = model.disabledReason; return }
-        // BR-22: a Training plan written before Start stays for the run (Teil 2 and 3); stopping the old run clears it.
+        if let why = startRefusal { model.banner = why; return }
+        // BR-22: notes written before Start stay for the run (Teil 2 and 3 of a Training, a Mock); stopping the old run clears them.
         let notes = model.goetheNotes
         stopExam()
-        model.goetheNotes = format == .training && (teil == 2 || teil == 3) ? notes : ""
+        model.goetheNotes = format == .mock || (format == .training && (teil == 2 || teil == 3)) ? notes : ""
         let startID = UUID()
         examStartID = startID
         model.startingExam = true
@@ -35,7 +76,10 @@ extension AppServices {
                 }
             }
             // Navigation during voice setup cancels this task (examSelectionChanged); journal auto-selection does not.
-            guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else { return }
+            guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else {
+                if examStartID == startID { model.mockPrep?.failed = true }
+                return
+            }
             await attachExam(kind, to: tc, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask)
         }
     }
@@ -79,6 +123,7 @@ extension AppServices {
             self.model.examInputAllowed = controller.microphoneAllowed
             self.model.examFollowUp = controller.monologueReleased
             self.model.examSpeaker = controller.speaker
+            if controller.run != nil, controller.sessionID != nil { self.model.mockPrep = nil }
         }
         controller.onFinished = { [weak self, weak tc, weak controller] in
             guard let self else { return }
@@ -91,8 +136,18 @@ extension AppServices {
             }
         }
         controller.onFailure = { [weak self] _ in
-            self?.stopExam()
-            self?.model.banner = String(localized: "Could not continue the exam. Start a new exam from Teacher.")
+            guard let self else { return }
+            // BR-08a: a failed session creation keeps the Mock preparation and its notes; Retry tries again.
+            if self.model.mockPrep != nil {
+                let notes = self.model.goetheNotes
+                self.stopExam()
+                self.model.goetheNotes = notes
+                self.model.mockPrep?.failed = true
+                self.model.banner = String(localized: "Could not start the Mock exam. Try again.")
+                return
+            }
+            self.stopExam()
+            self.model.banner = String(localized: "Could not continue the exam. Start a new exam from Teacher.")
         }
         do { _ = try await controller.start(kind, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask) }
         catch { controller.onFailure?(error) }
@@ -139,7 +194,7 @@ extension AppServices {
 
     /// VoiceIO startup/recovery and phrase playback must preserve the preparation/input gate.
     func restoreExamMicrophone(on sink: SpeechSink) {
-        let blocked = model.startingExam || model.examReadOnly || (exam.map { !$0.microphoneAllowed } ?? false)
+        let blocked = model.startingExam || model.mockPrep != nil || model.examReadOnly || (exam.map { !$0.microphoneAllowed } ?? false)
         sink.micMuted = blocked || (sink.isSpeaking && sink.micMuted)
     }
 }

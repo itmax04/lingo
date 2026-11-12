@@ -262,6 +262,7 @@ extension AppServices {
     func spaceUp() { if turn?.mode == .pushToTalk { turn?.pushUp() } }
     func escape() { turn?.cancel(); plainSpeech.stopSpeaking(at: .immediate) }
     func toggleRussian() {
+        guard !model.mockAidsOff else { return }  // LINGO-10 BR-20: ⌥R has no effect in a Mock
         model.russianOnce.toggle()
         turn?.forceRussianOnce = model.russianOnce
     }
