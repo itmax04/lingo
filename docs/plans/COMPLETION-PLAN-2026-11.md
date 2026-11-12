@@ -12,7 +12,8 @@ is always "documents", and nothing after it starts before the owner's H-0.
 - **Done and merged:** LINGO-01 (frozen), LINGO-07 redesign (#33), LINGO-03 Stage 0 (P-01…P-06, H-1 accepted 2026-10-31),
   LINGO-03 P-07a…P-07f (`packages/core-ts`, #56–#61), LINGO-08 vocabulary and prompting v2 (#50–#55),
   LINGO-05 documents (#67) and T-1…T-9 (#68, #70–#73, #82–#84, #86, #88–#91).
-- **Accepted:** LINGO-05 (H-05, #80), by the owner on 2026-11-12; report in `docs/changes/LINGO-05/report.md`. Next: LINGO-09 (B1).
+- **Accepted:** LINGO-05 (H-05, #80), by the owner on 2026-11-12; report in `docs/changes/LINGO-05/report.md`.
+- **In review:** the LINGO-09 documents (B1). Next: H-09-0.
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
 - **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with `gh` with links to their PRs (CX-03; #8 was already closed); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),
@@ -34,17 +35,18 @@ Requirements and TACs: [LINGO-05 spec](../changes/LINGO-05/spec.md). Step conten
 | A6 (done, in review) | LINGO-05 report (#79) | all TAC-01…TAC-16 | A5 | `report.md` with evidence per TAC (CODEX.md §8.3) |
 | **H-05** | **Owner: try the teacher and accept LINGO-05 (#80)** | — | A6 | live model behaviour of `@grade`, `@task`, exams, debrief, memory, report, the reminder |
 
-### B. LINGO-09 — new conversation modes (after H-05; owner decision Q-04 "teacher, then the modes")
+### B. LINGO-09 — harsh tutor and conflict practice (after H-05; owner decision Q-04 "teacher, then the modes")
 
-The owner named "HFL" and "Stand Your Ground" modes in the LINGO-05 brainstorm (2026-11-01). Their content is **not recorded in the
-repository**: Codex must not guess it. B1 starts with the owner's description.
+Documents: [LINGO-09](../changes/LINGO-09/intent.md). The owner's brainstorm decisions B-01…B-18 (2026-11-01) are recorded in its intent.
 
 | # | Step | Notes |
 |---|---|---|
-| B1 | Documents: brainstorm (ask the owner what each mode is), intent, spec, plan, issues | CODEX.md §8.2; Mac first unless the owner says otherwise |
-| **H-09-0** | **Owner: accept the LINGO-09 documents** | |
-| B2… | Steps from the accepted plan | issues created in B1 |
-| **H-09-1** | **Owner: accept LINGO-09** | |
+| B1 (done, in review) | Documents: intent, spec, plan, issues | written 2026-11-12 from the recorded brainstorm |
+| **H-09-0** | **Owner: accept the LINGO-09 documents** | answers O-1…O-5 of the intent |
+| B2 | M-1a, M-1b, M-2 (model check), M-3a, M-3b, M-4…M-9 | [plan](../changes/LINGO-09/plan.md); M-2 decides whether the free model can play the role |
+| **H-09-1** | **Owner: try the modes** | may cut the plan here |
+| B3 | X-1 experiment protocol, **H-09-2** (owner accepts it), X-2, X-3, M-10 report | |
+| **H-09-3** | **Owner: accept LINGO-09** | the completion plan's former H-09-1 |
 
 ### C. LINGO-03 Stages 1–2 — Lingo Web and the engine (resume needs the owner)
 
@@ -53,7 +55,7 @@ they predate LINGO-05/08 and the redesign; the teacher, vocabulary and prompting
 
 | # | Step | Notes |
 |---|---|---|
-| **H-03-R** | **Owner: resume the web** (unpark) | asked by Codex after H-05 or H-09-1, whichever the owner prefers |
+| **H-03-R** | **Owner: resume the web** (unpark) | asked by Codex after H-05 or H-09-3, whichever the owner prefers |
 | C1 | Spec refresh: a v3 amendment of the LINGO-03 spec that adds the LINGO-08 vocabulary and the LINGO-05 teacher to the web scope (or explicitly leaves them out), rebases DESIGN.md §9 on v2 tokens, and updates the issues | docs PR; AI review; then H-0 of the amendment |
 | C2 | P-07c2 (#62, draft): rebase-free update by merging `main`, finish, review, merge | TS vocabulary parity |
 | C3… | P-08…P-20 as issues #12…#26, with owner gates H-2 (#11), H-3 (#14), H-4 (#25), H-5 (#27) | night-only evals; deploys by the owner ([RELEASE](../process/RELEASE.md)) |
