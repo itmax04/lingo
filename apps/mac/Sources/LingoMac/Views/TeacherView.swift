@@ -108,10 +108,17 @@ struct TeacherView: View {
             Image(systemName: "graduationcap").font(Theme.F.title).foregroundStyle(Theme.accent(kind.lang))
             Text(title).font(Theme.F.panelTitle)
             Text("Speaking practice with timed parts and preparation.").font(Theme.F.subtitle).foregroundStyle(Theme.C.textSecondary)
-            Button("Start exam") { model.services?.startExam(kind) }.buttonStyle(.borderedProminent)
-                .disabled(model.startingExam || !model.online || model.readOnly)
-                .tint(Theme.accent(kind.lang))
-                .accessibilityLabel(Text("Start exam") + Text(": ") + Text(title))
+            if kind == .goetheB1 {
+                // LINGO-10 BR-33: the German exam opens its own screen (Training and Debriefs; the Mock follows in G-5b).
+                Button("Open") { model.showGoethe = true }.buttonStyle(.borderedProminent)
+                    .tint(Theme.accent(kind.lang))
+                    .accessibilityLabel(Text("Open") + Text(": ") + Text(title))
+            } else {
+                Button("Start exam") { model.services?.startExam(kind) }.buttonStyle(.borderedProminent)
+                    .disabled(model.startingExam || !model.online || model.readOnly)
+                    .tint(Theme.accent(kind.lang))
+                    .accessibilityLabel(Text("Start exam") + Text(": ") + Text(title))
+            }
         }
         .padding(Theme.S.s24).frame(maxWidth: .infinity, minHeight: 148, alignment: .leading)
         .background(Theme.C.surfaceCard, in: RoundedRectangle(cornerRadius: Theme.R.card))
