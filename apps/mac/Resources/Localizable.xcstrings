@@ -7553,6 +7553,23 @@
         }
       }
     },
+    "Finish the Mock exam first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the Mock exam first."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сначала завершите пробный экзамен."
+          }
+        }
+      }
+    },
     "An exam is already starting.": {
       "extractionState": "manual",
       "localizations": {

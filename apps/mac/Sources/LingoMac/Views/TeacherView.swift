@@ -115,7 +115,7 @@ struct TeacherView: View {
                     .accessibilityLabel(Text("Open") + Text(": ") + Text(title))
             } else {
                 Button("Start exam") { model.services?.startExam(kind) }.buttonStyle(.borderedProminent)
-                    .disabled(model.startingExam || !model.online || model.readOnly)
+                    .disabled(model.startingExam || !model.online || model.readOnly || model.mockActive)
                     .tint(Theme.accent(kind.lang))
                     .accessibilityLabel(Text("Start exam") + Text(": ") + Text(title))
             }

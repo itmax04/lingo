@@ -105,6 +105,27 @@ import Testing
         #expect(e.model.banner != nil)
     }
 
+    @Test func aStartCancelledByNavigationDuringCreationLeavesARetryablePreparation() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        e.model.goetheNotes = "bleibt"
+        e.services.finishMockPrep()
+        e.services.examSelectionChanged()   // the learner clicks another session while the voice is being set up
+        await wait { e.model.mockPrep?.failed == true || e.model.mockPrep == nil }
+        #expect(e.model.mockPrep == nil || (e.model.mockPrep?.failed == true && e.model.goetheNotes == "bleibt"))
+        #expect(!e.model.startingExam && e.services.exam == nil)
+    }
+
+    @Test func anotherExamStartCannotReplaceTheMockPreparation() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        e.model.goetheNotes = "bleibt"
+        e.services.startExam(.ielts)
+        #expect(e.model.mockPrep != nil && e.model.goetheNotes == "bleibt" && !e.model.startingExam)
+    }
+
     @Test func aRefusedPreparationSaysWhy() async throws {
         let e = try ExamHostTests.Env(); defer { e.clean() }
         e.model.readOnly = true

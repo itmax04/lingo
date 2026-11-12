@@ -55,10 +55,14 @@ extension AppServices {
         model.mockPrep = nil
         model.goetheNotes = ""
         stopExam()
+        // F3: the voice set up for the preparation is shut down again when no exam took it over.
+        Task { if self.exam == nil, !self.model.startingExam { await self.shutDownVoice() } }
     }
 
     func startExam(_ kind: ExamKind, tasks: [String]? = nil, format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
         if let why = startRefusal { model.banner = why; return }
+        // BR-37 (F2): a live Mock or its preparation is never replaced by another start; only the Mock's own start passes.
+        if format != .mock, model.mockActive { model.banner = String(localized: "Finish the Mock exam first."); return }
         // BR-22: notes written before Start stay for the run (Teil 2 and 3 of a Training, a Mock); stopping the old run clears them.
         let notes = model.goetheNotes
         stopExam()
@@ -77,7 +81,8 @@ extension AppServices {
             }
             // Navigation during voice setup cancels this task (examSelectionChanged); journal auto-selection does not.
             guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else {
-                if examStartID == startID { model.mockPrep?.failed = true }
+                // F1: a start cancelled by navigation (examStartID nil, nothing newer) also leaves the preparation retryable.
+                if examStartID == startID || examStartID == nil { model.mockPrep?.failed = true }
                 return
             }
             await attachExam(kind, to: tc, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask)
@@ -170,7 +175,11 @@ extension AppServices {
     /// selects the exam's own session (F-1).
     func examSelectionChanged(automatic: Bool = false) {
         if let sid = exam?.sessionID, model.selectedSessionID != sid { stopExam() }
-        else if model.startingExam && exam?.sessionID == nil && !automatic { stopExam() }
+        else if model.startingExam && exam?.sessionID == nil && !automatic {
+            let notes = model.mockPrep != nil ? model.goetheNotes : ""
+            stopExam()
+            model.goetheNotes = notes   // BR-08a: a cancelled creation keeps the notes
+        }
     }
 
     func stopExam() {
