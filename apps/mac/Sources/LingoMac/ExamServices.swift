@@ -42,7 +42,8 @@ extension AppServices {
     /// Done, the timer, or Retry: the session is created with the frozen selection and the introduction begins (BR-08a).
     func finishMockPrep() {
         guard var prep = model.mockPrep, let selection = prep.draw.selection, !model.startingExam || prep.failed else { return }
-        if let why = startRefusal, !prep.failed { model.banner = why; return }
+        // N2: a refused Retry changes nothing; the preparation stays as it was and says why. A Done during a running start is ignored (guard above).
+        if let why = startRefusal { model.banner = why; return }
         prep.ended = true; prep.failed = false
         model.mockPrep = prep
         model.banner = nil
@@ -56,7 +57,8 @@ extension AppServices {
         model.goetheNotes = ""
         stopExam()
         // F3: the voice set up for the preparation is shut down again when no exam took it over.
-        Task { if self.exam == nil, !self.model.startingExam { await self.shutDownVoice() } }
+        // N3: a new preparation started meanwhile keeps the voice it set up.
+        Task { if self.exam == nil, !self.model.startingExam, self.model.mockPrep == nil { await self.shutDownVoice() } }
     }
 
     func startExam(_ kind: ExamKind, tasks: [String]? = nil, format: Activity.Format? = nil, teil: Int? = nil, partnerTask: String? = nil) {
@@ -70,6 +72,8 @@ extension AppServices {
         let startID = UUID()
         examStartID = startID
         model.startingExam = true
+        // N1: remember which preparation this start belongs to; a newer one must not be marked failed.
+        let prepStamp = model.mockPrep?.startedAt
         examStartTask = Task {
             defer {
                 if examStartID == startID {
@@ -82,7 +86,7 @@ extension AppServices {
             // Navigation during voice setup cancels this task (examSelectionChanged); journal auto-selection does not.
             guard let tc = await ensureVoice(forExamStart: true), !Task.isCancelled, examStartID == startID else {
                 // F1: a start cancelled by navigation (examStartID nil, nothing newer) also leaves the preparation retryable.
-                if examStartID == startID || examStartID == nil { model.mockPrep?.failed = true }
+                if examStartID == startID || examStartID == nil, model.mockPrep?.startedAt == prepStamp { model.mockPrep?.failed = true }
                 return
             }
             await attachExam(kind, to: tc, tasks: tasks, format: format, teil: teil, partnerTask: partnerTask)

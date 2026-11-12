@@ -112,9 +112,67 @@ import Testing
         e.model.goetheNotes = "bleibt"
         e.services.finishMockPrep()
         e.services.examSelectionChanged()   // the learner clicks another session while the voice is being set up
-        await wait { e.model.mockPrep?.failed == true || e.model.mockPrep == nil }
-        #expect(e.model.mockPrep == nil || (e.model.mockPrep?.failed == true && e.model.goetheNotes == "bleibt"))
-        #expect(!e.model.startingExam && e.services.exam == nil)
+        await wait { e.model.mockPrep?.failed == true }
+        // N4: strict: the preparation is failed, still ended-with-selection-kept, retryable, and the notes stay
+        #expect(e.model.mockPrep?.failed == true && e.model.mockPrep?.ended == true && e.model.goetheNotes == "bleibt")
+        #expect(!e.model.startingExam && e.services.exam == nil && e.model.examRun == nil)
+        // a Retry from the failed preparation starts again
+        e.services.finishMockPrep()
+        await wait { e.model.examRun?.format == .mock || e.model.mockPrep?.failed == true }
+        #expect(e.model.startingExam || e.model.examRun?.format == .mock || e.model.mockPrep?.failed == true, "R-2: the Retry starts, is in progress, or fails again visibly")
+    }
+
+    @Test func aRefusedRetryChangesNothingAndSaysWhy() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        e.model.goetheNotes = "bleibt"
+        e.services.finishMockPrep()
+        e.services.examSelectionChanged()
+        await wait { e.model.mockPrep?.failed == true }
+        e.model.readOnly = true
+        let before = e.model.mockPrep
+        e.services.finishMockPrep()
+        #expect(e.model.mockPrep == before && e.model.banner == e.model.disabledReason, "N2: a refused Retry leaves the preparation failed and retryable")
+        #expect(e.model.mockPrep?.failed == true && e.model.mockPrep?.ended == true)
+    }
+
+    @Test func aStaleStartDoesNotFailANewerPreparation() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        e.services.finishMockPrep()
+        // discard, then a new preparation begins while the old start is still creating (N1)
+        e.services.examSelectionChanged()
+        e.services.discardMockPrep()
+        e.services.beginMockPrep()
+        let newer = try #require(e.model.mockPrep)
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(e.model.mockPrep?.startedAt == newer.startedAt && e.model.mockPrep?.failed == false, "N1: the newer preparation is not marked failed")
+    }
+
+    @Test func discardingThePreparationWithoutAnExamShutsTheVoiceDown() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        await wait { e.sink.micMuted }
+        #expect(e.services.turn != nil, "the preparation set the voice up")
+        e.services.discardMockPrep()
+        await wait { e.services.turn == nil }
+        #expect(e.services.turn == nil && e.services.voiceIO == nil && e.services.exam == nil && e.model.mockPrep == nil, "N4: discard without an exam shuts the voice down")
+    }
+
+    @Test func aNewerPreparationKeepsTheVoiceWhenAnOlderDiscardRuns() async throws {
+        let e = try ExamHostTests.Env(); defer { e.clean() }
+        e.model.online = true
+        e.services.beginMockPrep()
+        await wait { e.sink.micMuted }
+        // N3: the discard's shutdown task runs after a new preparation has begun, so it must not shut the voice down
+        e.services.discardMockPrep()
+        e.services.beginMockPrep()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(e.model.mockPrep != nil && e.services.turn != nil, "N3: the newer preparation's voice is not shut down")
+        e.services.discardMockPrep()
     }
 
     @Test func anotherExamStartCannotReplaceTheMockPreparation() async throws {

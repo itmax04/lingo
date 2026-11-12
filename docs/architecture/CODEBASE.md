@@ -40,7 +40,12 @@ created exactly there (ADR-0004). Update this file in the same PR when a top-lev
 | `apps/web/` | React + Vite PWA | Web | *planned* P-15 |
 | `apps/mac/` | Home of the Swift package | Mac | working (P-01) |
 | `apps/mac/Sources/LingoCore/Teacher/ExamController.swift` | Live exam coordination, phase events, monologue release, recognition/speech deadline guards; host attachment before the first reply | Mac | T-6a2a |
-| `apps/mac/Sources/LingoMac/ExamServices.swift`, `Views/ExamPanel.swift` | Live exam attachment/lifecycle, Teacher start actions, task/cue-card panels, timers and Done | Mac | T-6a2b |
+| `apps/mac/Sources/LingoMac/ExamServices.swift`, `Views/ExamPanel.swift` | Live exam attachment/lifecycle, Teacher start actions, task/cue-card panels, timers and Done; Goethe Mock preparation (`beginMockPrep`, `finishMockPrep`, `discardMockPrep`) and the start guards | Mac | T-6a2b, LINGO-10 G-5b, G-6 |
+| `apps/mac/Sources/LingoMac/Views/GoetheScreen.swift` | Goethe B1 Sprechen screen: Training, Mock (preparation, notes, locking), Debriefs | Mac | LINGO-10 G-5a, G-5b |
+| `apps/mac/Sources/LingoMac/Views/GoetheDebriefCard.swift` | One Goethe debrief card (scores per Teil, criteria, letters) | Mac | LINGO-10 G-4 |
+| `apps/mac/Sources/LingoCore/Teacher/GoetheHub.swift`, `GoetheContent.swift` | Goethe screen model: Training rules, Mock draw (`MockDraw`, partner topic), bundled German task content | Mac | LINGO-10 G-2, G-3 |
+| `apps/mac/Sources/LingoCore/Teacher/GoetheScoring.swift`, `GoetheDebrief.swift` | Goethe scoring (criteria, letters, Teil results), debrief prompt parts and parser, score filter | Mac | LINGO-10 G-2, G-4 |
+| `apps/mac/Tests/LingoMacTests/GoetheScreenHostTests.swift`, `GoetheMockHostTests.swift` | Host behaviour tests for the Goethe screen, Mock preparation, notes, locking and start guards (synthetic data) | Mac | LINGO-10 G-5a, G-5b, G-6 |
 | `apps/mac/Sources/LingoCore/Teacher/` | Teacher logic: cards and FSRS, warm-up, stats/goal/streak, Today plan, scenarios, Progress and weekly report, memory, exam debrief, reminder, exams | Mac | T-1…T-9 |
 | `apps/mac/Sources/LingoMac/Views/{TodayView,TeacherView,ScenarioViews,ProgressScreen,MemoryScreen,ExamDebriefCard}.swift`, `apps/mac/Sources/LingoMac/Settings/ReminderSettingsView.swift`, `apps/mac/Sources/LingoMac/ReminderServices.swift` | Teacher screens, Reminder setting and the notification adapter | Mac | T-4…T-9 |
 | `docs/changes/LINGO-05/evidence/` | Check logs and RU/EN, light/dark screenshots of the teacher screens (`t6a2b`, `t6b`, `t7`, `t8`, `t9`) | docs | T-6…T-9 |
