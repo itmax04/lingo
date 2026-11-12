@@ -61,7 +61,7 @@ const scenarioTask = shape((o, p) => {
   return { task, message: str(field(o, "message"), `${p}.message`) };
 });
 
-const examPart = shape((o, p) => ({ part: oneOf(["goethe_b1.1.prep", "goethe_b1.1", "goethe_b1.2", "goethe_b1.3", "ielts.1", "ielts.2.prep", "ielts.2", "ielts.3"] as const)(field(o, "part"), `${p}.part`) }));
+const examPart = shape((o, p) => ({ part: oneOf(["goethe_b1.1.prep", "goethe_b1.1", "goethe_b1.2", "goethe_b1.3", "goethe_b1.intro", "goethe_b1.2.partner", "goethe_b1.3.feedback", "goethe_b1.end", "ielts.1", "ielts.2.prep", "ielts.2", "ielts.3"] as const)(field(o, "part"), `${p}.part`) }));
 
 // The weekly advice (LINGO-05 GR-05); the week is an ISO week id, anything else is unknown like in Swift.
 const reportWeekly = shape((o, p) => {

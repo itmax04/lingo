@@ -1,0 +1,299 @@
+{
+  "filterCases" : [
+    {
+      "dropped" : true,
+      "line" : "Teil 1 · 18/28",
+      "name" : "fraction"
+    },
+    {
+      "dropped" : true,
+      "line" : "Итого 18 / 28",
+      "name" : "fraction with spaces"
+    },
+    {
+      "dropped" : true,
+      "line" : "Результат: 18 из 28.",
+      "name" : "russian of"
+    },
+    {
+      "dropped" : true,
+      "line" : "Примерно 18 баллов",
+      "name" : "points word after number"
+    },
+    {
+      "dropped" : true,
+      "line" : "Баллы: 18",
+      "name" : "points word before number"
+    },
+    {
+      "dropped" : true,
+      "line" : "Punktzahl 18 von 28",
+      "name" : "german score"
+    },
+    {
+      "dropped" : true,
+      "line" : "Your score is 18",
+      "name" : "english score"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1E] B: Охвачено 3 из 10 пунктов плана.",
+      "name" : "two-digit total of plan points kept"
+    },
+    {
+      "dropped" : true,
+      "line" : "Всего 18 из 28 возможных",
+      "name" : "russian of with a word after"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1E] B: Охвачено 3 из 4 пунктов плана.",
+      "name" : "plan points kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "> Du sprichst über den Punkt → Der erste Punkt — порядок",
+      "name" : "plain point word kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "[1W] C: Хороший балл не нужен, но слов хватает.",
+      "name" : "no number kept"
+    },
+    {
+      "dropped" : false,
+      "line" : "[2K] A: Ясный порядок.",
+      "name" : "letters kept"
+    }
+  ],
+  "letterPoints" : {
+    "12" : {
+      "A" : 12,
+      "B" : 9,
+      "C" : 6,
+      "D" : 3,
+      "E" : 0
+    },
+    "16" : {
+      "A" : 16,
+      "B" : 12,
+      "C" : 8,
+      "D" : 4,
+      "E" : 0
+    },
+    "4" : {
+      "A" : 4,
+      "B" : 3,
+      "C" : 2,
+      "D" : 1,
+      "E" : 0
+    },
+    "8" : {
+      "A" : 8,
+      "B" : 6,
+      "C" : 4,
+      "D" : 2,
+      "E" : 0
+    }
+  },
+  "maxima" : {
+    "1E" : 8,
+    "1I" : 4,
+    "1S" : 8,
+    "1W" : 8,
+    "2E" : 12,
+    "2K" : 4,
+    "2S" : 12,
+    "2W" : 12,
+    "3E" : 16
+  },
+  "parserCases" : [
+    {
+      "name" : "teil1 mixed letters",
+      "points" : [
+        17
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "all A over three Teile",
+      "points" : [
+        28,
+        40,
+        16
+      ],
+      "structured" : true,
+      "teile" : [
+        1,
+        2,
+        3
+      ],
+      "text" : "[1E] A: x\n[1I] A: x\n[1W] A: x\n[1S] A: x\n[2E] A: x\n[2K] A: x\n[2W] A: x\n[2S] A: x\n[3E] A: x\n[T1]\n+ a\n[T2]\n+ b\n[T3]\n+ c",
+      "zeroedByE" : [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "name" : "zero rule: 1E is E",
+      "points" : [
+        0
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] E: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        true
+      ]
+    },
+    {
+      "name" : "E elsewhere does not zero the Teil",
+      "points" : [
+        21
+      ],
+      "structured" : true,
+      "teile" : [
+        2
+      ],
+      "text" : "[2E] A: x\n[2K] E: x\n[2W] E: x\n[2S] B: x\n[T2]",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "missing code gives no points, other Teil still scored",
+      "points" : [
+        null,
+        20
+      ],
+      "structured" : true,
+      "teile" : [
+        1,
+        2
+      ],
+      "text" : "[1E] A: x\n[1I] A: x\n[1W] A: x\n[2E] C: x\n[2K] C: x\n[2W] C: x\n[2S] C: x\n[T1]\n[T2]",
+      "zeroedByE" : [
+        false,
+        false
+      ]
+    },
+    {
+      "name" : "repeated code gives no points",
+      "points" : [
+        null
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze\n[1W] A: again",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "letter followed by a letter is not a letter",
+      "points" : [
+        null
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] Bitte Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "lowercase letter and unknown letter",
+      "points" : [
+        null
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] c: Einfache Wörter.\n[1S] F: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "code not at the line start",
+      "points" : [
+        null
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "Siehe [1E] A\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "codes of an unrequested Teil are ignored",
+      "points" : [
+        17
+      ],
+      "structured" : true,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n[T1]\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze\n[2E] A: x",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "no headers: unstructured, points still from the codes",
+      "points" : [
+        17
+      ],
+      "structured" : false,
+      "teile" : [
+        1
+      ],
+      "text" : "[1E] A: Alle Punkte erfüllt.\n[1I] B: Gute Reaktion.\n[1W] C: Einfache Wörter.\n[1S] D: Einige Fehler.\n\n+ Klare Vorschläge\n+ Gute Höflichkeit\n> Mehr Verbindungswörter\n> Genauere Verben\n> Längere Sätze",
+      "zeroedByE" : [
+        false
+      ]
+    },
+    {
+      "name" : "nothing parsable",
+      "points" : [
+        null,
+        null
+      ],
+      "structured" : false,
+      "teile" : [
+        1,
+        3
+      ],
+      "text" : "Das war gut.",
+      "zeroedByE" : [
+        false,
+        false
+      ]
+    }
+  ],
+  "rule" : "LINGO-10 BR-28, BR-29, BR-40: scoring contract. Written by Swift GoetheScoringTests (LINGO_RECORD_FIXTURES=1). Parser cases: text and requested Teile in, points per Teil (null = text without points) out. Filter cases: a debrief line in, whether the score filter drops it.",
+  "teilMaxima" : {
+    "1" : 28,
+    "2" : 40,
+    "3" : 16
+  },
+  "zeroRule" : "1E = E scores Teil 1 as 0 in total; no other criterion zeroes a Teil."
+}

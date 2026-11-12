@@ -32,10 +32,18 @@ import Testing
             }
             if t.part == 3 { #expect(t.linkedTo.flatMap(ExamCatalog.task)?.part == 2) }
         }
+        try Self.fixture("teacher/exams.json", try Self.catalogueJSON())
+    }
+
+    /// The exported catalogue. Keys sort as goetheExaminerLines, goethePhrases, rule, tasks, so the IELTS entries stay the tail of the file.
+    static func catalogueJSON() throws -> String {
         let enc = JSONEncoder(); enc.outputFormatting = [.sortedKeys, .withoutEscapingSlashes, .prettyPrinted]
-        struct File: Encodable { let rule: String; let tasks: [ExamTask] }
-        let data = File(rule: "LINGO-05 XR-01: original Lingo practice material, not real exam questions. Written by Swift ExamTests (LINGO_RECORD_FIXTURES=1).", tasks: ExamCatalog.all)
-        try Self.fixture("teacher/exams.json", String(decoding: enc.encode(data), as: UTF8.self) + "\n")
+        struct File: Encodable {
+            let goetheExaminerLines: [String: String]; let goethePhrases: [String: [GoethePhrase]]; let rule: String; let tasks: [ExamTask]
+        }
+        let data = File(goetheExaminerLines: ExamCatalog.goetheExaminerLines, goethePhrases: ExamCatalog.goethePhrasesByTeil,
+                        rule: "LINGO-05 XR-01: original Lingo practice material, not real exam questions. Written by Swift ExamTests (LINGO_RECORD_FIXTURES=1).", tasks: ExamCatalog.all)
+        return String(decoding: try enc.encode(data), as: UTF8.self) + "\n"
     }
 
     @Test func settingsFreezeTasksAndDecodeTolerantly() throws {
@@ -67,7 +75,7 @@ import Testing
     @Test(arguments: ExamKind.allCases) func orderedTimersAndQueuedTransition(kind: ExamKind) {
         var r = Self.run(kind)
         let phases: [ExamPhase] = kind == .goetheB1 ? [.goethePrep, .goethe1, .goethe2, .goethe3] : [.ielts1, .ieltsPrep, .ielts2, .ielts3]
-        #expect(phases.map(\.seconds) == (kind == .goetheB1 ? [900, 180, 180, 120] : [300, 60, 120, 300]))
+        #expect(phases.map(\.seconds) == (kind == .goetheB1 ? [900, 180, 240, 120] : [300, 60, 120, 300]))
         for (i, p) in phases.enumerated() {
             #expect(r.phase == p && r.index == i && r.task.part == p.taskIndex + 1)
             #expect(r.microphoneAllowed == !p.isPreparation)
@@ -95,7 +103,7 @@ import Testing
         #expect(r.phase == .goethe1 && !r.timeIsUp)
         for text in ["fertig", " Done! ", "finished.", "FERTIG"] { #expect(ExamRun.isDoneUtterance(text)) }
         for text in ["I am done with school", "noch nicht fertig", "unfinished", "", "done now"] { #expect(!ExamRun.isDoneUtterance(text)) }
-        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2])
+        #expect(ExamPhase.allCases.filter(\.isMonologue) == [.goethe2, .ielts2, .goetheIntro])
     }
 
     @Test func examEventsMatchSwiftAndTSIncludingMalformedPayloads() throws {
