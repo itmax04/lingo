@@ -65,10 +65,14 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     public var pinnedVocab: String?
     /// LINGO-05: a teacher activity (warm-up, scenario, exam). Older builds ignore it and open the session as its stored mode (PX-05).
     public var activity: Activity?
+    /// LINGO-09 MR-01: harshness/hostility/profanity. Stored only when its level is ≥ 1; older builds ignore it (MR-45).
+    public var tone: Tone? { didSet { tone = Self.normalized(tone) } }
+
+    private static func normalized(_ t: Tone?) -> Tone? { t?.isActive == true ? t : nil }
 
     public init(lang: Lang, mode: SessionMode, topic: String = "", role: String = "", level: String = "",
                 customPrompt: String = "", corrections: Set<CorrectionMode> = [], starter: Starter = .assistant,
-                useVocabulary: Bool? = nil, vocabularyFocus: Bool? = nil, pinnedVocab: String? = nil, activity: Activity? = nil) {
+                useVocabulary: Bool? = nil, vocabularyFocus: Bool? = nil, pinnedVocab: String? = nil, activity: Activity? = nil, tone: Tone? = nil) {
         self.lang = lang
         self.mode = mode
         self.topic = topic
@@ -81,10 +85,11 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         self.vocabularyFocus = vocabularyFocus
         self.pinnedVocab = pinnedVocab
         self.activity = activity
+        self.tone = Self.normalized(tone)
     }
 
     enum CodingKeys: String, CodingKey {
-        case lang, mode, topic, role, level, customPrompt, corrections, starter, useVocabulary, vocabularyFocus, pinnedVocab, activity
+        case lang, mode, topic, role, level, customPrompt, corrections, starter, useVocabulary, vocabularyFocus, pinnedVocab, activity, tone
     }
 
     /// As the synthesized decoder, except that `activity` is tolerant: missing, malformed or of an unknown kind → nil (PX-05).
@@ -102,6 +107,7 @@ public struct SessionSettings: Codable, Sendable, Hashable {
         vocabularyFocus = try c.decodeIfPresent(Bool.self, forKey: .vocabularyFocus)
         pinnedVocab = try c.decodeIfPresent(String.self, forKey: .pinnedVocab)
         activity = (try? c.decodeIfPresent(Activity.self, forKey: .activity)) ?? nil
+        tone = Self.normalized((try? c.decodeIfPresent(Tone.self, forKey: .tone)) ?? nil)
     }
 
     public var examKind: ExamKind? { activity?.kind == .exam ? activity?.exam.flatMap(ExamKind.init(rawValue:)) : nil }

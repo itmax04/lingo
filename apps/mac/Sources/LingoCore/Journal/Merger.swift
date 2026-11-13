@@ -328,7 +328,7 @@ public enum Merger {
             st.messages[m.event.session, default: []].append(
                 ChatMessage(id: m.event.id, session: m.event.session, role: p.role, text: m.text.value, lang: p.lang,
                             segments: p.segments ?? [], createdAt: m.event.ts, source: p.source,
-                            interruptedAt: m.interrupted.value, synced: isSynced(m.event), kind: p.kind ?? .normal))
+                            interruptedAt: m.interrupted.value, synced: isSynced(m.event), kind: p.kind ?? .normal, local: p.local == true))
         }
         // "Understood as" (R-51): the reply's `@heard` is shown under the user utterance it answers.
         for (sid, list) in st.messages {

@@ -1,4 +1,4 @@
-import { array, bool, DecodeError, field, object, oneOf, optional, str, type Decoder } from "./decode.js";
+import { array, attempt, bool, DecodeError, field, int, object, oneOf, optional, str, type Decoder } from "./decode.js";
 
 export const LANGS = ["en", "de", "ru"] as const;
 export type Lang = (typeof LANGS)[number];
@@ -29,7 +29,31 @@ export interface SessionSettings {
   useVocabulary?: boolean;
   vocabularyFocus?: boolean;
   pinnedVocab?: string;
+  /** LINGO-09 MR-01: stored only when max(harshness, hostility) >= 1; a malformed or out-of-range object is no tone. */
+  tone?: Tone;
 }
+
+/** LINGO-09 MR-01: harshness (tutor) and hostility (character) 0…5, profanity switch. */
+export interface Tone { harshness: number; hostility: number; profanity: boolean }
+
+/** MR-03 presets (constants); profanity stays off. */
+export const TONE_PRESETS = {
+  off: { harshness: 0, hostility: 0, profanity: false },
+  strictTeacher: { harshness: 3, hostility: 0, profanity: false },
+  conflict: { harshness: 0, hostility: 3, profanity: false },
+  combined: { harshness: 3, hostility: 3, profanity: false },
+} as const satisfies Record<string, Tone>;
+
+const level = (v: number): number => {
+  if (v < 0 || v > 5) throw new DecodeError("tone.level");
+  return v;
+};
+
+export const decodeTone: Decoder<Tone> = (v, p) => {
+  const o = object(v, p);
+  return { harshness: level(int(field(o, "harshness"), `${p}.harshness`)), hostility: level(int(field(o, "hostility"), `${p}.hostility`)),
+    profanity: bool(field(o, "profanity"), `${p}.profanity`) };
+};
 
 export interface Fix { original: string; corrected: string; rule: string }
 export interface Phrase { lang: Lang; text: string; translation: string; source: PhraseSource }
@@ -61,6 +85,9 @@ export const decodeSettings: Decoder<SessionSettings> = (v, p) => {
   if (useVocabulary !== undefined) s.useVocabulary = useVocabulary;
   if (vocabularyFocus !== undefined) s.vocabularyFocus = vocabularyFocus;
   if (pinnedVocab !== undefined) s.pinnedVocab = pinnedVocab;
+  // Tolerant, as Swift `try? decodeIfPresent(Tone.self)`: anything malformed is no tone; level 0 is no tone either.
+  const tone = attempt(optional(decodeTone), field(o, "tone"));
+  if (tone && Math.max(tone.harshness, tone.hostility) >= 1) s.tone = tone;
   return s;
 };
 

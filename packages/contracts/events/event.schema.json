@@ -556,6 +556,33 @@
           "type": "string",
           "description": "LINGO-08 VR-11: the item chosen with Practise; the first target while it is a candidate."
         },
+        "tone": {
+          "type": "object",
+          "description": "LINGO-09 MR-01: written only when max(harshness, hostility) >= 1. Readers decode it tolerantly: a malformed object, a value out of range or a level of 0 gives no tone and the session opens as an ordinary one (MR-45).",
+          "required": [
+            "harshness",
+            "hostility",
+            "profanity"
+          ],
+          "properties": {
+            "harshness": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "The tutor's harshness."
+            },
+            "hostility": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "The character's hostility in a scenario."
+            },
+            "profanity": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        },
         "activity": {
           "type": "object",
           "description": "LINGO-05 PX-05: a teacher activity. Readers decode it tolerantly: an unknown kind or malformed content is ignored and the session opens as its stored mode.",
@@ -860,6 +887,10 @@
         "replyTo": {
           "type": "string",
           "description": "Event id of the user message this reply answers."
+        },
+        "local": {
+          "type": "boolean",
+          "description": "LINGO-09 MR-18: fixed app text spoken without a model request. Missing = false. Excluded from the context window."
         }
       },
       "additionalProperties": true

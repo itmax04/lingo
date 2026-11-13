@@ -93,13 +93,15 @@ public struct ChatMessage: Sendable, Hashable, Identifiable {
     public var synced: Bool
     /// Service message: a session recap (R-23) or a chain error message (S-18).
     public var kind: Kind
+    /// LINGO-09 MR-18: a local line of the app (no model request); excluded from the context window.
+    public var local: Bool
 
     public enum Kind: String, Codable, Sendable, Hashable {
         case normal, summary, error
     }
 
     public init(id: String, session: String, role: Role, text: String, lang: Lang, segments: [ReplySegment] = [],
-                createdAt: Date, source: String? = nil, interruptedAt: Int? = nil, synced: Bool = false, kind: Kind = .normal) {
+                createdAt: Date, source: String? = nil, interruptedAt: Int? = nil, synced: Bool = false, kind: Kind = .normal, local: Bool = false) {
         self.id = id
         self.session = session
         self.role = role
@@ -111,6 +113,7 @@ public struct ChatMessage: Sendable, Hashable, Identifiable {
         self.interruptedAt = interruptedAt
         self.synced = synced
         self.kind = kind
+        self.local = local
     }
 
     /// Text for display and speech: `@say` lines joined with spaces; for the user — the text itself. A reply without segments falls back to

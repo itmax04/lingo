@@ -31,6 +31,8 @@ export interface Session {
 export interface ChatMessage {
   id: string; session: string; role: Role; text: string; lang: Lang; heard?: string; segments: ReplySegment[]; createdAt: number;
   source?: string; interruptedAt?: number; synced: boolean; kind: MessageKind;
+  /** LINGO-09 MR-18: a local line of the app; set only when true. */
+  local?: boolean;
 }
 export interface FixEntry { message: string; fix: Fix; ts: number }
 export interface ProfileUpdate { ts: number; version: Version; goals?: string; interests?: string }
@@ -142,6 +144,7 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
         const base: MessageAcc["base"] = { id: e.id, session: e.session, role: p.role, lang: p.lang, segments: p.segments ?? [],
           createdAt: e.ts, kind: p.kind ?? "normal" };
         if (p.source !== undefined) base.source = p.source;
+        if (p.local === true) base.local = true;
         const m: MessageAcc = { event: e, base, text: new LWW(p.text), interrupted: new LWW<number | undefined>(undefined) };
         if (p.replyTo !== undefined) m.replyTo = p.replyTo;
         messages.set(e.id, m);
