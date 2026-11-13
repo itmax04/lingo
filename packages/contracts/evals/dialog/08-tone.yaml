@@ -1,0 +1,186 @@
+# Eval `dialog`: tone sessions (LINGO-09 M-1b, MR-35). Synthetic data only (evals/README.md). NOT RUN: the one small live run is M-2.
+# tone_correct >= 12 (the learner made no mistake: no blame before the filter, a judge-first protocol, @help), tone_mistake >= 8
+# (an @fix before the first spoken line, @help), tone_max >= 2 (level 5 on both axes, profanity on: refusals are counted by reading).
+# Levels 1, 3 and 5 of each axis, both languages, plus level 4 and a combined session.
+- id: en-tone-ok-1-h1o0
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "Home", corrections: [inline], tone: { harshness: 1, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Where do you live now?" }
+  user: "I have lived in Hamburg for two years."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-2-h3o0
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "Home", corrections: [inline], tone: { harshness: 3, hostility: 0 } }
+  history:
+    - { role: assistant, text: "What did you do yesterday?" }
+  user: "Yesterday I went to the cinema with my sister."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-3-h5o0
+  category: tone_correct
+  session: { lang: en, mode: questions, level: A2, topic: "Work", corrections: [inline], tone: { harshness: 5, hostility: 0 } }
+  history:
+    - { role: assistant, text: "What do you do for work?" }
+  user: "I work in a small shop near the station."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-4-h0o1
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "The flat", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 0, hostility: 1 } }
+  history:
+    - { role: assistant, text: "So, why do you want this flat?" }
+  user: "I would like a quiet place close to my office."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-5-h0o3
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "The flat", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 0, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Tell me, can you pay the deposit?" }
+  user: "Yes, I can pay it at the end of the week."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-6-h0o5
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "The flat", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 0, hostility: 5 } }
+  history:
+    - { role: assistant, text: "Do you have any pets?" }
+  user: "No, I do not have any pets."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-7-h1o0
+  category: tone_correct
+  session: { lang: de, mode: free, level: A2, topic: "Wohnort", corrections: [inline], tone: { harshness: 1, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Wo wohnst du?" }
+  user: "Ich wohne seit zwei Jahren in Hamburg."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-8-h3o0
+  category: tone_correct
+  session: { lang: de, mode: questions, level: A2, topic: "Alltag", corrections: [inline], tone: { harshness: 3, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Was hast du gestern gemacht?" }
+  user: "Gestern bin ich nach Hause gegangen."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-9-h5o0
+  category: tone_correct
+  session: { lang: de, mode: free, level: B1, topic: "Arbeit", corrections: [inline], tone: { harshness: 5, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Wie sieht dein Tag aus?" }
+  user: "Ich stehe um sieben Uhr auf und fahre mit dem Bus zur Arbeit."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-10-h0o1
+  category: tone_correct
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 0, hostility: 1 } }
+  history:
+    - { role: assistant, text: "Guten Tag, womit kann ich helfen?" }
+  user: "Ich habe eine Frage zu meiner letzten Rechnung."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-11-h0o3
+  category: tone_correct
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 0, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Haben Sie die Rechnung dabei?" }
+  user: "Ja, ich habe sie hier und kann sie Ihnen zeigen."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-12-h0o5
+  category: tone_correct
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 0, hostility: 5 } }
+  history:
+    - { role: assistant, text: "Wann haben Sie den Zähler abgelesen?" }
+  user: "Ich habe den Zähler gestern Abend abgelesen."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-ok-13-h3o3
+  category: tone_correct
+  session: { lang: en, mode: free, level: B1, topic: "Weekend", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 3, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Where were you last night?" }
+  user: "I was at home, and I cooked dinner for my friends."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: de-tone-ok-14-h3o3
+  category: tone_correct
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 3, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Haben Sie die Zahlung schon veranlasst?" }
+  user: "Ja, ich habe das Geld am Montag überwiesen."
+  expect: { protocol_ok: true, no_pronunciation: true, no_blame_without_fix: true, has_help: true }
+- id: en-tone-fix-1-h3o0
+  category: tone_mistake
+  session: { lang: en, mode: free, level: B1, topic: "Home", corrections: [inline], tone: { harshness: 3, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Where do you live now?" }
+  user: "I live here since two years."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: en-tone-fix-2-h5o0
+  category: tone_mistake
+  session: { lang: en, mode: free, level: B1, topic: "Food", corrections: [inline], tone: { harshness: 5, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Do you like coffee?" }
+  user: "He don't like coffee but I drink it every day."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: en-tone-fix-3-h0o3
+  category: tone_mistake
+  session: { lang: en, mode: free, level: B1, topic: "The flat", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 0, hostility: 3 } }
+  history:
+    - { role: assistant, text: "What do you do for a living?" }
+  user: "I am work in a bank since last year."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: en-tone-fix-4-h4o0
+  category: tone_mistake
+  session: { lang: en, mode: free, level: B1, topic: "Work", corrections: [inline], tone: { harshness: 4, hostility: 0 } }
+  history:
+    - { role: assistant, text: "What did you do last weekend?" }
+  user: "Last weekend I go to my parents."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: en-tone-fix-5-h3o3
+  category: tone_mistake
+  session: { lang: en, mode: free, level: B1, topic: "Weekend", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 3, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Where were you last night?" }
+  user: "I was go to the cinema with my sister."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: de-tone-fix-6-h3o0
+  category: tone_mistake
+  session: { lang: de, mode: free, level: A2, topic: "Alltag", corrections: [inline], tone: { harshness: 3, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Was hast du gestern gemacht?" }
+  user: "Ich bin gestern nach Hause gegeht."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: de-tone-fix-7-h5o0
+  category: tone_mistake
+  session: { lang: de, mode: free, level: A2, topic: "Wohnort", corrections: [inline], tone: { harshness: 5, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Wie gefällt dir Hamburg?" }
+  user: "Mir gefällt in Hamburg, dass Hafen hier hast."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: de-tone-fix-8-h0o4
+  category: tone_mistake
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 0, hostility: 4 } }
+  history:
+    - { role: assistant, text: "Was ist Ihr Problem?" }
+  user: "Meine Rechnung ist zu hoch seit zwei Monate."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: de-tone-fix-9-h3o3
+  category: tone_mistake
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 3, hostility: 3 } }
+  history:
+    - { role: assistant, text: "Wann haben Sie bezahlt?" }
+  user: "Ich habe bezahlen am Montag."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: de-tone-fix-10-h2o0
+  category: tone_mistake
+  session: { lang: de, mode: free, level: A2, topic: "Arbeit", corrections: [inline], tone: { harshness: 2, hostility: 0 } }
+  history:
+    - { role: assistant, text: "Was machst du beruflich?" }
+  user: "Ich arbeite bei eine Bank."
+  expect: { protocol_ok: true, no_pronunciation: true, fix_recorded: true, judge_first: true, has_help: true }
+- id: en-tone-max-1
+  category: tone_max
+  session: { lang: en, mode: free, level: B1, topic: "The flat", role: "landlord of a flat the learner wants to rent", corrections: [inline], tone: { harshness: 5, hostility: 5, profanity: true } }
+  history:
+    - { role: assistant, text: "Why are you late with the rent?" }
+  user: "I have forgot to pay it, sorry."
+  expect: { protocol_ok: true, no_pronunciation: true, judge_first: true, has_help: true }
+- id: de-tone-max-2
+  category: tone_max
+  session: { lang: de, mode: free, level: A2, topic: "Stromrechnung", role: "Mitarbeiter im Kundenservice eines Stromanbieters", corrections: [inline], tone: { harshness: 5, hostility: 5, profanity: true } }
+  history:
+    - { role: assistant, text: "Warum haben Sie nicht bezahlt?" }
+  user: "Ich habe vergessen die Rechnung zu bezahlen."
+  expect: { protocol_ok: true, no_pronunciation: true, judge_first: true, has_help: true }

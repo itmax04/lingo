@@ -49,6 +49,9 @@ public actor DialogEngine {
 
     public func setPolicy(_ p: ContextPolicy) { policy = p }
 
+    /// Remembers the last neutral line per language, so the filter's replacement never repeats twice in a row (MR-21).
+    var tonePicker = ToneLinePicker()
+
     /// The "Reply options" switch (LINGO-09 MR-49): applies from the next request; the running reply is not cut.
     public func setReplyOptions(_ on: Bool) { replyOptionsOn = on }
 
@@ -160,6 +163,9 @@ public actor DialogEngine {
                                               replyOptions: replyOptionsOn && ReplyOptions.isOffered(s.settings, ended: s.state == .ended))
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
+        // LINGO-09 MR-15: tutor speech is held until the first @fix or the end of the stream; the filter then decides.
+        let tone = TonePrompt.effective(s.settings)
+        var gate = BlameGate(tone: tone, lang: s.settings.lang)
         var step: StepInfo?
         var actualModel: String?
         var t0 = Date()
@@ -176,10 +182,12 @@ public actor DialogEngine {
             case .firstToken(_, let ms):
                 cont.yield(.firstToken(afterMs: ms))
             case .text(let t):
-                for item in parser.feed(t) { if case .speak(let l, let x) = item { cont.yield(.speak(l, x)) } }
-                cont.yield(.partial(ReplyProtocol.stripThinking(parser.text)))
+                for item in parser.feed(t) { for (l, x) in gate.offer(item) { cont.yield(.speak(l, x)) } }
+                let shown = ReplyProtocol.stripThinking(parser.text)
+                cont.yield(.partial(gate.isHolding ? BlameFilter.heldPartial(raw: shown, tone: tone, lang: s.settings.lang) : shown))
             case .restart:
                 parser = ReplyStreamParser(studyLang: s.settings.lang)
+                gate = BlameGate(tone: tone, lang: s.settings.lang)
                 cont.yield(.restart)
             case .keyInvalid(let id, let err):
                 cont.yield(.keyInvalid(keyID: id, reason: err.description))
@@ -205,8 +213,22 @@ public actor DialogEngine {
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
             cont.yield(.cancelled); return
         }
-        for item in parser.finish() { if case .speak(let l, let x) = item { cont.yield(.speak(l, x)) } }
-        let full = ReplyProtocol.parse(parser.text, studyLang: s.settings.lang)
+        for item in parser.finish() { for (l, x) in gate.offer(item) { cont.yield(.speak(l, x)) } }
+        // One neutral line per turn, chosen only when the filter leaves no tutor speech (MR-15).
+        var neutral: String?
+        func neutralLine() -> String {
+            if let n = neutral { return n }
+            let n = tonePicker.next(.neutral, lang: s.settings.lang, level: tone?.harshness ?? 1) ?? "…"
+            neutral = n
+            return n
+        }
+        let heldToTheEnd = gate.isHolding
+        for (l, x) in gate.finish(raw: parser.text, replacement: neutralLine) { cont.yield(.speak(l, x)) }
+        var full = ReplyProtocol.parse(parser.text, studyLang: s.settings.lang)
+        let filtered = BlameFilter.filter(raw: parser.text, tone: tone, lang: s.settings.lang, replacement: neutralLine)
+        // MR-15 "shown": a reply held to the end is shown once more, now from the filtered text (the kept speech or the neutral line).
+        if heldToTheEnd { cont.yield(.partial(ReplyProtocol.stripThinking(filtered.text))) }
+        if filtered.removed > 0 { full.segments = ReplyProtocol.parse(filtered.text, studyLang: s.settings.lang).segments }
         guard let step else {
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])
             cont.yield(.failed(reason: String(localized: "empty reply"), retryAfter: nil)); return
@@ -224,6 +246,7 @@ public actor DialogEngine {
             ]
             let events = try await store.appendBatch(items)
             let mid = events[0].id
+            if filtered.removed > 0 { _ = try? await store.append(EventType.toneFiltered, session: session, Payload.ToneFiltered(message: mid, removed: filtered.removed)) }
             // @fix goes to the journal for the R-23 recap (in every mode); @hint goes to the hints (R-27).
             items = []
             for seg in full.segments {

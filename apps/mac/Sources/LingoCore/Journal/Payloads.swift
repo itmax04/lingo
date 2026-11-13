@@ -186,6 +186,13 @@ public enum Payload {
         public init(message: String, index: Int) { self.message = message; self.index = index }
     }
 
+    /// LINGO-09 MR-15: the blame filter removed `removed` (≥ 1) sentences from the reply `message`. Ids and a number only (MR-46).
+    public struct ToneFiltered: Codable, Sendable, Hashable {
+        public var message: String
+        public var removed: Int
+        public init(message: String, removed: Int) { self.message = message; self.removed = removed }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

@@ -70,12 +70,14 @@ public enum EventType {
     public static let memorySwitched = "memory.switched"
     /// LINGO-09 MR-54: the learner revealed a reply option (ids and numbers only).
     public static let replyRevealed = "reply.revealed"
+    /// LINGO-09 MR-15: sentences the blame filter removed from a tutor reply (ids and a number only).
+    public static let toneFiltered = "tone.filtered"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
                                          hintAdded, phraseStarred, phraseUnstarred,
                                          vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask, examPart, reportWeekly,
-                                         memoryNoted, memoryUpdated, memoryRemoved, memorySwitched, replyRevealed]
+                                         memoryNoted, memoryUpdated, memoryRemoved, memorySwitched, replyRevealed, toneFiltered]
 }
 
 // MARK: - JSON Lines row

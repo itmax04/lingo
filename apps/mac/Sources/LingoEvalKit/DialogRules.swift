@@ -6,7 +6,8 @@ public enum DialogRules {
     public static let all = ["protocol_ok", "lang_discipline", "no_pronunciation", "one_question", "contains_correction",
                              "returns_to_practice", "length_by_level", "asks_repeat", "repeats_previous", "fix_recorded",
                              "heard_ok", "no_false_correction", "says", "hint",
-                             "uses_target", "no_target_list", "no_repeat_request", "concrete_opening", "no_filler"]
+                             "uses_target", "no_target_list", "no_repeat_request", "concrete_opening", "no_filler",
+                             "no_blame_without_fix", "has_help", "judge_first"]
 
     /// Per-rule thresholds (evals/README.md). `no_pronunciation` — 100%.
     public static let thresholds: [String: Double] = [
@@ -135,6 +136,20 @@ public enum DialogRules {
         let used = targets.filter { VocabularyMatcher.contains($0.text, in: studyText, lang: c.studyLang) }
         if e.uses_target == true { r["uses_target"] = !used.isEmpty }
         if !targets.isEmpty { r["no_target_list"] = used.count <= 1 }
+        // LINGO-09 M-1b (MR-10, MR-12, MR-15).
+        if e.no_blame_without_fix == true {
+            // Every study-language spoken line counts, whatever the axes (a hostility-only session has no tutor speech for the runtime
+            // filter to act on, but the measure still reads the character): measured as the speech of a harshness-only session.
+            r["no_blame_without_fix"] = BlameFilter.filter(raw: response, tone: Tone(harshness: 1, hostility: 0), lang: c.studyLang, replacement: { "" }).removed == 0
+        }
+        if e.has_help == true { r["has_help"] = !ReplyProtocol.silentValues(response, tag: "help").isEmpty }
+        if e.judge_first == true {
+            let kinds: [String] = ReplyProtocol.stripThinking(response).split(whereSeparator: \.isNewline).compactMap { line in
+                switch ReplyProtocol.parseLine(line, studyLang: c.studyLang).0 { case .fix?: "fix"; case .say?: "say"; default: nil }
+            }
+            let fix = kinds.firstIndex(of: "fix"), speech = kinds.firstIndex(of: "say")
+            r["judge_first"] = fix != nil && (speech == nil || fix! < speech!)
+        }
         if e.no_repeat_request == true {
             r["no_repeat_request"] = !repeatRequests.contains { lower(allSay).range(of: $0, options: .regularExpression) != nil }
         }

@@ -1,0 +1,255 @@
+{
+  "rule": "LINGO-09 MR-15 / MAC-07: golden cases of the blame filter. `tone` is [harshness, hostility] or null; NEUTRAL stands for the replacement line.",
+  "cases": [
+    {
+      "name": "de blame without fix is removed",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Falsch. Wie heißt du?",
+      "text": "@say de: Wie heißt du?",
+      "removed": 1
+    },
+    {
+      "name": "de blame with a fix stays",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@fix: Ich bin gehen → Ich gehe | Verb\n@say de: Falsch. Sag es noch einmal.",
+      "text": "@fix: Ich bin gehen → Ich gehe | Verb\n@say de: Falsch. Sag es noch einmal.",
+      "removed": 0
+    },
+    {
+      "name": "a fix without an arrow is no fix",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@fix: Ich bin gehen\n@say de: Das ist falsch. Weiter.",
+      "text": "@fix: Ich bin gehen\n@say de: Weiter.",
+      "removed": 1
+    },
+    {
+      "name": "nothing left: the neutral line replaces the speech",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Das ist falsch.",
+      "text": "@say de: NEUTRAL",
+      "removed": 1
+    },
+    {
+      "name": "two tutor lines, one survives",
+      "tone": [
+        2,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Ein Fehler.\n@say de: Was machst du heute?",
+      "text": "@say de: Was machst du heute?",
+      "removed": 1
+    },
+    {
+      "name": "stem and case",
+      "tone": [
+        4,
+        0
+      ],
+      "lang": "en",
+      "raw": "@say en: That is a MISTAKE. Next question?",
+      "text": "@say en: Next question?",
+      "removed": 1
+    },
+    {
+      "name": "en phrase marker",
+      "tone": [
+        4,
+        0
+      ],
+      "lang": "en",
+      "raw": "@say en: That's not right at all. Where do you live?",
+      "text": "@say en: Where do you live?",
+      "removed": 1
+    },
+    {
+      "name": "typographic apostrophe",
+      "tone": [
+        4,
+        0
+      ],
+      "lang": "en",
+      "raw": "@say en: That’s not how you say it. Try again.",
+      "text": "@say en: Try again.",
+      "removed": 1
+    },
+    {
+      "name": "combined: the character is untouched, the tutor is filtered",
+      "tone": [
+        3,
+        3
+      ],
+      "lang": "de",
+      "raw": "@say de: Falsch ist hier nur deine Laune. Was willst du?\n@tutor de: Das war ein Fehler.",
+      "text": "@say de: Falsch ist hier nur deine Laune. Was willst du?\n@tutor de: NEUTRAL",
+      "removed": 1
+    },
+    {
+      "name": "combined with a fix: nothing removed",
+      "tone": [
+        3,
+        3
+      ],
+      "lang": "en",
+      "raw": "@say en: What do you want?\n@fix: I has → I have | have\n@tutor en: Wrong. Again.",
+      "text": "@say en: What do you want?\n@fix: I has → I have | have\n@tutor en: Wrong. Again.",
+      "removed": 0
+    },
+    {
+      "name": "hostility only: the filter does not act",
+      "tone": [
+        0,
+        3
+      ],
+      "lang": "en",
+      "raw": "@say en: Wrong! Everything you say is wrong.",
+      "text": "@say en: Wrong! Everything you say is wrong.",
+      "removed": 0
+    },
+    {
+      "name": "no tone: the filter does not act",
+      "tone": null,
+      "lang": "en",
+      "raw": "@say en: That is wrong.",
+      "text": "@say en: That is wrong.",
+      "removed": 0
+    },
+    {
+      "name": "Russian lines are not filtered",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say ru: Это ошибка: falsch.\n@say de: Weiter.",
+      "text": "@say ru: Это ошибка: falsch.\n@say de: Weiter.",
+      "removed": 0
+    },
+    {
+      "name": "an untagged line is speech too",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "Wrong. Say it again",
+      "text": "@say en: Say it again",
+      "removed": 1
+    },
+    {
+      "name": "silent lines are kept",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@help: Скажи так | Ich wohne\n@say de: Falsch.\n@next de: Wo arbeitest du?",
+      "text": "@help: Скажи так | Ich wohne\n@say de: NEUTRAL\n@next de: Wo arbeitest du?",
+      "removed": 1
+    },
+    {
+      "name": "praise is not blame",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Fehlerfrei. Weiter.",
+      "text": "@say de: Fehlerfrei. Weiter.",
+      "removed": 0
+    },
+    {
+      "name": "markers are whole words",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "@say en: The film is wrongly famous. Next.",
+      "text": "@say en: The film is wrongly famous. Next.",
+      "removed": 0
+    },
+    {
+      "name": "de compound nouns end in Fehler",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Wieder ein Grammatikfehler. Weiter.",
+      "text": "@say de: Weiter.",
+      "removed": 1
+    },
+    {
+      "name": "de stimmt so nicht",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Das stimmt so nicht. Was meinst du?",
+      "text": "@say de: Was meinst du?",
+      "removed": 1
+    },
+    {
+      "name": "a fix without a colon is no fix (the parser does not read it)",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@fix Ich bin gehen → Ich gehe\n@say de: Falsch. Noch einmal.",
+      "text": "@fix Ich bin gehen → Ich gehe\n@say de: Noch einmal.",
+      "removed": 1
+    },
+    {
+      "name": "a fix inside <think> is no fix",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "<think>@fix: Ich bin gehen → Ich gehe | Verb</think>\n@say de: Falsch. Noch einmal.",
+      "text": "\n@say de: Noch einmal.",
+      "removed": 1
+    },
+    {
+      "name": "blame inside <think> is not speech",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "<think>The answer is wrong.</think>\n@say en: Good. What next?",
+      "text": "<think>The answer is wrong.</think>\n@say en: Good. What next?",
+      "removed": 0
+    },
+    {
+      "name": "a list-formatted @say line is speech",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "- @say en: That's wrong. Try again.",
+      "text": "@say en: Try again.",
+      "removed": 1
+    }
+  ]
+}
