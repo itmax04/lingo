@@ -272,10 +272,10 @@ extension AppServices {
     }
 
     /// ▶ on a hint phrase (R-27): the voice of the phrase's language, offline; the microphone does not listen; if the assistant is speaking — queued.
-    func playPhrase(_ p: Phrase) {
+    func playPhrase(_ p: Phrase, slow: Bool = false) {
         if let io = voiceIO, ending {
             // The goodbye is still playing through the audio engine: queue behind it instead of a second synthesizer.
-            io.speak(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 50_000)
+            io.speak(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang], rate: SpeechPace(base: settings.voice.pace).rate(multiplier: slow ? 0.75 : 1), tag: 50_000)
             return
         }
         if model.selectedSession?.state == .ended || model.examReadOnly || ending {
@@ -286,7 +286,7 @@ extension AppServices {
             if voiceIO == nil { _ = await ensureVoice() }
             guard let io = voiceIO else { return }
             io.playPhrase(p.text, lang: p.lang, voiceID: settings.voice.voiceIDs[p.lang],
-                          rate: SpeechPace(base: settings.voice.pace).rate(multiplier: 1), tag: 50_000)
+                          rate: SpeechPace(base: settings.voice.pace).rate(multiplier: slow ? 0.75 : 1), tag: 50_000)
         }
     }
 

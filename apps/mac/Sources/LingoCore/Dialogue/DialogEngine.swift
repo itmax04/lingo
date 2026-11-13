@@ -562,6 +562,35 @@ public actor DialogEngine {
         return clean
     }
 
+    // MARK: Reply options (LINGO-09 MR-53, MR-54)
+
+    /// One request for new options of the anchor message. Not a message and not journaled; it goes through the usual chain and usage log.
+    public func refreshReplyOptions(session: String, shown: [ReplyOption]) async throws -> [ReplyOption] {
+        let st = await store.state
+        guard let s = st.sessions[session], ReplyOptions.isOffered(s.settings, ended: s.state == .ended) else { throw ReplyOptionsError.empty }
+        let profile = (frozenProfiles[session] ?? st.promptProfile(session: session)).keepingLiveFacts(of: st)
+        let req = PromptBuilder.replyOptionsRequest(settings: s.settings, summary: s.summary, messages: st.messages[session] ?? [], shown: shown,
+                                                    policy: policy, profile: profile)
+        var out = ""
+        for await e in await makeChain().run(req) {
+            switch e {
+            case .text(let t): out += t
+            case .restart: out = ""
+            case .exhausted(let reason, _): throw ReplyOptionsError.unavailable(reason)
+            default: break
+            }
+        }
+        if Task.isCancelled { throw CancellationError() }
+        let options = ReplyOptions.parse(out, studyLang: s.settings.lang)
+        guard !options.isEmpty else { throw ReplyOptionsError.empty }
+        return options
+    }
+
+    /// An option was revealed (MR-54): ids and numbers only.
+    public func recordReplyRevealed(session: String, message: String, index: Int) async {
+        _ = try? await store.append(EventType.replyRevealed, session: session, Payload.ReplyRevealed(message: message, index: index))
+    }
+
     // MARK: Finishing (R-22, R-23)
 
     /// The goodbye of "Finish" (R-22): a fixed short phrase in the study language, written as an assistant message. It does not call a model:

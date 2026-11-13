@@ -62,9 +62,16 @@ Branch `feat/139-reply-options-data`, cut from `feat/120-tone-data` (PR #141, no
 - Independent review (sdlc:reviewer, Sonnet, 0d699e0): approve-with-notes, no P0/P1. F1 (P3): `DialogEngine.setReplyOptions` has no caller — M-11b must wire `AppSettings.replyOptions` to it at engine start and on every settings change. F2, F3: no change needed.
 - Not done here by design: DESIGN.md §5 entry, interface, refresh request, token evidence (M-11b).
 
+## Done: M-11b (#140)
+- Block under the anchor (`ReplyOptionsBlock`, `ReplyOptions.anchor`/`firstWords`), chip "Reply options" in the voice panel, menu Conversation → Reply options ⌘⇧R, collapse remembered (`AppSettings.replyOptionsCollapsed`).
+- Reveal, Show all, ▶ (Slow included, mic paused), ★, Insert; `reply.revealed` written per reveal; refresh (`DialogEngine.refreshReplyOptions`, purpose `replyOptions`, not journaled, ≤ 2 per anchor, disabled offline/no key/while a turn runs, error text with symbol).
+- F1 of the M-11a review closed: `updateSettings` and `start()` push the switch into `DialogEngine.setReplyOptions`.
+- DESIGN.md §5 entry; screenshots (English, both themes) and `evidence/reply-options.md`.
+- Tests: swift 472 passed (known ggml exit signal after the run), npm 342, check-design/english/secret-scan/check-core-ios PASS.
+- NOT RUN / open: Russian screenshots (debug build has no String Catalog) and the MR-54 token measurement (needs the signed app and real keys); both are in `evidence/reply-options.md`. The owner's rebuild must record them.
+
 ## Next step
-Step M-11b (#140): reply options interface (block under the anchor, first words and reveal, ▶ ★ Insert, refresh, `reply.revealed` written, DESIGN.md §5, screenshots, token evidence; MR-51…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11b (#140) from
-docs/changes/LINGO-09/handoff.md", branch from `feat/139-reply-options-data` until it is merged.
+Step M-3a (see plan.md order: M-1a → M-11a → M-11b → M-3a …). Tier: standard. Start: "Continue LINGO-09 with M-3a from docs/changes/LINGO-09/handoff.md", branch from `feat/140-reply-options-ui` until PRs #141, #142 and the M-11b PR are merged.
 
 ## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)
 Verdict changes-required: P1 F1 (token budget made relative), F2 (help and calm detected only in tone sessions); P2 F3–F11 and P3 F12–F16 fixed in the follow-up commit (step order M-1a → M-3a → M-1b, buffering rule, local messages out of the context window, experiment arms differ only in tone, new events, risk row and O-6). Milestone and issues #120–#138 created; stop at H-09-0 (#135).

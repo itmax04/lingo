@@ -74,7 +74,7 @@ struct MainView: View {
                           onReplay: { model.services?.exam?.replayTalk() })
                     .padding(.horizontal, Theme.S.columnPadding).padding(.vertical, Theme.S.s8)
             }
-            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, goetheCard: model.goetheCard, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) }, translateAllowed: !model.mockAidsOff)
+            MessageList(messages: model.displayMessages, showInlineCorrections: model.selectedSession?.settings.corrections.contains(.inline) ?? false, isSpeaking: model.voiceState == .speaking, studyLanguage: model.selectedSession?.settings.lang, isExam: model.isExam, goetheCard: model.goetheCard, onTap: { m in model.services?.tapped(m) }, onStar: { model.services?.toggleStar($0) }, translations: model.translations, onTranslate: { model.services?.translate($0) }, onHideTranslation: { model.services?.hideTranslation($0) }, onCopy: { model.services?.copyToPasteboard($0) }, translateAllowed: !model.mockAidsOff, anchorID: model.replyBlockShown ? model.replyAnchor?.id : nil, anchorBlock: AnyView(ReplyOptionsBlockHost(model: model)))
             VStack(spacing: Theme.S.s16) {
                 if !model.examReadOnly && (!model.isExam || model.examInputAllowed) {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -136,6 +136,7 @@ struct VoiceToggles: View {
             toggle("Continuous", symbol: "infinity", on: model.continuous) { model.services?.toggleContinuous() }
             if !model.mockAidsOff { toggle("In Russian", symbol: "character.bubble", on: model.russianOnce) { model.services?.toggleRussian() } }
             toggle("Slowly", symbol: "tortoise", on: model.slowPace) { model.services?.toggleSlowPace() }
+            if model.replyOptionsOffered { toggle("Reply options", symbol: "text.bubble", on: model.replyOptionsOn) { model.services?.toggleReplyOptions() } }
         }
     }
 

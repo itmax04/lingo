@@ -11,7 +11,7 @@ final class AppModel {
     var sessionSearch = ""
     var sessions: [Session] = []
     var selectedSessionID: String? {
-        didSet { if selectedSessionID != oldValue { services?.examSelectionChanged(automatic: selectingAutomatically) } }
+        didSet { if selectedSessionID != oldValue { replyBlocks = [:]; services?.examSelectionChanged(automatic: selectingAutomatically) } }  // MR-51: reveals and refreshes are not restored
     }
     /// True only while `apply` picks a session because none (or a deleted one) was selected: not the learner's navigation.
     @ObservationIgnored private var selectingAutomatically = false
@@ -150,6 +150,36 @@ final class AppModel {
     /// The "Corrections" section (R-27) — from the session's `@fix` records.
     var corrections: [Phrase] = []
     weak var services: AppServices?
+
+    // MARK: Reply options (LINGO-09 MR-49…MR-54)
+    /// A mirror of `AppSettings.replyOptions` / `replyOptionsCollapsed`, which the views cannot observe.
+    var replyOptionsOn = false
+    var replyCollapsed = false
+    /// What the learner did with the options of one anchor message. Memory only: not restored when a session is reopened (MR-51).
+    struct ReplyBlockState: Equatable {
+        var options: [ReplyOption]?
+        var refreshes = 0
+        var revealed: Set<Int> = []
+        var refreshing = false
+        var error: String?
+    }
+    var replyBlocks: [String: ReplyBlockState] = [:]
+
+    /// The switch is offered in this session (MR-49).
+    var replyOptionsOffered: Bool {
+        guard let s = selectedSession, !isExam, !mockAidsOff else { return false }
+        return ReplyOptions.isOffered(s.settings, ended: s.state == .ended)
+    }
+    var replyAnchor: ChatMessage? { ReplyOptions.anchor(in: messages) }
+    /// MR-51: under the anchor once it has been spoken; hidden while the learner's next turn runs.
+    var replyBlockShown: Bool {
+        guard replyOptionsOn, replyOptionsOffered, replyAnchor != nil, !thinking, streaming == nil else { return false }
+        return ![.recording, .thinking, .speaking].contains(voiceState)
+    }
+    /// The options on screen: refreshed ones, else those of the anchor's raw text.
+    func replyOptionList(for anchor: ChatMessage) -> [ReplyOption] {
+        replyBlocks[anchor.id]?.options ?? ReplyOptions.parse(anchor.text, studyLang: selectedSession?.settings.lang ?? anchor.lang)
+    }
 
     /// New journal state (R-34, R-37).
     func apply(_ st: HistoryState) {

@@ -75,6 +75,8 @@ final class AppServices {
         model.hasKey = s.llm.hasUsableKey
         model.recomputeOnline()
         model.memoryNote = s.context.memoryNote()
+        model.replyOptionsOn = s.replyOptions
+        model.replyCollapsed = s.replyOptionsCollapsed
     }
 
     let settingsRef: SettingsRef
@@ -92,6 +94,10 @@ final class AppServices {
         model.hasKey = settings.llm.hasUsableKey
         model.recomputeOnline()
         turn?.voice = settings.voice
+        model.replyOptionsOn = settings.replyOptions
+        model.replyCollapsed = settings.replyOptionsCollapsed
+        let replyOn = settings.replyOptions
+        Task { await engine.setReplyOptions(replyOn) }  // MR-49: applies from the next request
     }
 
     func start() async {
@@ -100,6 +106,7 @@ final class AppServices {
             Task { @MainActor in m.apply(st); self?.reminderStateChanged(st) }
         }
         model.readOnly = await store.isReadOnly
+        await engine.setReplyOptions(settings.replyOptions)
         if Permissions.microphone == .granted { prepareVoice() }
         startSyncAndNetwork()
         if let b = settings.syncBookmark, let f = try? SyncFolder.resolve(bookmark: b) { model.syncFolderPath = f.folder.picked.path }

@@ -300,6 +300,9 @@ struct MessageList: View {
     var onHideTranslation: (String) -> Void = { _ in }
     var onCopy: (String) -> Void = { _ in }
     var translateAllowed = true
+    /// LINGO-09 MR-51: the reply options block is drawn right under this message.
+    var anchorID: String?
+    var anchorBlock: AnyView = AnyView(EmptyView())
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var corrections = MessageCorrections()
     var body: some View {
@@ -323,8 +326,16 @@ struct MessageList: View {
                                           onHideTranslation: { onHideTranslation(message.id) },
                                           onCopy: onCopy, translateAllowed: translateAllowed).id(message.id)
                             }
+                            if message.id == anchorID {
+                                anchorBlock.padding(.leading, Theme.R.avatar + Theme.S.avatarGap).frame(maxWidth: max(160, geometry.size.width * Theme.S.bubbleMaxFraction) + Theme.R.avatar + Theme.S.avatarGap, alignment: .leading).frame(maxWidth: .infinity, alignment: .leading).id("reply-options")
+                            }
                         }
                     }.padding(24)
+                }
+                .onChange(of: anchorID) { _, id in
+                    guard id != nil else { return }
+                    if reduceMotion { proxy.scrollTo("reply-options", anchor: .bottom) }
+                    else { withAnimation(.easeInOut(duration: Theme.transitionSeconds)) { proxy.scrollTo("reply-options", anchor: .bottom) } }
                 }
                 .onChange(of: messages.last?.id) { _, id in
                     guard let id else { return }

@@ -22,10 +22,12 @@ public struct AppSettings: Codable, Sendable, Hashable {
     /// LINGO-09 MR-49: the "Reply options" switch. Device-local like the reminder, never journaled; off by default.
     /// Whether a session offers it is `ReplyOptions.isOffered`.
     public var replyOptions = false
+    /// LINGO-09 MR-51: the reply options block is collapsed to its header. Device-local.
+    public var replyOptionsCollapsed = false
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime, customScenarios, replyOptions }
+    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime, customScenarios, replyOptions, replyOptionsCollapsed }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -41,6 +43,7 @@ public struct AppSettings: Codable, Sendable, Hashable {
         reminderTime = Reminder.clamp((try? c.decodeIfPresent(Int.self, forKey: .reminderTime)) ?? Reminder.defaultTime)
         customScenarios = ((try? c.decodeIfPresent([Lossy<CustomScenario>].self, forKey: .customScenarios)) ?? []).compactMap(\.value).filter(\.isValid)
         replyOptions = (try? c.decodeIfPresent(Bool.self, forKey: .replyOptions)) ?? false
+        replyOptionsCollapsed = (try? c.decodeIfPresent(Bool.self, forKey: .replyOptionsCollapsed)) ?? false
     }
 }
 
