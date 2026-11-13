@@ -184,6 +184,72 @@
       "raw": "@say en: The film is wrongly famous. Next.",
       "text": "@say en: The film is wrongly famous. Next.",
       "removed": 0
+    },
+    {
+      "name": "de compound nouns end in Fehler",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Wieder ein Grammatikfehler. Weiter.",
+      "text": "@say de: Weiter.",
+      "removed": 1
+    },
+    {
+      "name": "de stimmt so nicht",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@say de: Das stimmt so nicht. Was meinst du?",
+      "text": "@say de: Was meinst du?",
+      "removed": 1
+    },
+    {
+      "name": "a fix without a colon is no fix (the parser does not read it)",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "@fix Ich bin gehen → Ich gehe\n@say de: Falsch. Noch einmal.",
+      "text": "@fix Ich bin gehen → Ich gehe\n@say de: Noch einmal.",
+      "removed": 1
+    },
+    {
+      "name": "a fix inside <think> is no fix",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "de",
+      "raw": "<think>@fix: Ich bin gehen → Ich gehe | Verb</think>\n@say de: Falsch. Noch einmal.",
+      "text": "\n@say de: Noch einmal.",
+      "removed": 1
+    },
+    {
+      "name": "blame inside <think> is not speech",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "<think>The answer is wrong.</think>\n@say en: Good. What next?",
+      "text": "<think>The answer is wrong.</think>\n@say en: Good. What next?",
+      "removed": 0
+    },
+    {
+      "name": "a list-formatted @say line is speech",
+      "tone": [
+        3,
+        0
+      ],
+      "lang": "en",
+      "raw": "- @say en: That's wrong. Try again.",
+      "text": "@say en: Try again.",
+      "removed": 1
     }
   ]
 }

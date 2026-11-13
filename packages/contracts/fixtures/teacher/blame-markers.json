@@ -2,10 +2,9 @@
   "markers" : {
     "de" : [
       "falsch*",
-      "fehler",
-      "fehlern",
+      "*fehler",
+      "*fehlern",
       "fehlerhaft*",
-      "grammatikfehler",
       "verkehrt",
       "inkorrekt",
       "unkorrekt",
@@ -13,6 +12,7 @@
       "nicht richtig",
       "nicht korrekt",
       "stimmt nicht",
+      "stimmt so nicht",
       "schon wieder"
     ],
     "en" : [

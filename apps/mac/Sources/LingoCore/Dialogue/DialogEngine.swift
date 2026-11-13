@@ -222,9 +222,12 @@ public actor DialogEngine {
             neutral = n
             return n
         }
+        let heldToTheEnd = gate.isHolding
         for (l, x) in gate.finish(raw: parser.text, replacement: neutralLine) { cont.yield(.speak(l, x)) }
         var full = ReplyProtocol.parse(parser.text, studyLang: s.settings.lang)
         let filtered = BlameFilter.filter(raw: parser.text, tone: tone, lang: s.settings.lang, replacement: neutralLine)
+        // MR-15 "shown": a reply held to the end is shown once more, now from the filtered text (the kept speech or the neutral line).
+        if heldToTheEnd { cont.yield(.partial(ReplyProtocol.stripThinking(filtered.text))) }
         if filtered.removed > 0 { full.segments = ReplyProtocol.parse(filtered.text, studyLang: s.settings.lang).segments }
         guard let step else {
             await recordVocabularyUse(session: session, learnerMessage: replyTo, command: command, reply: nil, segments: [])

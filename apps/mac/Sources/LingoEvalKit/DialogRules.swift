@@ -6,7 +6,8 @@ public enum DialogRules {
     public static let all = ["protocol_ok", "lang_discipline", "no_pronunciation", "one_question", "contains_correction",
                              "returns_to_practice", "length_by_level", "asks_repeat", "repeats_previous", "fix_recorded",
                              "heard_ok", "no_false_correction", "says", "hint",
-                             "uses_target", "no_target_list", "no_repeat_request", "concrete_opening", "no_filler"]
+                             "uses_target", "no_target_list", "no_repeat_request", "concrete_opening", "no_filler",
+                             "no_blame_without_fix", "has_help", "judge_first"]
 
     /// Per-rule thresholds (evals/README.md). `no_pronunciation` — 100%.
     public static let thresholds: [String: Double] = [
@@ -137,7 +138,9 @@ public enum DialogRules {
         if !targets.isEmpty { r["no_target_list"] = used.count <= 1 }
         // LINGO-09 M-1b (MR-10, MR-12, MR-15).
         if e.no_blame_without_fix == true {
-            r["no_blame_without_fix"] = BlameFilter.filter(raw: response, tone: c.session.settings.tone, lang: c.studyLang, replacement: { "" }).removed == 0
+            // Every study-language spoken line counts, whatever the axes (a hostility-only session has no tutor speech for the runtime
+            // filter to act on, but the measure still reads the character): measured as the speech of a harshness-only session.
+            r["no_blame_without_fix"] = BlameFilter.filter(raw: response, tone: Tone(harshness: 1, hostility: 0), lang: c.studyLang, replacement: { "" }).removed == 0
         }
         if e.has_help == true { r["has_help"] = !ReplyProtocol.silentValues(response, tag: "help").isEmpty }
         if e.judge_first == true {

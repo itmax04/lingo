@@ -66,6 +66,9 @@ Languages: en and de roughly equal.
 | `no_repeat_request` | no request to repeat (the learner's last turn repeated the corrected phrase) | ≥ 90 % |
 | `concrete_opening` | exactly one question and none of the generic greetings below | ≥ 90 % |
 | `no_filler` | none of the filler phrases below, and at least 5 target-language words | ≥ 90 % |
+| `no_blame_without_fix` | LINGO-09: without an `@fix` that the protocol parser reads, no study-language spoken line (`@say`, `@tutor`, untagged; not `@say ru`) holds a blame marker (`fixtures/teacher/blame-markers.json`), whatever the tone axes; measured before the runtime filter | no threshold yet (M-2, MR-36) |
+| `has_help` | LINGO-09: the reply carries an `@help` line | no threshold yet (M-2, MR-36) |
+| `judge_first` | LINGO-09: an `@fix` line comes before the first spoken line | no threshold yet (M-2, MR-36) |
 
 Generic greetings (`concrete_opening`, lower case, substring, ’ folded to '): "how are you?", "how are you doing", "how are you today", "how's it going", "how is it going", "what's up",
 "how was your day", "how are things", "wie geht es", "wie geht's", "wie gehts", "wie war dein tag", "wie war ihr tag", "alles gut bei".

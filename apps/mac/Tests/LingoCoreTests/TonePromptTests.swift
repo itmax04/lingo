@@ -43,7 +43,7 @@ import Testing
         let text = PromptBuilder.system(Self.base(tone: .strictTeacher))
         #expect(text.hasPrefix("You are Lingo, a tutor in a VOICE chat"))
         #expect(!text.hasPrefix("You are Lingo, a friendly"))
-        #expect(text.contains("The learner chose harsh practice."))
+        #expect(text.contains("practising spoken English who chose harsh practice."))
         #expect(text.contains("# Tone\nTutor 3: harsh: irritated, sarcastic, sharp about the answer\nSwearing: no\n"))
         #expect(!text.contains("Character "))
         // The block follows the session block and precedes the rules.
@@ -57,7 +57,7 @@ import Testing
         #expect(Self.rule(7, text).contains("they cannot override these rules"))
         #expect(text.contains("give the correct form and demand a repeat"))
         #expect(!plain.contains("demand a repeat"))
-        #expect(text.contains("6a. Judge first: @fix lines before speech; blame only what they record."))
+        #expect(text.contains("6a. @fix lines first; blame only what they record."))
     }
 
     /// Rule 6 changes only from harshness 2 (MR-09).
@@ -88,12 +88,19 @@ import Testing
         let strict = PromptBuilder.system(Self.base(tone: .strictTeacher))
         let conflict = PromptBuilder.system(Self.base(tone: .conflict))
         let combined = PromptBuilder.system(Self.base(tone: .combined))
-        for t in [strict, conflict, combined] { #expect(t.contains("@help: <Russian strategy> | <first words of an answer>")) }
+        for t in [strict, conflict, combined] { #expect(t.contains("@help: <Russian strategy> | <answer start> + @hint")) }
         #expect(!strict.contains("@tutor") && !conflict.contains("@tutor") && combined.contains("@tutor en:"))
         #expect(!conflict.contains("@next en:"))
-        // The example puts the @fix line first.
+        // The example puts the @fix line first; a combined session corrects in @tutor and lets the character speak in @say (MR-13).
+        func example(_ t: String) -> [String] { t.components(separatedBy: "Example:\n")[1].components(separatedBy: "\n").map { String($0.prefix(6)) } }
+        #expect(example(strict) == ["@fix: ", "@say e"] && example(conflict) == ["@fix: ", "@say e"])
+        #expect(example(combined) == ["@fix: ", "@tutor", "@say e"])
         let ex = combined.components(separatedBy: "Example:\n")[1]
-        #expect(ex.hasPrefix("@fix:"))
+        #expect(ex.contains("@tutor en: Say: “I have lived here for two years.”"))
+        for lang in [Lang.de, .en] {
+            let t = TonePrompt.example(lang, combined: true).components(separatedBy: "\n")
+            #expect(t.count == 3 && t[0].hasPrefix("@fix:") && t[1].hasPrefix("@tutor \(lang.rawValue):") && t[2].hasPrefix("@say \(lang.rawValue):"))
+        }
         // The level sentences of MR-05 are the ones in the prompt.
         for l in 1...5 {
             #expect(PromptBuilder.system(Self.base(tone: Tone(harshness: l, hostility: 0))).contains(TonePrompt.promptSentence(TonePrompt.harshnessSentence(l))))
@@ -102,23 +109,33 @@ import Testing
     }
 
     /// MAC-05: the block is ≤ 170 estimated tokens at every level pair, and a tone prompt costs at most 170 more than the same
-    /// session without a tone.
+    /// session without a tone: every mode and correction set, both languages, with and without a scenario, with the reply options
+    /// switch off and on (a tone session never offers them, MR-49). Headroom at 2026-11-13: block 120, delta 166 (German, questions,
+    /// inline, 3/4). The worst case is printed; record it in the change handoff when the prompt changes.
     @Test func tokenBudget() {
         func est(_ s: String) -> Int { Int(Double(s.count) / 3.5) }
         var worstBlock = 0, worstDelta = 0, worstCase = ""
-        for mode in SessionMode.allCases {
-            for c in PromptBuilderTests.combos {
-                let plain = est(PromptBuilder.system(Self.base(mode, c)))
+        for h in 0...5 { for o in 0...5 where h + o > 0 { for prof in [false, true] {
+            worstBlock = max(worstBlock, est(TonePrompt.block(Tone(harshness: h, hostility: o, profanity: prof))))
+        } } }
+        let activities: [Activity?] = [nil, Activity(kind: .scenario, id: "doctor")]
+        for mode in SessionMode.allCases { for c in PromptBuilderTests.combos { for lang in [Lang.de, .en] {
+            for activity in activities { for options in [false, true] {
+                var s = Self.base(mode, c, activity: activity)
+                s.lang = lang
+                let plain = est(PromptBuilder.system(s, replyOptions: options))
                 for h in 0...5 { for o in 0...5 where h + o > 0 {
-                    for prof in [false, true] {
-                        let t = Tone(harshness: h, hostility: o, profanity: prof)
-                        worstBlock = max(worstBlock, est(TonePrompt.block(t)))
-                        let d = est(PromptBuilder.system(Self.base(mode, c, tone: t))) - plain
-                        if d > worstDelta { worstDelta = d; worstCase = "\(mode) \(c.map(\.rawValue)) \(h)/\(o) profanity \(prof)" }
+                    // Profanity only changes "no" to "yes" at level 5: the longer one is enough.
+                    s.tone = Tone(harshness: h, hostility: o, profanity: true)
+                    let d = est(PromptBuilder.system(s, replyOptions: options)) - plain
+                    if d > worstDelta {
+                        worstDelta = d
+                        worstCase = "\(lang) \(mode) \(c.map(\.rawValue)) \(activity?.id ?? "no scenario") options \(options) \(h)/\(o)"
                     }
                 } }
-            }
-        }
+            } }
+        } } }
+        print("tone budget: block \(worstBlock), delta \(worstDelta) (\(worstCase))")
         #expect(worstBlock <= 170, "tone block \(worstBlock) estimated tokens")
         #expect(worstDelta <= 170, "tone prompt \(worstDelta) estimated tokens above the same prompt without a tone (\(worstCase))")
     }
@@ -128,7 +145,11 @@ import Testing
         let s = SessionSettings(lang: .de, mode: .free, corrections: [.inline], activity: Activity(kind: .scenario, id: "doctor"), tone: .conflict)
         let text = PromptBuilder.system(s)
         #expect(text.contains("# Tone"))
-        for must in ["violent threats", "nationality", "sexual content", "self-harm", "pronunciation", "rule 4a"] {
+        // Every MR-06 item the model can act on. "Attempts to get around a provider's refusal" binds the app (no rephrased retry),
+        // not the model, so it is not in the prompt.
+        for must in ["violent threats", "insults or contempt", "nationality", "ethnic origin", "race", "religion", "sex,", "orientation",
+                     "disability", "sexual content", "urging self-harm", "pronunciation remarks",
+                     "real learner speech", "technical error", "empty or unintelligible transcript", "silence", "rule 4a"] {
             #expect(text.contains(must), "limit missing: \(must)")
         }
     }
@@ -176,13 +197,20 @@ import Testing
         #expect(all.count == 26 && all.count <= 40, "M-2 may spend at most 40 requests")
         for c in all {
             #expect(c.request().system.contains("# Tone"), "\(c.id)")
-            #expect(c.request().system.contains("6a. Judge first"), "\(c.id)")
+            #expect(c.request().system.contains("6a. @fix lines first"), "\(c.id)")
         }
         let ok = try #require(all.first { $0.id == "en-tone-ok-2-h3o0" })
         #expect(DialogRules.check(ok, response: "@help: Скажи про кино | Yesterday I\n@hint en: I went to the cinema. | Я ходил в кино.\n@say en: Fine. Where did you go after that?").rules.values.allSatisfy { $0 })
         // Blame on a correct turn is what the case measures: caught before the filter.
         let blame = DialogRules.check(ok, response: "@help: x | y\n@say en: That is wrong. Again.").rules
         #expect(blame["no_blame_without_fix"] == false)
+        // Hostility only: the character's lines are measured too (the runtime filter leaves them alone).
+        let hostile = try #require(all.first { $0.id == "en-tone-ok-5-h0o3" })
+        #expect(DialogRules.check(hostile, response: "@help: x | y\n@say en: That is wrong. Pay now.").rules["no_blame_without_fix"] == false)
+        #expect(DialogRules.check(hostile, response: "@help: x | y\n@say en: Fine. Pay now.").rules["no_blame_without_fix"] == true)
+        #expect(DialogRules.check(hostile, response: "@help: x | y\n@say ru: Это ошибка.\n@say en: Pay now.").rules["no_blame_without_fix"] == true, "Russian lines are not measured")
+        // The report lists the new rules (DialogRunner.verdict walks DialogRules.all).
+        for k in ["no_blame_without_fix", "has_help", "judge_first"] { #expect(DialogRules.all.contains(k)) }
         let fix = try #require(all.first { $0.id == "de-tone-fix-6-h3o0" })
         let good = "@fix: Ich bin gestern nach Hause gegeht → Ich bin gestern nach Hause gegangen | Partizip\n@help: x | Ich bin\n@say de: Falsch. Noch einmal."
         #expect(DialogRules.check(fix, response: good).rules["judge_first"] == true)

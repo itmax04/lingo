@@ -217,8 +217,8 @@ public enum PromptBuilder {
     static func protocolText(_ lang: Lang, exam: Bool = false, extra: [String] = [], tone: Tone? = nil) -> String {
         let L = lang.rawValue
         let example: String
-        if tone != nil {
-            example = TonePrompt.example(lang)
+        if let tone {
+            example = TonePrompt.example(lang, combined: TonePrompt.isCombined(tone))
         } else if exam {
             example = lang == .de ? "@say de: Warum ist das für Sie wichtig?" : "@say en: Why is that important to you?"
         } else {

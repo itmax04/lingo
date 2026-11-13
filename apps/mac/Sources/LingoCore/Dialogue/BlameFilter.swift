@@ -7,11 +7,12 @@ import Foundation
 /// Tutor speech is: all `@say` lines (and untagged lines) when hostility = 0, the `@tutor` lines in a combined session, nothing when
 /// harshness = 0. Russian lines (an explanation on request) are never filtered.
 public enum BlameFilter {
-    /// The marker lists, per study language. Whole words (lower case); a trailing `*` is a stem (`falsch*` = falsch, falsche, falschen).
+    /// The marker lists, per study language. Whole words (lower case); a trailing `*` is a stem (`falsch*` = falsch, falsche, falschen),
+    /// a leading `*` the last part of a German compound (`*fehler` = Fehler, Grammatikfehler, Tippfehler; not Fehlerfrei).
     /// A marker may hold several words (`nicht richtig`). `packages/contracts/fixtures/teacher/blame-markers.json` is written from here by the tests.
     public static let markers: [Lang: [String]] = [
-        .de: ["falsch*", "fehler", "fehlern", "fehlerhaft*", "grammatikfehler", "verkehrt", "inkorrekt", "unkorrekt", "unrichtig",
-              "nicht richtig", "nicht korrekt", "stimmt nicht", "schon wieder"],
+        .de: ["falsch*", "*fehler", "*fehlern", "fehlerhaft*", "verkehrt", "inkorrekt", "unkorrekt", "unrichtig",
+              "nicht richtig", "nicht korrekt", "stimmt nicht", "stimmt so nicht", "schon wieder"],
         .en: ["wrong", "mistake*", "incorrect*", "error*", "blunder*", "not right", "not correct", "isn't right", "isn't correct",
               "that's not how", "not how you say"],
     ]
@@ -38,14 +39,16 @@ public enum BlameFilter {
         for m in markers[lang] ?? [] {
             let mw = words(m.replacingOccurrences(of: "*", with: ""))
             guard !mw.isEmpty else { continue }
-            let stem = m.hasSuffix("*")
+            let stem = m.hasSuffix("*"), compound = m.hasPrefix("*")
             guard w.count >= mw.count else { continue }
             for i in 0...(w.count - mw.count) {
                 var ok = true
                 for (j, token) in mw.enumerated() {
                     let word = w[i + j]
-                    let last = j == mw.count - 1
-                    if !(last && stem ? word.hasPrefix(token) : word == token) { ok = false; break }
+                    let match = j == mw.count - 1 && stem ? word.hasPrefix(token)
+                        : j == 0 && compound ? word.hasSuffix(token)
+                        : word == token
+                    if !match { ok = false; break }
                 }
                 if ok { return true }
             }
@@ -81,9 +84,13 @@ public enum BlameFilter {
         public var removed: Int
     }
 
-    /// Whether the raw reply carries at least one `@fix` that parses to a mistake.
+    /// Whether the raw reply carries at least one `@fix` that the protocol parser reads as a mistake: the same test as the stream's
+    /// gate (a `.fix` segment), so a line the parser does not take (no colon, in `<think>`) never backs blame.
     public static func hasFix(_ raw: String) -> Bool {
-        ReplyProtocol.silentValues(raw, tag: "fix").contains { ReplyProtocol.parseFix($0) != nil }
+        ReplyProtocol.stripThinking(raw).components(separatedBy: "\n").contains { line in
+            if case .fix? = ReplyProtocol.parseLine(line, studyLang: .en).0 { return true }
+            return false
+        }
     }
 
     static func isTutorLine(_ line: String, combined: Bool, lang: Lang) -> Bool {

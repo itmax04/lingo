@@ -149,11 +149,22 @@ import Testing
         var partials: [String] = []
         for await ev in e.send(session: sid, text: "Ich bin gehen nach Hause", lang: .de) { if case .partial(let t) = ev { partials.append(t) } }
         #expect(!partials.isEmpty)
-        #expect(partials.allSatisfy { !$0.contains("fal") })
+        #expect(partials.allSatisfy { !$0.lowercased().contains("fal") }, "no partial carries the removed sentence")
+        #expect(partials.last?.trimmingCharacters(in: .newlines) == "@say de: Noch einmal.", "the last partial is the filtered text")
+        // Combined: the character's line streams at once, the tutor's blame never shows; nothing left → the neutral line at the end.
+        let (c, _) = try engine(["@say de: Was wollen Sie?\n@tutor de: Das ist fal", "sch.\n"])
+        st.tone = Tone(harshness: 3, hostility: 3)
+        let cid = try await c.createSession(st)
+        partials = []
+        for await ev in c.send(session: cid, text: "Ich bin gehen nach Hause", lang: .de) { if case .partial(let t) = ev { partials.append(t) } }
+        #expect(partials.allSatisfy { !$0.lowercased().contains("fal") })
+        #expect(partials.contains { $0.contains("Was wollen Sie?") })
+        let last = try #require(partials.last).trimmingCharacters(in: .newlines)
+        #expect(ToneLines.lines(.neutral, lang: .de, level: 3).contains { last == "@say de: Was wollen Sie?\n@tutor de: \($0)" })
     }
 
     @Test func swearingNeedsTheLevelThatNamesIt() {
-        for (h, o, yes) in [(1, 0, false), (4, 4, false), (5, 0, true), (0, 5, true)] {
+        for (h, o, yes) in [(1, 0, false), (3, 0, false), (0, 3, false), (4, 4, false), (5, 0, true), (0, 5, true), (5, 3, true)] {
             let b = TonePrompt.block(Tone(harshness: h, hostility: o, profanity: true))
             #expect(b.contains("Swearing: \(yes ? "yes" : "no")"), "levels \(h)/\(o)")
         }
