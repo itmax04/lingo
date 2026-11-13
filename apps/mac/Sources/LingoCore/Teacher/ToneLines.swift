@@ -70,12 +70,12 @@ public enum ToneLines {
             2: ["Ich warte auf Ihre Antwort.", "Na, wird das heute noch was?", "Bitte antworten Sie jetzt.", "Die Zeit läuft, ich warte."],
             3: ["Na los, ich habe nicht den ganzen Tag.", "Hallo? Wird das noch was?", "So schwer kann das nicht sein.", "Ich warte. Und ich warte nicht gern."],
             4: ["Das ist doch kein Hexenwerk, sagen Sie etwas.", "Wollen Sie mich hier ewig warten lassen?", "Strengen Sie sich endlich an.", "Mehr Einsatz, bitte. Sofort."],
-            5: ["Sagen Sie endlich etwas, das ist unerträglich.", "Ich platze gleich, so langsam sind Sie.", "Reißen Sie sich zusammen und antworten Sie.", "Das ist erbärmlich wenig Einsatz. Los jetzt."],
+            5: ["Sagen Sie endlich etwas, das ist unerträglich.", "Bei Ihrem Tempo platze ich gleich.", "Reißen Sie sich zusammen und antworten Sie.", "Das ist erbärmlich wenig Einsatz. Los jetzt."],
         ],
         .again: [
             2: ["Noch einmal, bitte.", "Nein, nochmal. Genau so, wie gesagt.", "Das war nicht richtig. Wiederholen Sie.", "Nochmal, aber konzentriert."],
-            3: ["Falsch gemerkt. Nochmal, und zwar richtig.", "So nicht. Noch einmal.", "Ich sagte: den ganzen Satz, nochmal.", "Das war schlampig. Von vorn."],
-            4: ["Schon wieder daneben. Noch einmal, mit Verstand.", "Das ist nachlässig. Sofort nochmal.", "Hören Sie überhaupt zu? Nochmal.", "Wie oft noch? Wiederholen Sie es richtig."],
+            3: ["Falsch. Nochmal, und zwar richtig.", "So nicht. Noch einmal.", "Ich sagte: den ganzen Satz, nochmal.", "Das war schlampig. Von vorn."],
+            4: ["Schon wieder daneben. Noch einmal, mit Verstand.", "Das ist nachlässig. Sofort nochmal.", "Hören Sie überhaupt zu? Nochmal.", "Wie oft noch? Richtig, bitte."],
             5: ["Das gibt es doch nicht. Nochmal, und diesmal mit Hirn.", "Unfassbar schlampig. Noch einmal, sofort.", "Nochmal! Sie können das besser, also zeigen Sie es.", "Das war Zeitverschwendung. Wiederholen Sie es."],
         ],
         .pass: [
@@ -117,12 +117,12 @@ public enum ToneLines {
             2: ["I'm waiting for your answer.", "Well? Is this going anywhere?", "Please answer now.", "The clock is running. I'm waiting."],
             3: ["Come on, I haven't got all day.", "Hello? Anything coming?", "It can't be that hard.", "I'm waiting, and I don't like waiting."],
             4: ["It's not rocket science, say something.", "Are you going to keep me waiting forever?", "Put in some effort, finally.", "More effort, please. Right now."],
-            5: ["Say something already, this is unbearable.", "I'll explode at this speed of yours.", "Pull yourself together and answer.", "That's pitiful effort. Go on, now."],
+            5: ["Say something already, this is unbearable.", "At this rate I'll explode.", "Pull yourself together and answer.", "That's pitiful effort. Go on, now."],
         ],
         .again: [
             2: ["Once more, please.", "No, again. Exactly as I said.", "That wasn't right. Repeat it.", "Again, but concentrate."],
             3: ["Wrong. Again, and properly this time.", "Not like that. One more time.", "I said the whole sentence. Again.", "That was sloppy. From the top."],
-            4: ["Off again. Once more, and think this time.", "That's careless. Again, right now.", "Are you even listening? Again.", "How many times? Say it correctly."],
+            4: ["Off again. Once more, and think this time.", "That's careless. Again, right now.", "Are you even listening? Again.", "How many times? Get it right."],
             5: ["Unbelievable. Again, and use your brain this time.", "Incredibly sloppy. Once more, now.", "Again! You can do better, so show it.", "That was a waste of time. Repeat it."],
         ],
         .pass: [
@@ -149,7 +149,7 @@ public enum ToneLines {
         .pressure: ["Verdammt, sagen Sie endlich was.", "Scheiße, ist das zäh. Antworten Sie.", "Verflucht nochmal, ich warte.", "Verdammte Warterei. Los jetzt."],
         .again: ["Verdammt, nochmal. Und richtig.", "Scheiße, so nicht. Von vorn.", "Verflucht, nochmal, mit Verstand.", "Was soll der Mist? Wiederholen Sie es."],
         .pass: ["Verdammt nochmal, endlich richtig.", "Na verflucht, es geht ja doch.", "Scheiße, das war überfällig. Aber richtig.", "Verdammt gut, endlich."],
-        .moveOn: ["Verdammt, lassen wir den Mist. Weiter.", "Scheiße, das bringt nichts. Weiter.", "Verflucht, genug davon. Weiter.", "Zwei Versuche, verdammt wenig. Weiter."],
+        .moveOn: ["Verdammt, lassen wir den Mist. Weiter.", "Scheiße, das bringt nichts. Weiter.", "Verflucht, genug davon. Weiter.", "Zwei Versuche, verdammt dürftig. Weiter."],
         .interjection: ["Verdammt.", "Scheiße.", "Verflucht nochmal.", "Was für ein Mist."],
     ]
 
@@ -157,7 +157,7 @@ public enum ToneLines {
         .pressure: ["Damn it, say something already.", "This is bloody slow. Answer me.", "Hell, I'm waiting.", "Damn this waiting. Go on."],
         .again: ["Damn it, again. And do it right.", "Bloody hell, not like that. From the top.", "Hell, again, and use your head.", "What the hell was that? Repeat it."],
         .pass: ["Damn it, finally right.", "Well, bloody hell, it works after all.", "Hell, that was overdue. But right.", "Damn good, at last."],
-        .moveOn: ["Damn it, forget this rubbish. Next.", "Bloody hell, this gets us nowhere. Next.", "Hell, enough of that. Next.", "Two tries, damn little. Next."],
+        .moveOn: ["Damn it, forget this rubbish. Next.", "Bloody hell, this gets us nowhere. Next.", "Hell, enough of that. Next.", "Two tries, nothing to show. Next."],
         .interjection: ["Damn.", "Bloody hell.", "Oh, hell.", "What a mess."],
     ]
 }

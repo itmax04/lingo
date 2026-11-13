@@ -77,7 +77,7 @@ Branch `feat/121-local-lines`, cut from `feat/140-reply-options-ui` (PRs #141, #
 - F1 of the M-1a review closed: `theLocalMarkSurvivesTheMerger` (Swift). The TypeScript decoders do not expose `local` yet, so no TS test.
 - D-13: nothing speaks these lines yet; the callers are M-1b (neutral), M-3b (drill: pass/again/moveOn), M-4 (pressure, calm, interjection). The catalogue has no pronunciation remark at any band (MR-47), checked by the deny-list.
 - Verified: swift test 479 passed (known ggml exit signal 6 after the run), check-core-ios, check-english, secret-scan (0). npm test not run: no TypeScript change.
-- Independent review of the texts: see the PR comment.
+- Independent review of the texts (sdlc:reviewer, Sonnet): approve-with-notes, no P0/P1. Fixed: F1/F2 deny-list extended (separable verbs, slurs, indirect pronunciation cues), F3 matcher tests, F4 new `profanity` category applied to plain lines only, F6 three clumsy lines reworded, L4 "again" lines no longer say "correctly". Left: F5 (calm lines repeat across bands; harmless).
 
 ## Next step
 Step M-1b (plan order M-1a → M-11a → M-11b → M-3a → M-1b …). Tier: standard. Start: "Continue LINGO-09 with M-1b from docs/changes/LINGO-09/handoff.md", branch from `feat/121-local-lines` until the earlier PRs merge.

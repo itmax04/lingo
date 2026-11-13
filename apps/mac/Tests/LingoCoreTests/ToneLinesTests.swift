@@ -84,10 +84,10 @@ import Testing
     }
 
     @Test func noLineHitsTheDenyList() {
-        #expect(Set(Self.denyList.keys) == ["violence", "protected traits", "sexual content", "self-harm", "pronunciation"])
+        #expect(Set(Self.denyList.keys) == ["violence", "protected traits", "sexual content", "self-harm", "pronunciation", "profanity (plain lines only)"])
         #expect(!Self.allLines.isEmpty)
         for (place, text) in Self.allLines {
-            for (category, terms) in Self.denyList { for term in terms { #expect(!Self.hits(text, term), "\(place) «\(text)» hits \(category): \(term)") } }
+            for (category, terms) in Self.denyList where !(category.hasPrefix("profanity") && place.hasSuffix("profane")) { for term in terms { #expect(!Self.hits(text, term), "\(place) «\(text)» hits \(category): \(term)") } }
         }
     }
 
@@ -98,6 +98,10 @@ import Testing
         #expect(Self.hits("hit you hard", "hit you"))
         #expect(!Self.hits("This is white", "hit you"))
         #expect(!Self.hits("a skilled worker", "kill*"))
+        #expect(Self.hits("Ich bringe Sie um", "bringe* sie um"))
+        #expect(Self.hits("Du Krüppel", "krüppel*") && Self.hits("Erschieß ihn", "erschieß*") && Self.hits("Mädchen", "mädchen"))
+        #expect(!Self.hits("Hello? Anything coming?", "hell"), "a stem-less term is a whole word")
+        #expect(!Self.hits("Schlampig", "schlampe*"))
     }
 
     @Test func aLineIsNeverUsedTwiceInARow() {

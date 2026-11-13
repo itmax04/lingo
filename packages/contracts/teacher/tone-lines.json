@@ -9,7 +9,7 @@
           "Nochmal, aber konzentriert."
         ],
         "3" : [
-          "Falsch gemerkt. Nochmal, und zwar richtig.",
+          "Falsch. Nochmal, und zwar richtig.",
           "So nicht. Noch einmal.",
           "Ich sagte: den ganzen Satz, nochmal.",
           "Das war schlampig. Von vorn."
@@ -18,7 +18,7 @@
           "Schon wieder daneben. Noch einmal, mit Verstand.",
           "Das ist nachlässig. Sofort nochmal.",
           "Hören Sie überhaupt zu? Nochmal.",
-          "Wie oft noch? Wiederholen Sie es richtig."
+          "Wie oft noch? Richtig, bitte."
         ],
         "5" : [
           "Das gibt es doch nicht. Nochmal, und diesmal mit Hirn.",
@@ -190,7 +190,7 @@
         ],
         "5" : [
           "Sagen Sie endlich etwas, das ist unerträglich.",
-          "Ich platze gleich, so langsam sind Sie.",
+          "Bei Ihrem Tempo platze ich gleich.",
           "Reißen Sie sich zusammen und antworten Sie.",
           "Das ist erbärmlich wenig Einsatz. Los jetzt."
         ]
@@ -214,7 +214,7 @@
           "Off again. Once more, and think this time.",
           "That's careless. Again, right now.",
           "Are you even listening? Again.",
-          "How many times? Say it correctly."
+          "How many times? Get it right."
         ],
         "5" : [
           "Unbelievable. Again, and use your brain this time.",
@@ -386,7 +386,7 @@
         ],
         "5" : [
           "Say something already, this is unbearable.",
-          "I'll explode at this speed of yours.",
+          "At this rate I'll explode.",
           "Pull yourself together and answer.",
           "That's pitiful effort. Go on, now."
         ]
@@ -411,7 +411,7 @@
         "Verdammt, lassen wir den Mist. Weiter.",
         "Scheiße, das bringt nichts. Weiter.",
         "Verflucht, genug davon. Weiter.",
-        "Zwei Versuche, verdammt wenig. Weiter."
+        "Zwei Versuche, verdammt dürftig. Weiter."
       ],
       "pass" : [
         "Verdammt nochmal, endlich richtig.",
@@ -443,7 +443,7 @@
         "Damn it, forget this rubbish. Next.",
         "Bloody hell, this gets us nowhere. Next.",
         "Hell, enough of that. Next.",
-        "Two tries, damn little. Next."
+        "Two tries, nothing to show. Next."
       ],
       "pass" : [
         "Damn it, finally right.",
