@@ -13,7 +13,8 @@ info:
     - Auth: the session cookie (`HttpOnly; Secure; SameSite=Lax; Path=/`). Its name is `__Host-lingo_session`; local development
       over plain `http://localhost` uses `lingo_session` without `Secure` (spec FR-04).
     - Every state-changing request (`POST`) must carry an `Origin` header equal to the site's own origin and a JSON object body
-      with `Content-Type: application/json`; others get 403 `origin_refused` or `json_required` (spec FR-58). No `GET` changes state.
+      with `Content-Type: application/json`; others get 403 `origin_refused` or `json_required` (spec FR-58). No `GET` redeems,
+      creates or deletes anything; a `GET` with a session only refreshes that session's expiry and the device's last-seen time.
     - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English and never contains tokens, keys
       or utterance text. A client deletes its local stores only on the codes `session_ended` and `account_blocked` (spec FR-07);
       any other 401 or 403 wipes nothing.

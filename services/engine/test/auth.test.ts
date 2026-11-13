@@ -112,6 +112,17 @@ describe("POST /api/join (FAC-01)", () => {
     expect(dump).toContain(await hmacHex(PEPPER, session));
   });
 
+  it("deleting the account leaves no row with its name, the used invite included", async () => {
+    const { accountId } = await joined("Unique Friend Name");
+    expect(await env.DB.prepare("SELECT account_id FROM links").first("account_id")).toBe(accountId);
+    await env.DB.prepare("DELETE FROM accounts WHERE id = ?").bind(accountId).run();
+    const dump = JSON.stringify(
+      await Promise.all(["accounts", "devices", "sessions", "links", "events"].map((t) => env.DB.prepare(`SELECT * FROM ${t}`).all())),
+    );
+    expect(dump).not.toContain("Unique Friend Name");
+    expect(await count("links")).toBe(0);
+  });
+
   it("is not redeemed on a signed-in device; the link stays usable", async () => {
     const { cookie } = await joined();
     const token = await invite({ name: "Second" });

@@ -42,7 +42,8 @@ CREATE TABLE links (
   -- Pairing only: the HMAC of the typed 8-character code (spec FR-05).
   code_hash  TEXT UNIQUE,
   kind       TEXT NOT NULL CHECK (kind IN ('invite', 'pair', 'signin')),
-  -- Pairing and sign-in: the target account. Invite: NULL, the account is created from `name`.
+  -- Pairing and sign-in: the target account. Invite: NULL until it is used, then the account it created, so that deleting
+  -- the account removes the invite row and the name in it (spec FR-09).
   account_id TEXT REFERENCES accounts (id) ON DELETE CASCADE,
   name       TEXT CHECK (name IS NULL OR length(name) BETWEEN 1 AND 40),
   created_at INTEGER NOT NULL,
@@ -50,7 +51,9 @@ CREATE TABLE links (
   used_at    INTEGER,
   used_by    TEXT,
   revoked_at INTEGER,
-  CHECK ((kind = 'invite') = (account_id IS NULL)),
+  CHECK (kind = 'invite' OR account_id IS NOT NULL),
+  CHECK (kind <> 'invite' OR account_id IS NULL OR used_at IS NOT NULL),
+  CHECK (code_hash IS NULL OR kind = 'pair'),
   CHECK (kind <> 'invite' OR name IS NOT NULL)
 );
 

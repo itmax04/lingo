@@ -91,9 +91,11 @@ export async function join(ctx: Ctx): Promise<Response> {
       db
         .prepare(`INSERT INTO sessions (hash, account_id, device_id, created_at, expires_at, extended_at) SELECT ?3, ?4, ?5, ?6, ?7, ?6 WHERE ${guard}`)
         .bind(linkHash, stamp, await hmacHex(config.pepper, token), accountId, deviceId, now, now + SESSION_MS),
+      // The used invite points at its account, so deleting the account removes the invite and the name in it (FR-09).
+      db.prepare("UPDATE links SET account_id = ?3 WHERE hash = ?1 AND used_by = ?2").bind(linkHash, stamp, accountId),
       db.prepare("SELECT name FROM links WHERE hash = ?1 AND used_by = ?2").bind(linkHash, stamp),
     ]);
-    const invite = results[4]!.results[0];
+    const invite = results[5]!.results[0];
     if (invite) return signedIn(ctx, { account: { id: accountId, name: invite.name, isAdmin: false }, device: { id: deviceId, name: deviceName } }, token);
   }
   await recordFailure(db, buckets, now);

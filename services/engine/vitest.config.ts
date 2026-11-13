@@ -1,4 +1,5 @@
 import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-workers";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import type { Reporter, TestModule } from "vitest/node";
 
@@ -27,7 +28,7 @@ export default defineConfig(async () => ({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
       // Tests build their own env (test/helpers.ts); only the database and the migrations come from here.
-      miniflare: { bindings: { TEST_MIGRATIONS: await readD1Migrations(new URL("./migrations", import.meta.url).pathname) } },
+      miniflare: { bindings: { TEST_MIGRATIONS: await readD1Migrations(fileURLToPath(new URL("./migrations", import.meta.url))) } },
     }),
   ],
   test: {
