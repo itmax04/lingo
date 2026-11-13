@@ -2,6 +2,8 @@
 
 Status: **accepted** (owner brainstorms 2026-10-26) · Version 2 (replaces the v1 draft of the same day) · Context: [ARCHITECTURE](../architecture/ARCHITECTURE.md), [LINGO-03](../changes/LINGO-03/intent.md)
 
+> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **proposed** and waits for the owner (H-11-0). When accepted it replaces items 3 (Russian default UI, i18n), 4 (recognition through the engine) and 9 (`/api/turn`) of this ADR and the `i18next` rows of the allow-list, and adds `qrcode-generator`. The rest of this ADR stays. See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
+
 ## Context
 - The owner practises mostly on a phone (iPhone Air, iPhone 11), also on an iPad, an Android phone, a Windows PC and other people's computers; the Mac app stays standalone.
 - Budget $0 (no card anywhere). Native iOS needs re-signing every 7 days without a paid Apple account, so the first cross-device client is a website.

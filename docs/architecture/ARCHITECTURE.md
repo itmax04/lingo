@@ -6,6 +6,8 @@ Decision records: [ADR-0001](../decisions/ADR-0001-stack.md) (Mac stack), [ADR-0
 [ADR-0003](../decisions/ADR-0003-authentication.md) (sign-in), [ADR-0004](../decisions/ADR-0004-repository-layout.md) (monorepo and contracts),
 [ADR-0005](../decisions/ADR-0005-model-routing-and-quota.md) (model routing, quota pools, Groq keys).
 
+> **LINGO-11 notice (2026-11-13).** The web and engine parts of this file (§2–§5.1, §6.2, §7 for the engine, §8 sign-in and secrets, §9) still describes the LINGO-03 design (GitHub sign-in, prompts, model routing and keys in the engine). The owner decided on 2026-11-13 to build the web for friends instead: accounts by invite, keys on the device, all dialogue logic in the browser, a small engine. That design is in [ADR-0008](../decisions/ADR-0008-web-for-friends.md) (proposed, H-11-0) and the [LINGO-11 spec](../changes/LINGO-11/spec.md); where they differ from this file, they win once accepted. The Mac parts are unaffected. Rewritten in LINGO-11 step F-23.
+
 This document describes **what Lingo is made of, how the parts talk, and why**. Requirements live in the change specs
 (`docs/changes/LINGO-NN/spec.md`); this file never defines requirements, it explains structure.
 

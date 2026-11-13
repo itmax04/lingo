@@ -2,6 +2,8 @@
 
 Status: **accepted** (owner, 2026-10-26) · Context: [ARCHITECTURE §7](../architecture/ARCHITECTURE.md#7-model-routing-and-quota)
 
+> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **proposed** and waits for the owner (H-11-0). When accepted it replaces §2…§5 of this ADR as far as they describe the engine: the web calls providers from the browser with the friend's own keys, as the Mac does. §1, §3, §6 and §7 stay. See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
+
 ## Context
 - Target load: **4 sessions × 30 min per day** (2 DE + 2 EN) ≈ 240 dialog turns + transcription + service requests, at $0.
 - Groq free limits per organization **and per model** (public table, 2026-10-26): chat 30 RPM, 1 000 RPD, 8 000 TPM, 200 000 TPD; Whisper 20 RPM, 2 000 RPD, 7 200 audio s/hour, 28 800 audio s/day. Keys of one organization share one ceiling.

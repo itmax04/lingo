@@ -63,4 +63,6 @@ The prompt compaction P-02b moves into LINGO-08 step P-1. Next work: [LINGO-08](
 
 ## Next step
 
+2026-11-13: the owner decided to build the web for friends as a new change, [LINGO-11](../LINGO-11/intent.md). When its documents are accepted (H-11-0), the web part of this change — P-07c2 and P-08…P-20, issues #10…#27, draft PR #62 — is superseded; `packages/core-ts`, the contracts and DESIGN.md are reused there. Nothing below about Stage 1 or Stage 2 is to be started.
+
 2026-10-31: P-01..P-06 are merged or in their PRs (P-06c is the last translation). What is left of Stage 0 needs the owner or the night: the 30-minute `--audio-stability` run and a 30-minute real session (H-1), P-04b (schedule the daily backup after the owner picks a folder), P-02b (prompt compaction and the night `dialog` batch, 23:00-08:00 Berlin only), the live checks of P-03/P-05b. H-1 was accepted on 2026-10-31 (see below); P-02b moved into LINGO-08 P-1; Stage 1 waits until after LINGO-08.

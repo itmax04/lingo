@@ -9,8 +9,8 @@ Current owner decision D04-01 supersedes the historical human-review policy: AI-
 1. Read this file, then [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md), the guide of the app you touch —
    [`MAC.md`](docs/architecture/MAC.md) (Lingo for Mac) or [`WEB.md`](docs/architecture/WEB.md) (Lingo Web + Engine, all other devices) —
    and [`docs/process/SDLC.md`](docs/process/SDLC.md). Before changing anything structural read [`docs/process/EVOLVING.md`](docs/process/EVOLVING.md).
-2. Open the current change: [`docs/changes/LINGO-05/`](docs/changes/LINGO-05/) — the teacher on the Mac, built through T-9 (`intent.md`, `spec.md`, `plan.md`, `handoff.md`); what remains is the report, the owner's try-out (H-05) and the later changes. LINGO-08 (vocabulary, prompting v2) is done. The web part of [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) is paused by the owner (2026-11-01: Mac first); P-07 is merged. Everything left, in order: [`docs/plans/COMPLETION-PLAN-2026-11.md`](docs/plans/COMPLETION-PLAN-2026-11.md). Codex: [`docs/process/CODEX.md`](docs/process/CODEX.md).
-3. Check GitHub: open issues of the current milestone (`gh issue list --milestone "LINGO-05 · Teacher"`), take the lowest-numbered unblocked step that is not an `owner-checkpoint`.
+2. Open the current change: [`docs/changes/LINGO-11/`](docs/changes/LINGO-11/) — Lingo Web for friends (`intent.md`, `spec.md`, `plan.md`, `handoff.md`, ADR-0008); its documents wait for the owner (H-11-0), no code before that. The owner paused new features on 2026-11-13, including LINGO-09 on the Mac; LINGO-11 supersedes the web part of LINGO-03. Before it: [`docs/changes/LINGO-05/`](docs/changes/LINGO-05/) — the teacher on the Mac, built through T-9 (`intent.md`, `spec.md`, `plan.md`, `handoff.md`); what remains is the report, the owner's try-out (H-05) and the later changes. LINGO-08 (vocabulary, prompting v2) is done. The web part of [`docs/changes/LINGO-03/`](docs/changes/LINGO-03/) is paused by the owner (2026-11-01: Mac first); P-07 is merged. Everything left, in order: [`docs/plans/COMPLETION-PLAN-2026-11.md`](docs/plans/COMPLETION-PLAN-2026-11.md). Codex: [`docs/process/CODEX.md`](docs/process/CODEX.md).
+3. Check GitHub: open issues of the current milestone (the LINGO-11 milestones are created after H-11-0; until then there is nothing to take), take the lowest-numbered unblocked step that is not an `owner-checkpoint`.
 4. Make sure you are in your own worktree and branch (§5), the tree is clean, and `main` is up to date.
 5. Read `handoff.md` → "Next step" before touching code.
 
@@ -26,13 +26,13 @@ Later: the Mac joins the account (LINGO-04), a native iPhone client and real-tim
 | Path | What | Status |
 |---|---|---|
 | `apps/mac/` (`Package.swift`, `Sources/`, `Tests/`, `Resources/`, `scripts/`) | Swift package of the Mac app (moved in P-01); eval sets and prompt snapshots live in `packages/contracts/` | working |
-| `apps/web/` | React + Vite PWA | created in P-15 |
-| `services/engine/` | Cloudflare Worker + D1 | created in P-08 |
+| `apps/web/` | React + Vite PWA | created in LINGO-11 F-1/F-9 |
+| `services/engine/` | Cloudflare Worker + D1 | created in LINGO-11 F-1 |
 | `packages/core-ts/` | TypeScript ports shared by web and engine | created in P-07 |
 | `packages/contracts/` | event schema v1, OpenAPI, golden fixtures (later prompts and evals) | started |
 | `docs/architecture/` | ARCHITECTURE (system), MAC (Mac app), WEB (web + engine), CODEBASE (repository map) | current |
 | `design/` | redesign inputs; `design/redesign-2026/` reference images for every platform (LINGO-07, PR #33) | current |
-| `docs/decisions/` | ADRs 0001 (Mac stack, Russian — translation pending), 0002 web stack, 0003 sign-in, 0004 repo layout, 0005 routing & quota | current |
+| `docs/decisions/` | ADRs 0001 (Mac stack, Russian — translation pending), 0002 web stack, 0003 sign-in, 0004 repo layout, 0005 routing & quota, 0007 redesign, 0008 web for friends (proposed; replaces 0003 and parts of 0002/0005 for the web) | current |
 | `docs/changes/` | SDLC folders per change; LINGO-01 frozen, LINGO-03 (Stage 0 accepted), LINGO-05 (teacher) and LINGO-08 done | current |
 | `docs/process/` | SDLC, EVOLVING (how to change things), TESTING, RELEASE, STAGE-PROMPTS | current |
 | `DESIGN.md` | design tokens (dark theme) — the only source of colours, type, spacing, radii | current |
