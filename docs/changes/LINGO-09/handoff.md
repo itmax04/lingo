@@ -59,6 +59,7 @@ Branch `feat/139-reply-options-data`, cut from `feat/120-tone-data` (PR #141, no
 - `reply.revealed` `{message, index}`: `EventType`, `Payload.ReplyRevealed`, merger (no state, malformed = unknown), schema, TS decoder, journal fixture `events/reply-revealed.jsonl`.
 - D-11: `@reply` is parsed only from the raw reply text (like `@next`), so an older build that never asks for it and reads stored segments is unaffected (MR-45); no segment is stored for it.
 - D-12: an empty translation after `|` is kept (the spec skips only a missing separator or empty phrase); the UI of M-11b decides how to show it.
+- Independent review (sdlc:reviewer, Sonnet, 0d699e0): approve-with-notes, no P0/P1. F1 (P3): `DialogEngine.setReplyOptions` has no caller — M-11b must wire `AppSettings.replyOptions` to it at engine start and on every settings change. F2, F3: no change needed.
 - Not done here by design: DESIGN.md §5 entry, interface, refresh request, token evidence (M-11b).
 
 ## Next step
