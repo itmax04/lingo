@@ -1,0 +1,33 @@
+// Lingo Engine (LINGO-11, ADR-0008). Production configuration: it must never set DEV_MODE (spec FR-04) — a test checks it.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "lingo",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "workers_dev": true,
+  // No per-version preview addresses: an old version must not stay reachable with the production database and secrets.
+  "preview_urls": false,
+  // Platform logging stays off explicitly (spec FR-59).
+  "observability": { "enabled": false },
+  // Static files are served by the platform without the Worker; their headers come from apps/web/public/_headers (spec FR-55).
+  // Step F-9 points this at the built site.
+  "assets": {
+    "directory": "../../apps/web/public",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lingo",
+      // Placeholder: the owner puts the id of the created database here at H-11-3 (deploy guide). Local runs ignore it.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // The two off switches of spec FR-65: any value other than "1" switches the feature off.
+  "vars": {
+    "INVITES_ENABLED": "1",
+    "RELAY_ENABLED": "1"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@lingo/engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lingo Engine: Cloudflare Worker + D1 for accounts, sessions, sync, admin and the relay (LINGO-11, ADR-0008).",
+  "type": "module",
+  "scripts": {
+    "test": "tsc -p tsconfig.json && vitest run",
+    "build": "tsc -p tsconfig.json",
+    "dev": "wrangler dev",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.23.0",
+    "@cloudflare/workers-types": "5.20261113.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.12",
+    "wrangler": "4.162.0"
+  }
+}

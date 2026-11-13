@@ -1,25 +1,35 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **documents accepted by the owner at H-11-0 (2026-11-13); next: milestones, issues, step F-1** · Date: 2026-11-13
+Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11-13
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
   [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) (accepted at H-11-0).
-- Branch `docs/lingo-11-web-for-friends` from `origin/main` `5144f77`, worktree `.claude/worktrees/lingo-11-docs`.
-- No GitHub issues or milestones yet: they are created after H-11-0 from the accepted plan (SDLC §3.4).
+- Documents: PR #146 (merged by the owner). Stage A: milestone "LINGO-11 · A Engine" (#9), issues #147 (F-1), #148 (F-2),
+  #149 (F-3), #150 (F-4). Milestones and issues of stages B…H are created when their stage starts.
+- F-1 worktree `.claude/worktrees/lingo-11-f1-engine-cc30f9`: branch `feat/147-engine-skeleton` (F-1a) from `origin/main`
+  `46bfe4e`; F-1b is stacked on it as `feat/147-engine-auth`.
 
 ## State
 - The owner's goal and decisions 1…16 (brainstorm 2026-11-13) are in `intent.md`. New features are paused; LINGO-09 on the Mac is
   paused with its PRs #119 and #141–#145 open and untouched.
-- The web part of LINGO-03 is superseded by this change when the owner accepts it: P-07c2 and P-08…P-20, issues #10…#27, draft PR
-  #62. The issues and the PR are **not closed yet** — that happens after H-11-0, with a link to this change.
+- The web part of LINGO-03 is superseded by this change: P-07c2 and P-08…P-20. Issues #10…#27 and draft PR #62 were commented
+  "superseded by LINGO-11 (H-11-0)" and closed as not planned on 2026-11-13; no branch was deleted.
 - `packages/core-ts` on `main` has: events (codec, ULID, reducer), reply protocol parser, command detector, VAD and segmenter, model
-  decoders. `apps/web` and `services/engine` do not exist.
+  decoders. `services/engine` exists since F-1a; `apps/web` is an empty shell (`public/` with `_headers` and a placeholder page)
+  until F-9.
 
 ## Done
 | Step | PR | Checks | Notes |
 |---|---|---|---|
-| Stage 0: documents | this PR | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
+| Stage 0: documents | #146 | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
+| F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
+
+## Split of F-1 (plan "Size" rule)
+- **F-1a — foundation**: OpenAPI v2, workspaces, Worker shell, security headers and `_headers`, migration 0001, CI. No route yet:
+  `src/routes.ts` is empty, the shell is tested with a test route table.
+- **F-1b — auth**: HMAC tokens, sessions and cookie, attempt counters, `/api/setup`, `/api/join`, `/api/me`, the invites switch,
+  the local development secrets file. Both parts keep the tier (strong) and the checks of F-1.
 
 ## Facts found in stage 0
 - **Provider CORS** ([evidence](evidence/cors-2026-11-13.txt), curl without a key, 2026-11-13 17:16 UTC):
@@ -56,6 +66,29 @@ Status: **documents accepted by the owner at H-11-0 (2026-11-13); next: mileston
 - D-04: no `ajv` at run time in the engine and no ZIP package; see ADR-0008 §11.
 - D-05: documents of other changes are annotated, not rewritten: WEB.md and ARCHITECTURE.md keep the LINGO-03 design under a notice
   until step F-23 rewrites them from the built state.
+- D-06 (F-1a): errors are `{code, message}` with the code list in `openapi.yaml`; a test keeps the engine's list and the file's
+  list equal. State-changing = `POST`; the engine has no `PUT`/`PATCH`/`DELETE` and answers 405 to them and to `OPTIONS` (no CORS).
+- D-07 (F-1a): the pepper and the setup secret count as missing below 43 characters (32 bytes in base64url); a missing or short
+  pepper answers 500 `engine_misconfigured` on every route.
+- D-08 (F-1a): both switches are fail-closed: only the value `1` switches invites or the relay on.
+- D-09 (F-1a): the CSP is `default-src 'none'` plus `'self'` for scripts, styles, images, fonts, manifest and workers, the three
+  provider hosts in `connect-src`, `base-uri 'none'`, `form-action 'none'`, `frame-ancestors 'none'`. Inline `style` attributes are
+  therefore blocked; F-9 styles through classes and CSS variables, or amends the policy in `http.ts` and `_headers` together.
+- D-10 (F-1a): until F-9 the Worker's static directory is `apps/web/public`; F-9 points it at the built site.
+- D-11 (F-1a): `events.seq` is a plain rowid without `AUTOINCREMENT`: a new row always gets a value above every existing one, and
+  an account's cursor never exceeds its own highest row, so reuse after a deletion cannot hide an event. F-3 confirms it.
+- D-12 (F-1a): `@cloudflare/vitest-pool-workers` 0.23.0 (the ADR-0002 allow-list name) is kept although npm marks it as renamed
+  to `@cloudflare/vitest-plugin`; moving needs an allow-list entry first. It needs vitest 4.1, so the engine uses 4.1.12 and
+  `core-ts` stays on 5.0.5.
+- D-13 (F-1a): a smoke script (`npm run smoke -w services/engine`) starts `wrangler dev` in CI: unit tests call the handler
+  directly and cannot see that the entry module loads in the real runtime or that the platform applies `_headers` to static files.
+
+## Constraints found in F-1
+- A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text
+  being written; such text is written with the editor tools, and these commands are never put into npm scripts.
+- `.claude/settings.json` denies `gh pr merge`: a CX-02 merge needs the owner's approval of the prompt, or the owner's hands.
+- The Workers runtime refuses an entry module that exports anything but handlers (found by the smoke run): `src/index.ts`
+  exports the default handler only.
 
 ## Open for the owner at H-11-0
 1. Accept or correct the documents (intent, spec, plan, ADR-0008).
@@ -133,11 +166,46 @@ were fixed in the next commit:
 Not checked by the reviewers: Cloudflare figures against live sources (read by the executor from the documentation on 2026-11-13),
 section numbers of the WEB.md and ARCHITECTURE.md notices line by line, GitHub state.
 
+## Checks (F-1a)
+Run on 2026-11-13 on the commit that contains this text (Node 26, wrangler 4.162.0):
+| Check | Result | Output |
+|---|---|---|
+| `npm ci && npm test` | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 1 file, 19 tests passed |
+| `npm run build` | PASS | exit 0 |
+| `npx wrangler d1 migrations apply lingo --local` | PASS | `11 commands executed successfully`, `0001_init.sql ✅` |
+| `npm run smoke -w services/engine` | PASS | `/ → 200 text/html`, `/join → 200 text/html`, `/api/nope → 404 application/json`, `smoke: PASS` (the three headers on each) |
+| `scripts/secret-scan.sh` | PASS | `0 findings` |
+| `scripts/check-english.sh` | PASS | `check-english: PASS` |
+| `swift test` | NOT RUN | no Swift file changed |
+
+Acceptance covered by F-1a: FAC-18 (part: headers on static files and API answers, foreign `Origin` refused), FAC-03 (part: a
+missing pepper gives 500, not 401), FAC-19 (part: migration and local start by the commands of `services/engine/README.md`).
+FAC-01 and the session part of FAC-03 belong to F-1b.
+
+### Independent AI review of F-1a
+Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
+Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| R1 | P2 | The `Origin` check compares with the request URL; behind the cloudflared tunnel of FR-63 the Worker may see `http` while the browser sends `https`, and every `POST` would be refused | answered, not changed here: the URL that `wrangler dev` reports behind a tunnel was not observed (the reviewer inferred it). **Constraint for F-15**: before the tunnel instructions are written, run the smoke through a tunnel; if the origins differ, add a development-only allowance (with `DEV_MODE=1`), tested and absent from `wrangler.jsonc`. The same applies to the development cookie rule |
+| R2 | P2 | A used invite could never point at its account, so deleting the account left the invite row with the friend's name | fixed: the CHECKs allow `account_id` on a used invite; F-1b's redemption batch sets it; test "an invite has a name and no account…" |
+| R3 | P3 | A body without `Content-Length` is read whole before the size check | open, for F-3 (which brings the large bodies): read with a stream reader that stops at the limit |
+| R4 | P3 | `RELAY_ENABLED=1` is also read by `wrangler dev`; FR-22 wants the relay off locally unless a development variable turns it on | **constraint for F-4**: `relayEnabled` must also require that `DEV_MODE` is not `1`, or an explicit development variable |
+| R5 | P3 | `attempts.bucket` would hold client addresses in clear and grow | answered in F-1b: `recordFailure` deletes windows older than the previous one in the same batch, so an address stays at most 20 minutes after its last failure; hashing the bucket is left to F-2 with the typed-code limit. Cleanup of expired links: F-2 |
+| R6 | P3 | The global setup limit of 20 and the `too_many_attempts` code were not recorded | recorded in D-15 (F-1b) |
+| R7 | P3 | "No `GET` changes state" against the expiry refresh of `GET /api/me` | fixed: wording in `openapi.yaml` |
+| R8 | P3 | The database does not enforce: a session's account equals its device's account; the admin cannot be blocked | part fixed (`code_hash` only for pairing); the rest is open for F-2, which writes the first code that could break them |
+| R9 | P3 | The routes-against-contract test looped over an empty table; missing cases (charset parameter, invalid UTF-8, `PUT`/`DELETE`) | routes exist from F-1b on; the missing cases are open for F-2 |
+| R10 | P3 | `preview_urls` not disabled | fixed, with a test |
+| R11 | P3 | A D1 point-in-time restore reissues `seq` values | **constraint for F-3 / F-23**: a cursor epoch, or a forced full pull after a restore in the deploy guide |
+| R12 | P3 | No `Allow` header on 405; a clone path with spaces breaks the vitest config | path fixed (`fileURLToPath`); `Allow` not added |
+
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
 A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine
 (step F-1) in a new session.
 
 ## Next step
-After H-11-0: create the milestones and issues of the plan, mark LINGO-03 issues #10…#27 and PR #62 as superseded (comment and close,
-with the owner's acceptance as the reason), then start **F-1** (strong tier) and, in a separate worktree, **F-5** (standard tier).
+**F-1b** (strong tier, issue #147, branch `feat/147-engine-auth` stacked on F-1a): tokens, sessions and cookie, attempt counters,
+`/api/setup`, `/api/join`, `/api/me`. Then F-2 (#148). In a separate worktree **F-5** (standard tier) can start: its milestone and
+issue are not created yet.
