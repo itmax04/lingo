@@ -182,6 +182,24 @@ Acceptance covered by F-1a: FAC-18 (part: headers on static files and API answer
 missing pepper gives 500, not 401), FAC-19 (part: migration and local start by the commands of `services/engine/README.md`).
 FAC-01 and the session part of FAC-03 belong to F-1b.
 
+### Independent AI review of F-1a
+Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
+Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| R1 | P2 | The `Origin` check compares with the request URL; behind the cloudflared tunnel of FR-63 the Worker may see `http` while the browser sends `https`, and every `POST` would be refused | answered, not changed here: the URL that `wrangler dev` reports behind a tunnel was not observed (the reviewer inferred it). **Constraint for F-15**: before the tunnel instructions are written, run the smoke through a tunnel; if the origins differ, add a development-only allowance (with `DEV_MODE=1`), tested and absent from `wrangler.jsonc`. The same applies to the development cookie rule |
+| R2 | P2 | A used invite could never point at its account, so deleting the account left the invite row with the friend's name | fixed: the CHECKs allow `account_id` on a used invite; F-1b's redemption batch sets it; test "an invite has a name and no account…" |
+| R3 | P3 | A body without `Content-Length` is read whole before the size check | open, for F-3 (which brings the large bodies): read with a stream reader that stops at the limit |
+| R4 | P3 | `RELAY_ENABLED=1` is also read by `wrangler dev`; FR-22 wants the relay off locally unless a development variable turns it on | **constraint for F-4**: `relayEnabled` must also require that `DEV_MODE` is not `1`, or an explicit development variable |
+| R5 | P3 | `attempts.bucket` would hold client addresses in clear and grow | answered in F-1b: `recordFailure` deletes windows older than the previous one in the same batch, so an address stays at most 20 minutes after its last failure; hashing the bucket is left to F-2 with the typed-code limit. Cleanup of expired links: F-2 |
+| R6 | P3 | The global setup limit of 20 and the `too_many_attempts` code were not recorded | recorded in D-15 (F-1b) |
+| R7 | P3 | "No `GET` changes state" against the expiry refresh of `GET /api/me` | fixed: wording in `openapi.yaml` |
+| R8 | P3 | The database does not enforce: a session's account equals its device's account; the admin cannot be blocked | part fixed (`code_hash` only for pairing); the rest is open for F-2, which writes the first code that could break them |
+| R9 | P3 | The routes-against-contract test looped over an empty table; missing cases (charset parameter, invalid UTF-8, `PUT`/`DELETE`) | routes exist from F-1b on; the missing cases are open for F-2 |
+| R10 | P3 | `preview_urls` not disabled | fixed, with a test |
+| R11 | P3 | A D1 point-in-time restore reissues `seq` values | **constraint for F-3 / F-23**: a cursor epoch, or a forced full pull after a restore in the deploy guide |
+| R12 | P3 | No `Allow` header on 405; a clone path with spaces breaks the vitest config | path fixed (`fileURLToPath`); `Allow` not added |
+
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
 A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine

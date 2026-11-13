@@ -5,6 +5,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-01",
   "workers_dev": true,
+  // No per-version preview addresses: an old version must not stay reachable with the production database and secrets.
+  "preview_urls": false,
   // Platform logging stays off explicitly (spec FR-59).
   "observability": { "enabled": false },
   // Static files are served by the platform without the Worker; their headers come from apps/web/public/_headers (spec FR-55).

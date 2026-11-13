@@ -162,6 +162,7 @@ describe("configuration and contract", () => {
   it("the production configuration cannot set DEV_MODE, keeps platform logging off and names both switches", () => {
     expect(wranglerConfig).not.toContain("DEV_MODE\"");
     expect(wranglerConfig).toMatch(/"observability":\s*\{\s*"enabled":\s*false\s*\}/);
+    expect(wranglerConfig).toContain('"preview_urls": false');
     expect(wranglerConfig).toContain('"INVITES_ENABLED": "1"');
     expect(wranglerConfig).toContain('"RELAY_ENABLED": "1"');
     expect(wranglerConfig).not.toMatch(/PEPPER"|SETUP_SECRET"/);
@@ -212,6 +213,11 @@ describe("migration 0001", () => {
     await link("invite", null, "Friend").run();
     await link("pair", "a", null).run();
     await expect(link("invite", "a", "Friend").run()).rejects.toThrow(/CHECK/);
+    // A used invite points at the account it created and goes away with it, name included.
+    await env.DB.prepare("UPDATE links SET used_at = 1, account_id = 'a' WHERE kind = 'invite'").run();
+    await env.DB.prepare("DELETE FROM accounts WHERE id = 'a'").run();
+    expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM links").first("n")).toBe(0);
+    await expect(env.DB.prepare("INSERT INTO links (hash, code_hash, kind, name, created_at, expires_at) VALUES ('x', 'c', 'invite', 'F', 1, 2)").run()).rejects.toThrow(/CHECK/);
     await expect(link("invite", null, null).run()).rejects.toThrow(/CHECK/);
     await expect(link("signin", null, null).run()).rejects.toThrow(/CHECK/);
   });
