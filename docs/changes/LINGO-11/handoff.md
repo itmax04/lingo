@@ -240,6 +240,24 @@ Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decis
 | R11 | P3 | A D1 point-in-time restore reissues `seq` values | **constraint for F-3 / F-23**: a cursor epoch, or a forced full pull after a restore in the deploy guide |
 | R12 | P3 | No `Allow` header on 405; a clone path with spaces breaks the vitest config | path fixed (`fileURLToPath`); `Allow` not added |
 
+### Independent AI review of F-1b
+Two fresh `sdlc:reviewer` runs (Opus, high effort, mode `pr 152`): run 1 on `7473f32` (findings N1–N6), run 2 on `e6e2f5e`
+(findings B1–B4). Both: verdict **approve with notes**, no P0/P1/P2; both ran `npm test -w services/engine` (43 tests) and the
+smoke run, PASS. Fixes in `2bfe80e`. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| B1 | P3 | A name with NUL passes the 1–40 check in JS but fails SQLite's `CHECK (length(name) …)` (which stops at NUL), giving 500 instead of 400; newlines and bidi overrides were stored | fixed: control characters (C0, DEL, C1) and bidi overrides are `invalid_request`; tests for `deviceName` and `name`; D-14 |
+| B2 / N1 | P3 | The limit is read before the failure is written, so a burst of parallel attempts passes it; D-16 overstated | answered: accepted for 256-bit tokens and the setup secret, wording of D-16 corrected. **Constraint for F-2**: decide a conditional increment for the typed codes (about 40 bits) |
+| B3 / N5 | P3 | D-17 (an ended or blocked account's session may redeem) and the default names "Admin"/"Browser" untested | fixed: two tests |
+| B4 / N4 | P3 | Any IPv6 with a `.` counted as IPv4-mapped (NAT64 `64:ff9b::…` too); hex `::ffff:cb00:7109` fell into an IPv6 bucket | fixed: only the `::ffff:` prefix, dotted or hex, maps to IPv4; tests. A missing `CF-Connecting-IP` still shares one bucket (local runs only, D-16) |
+| N2 | P3 | While the setup secret is set, a stranger can keep the global setup limit tripped and block admin recovery | **constraint for F-23**: the deploy guide removes the setup secret after the first setup and explains that recovery means setting it again; threat table entry |
+| N3 | P3 | `InvalidRequest` said a wrong length gives 400, but a token or secret of the wrong length is a counted failure (410 / 403) | fixed: wording in `openapi.yaml` |
+| N6 | P3 | The daily extension was not conditional, so parallel requests at the day boundary each wrote | fixed: `AND extended_at = ?` the value read; D-19 |
+
+Found while waiting for CI: the smoke step hung on the Linux runner after its checks, because `npx` did not pass SIGTERM on to
+wrangler and workerd. Fixed on F-1a (`5434501`, merged into F-1b): wrangler runs in its own process group, the script exits
+explicitly, and the CI step has a 3-minute timeout.
+
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
 A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine
