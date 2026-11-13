@@ -58,6 +58,18 @@ enum Fixtures {
         m.syncStatus = String(localized: "Saved on this Mac")
     }
 
+    /// LINGO-09 M-11b: the conversation fixture with the switch on, the anchor carrying three `@reply` lines (synthetic language data).
+    static func replyOptions(_ m: AppModel) {
+        fill(m)
+        m.voiceState = .idle
+        m.replyOptionsOn = true
+        m.hintsVisible = false
+        let text = "@say de: Das tut mir leid. Haben Sie auch Fieber?\n@reply de: Nein, ich habe kein Fieber. | Нет, у меня нет температуры.\n@reply de: Ja, seit gestern Abend. | Да, со вчерашнего вечера.\n@reply de: Ich habe mich nicht gemessen. | Я не измерял."
+        m.messages[2].text = text
+        m.messages[2].source = "Groq · 120b"
+        m.messages = [m.messages[2]]  // the snapshot is not scrolled: keep the anchor and its block in view
+    }
+
     static func exam(_ model: AppModel, kind: ExamKind, phase: ExamPhase, transcript: Bool = false) {
         let ids = kind == .goetheB1 ? ["b1-plan-park", "b1-talk-bicycle", "b1-discuss-bicycle"]
             : ["ielts-topic-home", "ielts-cue-journey", "ielts-discuss-journey"]

@@ -39,4 +39,26 @@ public enum ReplyOptions {
         }
         return out
     }
+
+    /// At most this many refreshes per anchor message (MR-53).
+    public static let maxRefreshes = 2
+
+    /// The source label of the fixed lines the app writes itself (the farewell of MR-29).
+    static let appSource = "Lingo"
+
+    /// The anchor (MR-51): the latest model-generated assistant message. Never a `local` line (MR-18), the fixed farewell (MR-29) or an error.
+    public static func anchor(in messages: [ChatMessage]) -> ChatMessage? {
+        messages.last { $0.role == .assistant && $0.kind == .normal && !$0.local && $0.source != appSource }
+    }
+
+    /// The part of an option shown before it is revealed (MR-52): the first two words, or the first word when the phrase has fewer than
+    /// four, followed by "…".
+    public static func firstWords(_ text: String) -> String {
+        let words = text.split(whereSeparator: \.isWhitespace)
+        let n = words.count < 4 ? 1 : 2
+        return words.prefix(n).joined(separator: " ") + "…"
+    }
 }
+
+/// Why a refresh gave nothing (MR-53).
+public enum ReplyOptionsError: Error, Equatable { case unavailable(String), empty }

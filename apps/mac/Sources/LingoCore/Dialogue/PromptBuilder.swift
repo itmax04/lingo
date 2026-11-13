@@ -481,6 +481,21 @@ public enum PromptBuilder {
         return LLMRequest(system: sys, messages: [LLMMessage(role: .user, text: user)], maxTokens: 400, purpose: .translate, temperature: 0.2)
     }
 
+    /// Refreshed reply options (LINGO-09 MR-53): the session prompt with the switch on, the context window and one instruction.
+    /// `shown` are the options on screen; the new ones must differ from them.
+    public static func replyOptionsRequest(settings: SessionSettings, summary: String, messages: [ChatMessage], shown: [ReplyOption],
+                                           policy: ContextPolicy = ContextPolicy(), profile: PromptProfile = PromptProfile()) -> LLMRequest {
+        var u: [String] = []
+        let sum = stripTags(summary).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !sum.isEmpty { u.append("<summary>\n\(sum)\n</summary>") }
+        u.append("<transcript>\n" + policy.window(messages).map(transcriptLine).joined(separator: "\n") + "\n</transcript>")
+        if !shown.isEmpty { u.append("<shown>\n" + shown.map { oneLine($0.text) }.joined(separator: "\n") + "\n</shown>") }
+        u.append("Give two or three new answers the learner could give to the assistant's last turn, as @reply lines only; they must differ from <shown>. No other output.")
+        return LLMRequest(system: system(settings, policy: policy, profile: profile, replyOptions: true),
+                          messages: [LLMMessage(role: .user, text: u.joined(separator: "\n\n"))],
+                          maxTokens: 300, purpose: .replyOptions, temperature: 0.8)
+    }
+
     /// Summary (R-04): updates the previous one with the new utterances.
     public static func summaryRequest(settings: SessionSettings, previous: String, messages: [ChatMessage]) -> LLMRequest {
         let sys = """

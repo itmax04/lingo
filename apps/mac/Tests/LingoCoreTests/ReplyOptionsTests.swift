@@ -126,4 +126,77 @@ import Testing
         if ProcessInfo.processInfo.environment["LINGO_RECORD_SNAPSHOTS"] == "1" { try text.write(to: url, atomically: true, encoding: .utf8); return }
         #expect(text == (try String(contentsOf: url, encoding: .utf8)), "snapshot prompt-free-inline-replyoptions.txt changed")
     }
+
+    // MARK: M-11b (MR-51…MR-54)
+
+    @Test func firstWordsAreTwoWordsOrOneForShortPhrases() {
+        #expect(ReplyOptions.firstWords("I live in Berlin.") == "I live…")
+        #expect(ReplyOptions.firstWords("Ich wohne") == "Ich…")
+        #expect(ReplyOptions.firstWords("Yes, please") == "Yes,…")
+        #expect(ReplyOptions.firstWords("Not far from here") == "Not far…")
+        #expect(ReplyOptions.firstWords("  Hello   big   wide   world ") == "Hello big…")
+        #expect(ReplyOptions.firstWords("Danke") == "Danke…")
+    }
+
+    @Test func theAnchorIsTheLatestModelMessage() {
+        func m(_ id: String, _ role: Role, source: String? = "Groq · m", kind: ChatMessage.Kind = .normal, local: Bool = false) -> ChatMessage {
+            ChatMessage(id: id, session: "s", role: role, text: id, lang: .en, createdAt: Date(), source: source, kind: kind, local: local)
+        }
+        #expect(ReplyOptions.anchor(in: []) == nil)
+        #expect(ReplyOptions.anchor(in: [m("a1", .assistant), m("u1", .user)])?.id == "a1")
+        #expect(ReplyOptions.anchor(in: [m("a1", .assistant), m("a2", .assistant, local: true)])?.id == "a1", "a local line (MR-18)")
+        #expect(ReplyOptions.anchor(in: [m("a1", .assistant), m("a2", .assistant, source: "Lingo")])?.id == "a1", "the fixed farewell (MR-29)")
+        #expect(ReplyOptions.anchor(in: [m("a1", .assistant), m("e1", .assistant, kind: .error)])?.id == "a1", "an error")
+        #expect(ReplyOptions.anchor(in: [m("u1", .user)]) == nil)
+    }
+
+    @Test func refreshRequestCarriesTheContextTheShownOptionsAndOneInstruction() {
+        let s = SessionSettings(lang: .de, mode: .free, topic: "Wohnort", level: "B1", corrections: [.inline])
+        let msgs = [ChatMessage(id: "a", session: "s", role: .assistant, text: "@say de: Wo wohnst du?", lang: .de, segments: [.say(.de, "Wo wohnst du?")], createdAt: Date())]
+        let r = PromptBuilder.replyOptionsRequest(settings: s, summary: "", messages: msgs, shown: [ReplyOption(lang: .de, text: "Ich wohne in Köln.", translation: "x")])
+        #expect(r.purpose == .replyOptions && r.maxTokens <= 300)
+        #expect(r.system == PromptBuilder.system(s, replyOptions: true))
+        let u = r.messages[0].text
+        #expect(u.contains("<transcript>") && u.contains("Wo wohnst du?") && u.contains("<shown>\nIch wohne in Köln.\n</shown>"))
+        #expect(u.hasSuffix("No other output."))
+    }
+
+    func engine(_ reply: MockProvider.Behavior) throws -> (DialogEngine, JournalStore) {
+        let store = try JournalStore(base: tempDir("ropt"), deviceName: "Mac", deviceID: "mac-test")
+        let p = MockProvider(id: .groq, behavior: { _, _ in reply }, calls: CallLog())
+        let settings = LLMSettings(keys: [KeyRecord(id: "k", provider: .groq, last4: "0000")], chain: [ChainEntry(provider: .groq, model: "m")], firstTokenTimeout: 2)
+        let e = DialogEngine(store: store) { ChainFactory.chain(settings: settings, secrets: InMemorySecretStore(["k": "synthetic"]), health: ProviderHealth(), providers: [.groq: p]) }
+        return (e, store)
+    }
+
+    @Test func engineRefreshReturnsParsedOptionsAndWritesNothing() async throws {
+        let (e, store) = try engine(.text(["@reply en: First new. | Один.\n", "@reply en: Second new answer. | Два.\ngarbage\n@reply en: no separator"]))
+        let sid = try await e.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.inline]))
+        let before = await store.allEvents().count
+        let options = try await e.refreshReplyOptions(session: sid, shown: [])
+        #expect(options.map(\.text) == ["First new.", "Second new answer."])
+        #expect(await store.allEvents().count == before, "a refresh is not a message and is not journaled")
+    }
+
+    @Test func engineRefreshFailsClearlyWhenNothingUsableComes() async throws {
+        let (e, _) = try engine(.text(["Sorry, no lines."]))
+        let sid = try await e.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.inline]))
+        await #expect(throws: ReplyOptionsError.empty) { _ = try await e.refreshReplyOptions(session: sid, shown: []) }
+        let (down, _) = try engine(.fail(.http(status: 503, message: "down")))
+        let sid2 = try await down.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.inline]))
+        await #expect(throws: ReplyOptionsError.self) { _ = try await down.refreshReplyOptions(session: sid2, shown: []) }
+        // Hidden sessions never refresh: a tone session has Help instead.
+        var toned = SessionSettings(lang: .en, mode: .free, corrections: [.inline]); toned.tone = .strictTeacher
+        let sid3 = try await e.createSession(toned)
+        await #expect(throws: ReplyOptionsError.empty) { _ = try await e.refreshReplyOptions(session: sid3, shown: []) }
+    }
+
+    @Test func aRevealIsRecordedWithIdsAndNumbersOnly() async throws {
+        let (e, store) = try engine(.text(["x"]))
+        let sid = try await e.createSession(SessionSettings(lang: .en, mode: .free, corrections: [.inline]))
+        await e.recordReplyRevealed(session: sid, message: "m1", index: 2)
+        let ev = try #require(await store.allEvents().last)
+        #expect(ev.type == EventType.replyRevealed && ev.session == sid)
+        #expect(try ev.payload.decode(Payload.ReplyRevealed.self) == Payload.ReplyRevealed(message: "m1", index: 2))
+    }
 }

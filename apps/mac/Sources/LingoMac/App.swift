@@ -109,6 +109,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func showSTTCheck(_ sender: Any?) { STTCheckWindow.show(part: "part1") }
 
+    /// ⌘⇧R (LINGO-09 MR-49): the same switch as the chip; offered only where the chip is.
+    @objc func toggleReplyOptions(_ sender: Any?) { services?.toggleReplyOptions() }
+
+    func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        if item.action == #selector(AppDelegate.toggleReplyOptions(_:)) {
+            let m = services?.model
+            item.state = m?.replyOptionsOn == true ? .on : .off
+            return m?.replyOptionsOffered == true
+        }
+        return true
+    }
+
     @objc func showSettings(_ sender: Any?) {
         settingsWindow.show(keys: keys, services: services)
     }
@@ -211,6 +223,14 @@ enum MainMenu {
         editItem.submenu = edit
         main.addItem(editItem)
 
+        let talkItem = NSMenuItem()
+        let talk = NSMenu(title: String(localized: "Conversation"))
+        let options = NSMenuItem(title: String(localized: "Reply options"), action: #selector(AppDelegate.toggleReplyOptions(_:)), keyEquivalent: "r")
+        options.keyEquivalentModifierMask = [.command, .shift]
+        talk.addItem(options)
+        talkItem.submenu = talk
+        main.addItem(talkItem)
+
         let windowItem = NSMenuItem()
         let win = NSMenu(title: String(localized: "Window"))
         win.addItem(withTitle: String(localized: "Minimize"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
@@ -259,7 +279,8 @@ enum UISnapshot {
         let reminderOnly = args.contains("--ui-reminder")
         let goetheOnly = args.contains("--ui-goethe")
         let scenariosOnly = args.contains("--ui-scenarios")
-        let examOnly = args.contains("--ui-exams") || progressOnly || memoryOnly || reminderOnly || goetheOnly || scenariosOnly
+        let replyOnly = args.contains("--ui-reply-options")
+        let examOnly = args.contains("--ui-exams") || replyOnly || progressOnly || memoryOnly || reminderOnly || goetheOnly || scenariosOnly
         // Each capture is rendered immediately so mutable fixture state cannot leak to another screen.
         var ok = true
         func capture<V: View>(_ name: String, _ view: V, _ size: NSSize = NSSize(width: 1280, height: 800)) async {
@@ -314,6 +335,24 @@ enum UISnapshot {
             // F2: a live Training disables Start and the Debriefs rows (the sidebar can still bring the learner here).
             model.section = .teacher; model.showGoethe = true; model.goetheTab = .debriefs
             await capture("goethe-debriefs-training-live", MainView(model: model))
+            return ok ? 0 : 1
+        }
+        if replyOnly {
+            // LINGO-09 M-11b (MAC-32): the reply options block in the conversation, on fixtures, in the theme and language of this run.
+            Fixtures.replyOptions(model)
+            await capture("reply-options-first-words", MainView(model: model))
+            services.revealReply(0)
+            await capture("reply-options-one-revealed", MainView(model: model))
+            services.revealAllReplies()
+            await capture("reply-options-all-revealed", MainView(model: model))
+            model.replyBlocks[model.replyAnchor?.id ?? ""]?.error = String(localized: "Could not refresh the options: quota")
+            await capture("reply-options-refresh-error", MainView(model: model))
+            model.replyBlocks = [:]
+            model.replyCollapsed = true
+            await capture("reply-options-collapsed", MainView(model: model))
+            model.replyCollapsed = false
+            model.messages[0].text = "@say de: Das tut mir leid. Haben Sie auch Fieber?"
+            await capture("reply-options-none", MainView(model: model))
             return ok ? 0 : 1
         }
         if scenariosOnly {

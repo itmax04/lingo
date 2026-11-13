@@ -11606,6 +11606,295 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Reply options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply options"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Варианты ответа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "No options for this turn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No options for this turn"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этой реплики вариантов нет"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Show all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show all"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показать все"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Refresh options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh options"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить варианты"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Collapse reply options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse reply options"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Свернуть варианты ответа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Expand reply options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand reply options"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Развернуть варианты ответа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Option %lld: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option %lld: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вариант %lld: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Shows the full answer and its translation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the full answer and its translation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывает ответ целиком и его перевод"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Insert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Insert into the message field": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert into the message field"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить в поле сообщения"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Conversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разговор"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Could not refresh the options: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not refresh the options: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось обновить варианты: %@"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "The model gave no options. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model gave no options. Try again."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Модель не дала вариантов. Попробуйте ещё раз."
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Play option %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play option %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Воспроизвести вариант %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove option %lld from vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option %lld from vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Убрать вариант %lld из словаря"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Save option %lld to vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save option %lld to vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить вариант %lld в словарь"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Insert option %lld into the message field": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert option %lld into the message field"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить вариант %lld в поле сообщения"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"
