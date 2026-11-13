@@ -23,10 +23,12 @@ const check = (ok, text) => (ok ? console.log(`ok   ${text}`) : (console.log(`FA
 const json = { Origin: base, "Content-Type": "application/json" };
 
 execFileSync("npx", ["wrangler", "d1", "migrations", "apply", "lingo", "--local", "--persist-to", state], { stdio: "ignore" });
+// Its own process group: `npx` does not pass SIGTERM on to wrangler and workerd on Linux, whose open pipes kept the script
+// (and the CI step) running after the checks.
 const child = spawn(
   "npx",
   ["wrangler", "dev", "--port", String(port), "--persist-to", state, "--var", `PEPPER:${secret()}`, "--var", `SETUP_SECRET:${setupSecret}`, "--var", "DEV_MODE:1"],
-  { stdio: ["ignore", "pipe", "pipe"] },
+  { stdio: ["ignore", "pipe", "pipe"], detached: true },
 );
 let output = "";
 child.stdout.on("data", (d) => (output += d));
@@ -61,7 +63,11 @@ try {
 } catch (e) {
   failures.push(String(e));
 } finally {
-  child.kill("SIGTERM");
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    child.kill("SIGTERM");
+  }
   rmSync(state, { recursive: true, force: true });
 }
 if (failures.length > 0) {
@@ -70,3 +76,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log("smoke: PASS");
+process.exit(0);
