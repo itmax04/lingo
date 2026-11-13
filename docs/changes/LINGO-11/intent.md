@@ -82,7 +82,9 @@ TypeScript package with five ported modules.
   proxy; the settings screen says it in one line.
 - A-10 **Rate-limit numbers of the provider** may be invisible to the browser (ADR-0008, Consequences). The web then pauses a pool
   from the 429 message or a default, and the Quota screen shows local usage only.
-- A-11 **Capacity:** the Cloudflare free plan is enough for about 20 friends; each account may store up to 20 MB of events.
+- A-11 **Capacity:** the Cloudflare free plan is enough for about 20 friends; each account may store up to 10 MB of events (a Worker
+  variable the admin can raise), and pushes stop for everyone at 350 MB in total, under D1's 500 MB (spec FR-26). The size of the
+  owner's Mac history is not known yet; it is measured in step F-12 and the default is corrected if it does not fit.
 - A-12 **Supported browsers:** current Safari (iOS, iPadOS, macOS), Chrome (Android, Windows, macOS) and Edge. Firefox works without
   the built-in recognition fallback, which it does not have.
 - A-13 **Merge authority:** the executor asks the owner at H-11-0 to extend CX-02 (squash-merge own PRs after green CI and an
@@ -92,6 +94,16 @@ TypeScript package with five ported modules.
 - A-15 **Every friend can export and import a ZIP**, not only the owner; decision 10 is its first use.
 - A-16 **A friend can delete the own account** from Settings (server data and this device's copy). It is not on the Mac; it is here
   because the history now lives on someone else's server.
+- A-17 **A device without a valid session keeps nothing.** "Sign out", a session ended from another device, an expired session and
+  a blocked account delete the keys and the local history copy from that browser (spec FR-07), because friends may use shared or
+  borrowed computers. The history returns from the server at the next sign-in; the keys are typed again; events that a revoked
+  device had not sent are lost.
+- A-18 **Custom endpoints always use the transit proxy**, also when an endpoint would allow browser calls. Decision 4 names the proxy
+  for providers without CORS; using it for every custom endpoint keeps the page's allowed hosts to three fixed providers (ADR-0008
+  §7).
+- A-19 **Small additions that no decision names:** a friend can rename the account and a device; the friends list also shows the
+  creation date and the stored size (decision 11 lists name, last sign-in and device count); the turn metrics can be exported from
+  Settings; the admin who lost every device signs in again with a newly set setup secret (spec FR-11).
 
 ## Definition of done
 Every FAC criterion of [spec.md](spec.md) has evidence (PASS, or NOT RUN with a reason the owner accepted); `swift test`, `npm test`,

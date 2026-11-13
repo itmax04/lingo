@@ -7,7 +7,7 @@ Status: current · Date: 2026-10-28. Start with [`AGENTS.md`](../AGENTS.md) (rul
 | I work on … | Read in this order |
 |---|---|
 | **Lingo for Mac** (Swift) | [ARCHITECTURE](architecture/ARCHITECTURE.md) §1–4, §6 → [MAC](architecture/MAC.md) → [EVOLVING](process/EVOLVING.md) §1, §3, §4 → [ADR-0001](decisions/ADR-0001-stack.md) → current change in [changes/](changes/) |
-| **Lingo Web + Engine** (iPhone, iPad, Android, Windows, any browser) | [ARCHITECTURE](architecture/ARCHITECTURE.md) → [WEB](architecture/WEB.md) → [EVOLVING](process/EVOLVING.md) §1, §3, §5 → [ADR-0002…0005](decisions/) → [contracts](../packages/contracts/README.md) → [LINGO-03 spec](changes/LINGO-03/spec.md) |
+| **Lingo Web + Engine** (iPhone, iPad, Android, Windows, any browser) | [ARCHITECTURE](architecture/ARCHITECTURE.md) → [WEB](architecture/WEB.md) → [EVOLVING](process/EVOLVING.md) §1, §3, §5 → [ADR-0002…0005](decisions/) and [ADR-0008](decisions/ADR-0008-web-for-friends.md) (proposed; replaces parts of them for the web) → [contracts](../packages/contracts/README.md) → [LINGO-11 spec](changes/LINGO-11/spec.md) (waits for the owner, H-11-0; until then the [LINGO-03 spec](changes/LINGO-03/spec.md) is the accepted one) |
 | **Shared behaviour** (events, prompts, commands, protocol) | [contracts](../packages/contracts/README.md) → [EVOLVING](process/EVOLVING.md) §3 → MAC §7 and WEB §10 |
 | **Design** | [DESIGN.md](../DESIGN.md) → `design/redesign-2026/` (reference images per platform) → EVOLVING §3.5 |
 
