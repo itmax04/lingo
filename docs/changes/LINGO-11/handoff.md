@@ -198,7 +198,6 @@ Acceptance covered by F-1a: FAC-18 (part: headers on static files and API answer
 missing pepper gives 500, not 401), FAC-19 (part: migration and local start by the commands of `services/engine/README.md`).
 FAC-01 and the session part of FAC-03 belong to F-1b.
 
-<<<<<<< HEAD
 ## Checks (F-1b)
 Run on 2026-11-13 on the commit that contains this text (Node 26, wrangler 4.162.0):
 | Check | Result | Output |
@@ -219,7 +218,7 @@ revoking an invite through the API is F-2 (tests insert link rows directly):
 | FAC-03 (part) | once-a-day extension; a session unused for 91 days refused; `session_ended` and `account_blocked` typed; no cookie → `not_signed_in`; missing pepper or database → 500 |
 | FAC-04 (setup part, ahead of F-2) | admin created once; recovery signs the same admin in and creates nothing else; 404 without or with a short secret; client and global limits; refusals write nothing |
 | FAC-18 (part), FAC-19 (part) | `shell.test.ts` and the smoke run |
-=======
+
 ### Independent AI review of F-1a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
 Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decision.
@@ -237,7 +236,6 @@ Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decis
 | R10 | P3 | `preview_urls` not disabled | fixed, with a test |
 | R11 | P3 | A D1 point-in-time restore reissues `seq` values | **constraint for F-3 / F-23**: a cursor epoch, or a forced full pull after a restore in the deploy guide |
 | R12 | P3 | No `Allow` header on 405; a clone path with spaces breaks the vitest config | path fixed (`fileURLToPath`); `Allow` not added |
->>>>>>> feat/147-engine-skeleton
 
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
