@@ -266,15 +266,15 @@ A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §1
 ## Next step
 State on 2026-11-13 (end of the building session): PR #151 (F-1a, `feat/147-engine-skeleton`, head `03c8f37`, reviewed, no open
 P0/P1) and PR #152 (F-1b, `feat/147-engine-auth`, stacked on #151, base = the F-1a branch). Not finished:
-1. **Review of #152**: a fresh `sdlc:reviewer` (Opus, high) was started on `7473f32`; its result was **not received** when this
-   was written. If no result is at hand, run the review again (mode `pr 152`, diff `03c8f37..HEAD`), fix P0/P1 and every P2 (or
-   answer it), add the table to this file as for F-1a and comment the PR.
-2. **CI**: on both PRs `test` (and `swift-test` on #151) were still pending — NOT verified green. Read `gh pr checks 151` and
-   `gh pr checks 152`; the new CI steps (local migration, smoke run) have run only on the Mac so far.
-3. **Merge** (CX-02, `gh pr merge <n> --squash --delete-branch=false` needs the owner's approval of the prompt): #151 first;
-   then retarget #152 to `main` (`gh pr edit 152 --base main`), merge `origin/main` into `feat/147-engine-auth` with a normal
-   merge commit, wait for green CI, merge #152; issue #147 closes with it.
+Update of the delivery session (same day): the review of #152 is done (two runs, no P0/P1/P2, table above), the smoke step
+that hung on Linux is fixed, and CI is **green** on both PRs (`test`, `hygiene`, `swift-test`; #151 at `5434501`). What is
+left waits only for the owner's approval of `gh pr merge` (denied in `.claude/settings.json`):
+1. **Merge #151**: `gh pr merge 151 --squash --delete-branch=false`.
+2. **Retarget #152**: `gh pr edit 152 --base main`; merge `origin/main` into `feat/147-engine-auth` with a normal merge commit
+   (the F-1a content is already in the branch, so no conflicts are expected), publish the branch and wait for green CI.
+3. **Merge #152**: `gh pr merge 152 --squash --delete-branch=false`; issue #147 closes with it.
 4. Then **F-2** (strong tier, issue #148): pairing by link and code with the global typed-code limit, devices list and sign-out,
    sign-in link, admin API, own-account rename and delete — the contract first. It reuses `lookupSession`/`authenticate`, the
-   stamped batch of `join` and the counters of `attempts.ts`; it also takes the open review items R5, R8, R9 above.
+   stamped batch of `join` and the counters of `attempts.ts`. It also takes the open review items R5, R8 and R9 of F-1a and
+   B2/N1 of F-1b (a conditional increment for the typed codes); N2 belongs to F-23.
 In a separate worktree **F-5** (standard tier) can start: its milestone and issue are not created yet.
