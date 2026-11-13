@@ -68,7 +68,7 @@ public struct SessionSettings: Codable, Sendable, Hashable {
     /// LINGO-09 MR-01: harshness/hostility/profanity. Stored only when its level is ≥ 1; older builds ignore it (MR-45).
     public var tone: Tone? { didSet { tone = Self.normalized(tone) } }
 
-    private static func normalized(_ t: Tone?) -> Tone? { t?.isActive == true ? t : nil }
+    private static func normalized(_ t: Tone?) -> Tone? { t.flatMap { $0.isActive && (0...5).contains($0.harshness) && (0...5).contains($0.hostility) ? $0 : nil } }
 
     public init(lang: Lang, mode: SessionMode, topic: String = "", role: String = "", level: String = "",
                 customPrompt: String = "", corrections: Set<CorrectionMode> = [], starter: Starter = .assistant,

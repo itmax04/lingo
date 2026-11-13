@@ -32,6 +32,7 @@ import Testing
         #expect(z.tone == nil)
         z.tone = .strictTeacher; #expect(z.tone == .strictTeacher)
         z.tone = .off; #expect(z.tone == nil)
+        z.tone = Tone(harshness: 9, hostility: 0); #expect(z.tone == nil)  // never written out of range (review F2)
         guard case .object(let t) = try JSONValue.from(SessionSettings(lang: .de, mode: .free, corrections: [.inline], tone: .combined)) else { return }
         #expect(t["tone"] != nil)
     }

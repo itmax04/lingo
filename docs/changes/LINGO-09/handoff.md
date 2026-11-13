@@ -47,10 +47,10 @@ and copied into [intent.md](intent.md) without change. The owner's concept paper
 ## M-1a delivery state (2026-11-13)
 - Branch `feat/120-tone-data`, commit a647018 on top of 9dc3705 (docs v1.1). Not pushed, PR not opened.
 - Verified at a647018: swift build PASS; swift test 448 passed (exit 1 from the ggml-metal exit assert); check-core-ios PASS; npm test 327 passed; check-english PASS; secret-scan 0 findings.
-- Independent review (sdlc:reviewer, agent a5d4a9ff4e09fb90a) was started and its result is NOT yet read. Delivery: read it, fix P0/P1, push the branch, open the PR into the docs branch / main (base: say the branch is cut from `docs/lingo-09-documents`, PR #119 is merged by the owner), bind it with ccd_pr, comment the review verdict.
+- Independent review (sdlc:reviewer): approve-with-notes, no P0/P1. F2 (range check in `normalized`) fixed. Left open: F1 `local` has no merger-state test in Swift/TS (add in M-3a, the first step that sets it); F3 `decodeTone` not exported (only if needed); F4 `@tutor` is accepted in any session by the parser — the caller must gate it to combined sessions (MR-13) in the prompt/engine step.
 
 ## Next step
-Finish M-1a delivery (above), then step M-11a (#139): reply options data and prompt (`@reply`, MR-49…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11a (#139) from
+Step M-11a (#139): reply options data and prompt (`@reply`, MR-49…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11a (#139) from
 docs/changes/LINGO-09/handoff.md".
 
 ## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)
