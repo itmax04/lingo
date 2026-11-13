@@ -83,14 +83,14 @@ struct ReplyOptionsBlock: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 Button { onPlay(o) } label: {
                     Image(systemName: "speaker.wave.2").font(.system(size: 16)).foregroundStyle(Theme.C.textPrimary)
-                }.buttonStyle(LingoButtonStyle()).disabled(!canPlay).accessibilityLabel("Play")
+                }.buttonStyle(LingoButtonStyle()).disabled(!canPlay).accessibilityLabel("Play option \(i + 1)")
                 let on = starred.contains(Phrase(lang: o.lang, text: o.text, translation: o.translation, source: .hint).id)
                 Button { onStar(o) } label: {
                     Image(systemName: on ? "star.fill" : "star").font(.system(size: 14)).foregroundStyle(on ? Theme.accent(o.lang) : Theme.C.textPrimary)
-                }.buttonStyle(LingoButtonStyle()).accessibilityLabel(on ? "Remove from vocabulary" : "Save to vocabulary")
+                }.buttonStyle(LingoButtonStyle()).accessibilityLabel(on ? "Remove option \(i + 1) from vocabulary" : "Save option \(i + 1) to vocabulary")
                 if canInsert {
                     Button("Insert") { onInsert(o) }.font(Theme.F.caption).foregroundStyle(Theme.accent(o.lang))
-                        .buttonStyle(LingoButtonStyle()).accessibilityLabel("Insert into the message field")
+                        .buttonStyle(LingoButtonStyle()).accessibilityLabel("Insert option \(i + 1) into the message field")
                 }
             }
             .padding(.horizontal, Theme.S.s12).padding(.vertical, Theme.S.s8)

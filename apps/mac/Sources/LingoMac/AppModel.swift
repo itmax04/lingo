@@ -167,7 +167,7 @@ final class AppModel {
 
     /// The switch is offered in this session (MR-49).
     var replyOptionsOffered: Bool {
-        guard let s = selectedSession, !isExam, !mockAidsOff else { return false }
+        guard let s = selectedSession, !isExam, !mockAidsOff, !readOnly else { return false }
         return ReplyOptions.isOffered(s.settings, ended: s.state == .ended)
     }
     var replyAnchor: ChatMessage? { ReplyOptions.anchor(in: messages) }

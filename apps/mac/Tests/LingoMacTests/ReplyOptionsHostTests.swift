@@ -195,9 +195,9 @@ import Testing
         let mid = try #require(e.model.replyAnchor?.id)
         e.services.refreshReplies()
         await wait { e.model.replyBlocks[mid]?.error != nil }
-        #expect(e.model.replyBlocks[mid]?.refreshes == 0 && e.model.replyBlocks[mid]?.options == nil)
+        #expect(e.model.replyBlocks[mid]?.refreshes == 1 && e.model.replyBlocks[mid]?.options == nil)
         #expect(e.model.replyOptionList(for: e.model.replyAnchor!).count == 3)
-        #expect(e.services.canRefreshReplies, "a failure does not use up a refresh")
+        #expect(e.services.canRefreshReplies, "one failed request used one of the two")
     }
 
     @Test func aReopenedSessionDerivesTheOptionsFromTheRawTextAgain() async throws {

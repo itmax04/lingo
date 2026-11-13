@@ -11827,6 +11827,74 @@
         }
       },
       "extractionState": "manual"
+    },
+    "Play option %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play option %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Воспроизвести вариант %lld"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Remove option %lld from vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove option %lld from vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Убрать вариант %lld из словаря"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Save option %lld to vocabulary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save option %lld to vocabulary"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранить вариант %lld в словарь"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Insert option %lld into the message field": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insert option %lld into the message field"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставить вариант %lld в поле сообщения"
+          }
+        }
+      },
+      "extractionState": "manual"
     }
   },
   "version": "1.0"
