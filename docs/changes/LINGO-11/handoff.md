@@ -110,7 +110,28 @@ commit. Reviewer output is not an owner decision; every finding was checked agai
 | P3 | Check output only in a PR that did not exist; AGENTS.md still listed H-05 as open; ADR number unexplained (A F-25; B F15) | fixed: this section, AGENTS.md §1, "Facts" above. Not done: the spec has no scenario section — its acceptance table is the list of scenarios |
 | P3 | `__Host-` cookie prefix (A F-26) | fixed: FR-04 |
 
-Open P0/P1 after the fixes: **none**. Re-review of the fix commit: see the PR description and the row added below.
+Open P0/P1 after the fixes: **none**.
+
+**Review C** (third run, fresh `sdlc:reviewer`, Opus, high, on `e093232..0924ac4`): verdict **approved**, no P0/P1. Mechanical
+checks by the reviewer: FR-01…FR-67 all defined, every FR covered by a FAC and a plan step, numbering intact. Its 4 P2 and 7 P3
+were fixed in the next commit:
+
+| Sev | Finding | Result |
+|---|---|---|
+| P2 | A bare 401/403 (broken deployment, missing pepper, failed `Origin` check) could wipe every device | fixed: wipe only on typed codes `session_ended` / `account_blocked`; the engine answers 500 when pepper or database is missing; the guide warns that changing the pepper signs everyone out (FR-07, FAC-03) |
+| P2 | "Nothing readable offline" cannot hold for an offline device | fixed: deletion at the first contact after the session ended; every local store is deleted before a link is redeemed on a browser with no valid session (FR-07) |
+| P2 | Admin recovery makes the setup secret a standing admin credential | fixed: at least 32 random bytes (shorter counts as not configured), its own global failure limit, the guide says it is a standing credential (FR-11, FAC-04) |
+| P2 | Atomic use not implementable in a D1 batch | fixed: stamped `UPDATE` plus `INSERT … SELECT … WHERE EXISTS` guarded on the stamp (FR-02, FAC-01) |
+| P3 | A repeated push could inflate the size counter; the 350 MB total ignored indexes | fixed: only newly inserted events count; the total includes an index overhead measured in F-3 (FR-24, FR-26, FAC-09) |
+| P3 | Threat row overstated protection against the admin | fixed: threat row and ADR-0008 Consequences state that an admin can open a friend's history through a sign-in link, visible in the Devices list |
+| P3 | Wipe lists differed between FR-07, FR-23, FAC-03 | fixed: one list, every store of the account |
+| P3 | LINGO-01 S-xx and LINGO-09 rows missing from the parity sources | fixed: intro and FR-47 |
+| P3 | Relay: special-use names, methods | fixed: FR-22, FAC-07 |
+| P3 | Placeholder "row added below" | fixed: this section |
+| P3 | ROADMAP row said H-05 awaited; grammar in the ARCHITECTURE notice | fixed |
+
+Not checked by the reviewers: Cloudflare figures against live sources (read by the executor from the documentation on 2026-11-13),
+section numbers of the WEB.md and ARCHITECTURE.md notices line by line, GitHub state.
 
 ## Next step
 After H-11-0: create the milestones and issues of the plan, mark LINGO-03 issues #10…#27 and PR #62 as superseded (comment and close,

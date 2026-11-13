@@ -99,7 +99,9 @@ The Mac app is not affected. ADR-0003 §5 (device tokens for native clients) ret
 - **Keys are entered on every device** and can disappear when the browser evicts site storage (Safari is known to clear script-written
   storage of sites that are not used for a while; to be observed on the owner's phones at H-11-1). History is safe on the server; the
   app asks for the key again. Installing the PWA to the home screen is recommended in onboarding.
-- **Plaintext history in D1.** The admin UI shows no conversations, but whoever holds the Cloudflare account can read the database.
+- **Plaintext history in D1.** The admin UI shows no conversations, but whoever holds the Cloudflare account can read the database,
+  and an admin can mint a sign-in link for a friend and open that history as the friend (the friend sees the new device in the
+  Devices list).
   The owner accepted this (decision 3); it is stated once in the deploy guide, not in the UI.
 - **Losing every device needs the admin.** There is no self-service recovery.
 - **The owner's quota is not shared.** Each friend's requests count against the friend's own provider account; the multi-account risk

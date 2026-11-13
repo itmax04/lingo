@@ -5,7 +5,7 @@ Links: [intent.md](intent.md) (decisions 1…16, assumptions A-01…A-19) · [pl
 [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) · [contracts](../../../packages/contracts/README.md) · [DESIGN.md](../../../DESIGN.md)
 
 Requirements of this change live only here: **FR** (requirements) and **FAC** (acceptance). Behaviour that the Mac already has is
-**not restated**: its requirements stay in the Mac specs ([LINGO-01](../LINGO-01/spec.md) R, [LINGO-08](../LINGO-08/spec.md) VR/PR,
+**not restated**: its requirements stay in the Mac specs ([LINGO-01](../LINGO-01/spec.md) R and S, [LINGO-08](../LINGO-08/spec.md) VR/PR,
 [LINGO-05](../LINGO-05/spec.md), [LINGO-10](../LINGO-10/spec.md) BR, and the Mac requirements MR-01…MR-08 of the
 [LINGO-03 spec](../LINGO-03/spec.md)) and the web must behave the same (FR-41). This spec replaces the
 web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
@@ -26,9 +26,12 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   The page reads the fragment, removes it from the address bar, and sends the token in a `POST` body only after the person presses a
   button. No `GET` request changes state. A token works once; a second use, an expired, revoked or unknown token, and a token sent
   to the endpoint of another link kind, all give the same answer: "This link is no longer valid. Ask for a new one."
-  - **Atomic use.** The engine consumes the record with one conditional statement (`UPDATE … SET used_at = now WHERE hash = ? AND
-    kind = ? AND used_at IS NULL AND revoked_at IS NULL AND expires_at > now`), continues only if exactly one row changed, and
-    writes the account, device and session rows in the same D1 batch. Two concurrent redemptions of one token create one session.
+  - **Atomic use.** A D1 batch cannot branch on a row count, so the guard is in the statements. The engine stamps the request with
+    a random value and sends one batch: first `UPDATE links SET used_at = <now>, used_by = <stamp> WHERE hash = ? AND kind = ? AND
+    used_at IS NULL AND revoked_at IS NULL AND expires_at > <now>`; then the inserts of the account, the device and the session as
+    `INSERT … SELECT … WHERE EXISTS (SELECT 1 FROM links WHERE hash = ? AND used_by = <stamp>)`. Only the request whose update
+    matched inserts anything; every other one inserts nothing and answers the common refusal. Two concurrent redemptions of one
+    token create one session.
   - **Which account.** After a redemption the page shows "Signed in as <name>". On a device that already holds a session, the
     link pages do not redeem: they show "This browser is signed in as <name>. Sign out first." with the Sign out action of FR-07.
   - **Which browser.** Above the button the invite page says: "Open this link in the browser you will use every day (Safari or
@@ -56,11 +59,16 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   it was added and last seen, and marks the current one. Actions: "Sign out" (this device), "Sign out" on another device, "Sign out
   everywhere else". A revoked session stops working on its next request.
   - **Signing out clears the device (A-17).** "Sign out" on this device first tries to push unsent events; if some cannot be sent
-    it says how many would be lost and offers "Export to ZIP" before continuing. It then deletes this account's keys, journal,
-    usage log, settings and own scenarios from the browser.
-  - **A refused session clears the device.** When the engine answers 401 (session ended elsewhere or expired) or the blocked
-    answer of FR-09, the app deletes the same data and shows the reason. Nothing of an account stays readable on a device without a
-    valid session, online or offline. The history returns from the server after the next sign-in (FR-28); unsent events of a
+    it says how many would be lost and offers "Export to ZIP" before continuing. It then deletes every store of the account
+    (FR-23): keys, journal, usage log, settings, own scenarios and turn metrics.
+  - **A refused session clears the device.** The engine's answer carries a typed code. On `session_ended` (revoked, expired) or
+    `account_blocked` (FR-09) the app deletes every store of every account found on this browser (FR-23) and shows the reason. A
+    bare 401 or 403 without such a code — a failed `Origin` check (FR-58), a broken deployment — never wipes anything. The engine
+    answers 500, not 401, when its pepper or database is missing, so a faulty release cannot sign every device out; changing the
+    pepper does sign every device out, and the deploy guide says so (FR-65).
+  - **Offline.** A device cannot learn that its session ended while it has no connection, so the deletion happens at its first
+    contact with the engine after the session ended. Before any link is redeemed on a browser with no valid session, the app
+    deletes every local store left on it. The history returns from the server after the next sign-in (FR-28); unsent events of a
     revoked or blocked device are lost, and the Devices screen says so next to the remote "Sign out" action.
 - **FR-08 One-time sign-in link.** An admin creates it for an existing active account; valid 24 hours; a new one cancels the previous
   unused one. Redeeming creates a device and a session; existing sessions stay.
@@ -75,8 +83,10 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
 - **FR-11 First admin and admin recovery.** `POST /api/setup` with the setup secret creates the first admin account, device and
   session. When the admin exists, the same request creates a new device and session for that admin and nothing else: this is the
   recovery for an admin who lost every device. It answers 404 when the secret is not configured, compares in constant time and
-  counts as a link attempt (FR-06). The owner types the secret on `/setup`; the deploy guide tells him to delete the Worker secret
-  afterwards and to set a new one only for a recovery.
+  counts as a link attempt (FR-06) and has its own global limit of failures, like the typed codes. The setup secret is at least 32
+  random bytes, produced by a command in the deploy guide; the engine treats a shorter secret as not configured (404). The owner
+  types the secret on `/setup`; the deploy guide tells him to delete the Worker secret afterwards and to set a new one only for a
+  recovery. While it is set, the secret is a standing admin credential, and the guide says so.
 
 ## 2. Admin
 - **FR-12 Admin page** (`/admin`, linked from Settings only for admins; other accounts get 404 from the page's API):
@@ -113,12 +123,14 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   - Signed-in, active accounts only; `Origin` check as for every state-changing request.
   - Target: the base URL sent with the request plus one of the suffixes `/chat/completions` or `/models`. The base URL is parsed
     with the URL parser and refused unless: scheme `https`; no user name or password; no query and no fragment; port absent or 443;
-    the host is not an IP literal, `localhost`, a name without a dot, or the engine's own host. Redirects are not followed.
+    the host is not an IP literal, `localhost`, a name without a dot, a name ending in `.localhost`, `.local`, `.internal` or
+    `.home.arpa`, or the engine's own host. Redirects are not followed.
   - Internal addresses: a public name can resolve to a private or loopback address. In production the Worker runs in Cloudflare's
     network, not in the owner's; what its `fetch` can reach there is not stated in Cloudflare's documentation and is tested in step
     F-4. Under `wrangler dev` the Worker runs on the owner's Mac and could reach his local network, so the relay is off in local
     development unless an explicit development variable turns it on; the production configuration cannot set that variable.
-  - Forwarded: method, the `Authorization` and `Content-Type` headers and the body. The engine copies no other header of the
+  - Forwarded: the method (`GET` for `/models`, `POST` for `/chat/completions`, nothing else), the `Authorization` and
+    `Content-Type` headers and the body. The engine copies no other header of the
     incoming request (no cookie, no `Origin`, no client address); headers that the Workers platform itself adds to outbound requests
     are outside its control.
   - Limits: body ≤ 256 KB; at most 600 relay requests per account per hour. A Worker variable switches the relay off (FR-65).
@@ -140,7 +152,8 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   answer lists each rejected event with a reason code; the others are stored. The device marks a rejected event, does not send it
   again, keeps it in the local journal and shows the count in Settings → Data, so one bad event cannot hold up the rest. The batch
   limits must fit the free plan's per-request limits (50 D1 queries, where one `batch()` counts as one; 100 bound parameters per
-  statement; 10 ms CPU): this is measured in step F-3 and the limits are lowered if needed. Sync
+  statement; 10 ms CPU): this is measured in step F-3 and the limits are lowered if needed. Only events newly inserted count
+  towards the size counter, so a repeated push after a lost answer changes nothing. Sync
   runs on opening the app, when the page becomes visible or the network returns, after each turn, and every 30 seconds while visible.
 - **FR-25 Merge.** Two devices of one account that worked offline end with the same state after both synced (the reducer's existing
   golden fixtures stay the proof; a two-browser test repeats it end to end).
@@ -149,7 +162,7 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   events, not by scanning. A push that would exceed the cap is refused with "Storage on the server is full. New history stays on
   this device only. Export it to a ZIP and tell the person who invited you."; local work continues. The journal only grows —
   deleting a session adds an event — so nothing in the app frees server space; the admin can raise the variable. When the bodies
-  of all accounts together exceed 350 MB, every push is refused with "The server is full. Tell the person who invited you." and
+  of all accounts together exceed 350 MB (the bodies plus an index overhead that F-3 measures; the database limit is 500 MB), every push is refused with "The server is full. Tell the person who invited you." and
   the admin page shows the total (FR-12). The size of the owner's Mac journal (bytes and event count, numbers only) is measured
   in step F-12 before the default is final (A-11).
 - **FR-27 Export and import.** Settings → Data → "Export to ZIP" writes the journals in the Mac backup layout
@@ -225,7 +238,7 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   letters and points computed by the app from the shared scoring fixture. The partner speaks in a second German voice when the device
   has one, otherwise in the same voice with a label.
 - **FR-47 Strict tutor and reply options** (LINGO-09) are ported last, after the owner's decision at H-11-2, from whatever is then on
-  the Mac's `main` (A-08).
+  the Mac's `main` (A-08). Their rows are added to `parity.md` when step F-22 is re-planned.
 - **FR-48 No pronunciation assessment** anywhere: the Mac's filters are ported with their tests, and the offline `no_pronunciation`
   cases (filter and rule fixtures) pass at 100 % in TypeScript. The live dialogue eval is a Mac tool and is not repeated for the
   web: the prompts are byte-identical (FR-39) and the replies pass through the same filters.
@@ -264,7 +277,7 @@ Threats and measures:
 | The admin loses every device | FR-11 (recovery with a newly set setup secret) |
 | Cross-site request with the friend's cookie | FR-58 |
 | One friend reads another's history | FR-14 |
-| The admin reads conversations through the product | FR-13 (the database owner still can; ADR-0008 Consequences) |
+| The admin reads conversations through the product | FR-13 (the database owner still can; an admin can also mint a sign-in link for a friend, FR-08, and open that history as the friend — the friend sees the new device in the Devices list, FR-07; ADR-0008 Consequences) |
 | The relay used as an open proxy or to reach internal hosts | FR-22 |
 | Keys or speech in logs (the engine's own and the platform's), exports or the database | FR-15, FR-27, FR-30, FR-59 |
 | A database leak reveals working tokens | FR-02, FR-04 (only HMACs stored; the pepper is a Worker secret) |
@@ -305,7 +318,8 @@ Threats and measures:
   set the two secrets, deploy, open `/setup`, delete the setup secret, create the first invite, and the checks after each release.
   It also covers going back and stopping: return to the previous Worker version; export the database before a migration; D1's
   7-day point-in-time restore; two Worker variables that switch off the redemption of invites and the relay; admin recovery
-  (FR-11); platform logging left off (FR-59); and one honest paragraph on what "delete" means (removed from the live database at
+  (FR-11); that changing the pepper signs every device out and that the setup secret is a standing admin credential while it
+  is set; platform logging left off (FR-59); and one honest paragraph on what "delete" means (removed from the live database at
   once; still inside D1's 7-day history).
 - **FR-66 Owner's history.** The owner imports the Mac ZIP export into the own web account (FR-27); the number of sessions and
   messages after the import equals the Mac's.
@@ -318,15 +332,15 @@ tests are mocked.
 
 | ID | Criterion | Covers |
 |---|---|---|
-| FAC-01 | Invite: create → open link → button → new empty account with a session; second use, expired, revoked and unknown tokens give the same refusal; a token sent to another kind's endpoint is refused; two concurrent redemptions of one token give one account and one session; a `GET` of the link changes nothing; the token is not in D1 in clear; the page shows the account name; a link opened on a signed-in device is not redeemed | FR-01…FR-04 |
+| FAC-01 | Invite: create → open link → button → new empty account with a session; second use, expired, revoked and unknown tokens give the same refusal; a token sent to another kind's endpoint is refused; two concurrent redemptions of one token give one account and one session (the losing request inserts nothing); a `GET` of the link changes nothing; the token is not in D1 in clear; the page shows the account name; a link opened on a signed-in device is not redeemed | FR-01…FR-04 |
 | FAC-02 | Pairing by link and by code signs a second device into the same account; an expired or reused record is refused; the code is not in D1 in clear; attempt limits trigger and recover, count an IPv6 /64 as one client, and a refused client causes no database write | FR-05, FR-06 |
-| FAC-03 | Devices list, remote sign-out and "everywhere else" end the right sessions; sliding expiry extends at most once a day; a session unused for 91 days is refused; after "Sign out", and after a 401 or a blocked answer on a revoked device, the browser holds no keys, journal, usage log or settings of that account and the offline app shows no history; a second account on the same browser sees nothing of the first | FR-04, FR-07, FR-23 (stores by account) |
-| FAC-04 | Admin: sign-in link, block, unblock and delete behave as specified; non-admins get 404; the admin cannot block or delete itself and no request grants the admin flag; a friend renames and deletes the own account; a blocked account sees the blocked message; setup creates the admin once, signs the existing admin in while the secret is set (and creates nothing else), and is 404 without the secret | FR-08…FR-12 |
+| FAC-03 | Devices list, remote sign-out and "everywhere else" end the right sessions; sliding expiry extends at most once a day; a session unused for 91 days is refused; after "Sign out", and after `session_ended` or `account_blocked` on a revoked device, the browser holds no store of any account (keys, journal, usage log, settings, own scenarios, turn metrics); a bare 401 or 403 without a typed code wipes nothing; a missing pepper gives 500, not 401; a second account on the same browser sees nothing of the first; a device that was offline is wiped at its first contact | FR-04, FR-07, FR-23 (stores by account) |
+| FAC-04 | Admin: sign-in link, block, unblock and delete behave as specified; non-admins get 404; the admin cannot block or delete itself and no request grants the admin flag; a friend renames and deletes the own account; a blocked account sees the blocked message; setup creates the admin once, signs the existing admin in while the secret is set (and creates nothing else), and is 404 without the secret or with a secret shorter than 32 bytes; failed setup attempts hit the global limit | FR-08…FR-12 |
 | FAC-05 | Isolation suite: two accounts and an admin against every endpoint — no response contains another account's data; the admin API returns no events | FR-13, FR-14 |
 | FAC-06 | Keys: after entering, checking and using a key, it is absent from every engine request, the D1 database, the export ZIP and the logs; a turn with Groq, Mistral or OpenRouter sends no request to the engine except sync; the relay test proves a custom key is forwarded and not stored or logged | FR-15, FR-17, FR-18, FR-22, FR-59 |
-| FAC-07 | Relay refuses: no session, blocked account, `http`, IP literal, `localhost`, the engine's host, a base URL with a user name, a query, a fragment or another port, a path outside the suffixes, an oversized body, the 601st request in an hour, an upstream answer of another content type, the relay switched off, and any request in local development without the development variable; only the three listed headers reach the upstream and no `Set-Cookie` comes back | FR-22 |
+| FAC-07 | Relay refuses: no session, blocked account, `http`, IP literal, `localhost`, the engine's host, a base URL with a user name, a query, a fragment or another port, a path outside the suffixes, an oversized body, the 601st request in an hour, an upstream answer of another content type, the relay switched off, `.local`, `.internal`, `.localhost` and `.home.arpa` names, a method other than the one allowed for the path, and any request in local development without the development variable; only the three listed headers reach the upstream and no `Set-Cookie` comes back | FR-22 |
 | FAC-08 | Chain fixtures: the TypeScript chain, pools, cooldowns and key check give the Swift results on the recorded cases; the rate-limit behaviour per provider is recorded from single real requests | FR-16, FR-19, FR-20 |
-| FAC-09 | Sync: idempotent push, cursor pull, batches of 500 events and 1 MB inside the measured per-request limits, strict validation with per-event results (a rejected event does not stop the others; unknown types are stored), foreign `device` refused outside import, refusal at the account cap and at the total threshold; two browsers that worked offline converge; no sync request contains keys, the chain, voice settings, own scenarios or the usage log | FR-23…FR-26, FR-29 |
+| FAC-09 | Sync: idempotent push, cursor pull, batches of 500 events and 1 MB inside the measured per-request limits, strict validation with per-event results (a rejected event does not stop the others; unknown types are stored), foreign `device` refused outside import, refusal at the account cap and at the total threshold; a repeated push leaves the size counter unchanged; two browsers that worked offline converge; no sync request contains keys, the chain, voice settings, own scenarios or the usage log | FR-23…FR-26, FR-29 |
 | FAC-10 | Export from the web restores on the Mac (`HistoryBackupTests` layout); a Mac export imports into the web, twice without duplicates; hostile ZIP cases are refused; an import interrupted by the daily write limit resumes | FR-27 |
 | FAC-11 | A cleared browser store is rebuilt from the server; missing keys bring back the key step | FR-28 |
 | FAC-12 | Every prompt snapshot is reproduced byte for byte; request bodies equal Swift's for all nine purposes | FR-39, FR-40 |
