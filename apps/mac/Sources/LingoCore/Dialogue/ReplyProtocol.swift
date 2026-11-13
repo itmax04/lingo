@@ -8,7 +8,7 @@ import Foundation
 /// @heard: Mir gefällt an Rostock, dass es hier das Meer gibt   (R-51: how the user's utterance was understood)
 /// ```
 /// A line without a tag is `@say` in the target language. Parse errors never break the turn and are counted as the `protocol_violation` metric.
-/// `@grade` (warm-up), `@task` (scenario), `@next` and `@help` (LINGO-09 MR-11/12/14) are silent (LINGO-05 PX-01): never spoken, never a segment (older builds would drop the whole
+/// `@grade` (warm-up), `@task` (scenario), `@next` and `@help` (LINGO-09 MR-11/12/14) and `@reply` (MR-50, parsed by `ReplyOptions`) are silent (LINGO-05 PX-01): never spoken, never a segment (older builds would drop the whole
 /// message), read from the raw text with `silentValues`.
 public enum ReplyProtocol {
     public struct Parsed: Sendable, Equatable {
@@ -67,7 +67,7 @@ public enum ReplyProtocol {
         case "heard":
             guard !body.isEmpty else { return (nil, true) }
             return (.heard(body), false)
-        case "grade", "task", "next", "help":
+        case "grade", "task", "next", "help", "reply":
             return (nil, false)
         case "tutor":
             // LINGO-09 MR-13/MR-14: the tutor's line outside the scene is an ordinary `say` segment.
@@ -83,22 +83,22 @@ public enum ReplyProtocol {
     }
 
     /// Tags parsed silently (PX-01).
-    public static let silentTags: Set<String> = ["grade", "task", "next", "help"]
+    public static let silentTags: Set<String> = ["grade", "task", "next", "help", "reply"]
 
     /// The tag (lower case) and body of a tagged line, after the same clean-up as `parseLine`; nil for an untagged line.
-    static func tagged<S: StringProtocol>(_ raw: S) -> (tag: String, body: String)? {
+    static func tagged<S: StringProtocol>(_ raw: S) -> (tag: String, body: String, lang: String?)? {
         var line = Substring(raw).trimmingCharacters(in: .whitespaces)
         while let f = line.first, "-*•>".contains(f) { line.removeFirst(); line = line.trimmingCharacters(in: .whitespaces) }
         line = line.replacingOccurrences(of: "**", with: "")
         guard line.hasPrefix("@") else { return nil }
         if let colon = line.firstIndex(of: ":") {
-            let tag = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ").first.map(String.init) ?? ""
-            return (tag, line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces))
+            let head = line[line.index(after: line.startIndex)..<colon].lowercased().split(separator: " ")
+            return (head.first.map(String.init) ?? "", line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces), head.count > 1 ? String(head[1]) : nil)
         }
         // No colon: the first word is the tag, the rest the body ("@grade good").
         let words = line.dropFirst().split(separator: " ", maxSplits: 1)
         guard let first = words.first else { return nil }
-        return (first.lowercased(), words.count > 1 ? words[1].trimmingCharacters(in: .whitespaces) : "")
+        return (first.lowercased(), words.count > 1 ? words[1].trimmingCharacters(in: .whitespaces) : "", nil)
     }
 
     /// Bodies of the silent `tag` lines in order (`@grade: good` → "good"), from the raw reply text.

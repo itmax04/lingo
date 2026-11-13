@@ -9640,6 +9640,23 @@
       },
       "extractionState": "manual"
     },
+    "reply options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "reply options"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "варианты ответа"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
     "weekly report": {
       "localizations": {
         "en": {

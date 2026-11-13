@@ -68,12 +68,14 @@ public enum EventType {
     public static let memoryUpdated = "memory.updated"
     public static let memoryRemoved = "memory.removed"
     public static let memorySwitched = "memory.switched"
+    /// LINGO-09 MR-54: the learner revealed a reply option (ids and numbers only).
+    public static let replyRevealed = "reply.revealed"
 
     public static let all: Set<String> = [sessionCreated, sessionUpdated, sessionDeleted, sessionEnded, sessionResumed,
                                          messageCreated, messageEdited, messageInterrupted, summaryUpdated, fixRecorded,
                                          hintAdded, phraseStarred, phraseUnstarred,
                                          vocabAdded, vocabUpdated, vocabRemoved, vocabUsed, profileUpdated, cardReviewed, cardSuspended, goalSet, scenarioTask, examPart, reportWeekly,
-                                         memoryNoted, memoryUpdated, memoryRemoved, memorySwitched]
+                                         memoryNoted, memoryUpdated, memoryRemoved, memorySwitched, replyRevealed]
 }
 
 // MARK: - JSON Lines row

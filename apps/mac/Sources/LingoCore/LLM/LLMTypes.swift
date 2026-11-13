@@ -34,6 +34,8 @@ public enum LLMPurpose: String, Sendable {
     case weeklyReport
     /// Memory extraction (GR-06): once per session, at its first Finish.
     case memory
+    /// Refreshed reply options (LINGO-09 MR-53): one request on the learner's click, two or three `@reply` lines.
+    case replyOptions
 }
 
 public struct LLMRequest: Sendable, Equatable {

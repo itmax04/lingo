@@ -61,6 +61,7 @@ struct QuotaRow: View {
         case "examFeedback": String(localized: "exam debrief")
         case "weeklyReport": String(localized: "weekly report")
         case "memory": String(localized: "memory")
+        case "replyOptions": String(localized: "reply options")
         case "eval": String(localized: "evals")
         case "translate": String(localized: "translation")
         default: p

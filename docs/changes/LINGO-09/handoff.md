@@ -1,6 +1,6 @@
 # LINGO-09 handoff: harsh tutor and conflict practice on the Mac
 
-Status: documents v1 written on 2026-11-12, v1.1 (reply options) on 2026-11-13; accepted at H-09-0 on 2026-11-13. M-1a (#120) built on `feat/120-tone-data` (PR below); next M-11a (#139).
+Status: documents v1 written on 2026-11-12, v1.1 (reply options) on 2026-11-13; accepted at H-09-0 on 2026-11-13. M-1a (#120) built on `feat/120-tone-data` (PR #141); M-11a (#139) built on `feat/139-reply-options-data` (cut from it); next M-11b (#140).
 
 ## Identity
 - Change: LINGO-09 (completion plan row B). Risk: R2. Milestone: "LINGO-09 · Modes".
@@ -49,9 +49,22 @@ and copied into [intent.md](intent.md) without change. The owner's concept paper
 - Verified at a647018: swift build PASS; swift test 448 passed (exit 1 from the ggml-metal exit assert); check-core-ios PASS; npm test 327 passed; check-english PASS; secret-scan 0 findings.
 - Independent review (sdlc:reviewer): approve-with-notes, no P0/P1. F2 (range check in `normalized`) fixed. Left open: F1 `local` has no merger-state test in Swift/TS (add in M-3a, the first step that sets it); F3 `decodeTone` not exported (only if needed); F4 `@tutor` is accepted in any session by the parser — the caller must gate it to combined sessions (MR-13) in the prompt/engine step.
 
+## Done: M-11a (#139)
+Branch `feat/139-reply-options-data`, cut from `feat/120-tone-data` (PR #141, not merged at the time): retarget the PR to `main` after #141 merges.
+- `@reply` is a silent tag (Swift `ReplyProtocol.silentTags`, TS `SILENT_TAGS`): never spoken, never a segment, never a violation. `ReplyOptions.parse` / `parseReplyOptions` read the raw text: language (missing or unknown = study language), phrase, translation; lines without `|` or with an empty phrase are skipped, an empty translation is kept, at most three kept (MR-50). Shared fixture `protocol/reply-options.json` (11 cases).
+- Switch: `AppSettings.replyOptions` (device-local, tolerant, off by default). `ReplyOptions.isOffered(settings, ended:)`: ordinary and scenario sessions only; hidden in tone, warm-up, exam (incl. Goethe training) and ended sessions (MR-49). Trial sessions join the hidden list in X-2 (MAC-25).
+- Prompt: `PromptBuilder.system(…, replyOptions:)` and `dialogRequest(…, replyOptions:)` add one protocol line (`@reply <lang>: … | <Russian> (2–3 lines, different, their level, not an @hint, not spoken)`), 131 characters ≈ 37 estimated tokens (≤ 40, MAC-30). With the switch off or hidden the text is identical to today's (tested; the 30 existing snapshots are untouched). New snapshot `prompt-free-inline-replyoptions.txt`.
+- `DialogEngine.setReplyOptions(_:)` carries the switch into the request; nothing calls it yet (M-11b adds the control and the block).
+- `LLMPurpose.replyOptions` (MR-53, the refresh request itself is M-11b) with a usage label and Russian string.
+- `reply.revealed` `{message, index}`: `EventType`, `Payload.ReplyRevealed`, merger (no state, malformed = unknown), schema, TS decoder, journal fixture `events/reply-revealed.jsonl`.
+- D-11: `@reply` is parsed only from the raw reply text (like `@next`), so an older build that never asks for it and reads stored segments is unaffected (MR-45); no segment is stored for it.
+- D-12: an empty translation after `|` is kept (the spec skips only a missing separator or empty phrase); the UI of M-11b decides how to show it.
+- Independent review (sdlc:reviewer, Sonnet, 0d699e0): approve-with-notes, no P0/P1. F1 (P3): `DialogEngine.setReplyOptions` has no caller — M-11b must wire `AppSettings.replyOptions` to it at engine start and on every settings change. F2, F3: no change needed.
+- Not done here by design: DESIGN.md §5 entry, interface, refresh request, token evidence (M-11b).
+
 ## Next step
-Step M-11a (#139): reply options data and prompt (`@reply`, MR-49…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11a (#139) from
-docs/changes/LINGO-09/handoff.md".
+Step M-11b (#140): reply options interface (block under the anchor, first words and reveal, ▶ ★ Insert, refresh, `reply.revealed` written, DESIGN.md §5, screenshots, token evidence; MR-51…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11b (#140) from
+docs/changes/LINGO-09/handoff.md", branch from `feat/139-reply-options-data` until it is merged.
 
 ## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)
 Verdict changes-required: P1 F1 (token budget made relative), F2 (help and calm detected only in tone sessions); P2 F3–F11 and P3 F12–F16 fixed in the follow-up commit (step order M-1a → M-3a → M-1b, buffering rule, local messages out of the context window, experiment arms differ only in tone, new events, risk row and O-6). Milestone and issues #120–#138 created; stop at H-09-0 (#135).

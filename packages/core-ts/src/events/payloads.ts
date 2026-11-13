@@ -80,6 +80,11 @@ const memoryNoted = shape((o, p) => {
 const memoryUpdated = shape((o, p) => ({ fact: str(field(o, "fact"), `${p}.fact`), text: str(field(o, "text"), `${p}.text`) }));
 const memoryRemoved = shape((o, p) => ({ fact: str(field(o, "fact"), `${p}.fact`) }));
 const memorySwitched = shape((o, p) => ({ on: bool(field(o, "on"), `${p}.on`) }));
+const replyRevealed = shape((o, p) => {
+  const index = int(field(o, "index"), `${p}.index`);
+  if (index < 0) throw new DecodeError(`${p}.index`);
+  return { message: str(field(o, "message"), `${p}.message`), index };
+});
 
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
@@ -105,4 +110,5 @@ export const Payload = {
   memoryUpdated: (v: JSONValue) => attempt(memoryUpdated, v),
   memoryRemoved: (v: JSONValue) => attempt(memoryRemoved, v),
   memorySwitched: (v: JSONValue) => attempt(memorySwitched, v),
+  replyRevealed: (v: JSONValue) => attempt(replyRevealed, v),
 };

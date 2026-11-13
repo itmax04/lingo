@@ -213,6 +213,7 @@ export function buildState(input: readonly JournalEvent[], isSynced: (e: Journal
       case EventType.memoryUpdated: if (!Payload.memoryUpdated(e.payload)) st.unknownEvents++; break;
       case EventType.memoryRemoved: if (!Payload.memoryRemoved(e.payload)) st.unknownEvents++; break;
       case EventType.memorySwitched: if (!Payload.memorySwitched(e.payload)) st.unknownEvents++; break;
+      case EventType.replyRevealed: if (!Payload.replyRevealed(e.payload)) st.unknownEvents++; break;
       case EventType.examPart: if (!Payload.examPart(e.payload)) st.unknownEvents++; break;
       default: st.unknownEvents++;
     }

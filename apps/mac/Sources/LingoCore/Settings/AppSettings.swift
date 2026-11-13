@@ -19,10 +19,13 @@ public struct AppSettings: Codable, Sendable, Hashable {
     public var reminderTime = Reminder.defaultTime
     /// The learner's own scenarios, both study languages (device-local like the reminder; sessions keep their own copy).
     public var customScenarios: [CustomScenario] = []
+    /// LINGO-09 MR-49: the "Reply options" switch. Device-local like the reminder, never journaled; off by default.
+    /// Whether a session offers it is `ReplyOptions.isOffered`.
+    public var replyOptions = false
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime, customScenarios }
+    enum CodingKeys: String, CodingKey { case llm, context, lastCorrections, lastLang, syncBookmark, backupBookmark, onboardingDone, voice, reminderOn, reminderTime, customScenarios, replyOptions }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -37,6 +40,7 @@ public struct AppSettings: Codable, Sendable, Hashable {
         reminderOn = (try? c.decodeIfPresent(Bool.self, forKey: .reminderOn)) ?? false
         reminderTime = Reminder.clamp((try? c.decodeIfPresent(Int.self, forKey: .reminderTime)) ?? Reminder.defaultTime)
         customScenarios = ((try? c.decodeIfPresent([Lossy<CustomScenario>].self, forKey: .customScenarios)) ?? []).compactMap(\.value).filter(\.isValid)
+        replyOptions = (try? c.decodeIfPresent(Bool.self, forKey: .replyOptions)) ?? false
     }
 }
 

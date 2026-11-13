@@ -49,7 +49,7 @@ public enum PromptBuilder {
     /// System part (LINGO-08 PR-08 order): role and voice context → session → `<profile>` → rules → output protocol → custom instructions.
     /// Compact for the MR-02 budget (PR-09): ≤ 900 provider tokens with an empty transcript and a maximal profile. Rules 1–9 keep their
     /// LINGO-03 numbers; new rules get letters.
-    public static func system(_ s: SessionSettings, policy: ContextPolicy = ContextPolicy(), profile: PromptProfile = PromptProfile()) -> String {
+    public static func system(_ s: SessionSettings, policy: ContextPolicy = ContextPolicy(), profile: PromptProfile = PromptProfile(), replyOptions: Bool = false) -> String {
         let L = s.lang.rawValue
         let name = langName(s.lang)
         let level = s.level.trimmingCharacters(in: .whitespaces)
@@ -106,7 +106,9 @@ public enum PromptBuilder {
 
         let scenario = s.scenario
         let taskLine = scenario.map { !$0.tasks.isEmpty } ?? false
-        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (taskLine ? [scenarioProtocolLine] : [])))
+        // LINGO-09 MR-49/MR-50: the tag and its rule only where the switch is offered; otherwise the text is exactly the earlier one.
+        let options = replyOptions && ReplyOptions.isOffered(s)
+        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (taskLine ? [scenarioProtocolLine] : []) + (options ? [replyProtocolLine(s.lang)] : [])))
         if let sc = scenario { p.append(scenarioBlock(sc)) }
 
         if s.mode == .customPrompt {
@@ -240,6 +242,11 @@ public enum PromptBuilder {
         """
     }
 
+    /// LINGO-09 MR-50: the `@reply` tag and its one rule (≤ 40 estimated tokens, MAC-30).
+    static func replyProtocolLine(_ lang: Lang) -> String {
+        "@reply \(lang.rawValue): <answer the learner could give, 1st person> | <Russian> (2–3 lines, different, their level, not an @hint, not spoken)"
+    }
+
     // MARK: Warm-up (LINGO-05 WR-02, PX-02, PX-03)
 
     /// The warm-up mode (≤ 150 provider tokens): one card at a time, graded silently.
@@ -338,7 +345,8 @@ public enum PromptBuilder {
     public static func dialogRequest(settings: SessionSettings, summary: String, messages: [ChatMessage],
                                      command: CommandKind? = nil, policy: ContextPolicy = ContextPolicy(),
                                      profile: PromptProfile = PromptProfile(), vocabulary: [VocabItem] = [],
-                                     warmup: WarmupPrompt? = nil, scenarioDone: [Int]? = nil, exam: ExamRun? = nil, now: Date = Date()) -> LLMRequest {
+                                     warmup: WarmupPrompt? = nil, scenarioDone: [Int]? = nil, exam: ExamRun? = nil, now: Date = Date(),
+                                     replyOptions: Bool = false) -> LLMRequest {
         let window = examOwnTalk(exam, messages) ?? policy.window(messages)
         var u: [String] = []
         let sum = stripTags(summary).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -372,7 +380,7 @@ public enum PromptBuilder {
         } else {
             u.append(nextStepTask)
         }
-        return LLMRequest(system: system(settings, policy: policy, profile: profile), messages: [LLMMessage(role: .user, text: u.joined(separator: "\n\n"))],
+        return LLMRequest(system: system(settings, policy: policy, profile: profile, replyOptions: replyOptions), messages: [LLMMessage(role: .user, text: u.joined(separator: "\n\n"))],
                           maxTokens: PromptBuilder.dialogOutputReserve, purpose: .dialog, temperature: 0.6)
     }
 

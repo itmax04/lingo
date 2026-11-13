@@ -1,0 +1,5 @@
+{"device":"synthetic-reply","id":"rr-0","lamport":1,"payload":{"index":0,"message":"m1"},"seq":1,"session":"s1","ts":"1970-01-01T00:00:00.001Z","type":"reply.revealed","v":1}
+{"device":"synthetic-reply","id":"rr-1","lamport":2,"payload":{"index":2,"message":"m1"},"seq":2,"session":"s1","ts":"1970-01-01T00:00:00.002Z","type":"reply.revealed","v":1}
+{"device":"synthetic-reply","id":"rr-bad-0","lamport":3,"payload":{"index":-1,"message":"m1"},"seq":3,"session":"s1","ts":"1970-01-01T00:00:00.003Z","type":"reply.revealed","v":1}
+{"device":"synthetic-reply","id":"rr-bad-1","lamport":4,"payload":{"message":"m1"},"seq":4,"session":"s1","ts":"1970-01-01T00:00:00.004Z","type":"reply.revealed","v":1}
+{"device":"synthetic-reply","id":"rr-bad-2","lamport":5,"payload":{"index":0,"message":7},"seq":5,"session":"s1","ts":"1970-01-01T00:00:00.005Z","type":"reply.revealed","v":1}

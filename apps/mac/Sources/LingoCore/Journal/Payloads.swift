@@ -179,6 +179,13 @@ public enum Payload {
         public init(on: Bool) { self.on = on }
     }
 
+    /// LINGO-09 MR-54: reply option `index` (0-based) of the reply `message` was revealed. Ids and numbers only (MR-46).
+    public struct ReplyRevealed: Codable, Sendable, Hashable {
+        public var message: String
+        public var index: Int
+        public init(message: String, index: Int) { self.message = message; self.index = index }
+    }
+
     /// LINGO-05 GR-02: the daily goal in minutes (5–120; other values are clamped when read).
     public struct GoalSet: Codable, Sendable, Hashable {
         public var minutes: Int

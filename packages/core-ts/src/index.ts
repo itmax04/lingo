@@ -13,6 +13,7 @@ export { buildState, visibleSessions, compareVersions, type HistoryState, type S
   type ProfileUpdate, type Version } from "./events/merge.js";
 export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, type Tone, TONE_PRESETS, decodeSettings, type Fix, type Phrase, type ReplySegment, type Role,
   type CorrectionMode, type SessionMode, type Starter, type PhraseSource, type MessageKind } from "./model/types.js";
+export { parseReplyOptions, MAX_REPLY_OPTIONS, type ReplyOption } from "./protocol/reply.js";
 export { parseReply, parseLine, parseFix, stripThinking, sayText, spokenText, ReplyStreamParser, type Parsed, type StreamItem } from "./protocol/reply.js";
 export { characters, prefixCharacters, trimSpaces } from "./protocol/text.js";
 export { detectCommand, normalizeCommand, levenshtein, type CommandMatch } from "./commands/detector.js";
