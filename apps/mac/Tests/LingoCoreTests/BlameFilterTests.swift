@@ -140,6 +140,25 @@ import Testing
         #expect(!(String(data: try JSONEncoder().encode(filtered[0].payload), encoding: .utf8) ?? "").contains("falsch"), "no text in the event")
     }
 
+    /// MR-15 "shown": no streamed partial carries a blame sentence that the filter later removes.
+    @Test func partialsNeverShowRemovedBlame() async throws {
+        let (e, _) = try engine(["@say de: Das ist fal", "sch. Noch einmal.\n"])
+        var st = SessionSettings(lang: .de, mode: .free, corrections: [.inline])
+        st.tone = Tone(harshness: 3, hostility: 0)
+        let sid = try await e.createSession(st)
+        var partials: [String] = []
+        for await ev in e.send(session: sid, text: "Ich bin gehen nach Hause", lang: .de) { if case .partial(let t) = ev { partials.append(t) } }
+        #expect(!partials.isEmpty)
+        #expect(partials.allSatisfy { !$0.contains("fal") })
+    }
+
+    @Test func swearingNeedsTheLevelThatNamesIt() {
+        for (h, o, yes) in [(1, 0, false), (4, 4, false), (5, 0, true), (0, 5, true)] {
+            let b = TonePrompt.block(Tone(harshness: h, hostility: o, profanity: true))
+            #expect(b.contains("Swearing: \(yes ? "yes" : "no")"), "levels \(h)/\(o)")
+        }
+    }
+
     @Test func engineKeepsBlameThatAFixBacks() async throws {
         let (e, store) = try engine(["@fix: Ich bin gehen → Ich gehe | Verb\n", "@say de: Falsch. Noch einmal.\n"])
         let r = try await turn(e, tone: Tone(harshness: 3, hostility: 0))

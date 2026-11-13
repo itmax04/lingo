@@ -183,7 +183,8 @@ public actor DialogEngine {
                 cont.yield(.firstToken(afterMs: ms))
             case .text(let t):
                 for item in parser.feed(t) { for (l, x) in gate.offer(item) { cont.yield(.speak(l, x)) } }
-                cont.yield(.partial(ReplyProtocol.stripThinking(parser.text)))
+                let shown = ReplyProtocol.stripThinking(parser.text)
+                cont.yield(.partial(gate.isHolding ? BlameFilter.heldPartial(raw: shown, tone: tone, lang: s.settings.lang) : shown))
             case .restart:
                 parser = ReplyStreamParser(studyLang: s.settings.lang)
                 gate = BlameGate(tone: tone, lang: s.settings.lang)

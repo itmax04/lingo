@@ -86,6 +86,20 @@ public enum BlameFilter {
         ReplyProtocol.silentValues(raw, tag: "fix").contains { ReplyProtocol.parseFix($0) != nil }
     }
 
+    static func isTutorLine(_ line: String, combined: Bool, lang: Lang) -> Bool {
+        let t = ReplyProtocol.tagged(line)
+        let lineLang = t?.lang.flatMap(Lang.init(rawValue:)) ?? lang
+        return !line.trimmingCharacters(in: .whitespaces).isEmpty
+            && (combined ? t?.tag == "tutor" : (t?.tag == nil || t?.tag == "say" || t?.tag == "tutor") && lineLang != .ru)
+    }
+
+    /// The text shown while the stream is still held (MR-15 "shown"): tutor speech is not shown until a fix releases it or the end decides.
+    public static func heldPartial(raw: String, tone: Tone?, lang: Lang) -> String {
+        guard applies(tone), let tone else { return raw }
+        let combined = tone.hostility >= 1
+        return raw.components(separatedBy: "\n").filter { !isTutorLine($0, combined: combined, lang: lang) }.joined(separator: "\n")
+    }
+
     /// Filters the raw reply text. `replacement` is asked at most once, and only when nothing of the tutor's speech remains.
     public static func filter(raw: String, tone: Tone?, lang: Lang, replacement: () -> String) -> Result {
         guard applies(tone), let tone, !hasFix(raw) else { return Result(text: raw, removed: 0) }
@@ -96,8 +110,7 @@ public enum BlameFilter {
             let t = ReplyProtocol.tagged(line)
             let tag = t?.tag
             let lineLang = t?.lang.flatMap(Lang.init(rawValue:)) ?? lang
-            let isTutor = !line.trimmingCharacters(in: .whitespaces).isEmpty
-                && (combined ? tag == "tutor" : (tag == nil || tag == "say" || tag == "tutor") && lineLang != .ru)
+            let isTutor = isTutorLine(line, combined: combined, lang: lang)
             guard isTutor else { out.append(line); continue }
             if firstTutor == nil { firstTutor = n }
             let parts = sentences(t?.body ?? line.trimmingCharacters(in: .whitespaces))

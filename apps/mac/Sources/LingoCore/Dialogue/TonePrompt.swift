@@ -45,7 +45,7 @@ public enum TonePrompt {
         var l = ["# Tone"]
         if t.harshness >= 1 { l.append("Tutor \(t.harshness): \(promptSentence(harshnessSentence(t.harshness)))") }
         if t.hostility >= 1 { l.append("Character \(t.hostility): \(promptSentence(hostilitySentence(t.hostility)))") }
-        l.append("Swearing: \(t.profanity ? "yes" : "no")")
+        l.append("Swearing: \(t.profanity && max(t.harshness, t.hostility) >= 5 ? "yes" : "no")")  // only at the level that names it (MR-05, MR-06)
         l.append(limits)
         return l.joined(separator: "\n")
     }
