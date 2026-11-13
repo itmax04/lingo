@@ -16,8 +16,8 @@ export function spokenText(segments: readonly ReplySegment[], raw: string): stri
   return segments.length === 0 ? removingSilentLines(raw) : segments.flatMap((s) => sayText(s) ?? []).join(" ");
 }
 
-/** Tags parsed silently (LINGO-05 PX-01): never spoken, never a segment. */
-export const SILENT_TAGS: ReadonlySet<string> = new Set(["grade", "task"]);
+/** Tags parsed silently (LINGO-05 PX-01; LINGO-09 MR-11, MR-12, MR-14 add `next` and `help`): never spoken, never a segment. */
+export const SILENT_TAGS: ReadonlySet<string> = new Set(["grade", "task", "next", "help"]);
 
 /** The tag (lower case) and body of a tagged line after the `parseLine` clean-up; null for an untagged line. */
 function tagged(raw: string): { tag: string; body: string } | null {
@@ -99,7 +99,12 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
       return body === "" ? [null, true] : [{ heard: { _0: body } }, false];
     case "grade":
     case "task":
+    case "next":
+    case "help":
       return [null, false];
+    case "tutor":
+      // LINGO-09 MR-13/MR-14: the tutor's line outside the scene is an ordinary say segment.
+      return body === "" ? [null, true] : [say(l ?? studyLang, body), langBad];
     case "hint": {
       const parts = splitOnce(body, "|").map(trimSpaces);
       const phrase = parts[0];

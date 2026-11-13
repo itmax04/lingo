@@ -11,7 +11,7 @@ export function isReadOnlyVersion(v: number): boolean {
 }
 export { buildState, visibleSessions, compareVersions, type HistoryState, type Session, type ChatMessage, type FixEntry,
   type ProfileUpdate, type Version } from "./events/merge.js";
-export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, type Fix, type Phrase, type ReplySegment, type Role,
+export { phraseKey, CORRECTION_MODES, LANGS, type Lang, type SessionSettings, type Tone, TONE_PRESETS, decodeSettings, type Fix, type Phrase, type ReplySegment, type Role,
   type CorrectionMode, type SessionMode, type Starter, type PhraseSource, type MessageKind } from "./model/types.js";
 export { parseReply, parseLine, parseFix, stripThinking, sayText, spokenText, ReplyStreamParser, type Parsed, type StreamItem } from "./protocol/reply.js";
 export { characters, prefixCharacters, trimSpaces } from "./protocol/text.js";

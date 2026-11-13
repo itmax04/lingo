@@ -1,6 +1,6 @@
 # LINGO-09 handoff: harsh tutor and conflict practice on the Mac
 
-Status: documents v1 written on 2026-11-12, v1.1 (reply options) on 2026-11-13; waiting for the owner at H-09-0. No code yet.
+Status: documents v1 written on 2026-11-12, v1.1 (reply options) on 2026-11-13; accepted at H-09-0 on 2026-11-13. M-1a (#120) built on `feat/120-tone-data` (PR below); next M-11a (#139).
 
 ## Identity
 - Change: LINGO-09 (completion plan row B). Risk: R2. Milestone: "LINGO-09 · Modes".
@@ -36,11 +36,21 @@ and copied into [intent.md](intent.md) without change. The owner's concept paper
 - D-09: Reply options are hidden in tone sessions, so the learner never sees two help mechanisms at once; Help (MR-22) serves there.
 
 ## Open
-- H-09-0: the owner accepts the documents and answers O-1…O-7 of [intent.md](intent.md).
+- H-09-0: accepted by the owner on 2026-11-13 in chat (executor session): documents v1.1 and O-1…O-7 exactly as proposed in [intent.md](intent.md). Recorded here because the docs branch is checked out in another worktree; the owner merges PR #119 (this branch is cut from it).
 - The owner's two concept papers could be added to `design/` if the owner wants them kept with the project.
 
+## Done: M-1a (#120)
+`Tone` and `SessionSettings.tone` (tolerant decoding, dropped at level 0), presets, the `local` mark of `message.created` / `ChatMessage`, silent tags `@next` and `@help`, `@tutor` as a `say` segment (parsing only, no caller yet), schema, fixtures (`events/tone-settings.json`, four cases in `protocol/replies.json`), TypeScript decoders. No prompt, request or UI change; no prompt snapshot touched (MAC-01).
+- D-10: `@tutor` with an empty body is a violation and produces no segment, like `@say`. `local` is false when missing; nothing sets it yet (M-3a drill lines will).
+- Check note: `swift test` ends with exit 1 after all 448 tests pass: `GGML_ASSERT([rsets->data count] == 0)` in ggml-metal while the process exits (whisper teardown). Not caused by this change; not compared against `main`.
+
+## M-1a delivery state (2026-11-13)
+- Branch `feat/120-tone-data`, commit a647018 on top of 9dc3705 (docs v1.1). Not pushed, PR not opened.
+- Verified at a647018: swift build PASS; swift test 448 passed (exit 1 from the ggml-metal exit assert); check-core-ios PASS; npm test 327 passed; check-english PASS; secret-scan 0 findings.
+- Independent review (sdlc:reviewer): approve-with-notes, no P0/P1. F2 (range check in `normalized`) fixed. Left open: F1 `local` has no merger-state test in Swift/TS (add in M-3a, the first step that sets it); F3 `decodeTone` not exported (only if needed); F4 `@tutor` is accepted in any session by the parser — the caller must gate it to combined sessions (MR-13) in the prompt/engine step.
+
 ## Next step
-After H-09-0: step M-1a (data, contracts and parsing). Tier: standard. Start: "Continue LINGO-09 with M-1a from
+Step M-11a (#139): reply options data and prompt (`@reply`, MR-49…MR-54). Tier: standard. Start: "Continue LINGO-09 with M-11a (#139) from
 docs/changes/LINGO-09/handoff.md".
 
 ## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)

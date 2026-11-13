@@ -24,9 +24,11 @@ public enum Payload {
         public var kind: ChatMessage.Kind?
         /// The user message this is a reply to — for "Reply again" (R-09).
         public var replyTo: String?
+        /// LINGO-09 MR-18: fixed app text spoken without a model request. Missing = false; excluded from the context window.
+        public var local: Bool?
 
         public init(role: Role, text: String, lang: Lang, segments: [ReplySegment]? = nil, source: String? = nil,
-                    kind: ChatMessage.Kind? = nil, replyTo: String? = nil) {
+                    kind: ChatMessage.Kind? = nil, replyTo: String? = nil, local: Bool? = nil) {
             self.role = role
             self.text = text
             self.lang = lang
@@ -34,6 +36,7 @@ public enum Payload {
             self.source = source
             self.kind = kind
             self.replyTo = replyTo
+            self.local = local
         }
     }
 

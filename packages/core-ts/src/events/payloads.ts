@@ -9,7 +9,7 @@ import type { JSONValue } from "../json.js";
 export interface SessionCreated { title: string; settings: SessionSettings }
 export interface SessionUpdated { title?: string; settings?: SessionSettings }
 export interface MessageCreated {
-  role: Role; text: string; lang: Lang; segments?: ReplySegment[]; source?: string; kind?: MessageKind; replyTo?: string;
+  role: Role; text: string; lang: Lang; segments?: ReplySegment[]; source?: string; kind?: MessageKind; replyTo?: string; local?: boolean;
 }
 export interface SummaryUpdated { text: string; through?: string }
 export interface ProfileUpdated { goals?: string; interests?: string }
@@ -28,6 +28,7 @@ const messageCreated = shape<MessageCreated>((o, p) => compact({
   role: oneOf(ROLES)(field(o, "role"), `${p}.role`), text: str(field(o, "text"), `${p}.text`), lang: oneOf(LANGS)(field(o, "lang"), `${p}.lang`),
   segments: optional(array(decodeSegment))(field(o, "segments"), `${p}.segments`), source: optional(str)(field(o, "source"), `${p}.source`),
   kind: optional(oneOf(MESSAGE_KINDS))(field(o, "kind"), `${p}.kind`), replyTo: optional(str)(field(o, "replyTo"), `${p}.replyTo`),
+  local: optional(bool)(field(o, "local"), `${p}.local`),
 }));
 const messageEdited = shape((o, p) => ({ message: str(field(o, "message"), `${p}.message`), text: str(field(o, "text"), `${p}.text`) }));
 const messageInterrupted = shape((o, p) => ({ message: str(field(o, "message"), `${p}.message`), at: int(field(o, "at"), `${p}.at`) }));

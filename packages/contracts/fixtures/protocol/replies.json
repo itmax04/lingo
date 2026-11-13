@@ -1270,6 +1270,238 @@
       "studyLang" : "de",
       "text" : "@ grade good\n@say de: Weiter.",
       "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Nein."
+          ]
+        },
+        {
+          "speak" : [
+            "de",
+            "Sagen Sie es noch einmal."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Nein. Sagen Sie es noch einmal."
+            }
+          }
+        },
+        {
+          "segment" : {
+            "fix" : {
+              "_0" : {
+                "corrected" : "ich bin gegangen",
+                "original" : "ich habe gehen",
+                "rule" : "sein"
+              }
+            }
+          }
+        },
+        {
+          "segment" : {
+            "hint" : {
+              "_0" : {
+                "lang" : "de",
+                "source" : "hint",
+                "text" : "Ich bin gestern ins Kino gegangen.",
+                "translation" : "Вчера я ходил в кино."
+              }
+            }
+          }
+        }
+      ],
+      "name" : "LINGO-09 silent tags @next and @help",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Nein. Sagen Sie es noch einmal."
+          }
+        },
+        {
+          "fix" : {
+            "_0" : {
+              "corrected" : "ich bin gegangen",
+              "original" : "ich habe gehen",
+              "rule" : "sein"
+            }
+          }
+        },
+        {
+          "hint" : {
+            "_0" : {
+              "lang" : "de",
+              "source" : "hint",
+              "text" : "Ich bin gestern ins Kino gegangen.",
+              "translation" : "Вчера я ходил в кино."
+            }
+          }
+        }
+      ],
+      "spokenText" : "Nein. Sagen Sie es noch einmal.",
+      "studyLang" : "de",
+      "text" : "@say de: Nein. Sagen Sie es noch einmal.\n@fix: ich habe gehen → ich bin gegangen | sein\n@next de: Was haben Sie gestern gemacht?\n@help: Sagen Sie, wo Sie waren | Ich war gestern in\n@hint de: Ich bin gestern ins Kino gegangen. | Вчера я ходил в кино.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Weiter."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Weiter."
+            }
+          }
+        }
+      ],
+      "name" : "LINGO-09 silent tags without a colon and in a list",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Weiter."
+          }
+        }
+      ],
+      "spokenText" : "Weiter.",
+      "studyLang" : "de",
+      "text" : "- @next de: Wohin?\n**@help:** Nennen Sie den Ort | Ich fahre nach\n@help Ort\n@say de: Weiter.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "de",
+            "Was wollen Sie?"
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Was wollen Sie?"
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Wrong. Repeat the sentence."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Wrong. Repeat the sentence."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "de",
+            "Noch einmal."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "de",
+              "_1" : "Noch einmal."
+            }
+          }
+        }
+      ],
+      "name" : "LINGO-09 @tutor is a say segment with its language",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Was wollen Sie?"
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Wrong. Repeat the sentence."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "de",
+            "_1" : "Noch einmal."
+          }
+        }
+      ],
+      "spokenText" : "Was wollen Sie? Wrong. Repeat the sentence. Noch einmal.",
+      "studyLang" : "de",
+      "text" : "@say de: Was wollen Sie?\n@tutor en: Wrong. Repeat the sentence.\n@tutor: Noch einmal.",
+      "violations" : 0
+    },
+    {
+      "items" : [
+        {
+          "speak" : [
+            "en",
+            "Again."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Again."
+            }
+          }
+        },
+        {
+          "speak" : [
+            "en",
+            "Go on."
+          ]
+        },
+        {
+          "segment" : {
+            "say" : {
+              "_0" : "en",
+              "_1" : "Go on."
+            }
+          }
+        }
+      ],
+      "name" : "LINGO-09 @tutor with a bad language or no body",
+      "segments" : [
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Again."
+          }
+        },
+        {
+          "say" : {
+            "_0" : "en",
+            "_1" : "Go on."
+          }
+        }
+      ],
+      "spokenText" : "Again. Go on.",
+      "studyLang" : "en",
+      "text" : "@tutor xx: Again.\n@tutor de:\n@say en: Go on.",
+      "violations" : 2
     }
   ],
   "rule" : "R-24 reply protocol (LINGO-01) and R-13 streaming speech; inputs are synthetic, the expected fields are written by Swift `ReplyProtocolContractTests` (LINGO_RECORD_FIXTURES=1). Streamed items are checked for every split at a Character boundary (a split inside a grapheme cluster is not covered)."

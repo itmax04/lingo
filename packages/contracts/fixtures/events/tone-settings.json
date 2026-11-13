@@ -1,0 +1,19 @@
+{
+  "rule": "LINGO-09 MR-01, MR-44, MR-45: session settings with a tone. `base` is a valid settings object; each case adds `extra` fields and lists the tone both decoders must read (null = no tone). Written by hand; checked by Swift ToneTests and TypeScript tone.test.ts.",
+  "base": {"lang": "de", "mode": "free", "topic": "", "role": "", "level": "B1", "customPrompt": "", "corrections": ["inline"], "starter": "assistant"},
+  "cases": [
+    {"name": "no tone", "extra": {}, "tone": null},
+    {"name": "combined", "extra": {"tone": {"harshness": 3, "hostility": 3, "profanity": false}}, "tone": {"harshness": 3, "hostility": 3, "profanity": false}},
+    {"name": "maximum with profanity", "extra": {"tone": {"harshness": 5, "hostility": 5, "profanity": true}}, "tone": {"harshness": 5, "hostility": 5, "profanity": true}},
+    {"name": "only hostility", "extra": {"tone": {"harshness": 0, "hostility": 1, "profanity": false}}, "tone": {"harshness": 0, "hostility": 1, "profanity": false}},
+    {"name": "level 0 is no tone", "extra": {"tone": {"harshness": 0, "hostility": 0, "profanity": true}}, "tone": null},
+    {"name": "harshness out of range", "extra": {"tone": {"harshness": 6, "hostility": 0, "profanity": false}}, "tone": null},
+    {"name": "negative hostility", "extra": {"tone": {"harshness": 1, "hostility": -1, "profanity": false}}, "tone": null},
+    {"name": "missing field", "extra": {"tone": {"harshness": 2, "hostility": 2}}, "tone": null},
+    {"name": "wrong type", "extra": {"tone": {"harshness": "3", "hostility": 0, "profanity": false}}, "tone": null},
+    {"name": "fractional level", "extra": {"tone": {"harshness": 2.5, "hostility": 0, "profanity": false}}, "tone": null},
+    {"name": "not an object", "extra": {"tone": 3}, "tone": null},
+    {"name": "null", "extra": {"tone": null}, "tone": null},
+    {"name": "extra keys ignored", "extra": {"tone": {"harshness": 2, "hostility": 0, "profanity": false, "future": 1}}, "tone": {"harshness": 2, "hostility": 0, "profanity": false}}
+  ]
+}
