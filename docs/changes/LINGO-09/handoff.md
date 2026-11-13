@@ -102,6 +102,14 @@ Branch `feat/122-tone-prompt`, cut from `feat/121-local-lines` (PRs #141…#144 
   - F9 (P3) the budget test covers both languages, scenario and reply-options sessions; headroom above (D-15).
   - F10 (P3) open: the owner confirms D-16 (Russian lines unfiltered) at H-09.
   - Left open for M-2: a model that invents an `@fix` on a correct turn passes `no_blame_without_fix` (consider a `no_fix` rule for `tone_correct`); `fehler`/`mistake*` also match praise ("No mistakes"); the tone example has no `@help` (watch `has_help`). Not checked: barge-in offsets with a filtered reply; other views that render the raw `message.text` (copy, export).
+  - Re-review of `28bbaa9..be3ae39` (independent, Opus): approve-with-notes, no P0/P1/P2; F1–F9 confirmed fixed. Omitting "attempts to get around a provider's refusal" is acceptable (MR-36 covers it); confirm at H-09 together with D-16. P3 notes:
+    - R1 the `Swearing:` line is session-wide, so at level 5 with a level-3 voice that voice may swear too (`TonePrompt.swift:48`); decide at H-09 who may swear and record a D-entry.
+    - R2 rule 6a lost "with no mistake, continue without blame" (`TonePrompt.swift:66`); watch `no_blame_without_fix` in M-2.
+    - R3 the intro lacks "for training" (pre-existing).
+    - R4 the German combined `@tutor` example has no repeat demand; e.g. "Sagen Sie: „…“" if the budget holds.
+    - R5 budget headroom is 4 tokens (166/170).
+    - N5 (own re-review) contracts README now documents leading `*` = suffix match (fixed). N6 cosmetic: if the first `@fix` completes only in `parser.finish()`, no new partial is sent; the held partial stays until `.finished` (nothing removed is shown). My reviewer rated R1 as P2 (not blocking); the D-entry is for H-09.
+    - R6 measuring the character with tutor markers adds in-scene noise; read flagged outputs in M-2.
 - NOT RUN: any live model call (M-2, at night only); the TypeScript side has no prompt builder or filter yet (web paused), so only the event is mirrored.
 
 ## Next step
