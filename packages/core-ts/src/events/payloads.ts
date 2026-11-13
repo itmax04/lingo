@@ -85,6 +85,11 @@ const replyRevealed = shape((o, p) => {
   if (index < 0) throw new DecodeError(`${p}.index`);
   return { message: str(field(o, "message"), `${p}.message`), index };
 });
+const toneFiltered = shape((o, p) => {
+  const removed = int(field(o, "removed"), `${p}.removed`);
+  if (removed < 1) throw new DecodeError(`${p}.removed`);
+  return { message: str(field(o, "message"), `${p}.message`), removed };
+});
 
 export const Payload = {
   sessionCreated: (v: JSONValue) => attempt(sessionCreated, v),
@@ -111,4 +116,5 @@ export const Payload = {
   memoryRemoved: (v: JSONValue) => attempt(memoryRemoved, v),
   memorySwitched: (v: JSONValue) => attempt(memorySwitched, v),
   replyRevealed: (v: JSONValue) => attempt(replyRevealed, v),
+  toneFiltered: (v: JSONValue) => attempt(toneFiltered, v),
 };

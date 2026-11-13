@@ -16,12 +16,21 @@ public struct DialogCase: Decodable, Sendable {
         /// LINGO-08: the per-session switch (missing = on) and the "My words" focus.
         public var use_vocabulary: Bool?
         public var vocabulary_focus: Bool?
+        /// LINGO-09 M-1b: the tone of the session (missing = no tone).
+        public var tone: ToneSpec?
 
         public var settings: SessionSettings {
             SessionSettings(lang: lang, mode: mode, topic: topic ?? "", role: role ?? "", level: level ?? "",
                             customPrompt: custom_prompt ?? "", corrections: Set(corrections), starter: starter ?? .assistant,
-                            useVocabulary: use_vocabulary, vocabularyFocus: vocabulary_focus)
+                            useVocabulary: use_vocabulary, vocabularyFocus: vocabulary_focus,
+                            tone: tone.map { Tone(harshness: $0.harshness, hostility: $0.hostility, profanity: $0.profanity ?? false) })
         }
+    }
+
+    public struct ToneSpec: Decodable, Sendable {
+        public var harshness: Int
+        public var hostility: Int
+        public var profanity: Bool?
     }
 
     /// A target item (LINGO-08 PR-10): `status` new | practising | needs work, turned into statistics for the block.
@@ -75,6 +84,12 @@ public struct DialogCase: Decodable, Sendable {
         public var concrete_opening: Bool?
         /// No filler phrases (README).
         public var no_filler: Bool?
+        /// LINGO-09 M-1b (MR-10, MR-15): without a valid @fix the reply's tutor speech holds no blame marker (measured before the filter).
+        public var no_blame_without_fix: Bool?
+        /// The reply carries an `@help` line (MR-12).
+        public var has_help: Bool?
+        /// Judge first (MR-10): the first @fix line comes before the first spoken line.
+        public var judge_first: Bool?
     }
 
     public var id: String

@@ -17,7 +17,7 @@ import Testing
         let mins = ["mode_questions": 8, "mode_free": 6, "mode_custom_prompt": 6, "repeat": 4, "slower": 4, "how_to_say": 8, "explain": 8,
                     "ru_utterance": 6, "continue": 4, "correction_inline": 8, "correction_after": 6, "correction_on_demand": 6,
                     "mixed_speech": 6, "asr_artifacts": 6, "injection": 4, "asr_accent": 8, "topic_shift": 6,
-                    "vocab_weave": 8, "vocab_focus": 6, "repeat_loop": 4, "opening": 4, "continue_thread": 4, "data_injection": 2]
+                    "tone_correct": 12, "tone_mistake": 8, "tone_max": 2, "vocab_weave": 8, "vocab_focus": 6, "repeat_loop": 4, "opening": 4, "continue_thread": 4, "data_injection": 2]
         for (k, n) in mins { #expect(all.filter { $0.category == k }.count >= n, "\(k)") }
         let en = all.filter { $0.studyLang == .en }.count, de = all.filter { $0.studyLang == .de }.count
         #expect(abs(en - de) <= 10)

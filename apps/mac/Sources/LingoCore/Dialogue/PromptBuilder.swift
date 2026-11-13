@@ -54,8 +54,9 @@ public enum PromptBuilder {
         let name = langName(s.lang)
         let level = s.level.trimmingCharacters(in: .whitespaces)
         var p: [String] = []
+        let tone = TonePrompt.effective(s)  // LINGO-09: nil for no tone, a warm-up and an exam (MR-02, MR-07)
 
-        p.append("You are Lingo, a friendly tutor in a VOICE chat with a native Russian speaker practising spoken \(name). @say lines are spoken by text-to-speech; the learner's turns are speech-recognition transcripts.")
+        p.append(tone != nil ? TonePrompt.intro(name: name) : "You are Lingo, a friendly tutor in a VOICE chat with a native Russian speaker practising spoken \(name). @say lines are spoken by text-to-speech; the learner's turns are speech-recognition transcripts.")
 
         var session: [String] = ["# Session"]
         session.append(level.isEmpty
@@ -65,11 +66,12 @@ public enum PromptBuilder {
         let topic = oneLine(s.topic).trimmingCharacters(in: .whitespaces)
         session.append(topic.isEmpty ? "- Topic: none, follow the learner's interests." : "- Topic: \(topic)")
         let role = oneLine(s.role).trimmingCharacters(in: .whitespaces)
-        session.append(role.isEmpty ? "- Your role: a friendly conversation partner." : "- Your role: \(role). Stay in it.")
+        session.append(role.isEmpty ? ((tone?.hostility ?? 0) >= 1 ? TonePrompt.hostileDefaultRole : "- Your role: a friendly conversation partner.") : "- Your role: \(role). Stay in it.")
         session.append(s.starter == .assistant
             ? "- You open: one short greeting and one concrete question on the topic (without one: on a <profile> interest or a <vocabulary> item), never a generic \"How are you?\"."
             : "- The learner starts: with an empty transcript, greet briefly and invite them to speak.")
         p.append(session.joined(separator: "\n"))
+        if let tone { p.append(TonePrompt.block(tone)) }
 
         let profileText = profileBlock(profile)
         if let block = profileText { p.append(block) }
@@ -94,7 +96,8 @@ public enum PromptBuilder {
         let examRules = s.examKind != nil && s.activity?.format != .training
         if !examRules {
             r.append("5. Russian without a request means they cannot say it yet: give a natural \(name) version in @say and ask them to repeat it.")
-            r.append("6. Corrections (real mistakes only):\n" + correctionText(s.corrections, lang: s.lang, warmup: s.warmupCards != nil))
+            r.append("6. Corrections (real mistakes only):\n" + correctionText(s.corrections, lang: s.lang, warmup: s.warmupCards != nil, demandRepeat: TonePrompt.demandsRepeat(tone)))
+            if tone != nil { r.append(TonePrompt.judgeFirstRule) }
         } else {
             r.append("5. Russian without a request: ask once in the study language to answer in that language; no translation or repeat drill.")
             r.append("6. No spoken corrections, including on demand. Record real mistakes only as silent @fix lines for the debrief.")
@@ -108,7 +111,7 @@ public enum PromptBuilder {
         let taskLine = scenario.map { !$0.tasks.isEmpty } ?? false
         // LINGO-09 MR-49/MR-50: the tag and its rule only where the switch is offered; otherwise the text is exactly the earlier one.
         let options = replyOptions && ReplyOptions.isOffered(s)
-        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (taskLine ? [scenarioProtocolLine] : []) + (options ? [replyProtocolLine(s.lang)] : [])))
+        p.append(protocolText(s.lang, exam: examRules, extra: (s.warmupCards != nil ? [warmupProtocolLine] : []) + (taskLine ? [scenarioProtocolLine] : []) + (options ? [replyProtocolLine(s.lang)] : []) + (tone.map { TonePrompt.protocolLines($0, lang: s.lang, inline: s.corrections.contains(.inline)) } ?? []), tone: tone))
         if let sc = scenario { p.append(scenarioBlock(sc)) }
 
         if s.mode == .customPrompt {
@@ -156,13 +159,15 @@ public enum PromptBuilder {
         }
     }
 
-    static func correctionText(_ c: Set<CorrectionMode>, lang: Lang, warmup: Bool = false) -> String {
+    static func correctionText(_ c: Set<CorrectionMode>, lang: Lang, warmup: Bool = false, demandRepeat: Bool = false) -> String {
         var t: [String] = []
         // In a warm-up the turn already ends with the next card's question (rule 2), so a correction never asks for a repeat (PX-02).
         t.append(c.contains(.inline)
             ? (warmup
                 ? "   - INLINE is on: at most ONE correction sentence per turn as \(naturalPhrase(lang)), no repeat request; also one @fix line."
-                : "   - INLINE is on: at most ONE correction per turn as \(naturalPhrase(lang)), ask the learner to repeat it, then continue; also one @fix line.")
+                : (demandRepeat
+                    ? TonePrompt.demandRepeatLine
+                    : "   - INLINE is on: at most ONE correction per turn as \(naturalPhrase(lang)), ask the learner to repeat it, then continue; also one @fix line."))
             : "   - INLINE is off: do not correct in @say; if unclear, ask the learner to rephrase.")
         if c.contains(.after) { t.append("   - AFTER is on: a silent @fix line for every real mistake of the last utterance.") }
         t.append(c.contains(.onDemand)
@@ -209,10 +214,12 @@ public enum PromptBuilder {
         }
     }
 
-    static func protocolText(_ lang: Lang, exam: Bool = false, extra: [String] = []) -> String {
+    static func protocolText(_ lang: Lang, exam: Bool = false, extra: [String] = [], tone: Tone? = nil) -> String {
         let L = lang.rawValue
         let example: String
-        if exam {
+        if tone != nil {
+            example = TonePrompt.example(lang)
+        } else if exam {
             example = lang == .de ? "@say de: Warum ist das für Sie wichtig?" : "@say en: Why is that important to you?"
         } else {
             switch lang {

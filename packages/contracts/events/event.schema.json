@@ -77,7 +77,8 @@
         "memory.updated",
         "memory.removed",
         "memory.switched",
-        "reply.revealed"
+        "reply.revealed",
+        "tone.filtered"
       ]
     },
     "session": {
@@ -490,6 +491,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/ReplyRevealed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "tone.filtered"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ToneFiltered"
           }
         }
       }
@@ -1265,6 +1282,15 @@
       "properties": {
         "message": { "type": "string" },
         "index": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ToneFiltered": {
+      "type": "object",
+      "description": "tone.filtered (LINGO-09 MR-15): the blame filter removed `removed` sentences from the tutor speech of the assistant message `message`; ids and a number only, never text (MR-46). The session is the envelope's. Changes no state.",
+      "required": ["message", "removed"],
+      "properties": {
+        "message": { "type": "string" },
+        "removed": { "type": "integer", "minimum": 1 }
       }
     },
     "ExamPart": {

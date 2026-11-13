@@ -1,0 +1,33 @@
+{
+  "markers" : {
+    "de" : [
+      "falsch*",
+      "fehler",
+      "fehlern",
+      "fehlerhaft*",
+      "grammatikfehler",
+      "verkehrt",
+      "inkorrekt",
+      "unkorrekt",
+      "unrichtig",
+      "nicht richtig",
+      "nicht korrekt",
+      "stimmt nicht",
+      "schon wieder"
+    ],
+    "en" : [
+      "wrong",
+      "mistake*",
+      "incorrect*",
+      "error*",
+      "blunder*",
+      "not right",
+      "not correct",
+      "isn't right",
+      "isn't correct",
+      "that's not how",
+      "not how you say"
+    ]
+  },
+  "rule" : "LINGO-09 MR-15: blame markers per study language, written by Swift BlameFilterTests (LINGO_RECORD_FIXTURES=1). Lower case; a trailing * is a stem; several words are one phrase."
+}

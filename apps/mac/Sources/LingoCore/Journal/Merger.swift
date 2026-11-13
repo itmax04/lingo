@@ -300,6 +300,9 @@ public enum Merger {
             case EventType.replyRevealed:
                 // A record for statistics only; it changes no state. A malformed payload counts as unknown (MR-45).
                 guard let p = try? e.payload.decode(Payload.ReplyRevealed.self), p.index >= 0 else { st.unknownEvents += 1; continue }
+            case EventType.toneFiltered:
+                // A record for statistics only; it changes no state. A malformed payload counts as unknown (MR-45).
+                guard let p = try? e.payload.decode(Payload.ToneFiltered.self), p.removed >= 1 else { st.unknownEvents += 1; continue }
             case EventType.goalSet:
                 guard let p = try? e.payload.decode(Payload.GoalSet.self) else { st.unknownEvents += 1; continue }
                 st.goalSets.append(GoalSet(minutes: min(HistoryState.goalRange.upperBound, max(HistoryState.goalRange.lowerBound, p.minutes)), ts: e.ts, version: ver))

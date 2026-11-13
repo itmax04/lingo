@@ -135,6 +135,18 @@ public enum DialogRules {
         let used = targets.filter { VocabularyMatcher.contains($0.text, in: studyText, lang: c.studyLang) }
         if e.uses_target == true { r["uses_target"] = !used.isEmpty }
         if !targets.isEmpty { r["no_target_list"] = used.count <= 1 }
+        // LINGO-09 M-1b (MR-10, MR-12, MR-15).
+        if e.no_blame_without_fix == true {
+            r["no_blame_without_fix"] = BlameFilter.filter(raw: response, tone: c.session.settings.tone, lang: c.studyLang, replacement: { "" }).removed == 0
+        }
+        if e.has_help == true { r["has_help"] = !ReplyProtocol.silentValues(response, tag: "help").isEmpty }
+        if e.judge_first == true {
+            let kinds: [String] = ReplyProtocol.stripThinking(response).split(whereSeparator: \.isNewline).compactMap { line in
+                switch ReplyProtocol.parseLine(line, studyLang: c.studyLang).0 { case .fix?: "fix"; case .say?: "say"; default: nil }
+            }
+            let fix = kinds.firstIndex(of: "fix"), speech = kinds.firstIndex(of: "say")
+            r["judge_first"] = fix != nil && (speech == nil || fix! < speech!)
+        }
         if e.no_repeat_request == true {
             r["no_repeat_request"] = !repeatRequests.contains { lower(allSay).range(of: $0, options: .regularExpression) != nil }
         }

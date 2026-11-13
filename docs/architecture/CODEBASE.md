@@ -72,6 +72,8 @@ created exactly there (ADR-0004). Update this file in the same PR when a top-lev
 | `teacher/scenarios.json` | Scenario catalogue, written by Swift `ScenarioTests` | Swift; web reuse planned under D-01 |
 | `teacher/tone-lines.json` | Local lines of a tone session (LINGO-09 MR-21), written by Swift `ToneLinesTests` from `ToneLines` | Swift |
 | `fixtures/teacher/tone-deny-list.json` | Deny-list for the local lines (MR-06, MR-47) | Swift `ToneLinesTests` |
+| `fixtures/teacher/blame-markers.json`, `blame-filter.json` | Blame marker words per language (written by Swift) and golden cases of the blame filter (MR-15) | Swift `BlameFilterTests` |
+| `fixtures/events/tone-filtered.jsonl` | `tone.filtered` events (MR-15), valid and malformed | Swift and TypeScript journal tests |
 | `fixtures/teacher/exam-events.jsonl` | All exam phases and malformed payloads, written by Swift | Swift + TS event decoding parity |
 | `prompts/` | System-prompt snapshots | Swift `PromptBuilderTests`, engine prompt builder — byte-identical |
 | `evals/` | (`packages/contracts/evals/`) `commands`, `turn`, `audio`, `dialog` sets | `lingo-eval`, TS ports, the engine eval runner |
