@@ -70,14 +70,14 @@ Branch `feat/139-reply-options-data`, cut from `feat/120-tone-data` (PR #141, no
 - Tests: swift 472 passed (known ggml exit signal after the run), npm 342, check-design/english/secret-scan/check-core-ios PASS.
 - NOT RUN / open: Russian screenshots (debug build has no String Catalog) and the MR-54 token measurement (needs the signed app and real keys); both are in `evidence/reply-options.md`. The owner's rebuild must record them.
 
+## Done: M-3a (#121)
+Branch `feat/121-local-lines`, cut from `feat/140-reply-options-ui` (PRs #141, #142, #143 not merged at the time; retarget after they merge).
+- `ToneLines` (`Sources/LingoCore/Teacher/ToneLines.swift`): kinds pressure, again, pass, moveOn, calm, neutral, interjection; de and en; bands L1–L5 (L1 only neutral and calm); 4 lines per cell (240 plain lines). Profane variants are a separate table, band 5 only, for pressure, again, pass, moveOn, interjection (4 per kind and language); `lines(…, profane:)` is the only way to read them. `ToneLinePicker` never returns the same line twice in a row per language and kind; levels are clamped to 1…5.
+- Export `packages/contracts/teacher/tone-lines.json` written by `ToneLinesTests` (`LINGO_RECORD_FIXTURES=1`); deny-list `packages/contracts/fixtures/teacher/tone-deny-list.json` (violence, protected traits, sexual content, self-harm, pronunciation; whole words, `*` = stem).
+- F1 of the M-1a review closed: `theLocalMarkSurvivesTheMerger` (Swift). The TypeScript decoders do not expose `local` yet, so no TS test.
+- D-13: nothing speaks these lines yet; the callers are M-1b (neutral), M-3b (drill: pass/again/moveOn), M-4 (pressure, calm, interjection). The catalogue has no pronunciation remark at any band (MR-47), checked by the deny-list.
+- Verified: swift test 479 passed (known ggml exit signal 6 after the run), check-core-ios, check-english, secret-scan (0). npm test not run: no TypeScript change.
+- Independent review of the texts: see the PR comment.
+
 ## Next step
-Step M-3a (see plan.md order: M-1a → M-11a → M-11b → M-3a …). Tier: standard. Start: "Continue LINGO-09 with M-3a from docs/changes/LINGO-09/handoff.md", branch from `feat/140-reply-options-ui` until PRs #141, #142 and the M-11b PR are merged.
-
-## Review of 2026-11-12 (sdlc:reviewer, Opus, commit 0bd3b37)
-Verdict changes-required: P1 F1 (token budget made relative), F2 (help and calm detected only in tone sessions); P2 F3–F11 and P3 F12–F16 fixed in the follow-up commit (step order M-1a → M-3a → M-1b, buffering rule, local messages out of the context window, experiment arms differ only in tone, new events, risk row and O-6). Milestone and issues #120–#138 created; stop at H-09-0 (#135).
-
-## Review of 2026-11-13, v1.1 reply options (sdlc:reviewer, Sonnet, uncommitted diff on 9be612b)
-Verdict approve-with-notes: no P0/P1. P2 F1–F8 fixed in the same commit: the anchor message and ended sessions (MR-49, MR-51), the
-block's life around a turn and a failed turn, ▶ without the microphone, prompt and completion tokens with two refreshes per anchor and a
-100-token threshold, the trial check moved to MAC-25, M-11 split into M-11a and M-11b, `@reply` beside `@hint`, reopening. P3 F9–F12
-fixed: older build wording, shortcut ⌘⇧R and Calm, DESIGN.md §8 evidence, first-word rule.
+Step M-1b (plan order M-1a → M-11a → M-11b → M-3a → M-1b …). Tier: standard. Start: "Continue LINGO-09 with M-1b from docs/changes/LINGO-09/handoff.md", branch from `feat/121-local-lines` until the earlier PRs merge.

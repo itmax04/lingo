@@ -1,0 +1,10 @@
+{
+  "rule": "LINGO-09 MR-06, MR-21, MR-47: words and phrases no local line may contain. Whole words, case-insensitive; a trailing * matches any word that starts with the stem. Written by hand; checked by Swift ToneLinesTests against tone-lines.json (and by the independent review of the texts).",
+  "categories": {
+    "violence": ["kill*", "murder*", "stab*", "shoot*", "punch*", "strangle*", "beat you", "hit you", "hurt you", "töte*", "umbring*", "ermord*", "erschieß*", "erschiess*", "schlag dich", "schlage dich", "prügel*", "verprügel*", "erwürg*"],
+    "protected traits": ["foreigner*", "immigrant*", "nationalit*", "race", "racial*", "ethnic*", "muslim*", "jew*", "christian*", "religio*", "gay", "lesbian*", "homosexual*", "transsexual*", "disabled", "handicap*", "retard*", "spastic*", "woman", "women", "girl*", "ausländer*", "auslaender*", "nation*", "rasse*", "ethnisch*", "muslim*", "jude*", "juden*", "christ*", "religio*", "schwul*", "lesbe*", "homo*", "behindert*", "krüppel*", "frau", "frauen", "mädchen", "weib*"],
+    "sexual content": ["sex", "sexual*", "porn*", "naked", "nackt*", "sexuell*", "geschlechtsverkehr", "bumsen", "ficken", "fick*"],
+    "self-harm": ["suicid*", "selbstmord", "selbstmörder*", "umbringen", "kill yourself", "hang yourself", "hurt yourself", "ritz*"],
+    "pronunciation": ["pronounc*", "pronunciation", "mispronounc*", "accent*", "aussprache", "ausspr*", "akzent*", "betonung", "intonation", "stress", "sounds", "sound", "klingt", "klang", "lispeln", "stottern", "stutter*", "lisp*", "mumble*", "nuschel*"]
+  }
+}
