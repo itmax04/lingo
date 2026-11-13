@@ -11,7 +11,9 @@ const expected = Object.fromEntries(
     .filter((l) => l.startsWith("  "))
     .map((l) => [l.slice(0, l.indexOf(":")).trim().toLowerCase(), l.slice(l.indexOf(":") + 1).trim()]),
 );
-const child = spawn("npx", ["wrangler", "dev", "--port", String(port)], { stdio: ["ignore", "pipe", "pipe"] });
+// Its own process group: `npx` does not pass SIGTERM on to wrangler and workerd on Linux, whose open pipes kept the script
+// (and the CI step) running after the checks.
+const child = spawn("npx", ["wrangler", "dev", "--port", String(port)], { stdio: ["ignore", "pipe", "pipe"], detached: true });
 let output = "";
 child.stdout.on("data", (d) => (output += d));
 child.stderr.on("data", (d) => (output += d));
@@ -42,7 +44,11 @@ try {
 } catch (e) {
   failures.push(String(e));
 } finally {
-  child.kill("SIGTERM");
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    child.kill("SIGTERM");
+  }
 }
 if (failures.length > 0) {
   console.error(output.slice(-2000));
@@ -50,3 +56,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log("smoke: PASS");
+process.exit(0);

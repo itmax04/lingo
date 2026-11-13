@@ -43,6 +43,7 @@ jobs:
         working-directory: services/engine
         run: npx wrangler d1 migrations apply lingo --local
       - name: Engine — the Worker starts; static files and API carry the security headers
+        timeout-minutes: 3
         run: npm run smoke -w services/engine
       - name: Scan the built client for secrets
         if: hashFiles('apps/web/dist/**') != ''
