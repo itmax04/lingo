@@ -1,7 +1,7 @@
 # LINGO-09: Specification — harsh tutor and conflict practice on the Mac
 
-ID: LINGO-09-spec · Status: **draft**, waiting for the owner (H-09-0) · Version: 1 · Date: 2026-11-12 · Owner: itmax04 · Risk: R2
-Links: [intent.md](intent.md) (decisions B-01…B-18, proposals O-1…O-5, assumptions A-01…A-08) · [plan.md](plan.md) ·
+ID: LINGO-09-spec · Status: **draft**, waiting for the owner (H-09-0) · Version: 1.1 · Date: 2026-11-13 · Owner: itmax04 · Risk: R2
+Links: [intent.md](intent.md) (decisions B-01…B-19, proposals O-1…O-7, assumptions A-01…A-08) · [plan.md](plan.md) ·
 [handoff.md](handoff.md) · [contracts](../../../packages/contracts/README.md) · [DESIGN.md](../../../DESIGN.md)
 Requirements of this change are defined only here: MR (requirements), MAC (acceptance). The web and iOS clients are out of scope.
 **Amends:** LINGO-05 CR-01 (a failed drill makes a mistake card, MR-19) and SR-01 (optional scenario fields, MR-24); LINGO-08 PR-09
@@ -45,8 +45,8 @@ Common definitions:
   an empty or unintelligible transcript, a rule 4a case, or microphone silence caused by a fault.
 
 ## 2. Prompt and protocol
-- **MR-07 No tone, no change.** With L = 0 the system prompt, the requests and the protocol are byte-identical to today's. No existing
-  prompt snapshot is re-recorded.
+- **MR-07 No tone, no change.** With L = 0 and the reply options switch off (MR-49) the system prompt, the requests and the protocol
+  are byte-identical to today's. No existing prompt snapshot is re-recorded.
 - **MR-08 Tone block.** In a tone session the first line drops "friendly" and states that the learner chose harsh practice for
   training. The default role line ("a friendly conversation partner") is replaced when hostility ≥ 1. A `# Tone` block follows the
   session block: the two levels with their MR-05 sentences (only the chosen ones), profanity yes or no, and the MR-06 limits. The block
@@ -110,6 +110,47 @@ Common definitions:
   help. The help word is a new local command (`help`) in the commands fixture, Swift and TypeScript. It is detected only in tone
   sessions; in a 0/0 session "help me" or "Hilfe" is ordinary speech. Negative fixture cases: "Can you help me", "Ich brauche Hilfe
   beim Umzug".
+
+## 4a. Reply options (sessions without a tone; added in version 1.1, B-19, O-7)
+- **MR-49 Switch.** A "Reply options" toggle in the existing chip row of the voice panel next to Continuous, In Russian and Slow (the
+  panel stays 112 pt high), plus a menu command with the shortcut ⌘⇧R. Off by default. The state is remembered on this Mac only
+  (`AppSettings`), never in the journal, and applies from the next request; the running reply is not cut. It is offered in open
+  ordinary and scenario sessions without a tone. In a tone session (Help of MR-22 serves there), a trial or trial-test session (MR-39,
+  MR-41), a warm-up, an exam, and an ended or read-only session it is hidden and has no effect. After Calm (MR-28) the session is
+  ordinary, and the switch applies from the next request.
+- **MR-50 Tag `@reply <lang>:`** `<a short answer the learner could give> | <Russian translation>`. With the switch on, the output
+  protocol lists the tag and one rule: two or three lines that answer the last question or task of this reply, in the first person,
+  different in content, at the session's level and within its word limit, and not repeating an `@hint` of the same reply. `@hint`
+  keeps its meaning and still feeds the Hints panel. The added prompt text is ≤ 40 estimated tokens. `reply` joins the silent tags
+  (like `@next` and `@help`, MR-14): never spoken, never a segment, read from the raw reply text; the parser returns the language and
+  the two parts. An older build never asks for the tag and reads only the stored segments, of which `@reply` is none. Lines without
+  the `|` separator or with an empty phrase are skipped; more than three lines keep the first three.
+- **MR-51 Place and life.** The block belongs to the **anchor**: the latest model-generated assistant message of the open session
+  (never a `local` message of MR-18, the fixed farewell of MR-29 or an error). Earlier messages show no options. The block appears when
+  the anchor has finished speaking (at once if it is not spoken) and hides when the learner's next turn starts (speech detected or a
+  message sent). If that turn fails without a new assistant message, the block returns as it was. When a session is reopened, the block
+  is derived from the raw text of the anchor; refreshed options and reveals are not restored. Header "Reply options" with refresh
+  (MR-53) and collapse; the collapsed state is remembered on this Mac. An anchor without valid `@reply` lines shows "No options for
+  this turn" with the refresh button. DESIGN.md tokens only; DESIGN.md §5 gets a "Reply options" entry in the same PR; every string in
+  English and Russian; accessibility labels and keyboard focus on every row. The component has no reference image: its evidence is
+  implementation screenshots in both themes plus the contrast check; the ±4 pt criterion of DESIGN.md §8 is not claimed for it.
+- **MR-52 Reveal and use.** Each option first shows only its first words (split on whitespace: two words; one if the phrase has fewer
+  than four) followed by "…", and no translation. Activating a focused row (click, or Return or Space while the row has keyboard
+  focus) reveals the full phrase and the translation; "Show all" reveals every row. A revealed option has ▶ (speaks it in its
+  language with the voice and pace set in Settings, Slow included), ★ (saves it to the vocabulary, as the Hints panel does) and, while
+  the keyboard input is open, "Insert" (puts the text into the message field). ▶ uses the playback path without the microphone:
+  capture pauses while the phrase plays and continuous mode resumes listening after it; ▶ is disabled while Lingo speaks or the
+  learner is being recorded. An option is never sent automatically: the learner says it or sends it.
+- **MR-53 Refresh.** One request (purpose `replyOptions`: the session prompt with the switch on, the ContextPolicy window and one
+  instruction) returns two or three new `@reply` lines that replace the shown ones. Its input is about the size of an ordinary turn.
+  It is not a message and is not journaled; it goes through the usual router and usage ledger. At most two refreshes per anchor; the
+  button is disabled while a turn runs, offline and without a key; a quota or network failure shows explicit text and an error symbol
+  (DESIGN.md §5).
+- **MR-54 Record and cost.** Each reveal appends `reply.revealed` `{session, message, index}` (ids and numbers only, MR-46). Step M-11b
+  records in `evidence/reply-options.md` the provider's `prompt_tokens` and `completion_tokens` of six single daytime requests (three
+  replies with the switch on and three with it off, on the same turns) and of one refresh. If the median completion increase is above
+  100 tokens per turn (three lines with Russian translations are expected near 75–100), the rule asks for two options instead of
+  three, and the evidence says so.
 
 ## 5. Conflict scenarios
 - **MR-24 Catalogue.** `Scenario` gets two optional fields: `group` (`authorities`, `housing`, `work`, `services`) and `hostility`
@@ -195,9 +236,10 @@ Common definitions:
 ## 11. Contracts, compatibility and privacy
 - **MR-44 Additive.** New optional fields (`tone`, `Scenario.group`, `Scenario.hostility`, the `local` mark of a message), a new
   activity kinds (`trial` and `trialTest`, the test session of MR-41), new events (`tone.filtered`, `drill.result`, `help.revealed`, `tone.interjected`, `tone.rated`,
-  `trial.aborted`, `trial.graded`, `trial.met`, `trial.debriefed`), new silent tags and two local commands. `event.schema.json`, the fixtures and the TypeScript
+  `trial.aborted`, `trial.graded`, `trial.met`, `trial.debriefed`, `reply.revealed`), new silent tags (including `@reply`), a new
+  request purpose (`replyOptions`) and two local commands. `event.schema.json`, the fixtures and the TypeScript
   decoders change in the same PR as the Swift code (AGENTS.md §6.9). Prompt snapshots are added for a strict session, a conflict
-  scenario, a combined session and profanity on.
+  scenario, a combined session, profanity on and an ordinary session with reply options on.
 - **MR-45 Older build.** The build before this change opens a tone or trial session as an ordinary session and can continue it; it
   ignores the new events. A test decodes the new fixtures with the current decoders.
 - **MR-46 Privacy.** New events carry ids and numbers only. Logs contain no utterance text. Audio is never stored (the MR-33 tail
@@ -234,8 +276,12 @@ Common definitions:
 | MAC-22 | Interjection conditions and limits on a fake clock; no interjection with voice processing off; no `@fix` from one; owner's listening check at H-09-1 | MR-34 |
 | MAC-23 | `evidence/model-check.md`: the run's command, budget, counts per check and the decision under MR-36 | MR-35, MR-36 |
 | MAC-24 | Protocol accepted by the owner before the first trial session (date in handoff); assignment reproducible from the seed | MR-37, MR-38 |
-| MAC-25 | Trial tests: block order, fixed tone, lock in warm-up, "My words" and `<vocabulary>`, abort on Calm, due dates on a fake clock | MR-39, MR-40, MR-41 |
+| MAC-25 | Trial tests: block order, fixed tone, lock in warm-up, "My words" and `<vocabulary>`, abort on Calm, due dates on a fake clock; reply options hidden and without effect in trial and trial-test sessions | MR-39, MR-40, MR-41, MR-49 |
 | MAC-26 | The grading request contains no condition (snapshot); export columns match a fixture; the report script runs on it | MR-41, MR-42, MR-43 |
 | MAC-27 | `swift test`, `npm test`, `check-core-ios.sh`, `check-design.py`, `check-english.sh`, `secret-scan.sh` pass; schema and fixtures updated with each step | MR-44, MR-46 |
 | MAC-28 | Documents updated; `report.md` lists every MAC as PASS, FAIL or NOT RUN with real output | MR-48 |
 | MAC-29 | Owner: tries a strict session, a conflict scenario and a combined session on the Mac (H-09-1) and accepts the change (H-09-3) | all |
+| MAC-30 | Switch: off by default; with it off the prompt equals today's; with it on the snapshot has the tag and the rule (≤ 40 estimated tokens added); hidden and without effect in tone, warm-up, exam, ended and read-only sessions (trial sessions: MAC-25) | MR-49, MR-50 |
+| MAC-31 | Protocol golden cases in Swift and TypeScript: `@reply` is silent, never spoken and never a segment; language and both parts returned; malformed lines skipped; at most three kept | MR-50, MR-44, MR-45 |
+| MAC-32 | View tests and screenshots in both themes, Russian and English: only under the anchor, after its speech; hidden when the next turn starts and back after a failed turn; derived from raw text on reopen; first words without translation, reveal, Show all, ▶ (capture paused, disabled while speaking or recording), ★, Insert; nothing sent automatically; `reply.revealed` per reveal; `check-design` passes | MR-51, MR-52, MR-54 |
+| MAC-33 | Refresh: one request per press, at most two per anchor, disabled states and error text; `evidence/reply-options.md` with real prompt and completion tokens and the MR-54 decision | MR-53, MR-54 |

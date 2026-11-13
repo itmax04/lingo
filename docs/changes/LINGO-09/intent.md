@@ -1,6 +1,6 @@
 # LINGO-09: Intent — harsh tutor and conflict practice on the Mac
 
-ID: LINGO-09-intent · Status: **draft**, waiting for the owner (H-09-0) · Version: 1 · Date: 2026-11-12 · Owner: itmax04 · Risk: **R2**
+ID: LINGO-09-intent · Status: **draft**, waiting for the owner (H-09-0) · Version: 1.1 · Date: 2026-11-13 · Owner: itmax04 · Risk: **R2**
 Links: [spec.md](spec.md) · [plan.md](plan.md) · [handoff.md](handoff.md) · prior: [LINGO-05](../LINGO-05/intent.md) (Q-04: teacher first,
 then these modes) · [completion plan](../../plans/COMPLETION-PLAN-2026-11.md) row B
 
@@ -15,6 +15,9 @@ papers (2026-11-01):
 Today neither works. The base prompt starts with "a friendly tutor", and rule 7 treats the learner's own prompt as data that cannot
 change the rules, so a custom prompt cannot make Lingo harsh.
 
+A third need (owner, 2026-11-13): in any conversation the learner sometimes does not know what to answer. Today the only way out is
+"how to say" in Russian, which needs an idea of the answer first. Other voice tutors show a few possible answers under the last reply.
+
 ## Desired outcome
 1. **Two levels on any session:** tutor harshness 0–5 and character hostility 0–5, plus a profanity switch. Presets: Strict teacher,
    Conflict, Combined. Level 0/0 is today's Lingo, unchanged.
@@ -25,7 +28,11 @@ change the rules, so a custom prompt cannot make Lingo harsh.
 6. **Control and safety:** levels can be changed during the conversation; one word or key drops them to 0; a hard session ends calmly
    with a short debrief and a self-rating.
 7. **A personal experiment** that can answer whether harshness helps the owner remember: 2 conditions × 32 expressions, blind grading.
-8. **Nothing else changes:** warm-up, exams, Goethe, vocabulary and every old session work as before.
+8. **Nothing else changes:** warm-up, exams, Goethe, vocabulary and every old session work as before (with the reply options switch
+   of item 9 off, which is the default).
+9. **Reply options on request:** in a session without a tone the learner can switch on two or three possible answers under the last
+   reply of Lingo. They open one step at a time (first words, then the full phrase with a translation) and are never sent by
+   themselves, so the learner still says the answer.
 
 ## Scope
 - In: Lingo for Mac; `packages/contracts` (settings, events, protocol and command fixtures, catalogues, prompt snapshots);
@@ -33,7 +40,8 @@ change the rules, so a custom prompt cannot make Lingo harsh.
 - Out, decided by the owner: storage limits and deletion of transcripts (B-17, with the account, LINGO-03/04); the web and iOS clients;
   real-time speech-to-speech and interruptions by meaning (LINGO-06).
 - Out, proposed by the executor (see "Open for H-09-0"): file import into the vocabulary (B-18); integration of a non-system voice.
-- Not touched: warm-up, exams (IELTS, Goethe), the FSRS grading of the warm-up, the ordinary Hints panel of sessions without a tone.
+- Not touched: warm-up, exams (IELTS, Goethe), the FSRS grading of the warm-up, the ordinary Hints panel of sessions without a tone
+  (reply options live in the conversation, not in that panel).
 
 ## Constraints
 - $0 (AGENTS.md §6.1): system voices; no paid speech service.
@@ -63,6 +71,7 @@ change the rules, so a custom prompt cannot make Lingo harsh.
 | B-16 | Scenarios | Real life: authorities, housing, work, shopping and services | A catalogue of these four groups, German and English (MR-24) |
 | B-17 | Transcript storage | Later, with the account | Out of scope |
 | B-18 | Vocabulary import | Pasted list plus CSV/TXT | Pasting a list exists since LINGO-08; the file import is proposed as its own change (O-3) |
+| B-19 | Reply options (2026-11-13, with a screenshot of another tutor as the example) | Add them to LINGO-09: a learner who does not know what to say switches on answer options after each reply | MR-49…MR-54, steps M-11a and M-11b; placement and behaviour are proposal O-7 |
 
 ## Open for H-09-0 (the executor's proposals; the owner confirms or changes them when accepting these documents)
 | ID | Question | Proposal | Why |
@@ -73,6 +82,7 @@ change the rules, so a custom prompt cannot make Lingo harsh.
 | O-4 | Language of the experiment. | German only; it starts after the owner has tried the modes (H-09-1). | One language keeps 64 expressions comparable |
 | O-6 | Provider policy risk of levels 4–5 on the free account. | The owner accepts that abuse and profanity are generated through the same free account(s); a suspension is possible. | Groq's terms were not checked in this review; AGENTS.md §8 treats extra accounts as an accepted risk |
 | O-5 | The calm-down words. | The owner names one Russian, one German and one English word or phrase in step M-4; until then only the key and the button work. | A word the owner will remember under pressure must be his own |
+| O-7 | Placement and behaviour of the reply options (B-19). | Under the latest assistant message in the conversation; off by default; each option shows its first words and opens on a click; ▶ and ★ as in the Hints panel; never sent automatically; options come in the same reply (`@reply`), refresh is one request; hidden in tone, trial, warm-up and exam sessions, where Help (MR-22) or the task itself serves. | The options belong to one turn, so they sit next to it; the Hints panel holds the topic and collapses below 1280 pt; a full answer shown at once is read aloud instead of recalled; no extra request per turn |
 
 ## Assumptions (executor, R2: recorded, not blocking)
 - A-01: Harshness applies to ordinary sessions and scenarios. Warm-up and exams never have a tone.
