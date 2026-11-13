@@ -1,296 +1,205 @@
 openapi: 3.1.0
 info:
   title: Lingo Engine API
-  version: 0.1.0
+  version: 2.0.0
   description: |
-    HTTP API of the Lingo Engine (Cloudflare Worker), used by Lingo Web and, from LINGO-04, by Lingo for Mac.
-    Status: **design contract for LINGO-03** — the implementation must follow it; changes go through a PR that updates this file first.
+    HTTP API of the Lingo Engine (Cloudflare Worker + D1) used by Lingo Web. Version 2 replaces the LINGO-03 design contract as a
+    whole (ADR-0008): accounts by invite, no provider keys, no prompts and no model calls in the engine.
+    Status: **contract of LINGO-11**. The API grows step by step and each step changes this file before the code:
+    F-1 (this version) setup, join, me · F-2 pairing, devices, sign-in links, admin, own account · F-3 sync · F-4 relay.
 
     Conventions
-    - JSON bodies are UTF-8; times are ISO 8601 UTC; ids are ULIDs unless stated.
-    - Auth: browser clients use the `lingo_session` cookie (HttpOnly, Secure, SameSite=Lax) set by the GitHub sign-in;
-      native clients (LINGO-04) use `Authorization: Bearer <device token>`. State-changing requests must carry an `Origin`
-      equal to the site origin (cookie auth) — otherwise 403.
-    - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English, never contains secrets or utterance text.
-    - Limits: request body ≤ 1 MB except `/api/transcribe` (≤ 4 MB, ≤ 60 s of audio); ≤ 30 API calls per minute per account.
+    - JSON bodies are UTF-8; times are milliseconds since the Unix epoch; ids are opaque strings.
+    - Auth: the session cookie (`HttpOnly; Secure; SameSite=Lax; Path=/`). Its name is `__Host-lingo_session`; local development
+      over plain `http://localhost` uses `lingo_session` without `Secure` (spec FR-04).
+    - Every state-changing request (`POST`) must carry an `Origin` header equal to the site's own origin and a JSON object body
+      with `Content-Type: application/json`; others get 403 `origin_refused` or `json_required` (spec FR-58). No `GET` changes state.
+    - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English and never contains tokens, keys
+      or utterance text. A client deletes its local stores only on the codes `session_ended` and `account_blocked` (spec FR-07);
+      any other 401 or 403 wipes nothing.
+    - Every response carries the security headers of spec FR-55 and `Cache-Control: no-store`.
+    - Request bodies are limited to 16 KB unless an operation states another limit.
 servers:
   - url: https://lingo.example.workers.dev
     description: Production (the real *.workers.dev name is set at deploy time)
   - url: http://localhost:8787
     description: wrangler dev
 security:
-  - cookieAuth: []
-  - deviceToken: []
+  - sessionCookie: []
 paths:
-  /auth/login:
-    get:
-      summary: Start GitHub sign-in
-      security: []
-      description: Redirects to GitHub OAuth (scope none — identity only) with a signed `state` cookie.
-      responses:
-        "302": { description: Redirect to github.com }
-  /auth/callback:
-    get:
-      summary: GitHub OAuth callback
-      security: []
-      parameters:
-        - { name: code, in: query, required: true, schema: { type: string } }
-        - { name: state, in: query, required: true, schema: { type: string } }
-      description: |
-        Exchanges the code, reads the GitHub numeric user id, checks it against the allow-list (`ALLOWED_GITHUB_IDS`),
-        creates an auth session and sets the `lingo_session` cookie. Not allow-listed → 403 page, no account is created.
-      responses:
-        "302": { description: Signed in, redirect to / }
-        "403": { description: User not allowed }
-  /auth/logout:
+  /api/setup:
     post:
-      summary: Sign out this device
+      summary: Create the first admin, or sign the existing admin in (recovery)
+      description: |
+        Spec FR-11. With the right setup secret: when no admin exists, creates the admin account, its first device and a session;
+        when the admin exists, creates a new device and session for that admin and nothing else. The secret is compared in
+        constant time. A failed attempt counts against the caller's link-attempt limit and against a global limit of 20 failures
+        in 10 minutes (spec FR-06).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SetupRequest" }
       responses:
-        "204": { description: Session revoked, cookie cleared }
+        "200":
+          description: Signed in as the admin; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookie" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "403":
+          description: "`secret_invalid` (wrong secret), or `origin_refused` / `json_required`"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "404":
+          description: "`not_found`: no setup secret is configured, or it is shorter than 32 random bytes (43 base64url characters)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { $ref: "#/components/responses/AlreadySignedIn" }
+        "429":
+          description: "`too_many_attempts`: the caller or all callers together are over the failure limit; nothing is written"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/join:
+    post:
+      summary: Redeem an invite
+      description: |
+        Spec FR-02, FR-03. Uses the invite once and creates, in one atomic batch, the account (named by the invite), its first
+        device and a session. A used, expired, revoked or unknown token and a token of another link kind all get the same
+        answer, 410 `link_invalid`. Of two concurrent requests with one token exactly one creates anything.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RedeemRequest" }
+      responses:
+        "200":
+          description: Account created and signed in; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookie" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "403":
+          description: "`origin_refused` or `json_required`"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { $ref: "#/components/responses/AlreadySignedIn" }
+        "410": { $ref: "#/components/responses/LinkInvalid" }
+        "429":
+          description: "`link_invalid` with the same message as 410: the caller is over the failure limit; nothing is written"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+        "503":
+          description: "`invites_disabled`: the Worker variable `INVITES_ENABLED` is not `1` (spec FR-65)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
   /api/me:
     get:
-      summary: Current account and device
+      summary: The signed-in account and this device
+      description: |
+        Using a session extends its 90-day expiry at most once a day; the answer then sets the cookie again (spec FR-04).
       responses:
         "200":
           description: OK
+          headers:
+            Set-Cookie:
+              description: Only when the expiry was extended
+              schema: { type: string }
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Me" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-  /api/sync:
-    post:
-      summary: Push own events and pull events of other devices
-      description: |
-        Idempotent. The server stores each event once per (account, id); re-sent events are acknowledged without duplication.
-        It returns events with `server_seq > cursor` written by **other** devices, up to `limit`, plus the new cursor.
-        Clients call it on open, on visibility change, after each turn and every 30 s while visible — never in a tight loop.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/SyncRequest" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/SyncResponse" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "409": { description: "Event id reused with different content (should not happen); details in Error" }
-  /api/lease:
-    post:
-      summary: Acquire or renew the active-turn lease of a session
-      description: Only one device may generate a turn in a session at a time. Lease TTL 60 s, renewed while speaking.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [session, device]
-              properties:
-                session: { type: string }
-                device: { type: string }
-                takeOver: { type: boolean, default: false, description: "Explicit hand-over from another device" }
-      responses:
-        "200":
-          description: Lease held by this device
-          content:
-            application/json:
-              schema: { type: object, properties: { expiresAt: { type: string, format: date-time } } }
-        "409": { description: "Held by another device; body contains its device label and expiry" }
-  /api/transcribe:
-    post:
-      summary: Transcribe one utterance
-      description: |
-        Forwards the audio to Groq `whisper-large-v3-turbo` (fallback: Workers AI Whisper) with a bilingual prompt and the
-        conversation hint. The audio is processed in memory and dropped — never stored or logged.
-        Budget: audio seconds are reserved before the call (counted as ≥ 10 s per clip, conservatively) and settled after.
-      parameters:
-        - { name: turn, in: query, required: true, schema: { type: string }, description: "turn_id created by the client" }
-        - { name: session, in: query, required: true, schema: { type: string } }
-        - { name: study, in: query, required: true, schema: { enum: [en, de] } }
-        - { name: forced, in: query, schema: { enum: [ru] }, description: "\"I'm speaking Russian\" button" }
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [audio]
-              properties:
-                audio: { type: string, format: binary, description: "audio/webm or audio/mp4 (whatever MediaRecorder produced); ≤ 4 MB, ≤ 60 s" }
-                hint: { type: string, maxLength: 1000, description: "Conversation context: last assistant line, topic, hint phrases (R-51)" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Transcript" }
-        "413": { description: Audio too large or too long }
-        "429": { $ref: "#/components/responses/Limited" }
-  /api/turn:
-    post:
-      summary: Generate the assistant's reply (streaming)
-      description: |
-        The client sends a structured turn; the engine builds the prompt (same rules as Swift `PromptBuilder`, same snapshots),
-        reserves budget, routes to a pool/model, streams the reply as server-sent events and records an attempt in the ledger.
-        No free-form system prompt is accepted.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/TurnRequest" }
-      responses:
-        "200":
-          description: "SSE stream (text/event-stream). Event names: meta, delta, sentence, segment, usage, done, error."
-          content:
-            text/event-stream:
-              schema: { $ref: "#/components/schemas/TurnStreamEvent" }
-        "409": { description: "Lease held by another device" }
-        "429": { $ref: "#/components/responses/Limited" }
-  /api/turn/{turn}/cancel:
-    post:
-      summary: Cancel a running turn (barge-in, merge, user stop)
-      parameters:
-        - { name: turn, in: path, required: true, schema: { type: string } }
-      responses:
-        "204": { description: Cancelled (or already finished); usage already incurred is kept }
-  /api/turn/{turn}:
-    get:
-      summary: Status of a turn (reconcile after a dropped stream)
-      parameters:
-        - { name: turn, in: path, required: true, schema: { type: string } }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  state: { enum: [reserved, in_flight, completed, failed, cancelled, uncertain] }
-                  text: { type: string, description: "Final reply text if completed" }
-  /api/budget:
-    get:
-      summary: Today's plan and usage per pool (for the Resources screen)
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Budget" }
-  /api/export:
-    get:
-      summary: Export all events of the account (JSON Lines, schema v1)
-      responses:
-        "200": { description: OK, content: { application/x-ndjson: {} } }
-  /api/account/data:
-    delete:
-      summary: Delete all data of the account (events, attempts, budgets, devices except the current auth session)
-      responses:
-        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
 components:
   securitySchemes:
-    cookieAuth: { type: apiKey, in: cookie, name: lingo_session }
-    deviceToken: { type: http, scheme: bearer, description: "LINGO-04: long random token created in Settings, stored hashed, sync + turn scope" }
+    sessionCookie: { type: apiKey, in: cookie, name: __Host-lingo_session }
+  headers:
+    SessionCookie:
+      description: "`__Host-lingo_session=<token>; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=7776000`"
+      schema: { type: string }
   responses:
     Unauthorized:
-      description: Not signed in or session expired
+      description: |
+        `not_signed_in`: the request has no session cookie; the client wipes nothing.
+        `session_ended`: the session is unknown, revoked or expired; the cookie is cleared and the client deletes its local stores.
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
-    BadRequest:
-      description: Invalid body (schema violation, too many events, size)
+    Blocked:
+      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09)"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
-    Limited:
-      description: All allowed routes are paused or the daily budget is exhausted
+    AlreadySignedIn:
+      description: "`already_signed_in`: the request carries a valid session; links are not redeemed on a signed-in device (spec FR-02)"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    LinkInvalid:
+      description: "`link_invalid`: \"This link is no longer valid. Ask for a new one.\""
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    InvalidRequest:
+      description: "`invalid_request`: a field is missing or has the wrong type or length; `body_too_large` is answered with 413"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Misconfigured:
+      description: |
+        `engine_misconfigured`: the database binding or the pepper is missing (never 401, so a faulty release signs nobody
+        out, spec FR-07). `internal_error`: an unexpected failure.
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
   schemas:
     Error:
       type: object
       required: [code, message]
       properties:
-        code: { type: string, examples: [unauthorized, forbidden_origin, bad_request, too_large, lease_held, budget_exhausted, all_routes_paused, provider_error] }
+        code:
+          type: string
+          enum:
+            - not_found
+            - method_not_allowed
+            - origin_refused
+            - json_required
+            - body_too_large
+            - invalid_request
+            - engine_misconfigured
+            - internal_error
+            - not_signed_in
+            - session_ended
+            - account_blocked
+            - already_signed_in
+            - link_invalid
+            - invites_disabled
+            - secret_invalid
+            - too_many_attempts
         message: { type: string }
-        retryAfterSec: { type: integer, description: "Only when a provider reported it" }
-        limitKind: { enum: [rpm, rpd, tpm, tpd, ash, asd, neurons], description: "Only when known" }
+    DeviceName:
+      type: string
+      minLength: 1
+      maxLength: 40
+      description: Shown in Settings → Devices; the client proposes the browser and system family. Default "Browser".
+    SetupRequest:
+      type: object
+      required: [secret]
+      properties:
+        secret: { type: string, description: "The setup secret typed by the owner on /setup" }
+        name: { type: string, minLength: 1, maxLength: 40, description: "Display name of the admin account; used only when the account is created. Default \"Admin\"." }
+        deviceName: { $ref: "#/components/schemas/DeviceName" }
+    RedeemRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, description: "The link token from the URL fragment: 32 random bytes, base64url (43 characters)" }
+        deviceName: { $ref: "#/components/schemas/DeviceName" }
     Me:
       type: object
+      required: [account, device]
       properties:
-        account: { type: string }
-        githubLogin: { type: string }
-        device: { type: string }
-    Event:
-      description: "See packages/contracts/events/event.schema.json"
-      type: object
-    SyncRequest:
-      type: object
-      required: [device, cursor, events]
-      properties:
-        device: { type: string }
-        cursor: { type: integer, minimum: 0, description: "Last server_seq the device has applied (0 = none)" }
-        events: { type: array, maxItems: 500, items: { $ref: "#/components/schemas/Event" } }
-        limit: { type: integer, default: 1000, maximum: 2000 }
-    SyncResponse:
-      type: object
-      required: [accepted, events, cursor, more]
-      properties:
-        accepted: { type: array, items: { type: string }, description: "Ids stored or already present" }
-        events: { type: array, items: { $ref: "#/components/schemas/Event" } }
-        cursor: { type: integer }
-        more: { type: boolean }
-    Transcript:
-      type: object
-      required: [text, lang, audioSec, model]
-      properties:
-        text: { type: string }
-        lang: { enum: [en, de, ru], description: "By the script of the result: Cyrillic → ru" }
-        audioSec: { type: number }
-        model: { type: string }
-        pool: { type: string }
-    TurnRequest:
-      type: object
-      required: [turn, session, device, purpose, settings, window]
-      properties:
-        turn: { type: string, description: "turn_id; idempotency key" }
-        session: { type: string }
-        device: { type: string }
-        purpose: { enum: [dialog, topic_phrases, summary, recap] }
-        settings: { $ref: "../events/event.schema.json#/$defs/SessionSettings" }
-        summary: { type: string, maxLength: 4000 }
-        window:
-          type: array
-          description: "Context window built by the client with the shared ContextPolicy (last N turns within the character budget)"
-          maxItems: 40
-          items:
-            type: object
-            required: [role, lang, text]
-            properties:
-              role: { enum: [user, assistant] }
-              lang: { enum: [en, de, ru] }
-              text: { type: string, maxLength: 4000 }
-              interruptedAt: { type: integer }
-        command: { enum: [repeatLast, slower, howToSay, explain, continue, mistakes, finish] }
-    TurnStreamEvent:
-      description: |
-        `meta` {turn, attempt, pool, model} · `delta` {text} raw text fragment · `sentence` {lang, text} finished @say sentence ready to speak ·
-        `segment` {segment} finished protocol line (ReplySegment encoding of the event schema) · `usage` {input, output, cached} ·
-        `done` {text, source} · `error` (Error schema). A new `meta` with a different attempt means the reply restarted on another route:
-        discard what was shown and spoken for the previous attempt.
-      type: object
-    Budget:
-      type: object
-      properties:
-        day: { type: string, description: "UTC day" }
-        pools:
-          type: array
-          items:
-            type: object
-            properties:
-              pool: { type: string, examples: ["groq:org-main:openai/gpt-oss-120b", "workers-ai:@cf/openai/gpt-oss-20b"] }
-              ownerRisk: { type: boolean, description: "Pool from an additional Groq account (ADR-0005)" }
-              tokensUsed: { type: integer }
-              tokensPlanned: { type: integer }
-              requestsUsed: { type: integer }
-              audioSecUsed: { type: number }
-              pausedUntil: { type: string, format: date-time }
+        account:
+          type: object
+          required: [id, name, isAdmin]
+          properties:
+            id: { type: string }
+            name: { type: string, minLength: 1, maxLength: 40 }
+            isAdmin: { type: boolean }
+        device:
+          type: object
+          required: [id, name]
+          properties:
+            id: { type: string }
+            name: { type: string }

@@ -29,7 +29,7 @@ in the same PR as both implementations; CI fails if either side diverges.
 | `fixtures/teacher/weekly-events.jsonl` | Two `report.weekly` events for one week and two malformed ones, written by Swift `WeeklyReportTests` | Swift/TS round-trip and unknown-event count parity |
 | `fixtures/teacher/memory-events.jsonl` | Five valid `memory.*` events (two facts, an update, a removal, a switch) and four malformed ones, written by Swift `MemoryTests` | Swift/TS round-trip and unknown-event count parity |
 | `prompts/prompt-exam-*.txt` | Examiner system rules and a maximal bounded `<exam>` block | Swift `ExamTests`; no live model calls (Q-03) |
-| `api/openapi.yaml` | Engine HTTP API (sign-in, sync, lease, transcribe, turn SSE, budget, export, delete) | engine implementation, web client, later the Mac adapter |
+| `api/openapi.yaml` | Engine HTTP API v2 (LINGO-11, ADR-0008): setup, join, me; pairing, devices, admin, sync and relay are added by plan steps F-2…F-4 before their code | engine implementation and its tests (routes and error codes are compared with the file), web client |
 | `prompts/` *(moved here in plan step P-01)* | System-prompt snapshots (today `Tests/LingoCoreTests/Snapshots/*.txt`) | Swift `PromptBuilderTests`, TS prompt builder tests — byte-identical |
 | `evals/` *(moved here in P-01)* | `commands`, `turn`, `audio`, `dialog` eval sets (today `evals/`) | Swift `lingo-eval`, TS ports, the engine's eval runner |
 

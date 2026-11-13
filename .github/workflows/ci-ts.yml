@@ -39,6 +39,11 @@ jobs:
           npm ci
           npm test
           npm run build
+      - name: Engine — migrations apply to a local D1
+        working-directory: services/engine
+        run: npx wrangler d1 migrations apply lingo --local
+      - name: Engine — the Worker starts; static files and API carry the security headers
+        run: npm run smoke -w services/engine
       - name: Scan the built client for secrets
         if: hashFiles('apps/web/dist/**') != ''
         run: |

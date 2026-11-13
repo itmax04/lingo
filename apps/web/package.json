@@ -1,0 +1,7 @@
+{
+  "name": "@lingo/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lingo Web (PWA). Empty shell until LINGO-11 F-9; public/ is served as the site's static assets.",
+  "type": "module"
+}
