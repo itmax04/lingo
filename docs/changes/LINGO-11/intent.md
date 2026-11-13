@@ -1,6 +1,6 @@
 # LINGO-11: Intent — Lingo Web for friends
 
-ID: LINGO-11-intent · Status: **draft**, waiting for the owner (H-11-0) · Version: 1 · Date: 2026-11-13 · Owner: itmax04 · Risk: **R3**
+ID: LINGO-11-intent · Status: **accepted by the owner at H-11-0 (2026-11-13)** · Version: 1 · Date: 2026-11-13 · Owner: itmax04 · Risk: **R3**
 Links: [spec.md](spec.md) · [plan.md](plan.md) · [handoff.md](handoff.md) · [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) ·
 prior: [LINGO-03](../LINGO-03/intent.md) (web for the owner alone; its web part is superseded by this change)
 
@@ -87,7 +87,7 @@ TypeScript package with five ported modules.
   owner's Mac history is not known yet; it is measured in step F-12 and the default is corrected if it does not fit.
 - A-12 **Supported browsers:** current Safari (iOS, iPadOS, macOS), Chrome (Android, Windows, macOS) and Edge. Firefox works without
   the built-in recognition fallback, which it does not have.
-- A-13 **Merge authority:** the executor asks the owner at H-11-0 to extend CX-02 (squash-merge own PRs after green CI and an
+- A-13 **Merge authority** (accepted at H-11-0: CX-02 is extended to the LINGO-11 plan): the executor asks the owner at H-11-0 to extend CX-02 (squash-merge own PRs after green CI and an
   independent AI review without open P0/P1) to the LINGO-11 plan. Without it every PR waits for the owner.
 - A-14 **The Mac may change while the port runs** only through fixes. A Mac behaviour change after a module is ported updates the
   fixture and both implementations in one PR.

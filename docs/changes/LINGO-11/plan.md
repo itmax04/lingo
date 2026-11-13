@@ -1,12 +1,12 @@
 # LINGO-11: Plan
 
-ID: LINGO-11-plan · Status: **draft**, waiting for the owner (H-11-0) · Version: 1 · Date: 2026-11-13 · Risk: R3
+ID: LINGO-11-plan · Status: **accepted by the owner at H-11-0 (2026-11-13)** · Version: 1 · Date: 2026-11-13 · Risk: R3
 Links: [intent.md](intent.md) · [spec.md](spec.md) · [handoff.md](handoff.md) · [ADR-0008](../../decisions/ADR-0008-web-for-friends.md)
 
 **No code before the owner accepts these documents (H-11-0).** One step = one issue `[LINGO-11 F-xx] …` and one PR (≤ about 600
 changed lines without fixtures, snapshots and generated files; a step that grows beyond it is split and the split is recorded in
 `handoff.md`). Every PR: tests, green CI, an independent AI review without open P0/P1, `handoff.md` updated. Merging follows CX-02
-only if the owner extends it to this plan at H-11-0 (intent A-13); otherwise every PR waits for the owner.
+because the owner extended it to this plan at H-11-0 (intent A-13).
 
 Rules for every step:
 - **Contracts first.** The engine API is changed in `packages/contracts/api/openapi.yaml` before the code. A ported module starts with

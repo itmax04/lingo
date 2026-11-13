@@ -1,10 +1,10 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **documents v1 written, waiting for the owner at H-11-0; no code** · Date: 2026-11-13
+Status: **documents accepted by the owner at H-11-0 (2026-11-13); next: milestones, issues, step F-1** · Date: 2026-11-13
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
-  [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) (proposed).
+  [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) (accepted at H-11-0).
 - Branch `docs/lingo-11-web-for-friends` from `origin/main` `5144f77`, worktree `.claude/worktrees/lingo-11-docs`.
 - No GitHub issues or milestones yet: they are created after H-11-0 from the accepted plan (SDLC §3.4).
 
@@ -132,6 +132,11 @@ were fixed in the next commit:
 
 Not checked by the reviewers: Cloudflare figures against live sources (read by the executor from the documentation on 2026-11-13),
 section numbers of the WEB.md and ARCHITECTURE.md notices line by line, GitHub state.
+
+## Owner's answers at H-11-0 (2026-11-13, in chat)
+Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
+A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine
+(step F-1) in a new session.
 
 ## Next step
 After H-11-0: create the milestones and issues of the plan, mark LINGO-03 issues #10…#27 and PR #62 as superseded (comment and close,

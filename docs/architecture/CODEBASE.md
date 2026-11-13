@@ -20,7 +20,7 @@ created exactly there (ADR-0004). Update this file in the same PR when a top-lev
 | Speech recognition | on device (whisper.cpp) | engine → Groq Whisper (fallback Workers AI) |
 | Models and keys | own chain, keys in the Keychain | engine routes; keys are Worker secrets |
 | History | own journal + sync folder; joins the account in LINGO-04 | IndexedDB copy + engine (D1) |
-| Status | working (LINGO-01), redesign in PR #33 | documents and contracts only; built in LINGO-03 Stages 1–2 (LINGO-11 replaces that plan when the owner accepts it, H-11-0) |
+| Status | working (LINGO-01), redesign in PR #33 | documents and contracts only; built in LINGO-03 Stages 1–2 (LINGO-11, accepted at H-11-0, replaces that plan) |
 | CI | `ci-mac.yml` (macOS, path-filtered) | `ci-ts.yml` (Linux) |
 | Shared with the other app | `packages/contracts` (events, API, prompts, evals, fixtures), `DESIGN.md`, rules in `AGENTS.md` | same |
 

@@ -84,7 +84,7 @@ then follows LINGO-11 instead of LINGO-03 H-5.
 | # | Step | Notes |
 |---|---|---|
 | F0 | Documents, provider CORS check, AI review, docs PR | done, this PR |
-| **H-11-0** | **Owner: accept the LINGO-11 documents** | also decides whether CX-02 covers the LINGO-11 plan: CX-02 was given for the steps of this plan as it stood on 2026-11-03, so the executor does not apply it to section F without the owner's word (LINGO-11 intent A-13) |
+| **H-11-0** | **Owner: accept the LINGO-11 documents — accepted 2026-11-13, CX-02 extended to the LINGO-11 plan** | also decides whether CX-02 covers the LINGO-11 plan: CX-02 was given for the steps of this plan as it stood on 2026-11-03, so the executor does not apply it to section F without the owner's word (LINGO-11 intent A-13) |
 | F1… | Steps F-1…F-24 of the accepted plan, with owner gates H-11-1 (core on devices), H-11-2 (strict tutor order), H-11-3 (deploy), H-11-4 (acceptance) | issues and milestones are created after H-11-0 |
 
 ## 3. What "finished" means

@@ -2,7 +2,7 @@
 
 Status: **accepted** (owner brainstorms 2026-10-26) · Version 2 (replaces the v1 draft of the same day) · Context: [ARCHITECTURE](../architecture/ARCHITECTURE.md), [LINGO-03](../changes/LINGO-03/intent.md)
 
-> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **proposed** and waits for the owner (H-11-0). When accepted it replaces, of this ADR: in item 1 the Workers AI fallback and the D1 tables for attempts and budgets; in item 3 the i18n part (Russian default UI); item 4 (recognition through the engine, Workers AI Whisper, no browser recognition); item 9 (`/api/turn`); and the `i18next` rows of the allow-list. It adds `qrcode-generator`. The rest of this ADR stays (Worker with static assets and D1, TypeScript, React + Vite PWA, `speechSynthesis`, the ported VAD, IndexedDB, the test tools). See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
+> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **accepted** (owner, H-11-0, 2026-11-13). It replaces, of this ADR: in item 1 the Workers AI fallback and the D1 tables for attempts and budgets; in item 3 the i18n part (Russian default UI); item 4 (recognition through the engine, Workers AI Whisper, no browser recognition); item 9 (`/api/turn`); and the `i18next` rows of the allow-list. It adds `qrcode-generator`. The rest of this ADR stays (Worker with static assets and D1, TypeScript, React + Vite PWA, `speechSynthesis`, the ported VAD, IndexedDB, the test tools). See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
 
 ## Context
 - The owner practises mostly on a phone (iPhone Air, iPhone 11), also on an iPad, an Android phone, a Windows PC and other people's computers; the Mac app stays standalone.

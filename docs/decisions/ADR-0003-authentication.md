@@ -2,7 +2,7 @@
 
 Status: **accepted** (owner, 2026-10-26) · Context: [ARCHITECTURE §8](../architecture/ARCHITECTURE.md#8-security-and-privacy)
 
-> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **proposed** and waits for the owner (H-11-0). When accepted it replaces this ADR for Lingo Web and the engine: accounts by invite link instead of GitHub OAuth. §5 (device tokens for native clients) is decided again in LINGO-04. See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
+> **LINGO-11 notice (2026-11-13).** [ADR-0008](../decisions/ADR-0008-web-for-friends.md) is **accepted** (owner, H-11-0, 2026-11-13). It replaces this ADR for Lingo Web and the engine: accounts by invite link instead of GitHub OAuth. §5 (device tokens for native clients) is decided again in LINGO-04. See the [LINGO-11 spec](../changes/LINGO-11/spec.md).
 
 ## Context
 - One owner today (GitHub `itmax04`), friends possibly later. The site and API are on the public internet.

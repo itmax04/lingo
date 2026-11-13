@@ -1,6 +1,6 @@
 # LINGO-11: Specification — Lingo Web for friends
 
-ID: LINGO-11-spec · Status: **draft**, waiting for the owner (H-11-0) · Version: 1 · Date: 2026-11-13 · Owner: itmax04 · Risk: R3
+ID: LINGO-11-spec · Status: **accepted by the owner at H-11-0 (2026-11-13)** · Version: 1 · Date: 2026-11-13 · Owner: itmax04 · Risk: R3
 Links: [intent.md](intent.md) (decisions 1…16, assumptions A-01…A-19) · [plan.md](plan.md) · [handoff.md](handoff.md) ·
 [ADR-0008](../../decisions/ADR-0008-web-for-friends.md) · [contracts](../../../packages/contracts/README.md) · [DESIGN.md](../../../DESIGN.md)
 

@@ -1,6 +1,6 @@
 # ADR-0008: Lingo Web for friends — accounts by invite, keys on the device, logic in the browser
 
-Status: **proposed**, waiting for the owner (H-11-0) · Date: 2026-11-13 · Risk: R3 (real accounts, other people's history and keys)
+Status: **accepted by the owner at H-11-0 (2026-11-13)** · Date: 2026-11-13 · Risk: R3 (real accounts, other people's history and keys)
 Context: [LINGO-11 intent](../changes/LINGO-11/intent.md) (owner decisions 1…16 of 2026-11-13) · [LINGO-11 spec](../changes/LINGO-11/spec.md)
 
 When accepted, this ADR **supersedes for Lingo Web and the Lingo Engine**:
