@@ -1,6 +1,6 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11-13
+Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next** · Date: 2026-11-13
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
@@ -24,6 +24,7 @@ Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11
 |---|---|---|---|
 | Stage 0: documents | #146 | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
+| F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
 
 ## Split of F-1 (plan "Size" rule)
 - **F-1a — foundation**: OpenAPI v2, workspaces, Worker shell, security headers and `_headers`, migration 0001, CI. No route yet:
@@ -82,6 +83,21 @@ Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11
   `core-ts` stays on 5.0.5.
 - D-13 (F-1a): a smoke script (`npm run smoke -w services/engine`) starts `wrangler dev` in CI: unit tests call the handler
   directly and cannot see that the entry module loads in the real runtime or that the platform applies `_headers` to static files.
+- D-14 (F-1b): account and device ids are random UUIDs. Display names are trimmed and counted in characters (1–40), as SQLite's
+  `length()` counts them.
+- D-15 (F-1b): the common refusal of a link is 410 `link_invalid`; over the client limit it is the same body with status 429.
+  `/api/setup` is not a link and answers 403 `secret_invalid`, and 429 `too_many_attempts` over a limit. The global setup limit is
+  20 failures in 10 minutes. A request without the secret or the token field is 400 and is not counted as a guess.
+- D-16 (F-1b): limits look at the current and the previous 10-minute window, so no 10 minutes hold more than the limit; the
+  price is that a client at the limit waits up to 20 minutes. The client is the `CF-Connecting-IP` address (an IPv6 /64, an
+  IPv4-mapped address as IPv4); without the header (local runs) every client shares one bucket.
+- D-17 (F-1b): `/api/setup` and `/api/join` answer 409 `already_signed_in` only for a working session. A request with an ended
+  session or a blocked account's session may redeem; the new cookie replaces the old one.
+- D-18 (F-1b): a cookie value that is not a 43-character token is `session_ended`, like an unknown token. `account_blocked` does
+  not clear the cookie, so unblocking restores access on the same device (FR-09).
+- D-19 (F-1b): the cookie's `Max-Age` is 90 days and is sent again whenever the expiry is extended; the extension also updates
+  the device's `last_seen_at`, so "last seen" has a resolution of one day and costs at most two row writes per device and day.
+- D-20 (F-1b): the setup request may carry `name` (default "Admin"); it is used only when the account is created.
 
 ## Constraints found in F-1
 - A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text
@@ -182,12 +198,34 @@ Acceptance covered by F-1a: FAC-18 (part: headers on static files and API answer
 missing pepper gives 500, not 401), FAC-19 (part: migration and local start by the commands of `services/engine/README.md`).
 FAC-01 and the session part of FAC-03 belong to F-1b.
 
+## Checks (F-1b)
+Run on 2026-11-13 on the commit that contains this text (Node 26, wrangler 4.162.0):
+| Check | Result | Output |
+|---|---|---|
+| `npm ci && npm test` | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 2 files, 42 tests passed |
+| `npm run build` | PASS | exit 0 |
+| `npm run smoke -w services/engine` | PASS | 10 lines `ok`, among them `POST /api/setup → 200 and the development cookie`, `GET /api/me with the cookie → the admin`; `smoke: PASS` |
+| Mutation check of the tests (by hand, not in CI) | PASS | seven guards removed one at a time — the `used_at IS NULL` condition, the stamp guard of the inserts, the client limit, the revoked check, the once-a-day extension, the global setup limit, the blocked check — each made 1–2 tests fail; restored, 42 passed |
+| `scripts/secret-scan.sh` | PASS | `0 findings` |
+| `scripts/check-english.sh` | PASS | `check-english: PASS` |
+| `swift test` | NOT RUN | no Swift file changed |
+
+Acceptance covered by F-1 after F-1b — engine part; the pages of FAC-01 ("the page shows the account name") are F-9, creating and
+revoking an invite through the API is F-2 (tests insert link rows directly):
+| Check | Tests (`services/engine/test/auth.test.ts`) |
+|---|---|
+| FAC-01 | redeem; one refusal for used, expired, revoked, unknown, malformed and other-kind tokens; four concurrent redemptions → one account and session; `GET` changes nothing; no token in D1 in clear; no redemption on a signed-in device |
+| FAC-03 (part) | once-a-day extension; a session unused for 91 days refused; `session_ended` and `account_blocked` typed; no cookie → `not_signed_in`; missing pepper or database → 500 |
+| FAC-04 (setup part, ahead of F-2) | admin created once; recovery signs the same admin in and creates nothing else; 404 without or with a short secret; client and global limits; refusals write nothing |
+| FAC-18 (part), FAC-19 (part) | `shell.test.ts` and the smoke run |
+
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
 A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine
 (step F-1) in a new session.
 
 ## Next step
-**F-1b** (strong tier, issue #147, branch `feat/147-engine-auth` stacked on F-1a): tokens, sessions and cookie, attempt counters,
-`/api/setup`, `/api/join`, `/api/me`. Then F-2 (#148). In a separate worktree **F-5** (standard tier) can start: its milestone and
-issue are not created yet.
+Merge the F-1a PR, then the F-1b PR (CX-02; `gh pr merge` needs the owner's approval of the prompt). Then **F-2** (strong tier,
+issue #148): pairing by link and code with the global typed-code limit, devices list and sign-out, sign-in link, admin API,
+own-account rename and delete — the contract first. It reuses `lookupSession`/`authenticate`, the stamped batch of `join` and
+the counters of `attempts.ts`. In a separate worktree **F-5** (standard tier) can start: its milestone and issue are not created yet.
