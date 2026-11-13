@@ -78,7 +78,10 @@ export async function authenticate(ctx: Ctx): Promise<{ me: Me; setCookie: strin
   if (ctx.now - row.extended_at >= DAY_MS) {
     const { db } = ctx.config;
     await db.batch([
-      db.prepare("UPDATE sessions SET expires_at = ?, extended_at = ? WHERE hash = ?").bind(ctx.now + SESSION_MS, ctx.now, found.hash),
+      // Conditional on the extension we read, so of parallel requests at the day boundary only the first writes.
+      db
+        .prepare("UPDATE sessions SET expires_at = ?, extended_at = ? WHERE hash = ? AND extended_at = ?")
+        .bind(ctx.now + SESSION_MS, ctx.now, found.hash, row.extended_at),
       db.prepare("UPDATE devices SET last_seen_at = ? WHERE id = ?").bind(ctx.now, row.device_id),
     ]);
     setCookie = sessionCookie(ctx.config, found.token);

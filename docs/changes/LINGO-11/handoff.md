@@ -84,19 +84,22 @@ Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next*
 - D-13 (F-1a): a smoke script (`npm run smoke -w services/engine`) starts `wrangler dev` in CI: unit tests call the handler
   directly and cannot see that the entry module loads in the real runtime or that the platform applies `_headers` to static files.
 - D-14 (F-1b): account and device ids are random UUIDs. Display names are trimmed and counted in characters (1–40), as SQLite's
-  `length()` counts them.
+  `length()` counts them; control characters (C0, DEL, C1) and bidirectional overrides are refused with 400 (review B1).
 - D-15 (F-1b): the common refusal of a link is 410 `link_invalid`; over the client limit it is the same body with status 429.
   `/api/setup` is not a link and answers 403 `secret_invalid`, and 429 `too_many_attempts` over a limit. The global setup limit is
   20 failures in 10 minutes. A request without the secret or the token field is 400 and is not counted as a guess.
-- D-16 (F-1b): limits look at the current and the previous 10-minute window, so no 10 minutes hold more than the limit; the
-  price is that a client at the limit waits up to 20 minutes. The client is the `CF-Connecting-IP` address (an IPv6 /64, an
-  IPv4-mapped address as IPv4); without the header (local runs) every client shares one bucket.
+- D-16 (F-1b): limits look at the current and the previous 10-minute window, so sequential attempts never put more than the
+  limit into 10 minutes; the price is that a client at the limit waits up to 20 minutes. The check reads before the failure is
+  written, so a burst of parallel requests can pass the limit (review B2/N1): accepted for 256-bit link tokens and the setup
+  secret; F-2 decides it again for typed codes. The client is the `CF-Connecting-IP` address (an IPv6 /64; an IPv4-mapped
+  address, dotted or hex, as IPv4); without the header (local runs) every client shares one bucket.
 - D-17 (F-1b): `/api/setup` and `/api/join` answer 409 `already_signed_in` only for a working session. A request with an ended
   session or a blocked account's session may redeem; the new cookie replaces the old one.
 - D-18 (F-1b): a cookie value that is not a 43-character token is `session_ended`, like an unknown token. `account_blocked` does
   not clear the cookie, so unblocking restores access on the same device (FR-09).
 - D-19 (F-1b): the cookie's `Max-Age` is 90 days and is sent again whenever the expiry is extended; the extension also updates
   the device's `last_seen_at`, so "last seen" has a resolution of one day and costs at most two row writes per device and day.
+  The session update is conditional on the `extended_at` that was read, so parallel requests at the day boundary extend once.
 - D-20 (F-1b): the setup request may carry `name` (default "Admin"); it is used only when the account is created.
 
 ## Constraints found in F-1

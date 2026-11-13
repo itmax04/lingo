@@ -4,12 +4,15 @@ import { hmacHex, randomToken, secretsEqual, TOKEN_PATTERN } from "./crypto";
 import { ApiError, json } from "./http";
 import { authenticate, lookupSession, sessionCookie, SESSION_MS, type Me } from "./session";
 
+/** Control and bidirectional-override characters: SQLite's `length()` stops at NUL, and the admin view must show names as typed. */
+const FORBIDDEN_IN_NAME = /[\u0000-\u001F\u007F-\u009F‪-‮⁦-⁩]/u;
+
 /** An optional display name of 1–40 characters (spec FR-01); anything else is `invalid_request`. */
 function nameField(value: unknown, fallback: string): string {
   if (value === undefined) return fallback;
   const name = typeof value === "string" ? value.trim() : "";
   const length = [...name].length;
-  if (length < 1 || length > 40) throw new ApiError("invalid_request");
+  if (length < 1 || length > 40 || FORBIDDEN_IN_NAME.test(name)) throw new ApiError("invalid_request");
   return name;
 }
 

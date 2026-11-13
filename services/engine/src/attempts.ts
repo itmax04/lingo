@@ -11,12 +11,21 @@ export function clientBucket(request: Request): string {
   const ip = (request.headers.get("CF-Connecting-IP") ?? "").trim().toLowerCase();
   if (ip === "") return "ip:unknown";
   if (!ip.includes(":")) return `ip:${ip}`;
-  if (ip.includes(".")) return `ip:${ip.slice(ip.lastIndexOf(":") + 1)}`; // IPv4-mapped
   const [head = "", tail] = ip.split("::");
   const left = head === "" ? [] : head.split(":");
   const right = tail === undefined || tail === "" ? [] : tail.split(":");
-  const groups = tail === undefined ? left : [...left, ...Array<string>(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right];
-  return `ip6:${groups.slice(0, 4).map((g) => (Number.parseInt(g, 16) || 0).toString(16)).join(":")}`;
+  // An embedded dotted IPv4 tail takes two groups.
+  const rightGroups = right.length > 0 && right[right.length - 1]!.includes(".") ? right.length + 1 : right.length;
+  const groups = tail === undefined ? left : [...left, ...Array<string>(Math.max(0, 8 - left.length - rightGroups)).fill("0"), ...right];
+  const hex = groups.map((g) => (g.includes(".") ? g : (Number.parseInt(g, 16) || 0).toString(16)));
+  // IPv4-mapped (::ffff:a.b.c.d or ::ffff:hhhh:hhhh) counts as the IPv4 address; other embedded forms keep their /64.
+  if (hex.slice(0, 5).every((g) => g === "0") && hex[5] === "ffff") {
+    const v4 = hex.slice(6).join(":");
+    if (v4.includes(".")) return `ip:${v4}`;
+    const n = (Number.parseInt(hex[6] ?? "0", 16) << 16) | Number.parseInt(hex[7] ?? "0", 16);
+    return `ip:${[24, 16, 8, 0].map((s) => (n >>> s) & 255).join(".")}`;
+  }
+  return `ip6:${hex.slice(0, 4).join(":")}`;
 }
 
 const windowStart = (now: number): number => Math.floor(now / WINDOW_MS) * WINDOW_MS;

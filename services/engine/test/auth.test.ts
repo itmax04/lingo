@@ -133,6 +133,21 @@ describe("POST /api/join (FAC-01)", () => {
     expect((await call(post("/api/join", { token }))).status).toBe(200);
   });
 
+  it("is redeemed with an ended or a blocked account's session; the new cookie replaces the old one (D-17)", async () => {
+    const ended = await joined("Ended");
+    await env.DB.prepare("UPDATE sessions SET revoked_at = ?").bind(Date.now()).run();
+    const first = await call(post("/api/join", { token: await invite({ name: "After revoke" }) }, { Cookie: ended.cookie }));
+    expect(first.status).toBe(200);
+    expect(cookieOf(first)).not.toBe(ended.cookie);
+
+    const blocked = await joined("Blocked");
+    await env.DB.prepare("UPDATE accounts SET status = 'blocked' WHERE id = ?").bind(blocked.accountId).run();
+    const second = await call(post("/api/join", { token: await invite({ name: "After block" }) }, { Cookie: blocked.cookie }));
+    expect(second.status).toBe(200);
+    expect(cookieOf(second)).not.toBe(blocked.cookie);
+    expect(((await second.json()) as { account: { name: string } }).account.name).toBe("After block");
+  });
+
   it("is refused while invites are switched off, and the link stays unused", async () => {
     const token = await invite();
     for (const value of ["0", "", undefined, "true"]) {
@@ -146,7 +161,8 @@ describe("POST /api/join (FAC-01)", () => {
 
   it("refuses a missing token and a bad device name as invalid requests", async () => {
     const token = await invite();
-    for (const body of [{}, { token: 5 }, { token, deviceName: "" }, { token, deviceName: "x".repeat(41) }, { token, deviceName: 7 }]) {
+    const controls = ["\u0000x", "a\nb", "a\u007Fb", "a\u0085b", "\u202Eevil", "a\u2066b"];
+    for (const body of [{}, { token: 5 }, { token, deviceName: "" }, { token, deviceName: "x".repeat(41) }, { token, deviceName: 7 }, ...controls.map((deviceName) => ({ token, deviceName }))]) {
       const response = await call(post("/api/join", body));
       expect(response.status).toBe(400);
     }
@@ -192,6 +208,10 @@ describe("POST /api/join (FAC-01)", () => {
     expect(bucket("::1")).toBe("ip6:0:0:0:0");
     expect(bucket("2001:db8::")).toBe("ip6:2001:db8:0:0");
     expect(bucket("::ffff:203.0.113.9")).toBe("ip:203.0.113.9");
+    expect(bucket("::ffff:cb00:7109")).toBe("ip:203.0.113.9");
+    expect(bucket("0:0:0:0:0:FFFF:203.0.113.9")).toBe("ip:203.0.113.9");
+    expect(bucket("64:ff9b::198.51.100.7")).toBe("ip6:64:ff9b:0:0");
+    expect(bucket("::1.2.3.4")).toBe("ip6:0:0:0:0");
     expect(bucket("203.0.113.9")).toBe("ip:203.0.113.9");
     expect(clientBucket(new Request(ORIGIN))).toBe("ip:unknown");
   });
@@ -272,11 +292,16 @@ describe("POST /api/setup (FR-11)", () => {
     expect((await call(post("/api/join", { token: await invite() }, ip("192.0.2.1")))).status).toBe(200);
   });
 
+  it("names the admin \"Admin\" and the device \"Browser\" when the fields are left out", async () => {
+    const response = await call(setup(SETUP_SECRET));
+    expect(await response.json()).toMatchObject({ account: { name: "Admin", isAdmin: true }, device: { name: "Browser" } });
+  });
+
   it("is not used on a signed-in device and refuses bad fields", async () => {
     const { cookie } = await joined();
     const refused = await call(setup(SETUP_SECRET, { Cookie: cookie }));
     expect(refused.status).toBe(409);
-    for (const body of [{}, { secret: 1 }, { secret: SETUP_SECRET, name: "" }, { secret: SETUP_SECRET, name: "x".repeat(41) }]) {
+    for (const body of [{}, { secret: 1 }, { secret: SETUP_SECRET, name: "" }, { secret: SETUP_SECRET, name: "x".repeat(41) }, { secret: SETUP_SECRET, name: "\u0000Admin" }, { secret: SETUP_SECRET, deviceName: "a\rb" }]) {
       expect((await call(post("/api/setup", body))).status).toBe(400);
     }
     expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM accounts WHERE is_admin = 1").first("n")).toBe(0);
