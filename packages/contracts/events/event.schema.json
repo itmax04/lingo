@@ -76,7 +76,8 @@
         "memory.noted",
         "memory.updated",
         "memory.removed",
-        "memory.switched"
+        "memory.switched",
+        "reply.revealed"
       ]
     },
     "session": {
@@ -473,6 +474,22 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/MemorySwitched"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "reply.revealed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/ReplyRevealed"
           }
         }
       }
@@ -1239,6 +1256,15 @@
       "required": ["on"],
       "properties": {
         "on": { "type": "boolean" }
+      }
+    },
+    "ReplyRevealed": {
+      "type": "object",
+      "description": "reply.revealed (LINGO-09 MR-54): reply option `index` (0-based) of the assistant message `message` was revealed; ids and numbers only (MR-46). The session is the envelope's. Changes no state.",
+      "required": ["message", "index"],
+      "properties": {
+        "message": { "type": "string" },
+        "index": { "type": "integer", "minimum": 0 }
       }
     },
     "ExamPart": {

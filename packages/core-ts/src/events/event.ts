@@ -49,6 +49,7 @@ export const EventType = {
   memoryUpdated: "memory.updated",
   memoryRemoved: "memory.removed",
   memorySwitched: "memory.switched",
+  replyRevealed: "reply.revealed",
 } as const;
 export const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set(Object.values(EventType));
 

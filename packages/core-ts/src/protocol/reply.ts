@@ -16,11 +16,11 @@ export function spokenText(segments: readonly ReplySegment[], raw: string): stri
   return segments.length === 0 ? removingSilentLines(raw) : segments.flatMap((s) => sayText(s) ?? []).join(" ");
 }
 
-/** Tags parsed silently (LINGO-05 PX-01; LINGO-09 MR-11, MR-12, MR-14 add `next` and `help`): never spoken, never a segment. */
-export const SILENT_TAGS: ReadonlySet<string> = new Set(["grade", "task", "next", "help"]);
+/** Tags parsed silently (LINGO-05 PX-01; LINGO-09 MR-11, MR-12, MR-14 add `next` and `help`, MR-50 `reply`): never spoken, never a segment. */
+export const SILENT_TAGS: ReadonlySet<string> = new Set(["grade", "task", "next", "help", "reply"]);
 
 /** The tag (lower case) and body of a tagged line after the `parseLine` clean-up; null for an untagged line. */
-function tagged(raw: string): { tag: string; body: string } | null {
+function tagged(raw: string): { tag: string; body: string; lang: string | null } | null {
   let line = trimSpaces(raw);
   while (line !== "" && "-*•>".includes(characters(line)[0] as string)) line = trimSpaces(line.slice((characters(line)[0] as string).length));
   line = line.replaceAll("**", "");
@@ -30,15 +30,45 @@ function tagged(raw: string): { tag: string; body: string } | null {
     // No colon: the first word is the tag, the rest the body ("@grade good").
     const words = line.slice(1).split(" ").filter((x) => x !== "");
     if (words.length === 0) return null;
-    return { tag: (words[0] as string).toLowerCase(), body: trimSpaces(words.slice(1).join(" ")) };
+    return { tag: (words[0] as string).toLowerCase(), body: trimSpaces(words.slice(1).join(" ")), lang: null };
   }
-  const tag = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "")[0] ?? "";
-  return { tag, body: trimSpaces(line.slice(colon + 1)) };
+  const head = line.slice(1, colon).toLowerCase().split(" ").filter((x) => x !== "");
+  return { tag: head[0] ?? "", body: trimSpaces(line.slice(colon + 1)), lang: head[1] ?? null };
 }
 
 /** The raw text without silent-tag lines (Swift `ReplyProtocol.removingSilentLines`). */
 export function removingSilentLines(text: string): string {
   return text.split("\n").filter((l) => { const t = tagged(l); return t === null || !SILENT_TAGS.has(t.tag); }).join("\n");
+}
+
+/** One answer the learner could give (LINGO-09 MR-50). */
+export interface ReplyOption { lang: Lang; text: string; translation: string }
+
+/** More `@reply` lines than this keep the first three (MR-50). */
+export const MAX_REPLY_OPTIONS = 3;
+
+/**
+ * The options of a raw reply, as Swift `ReplyOptions.parse`: from the raw text like every silent tag; a line without the `|` separator
+ * or with an empty phrase is skipped; a missing or unknown language means the study language.
+ */
+export function parseReplyOptions(raw: string, studyLang: Lang): ReplyOption[] {
+  const out: ReplyOption[] = [];
+  // Lines split on every newline Character, as `parseReply` ("\r\n" is one), so a CRLF reply loses no trailing "\r" into a translation.
+  const lines: string[] = [];
+  let cur = "";
+  for (const c of characters(stripThinking(raw))) { if (isNewline(c)) { lines.push(cur); cur = ""; } else cur += c; }
+  lines.push(cur);
+  for (const line of lines) {
+    const t = tagged(line);
+    if (t === null || t.tag !== "reply") continue;
+    const bar = t.body.indexOf("|");
+    if (bar < 0) continue;
+    const text = trimSpaces(t.body.slice(0, bar));
+    if (text === "") continue;
+    out.push({ lang: lang(t.lang ?? undefined) ?? studyLang, text, translation: trimSpaces(t.body.slice(bar + 1)) });
+    if (out.length === MAX_REPLY_OPTIONS) break;
+  }
+  return out;
 }
 
 /** Removes `<think>…</think>` reasoning blocks; an unterminated block is cut to the end. */
@@ -101,6 +131,7 @@ export function parseLine(raw: string, studyLang: Lang): [ReplySegment | null, b
     case "task":
     case "next":
     case "help":
+    case "reply":
       return [null, false];
     case "tutor":
       // LINGO-09 MR-13/MR-14: the tutor's line outside the scene is an ordinary say segment.

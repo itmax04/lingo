@@ -25,6 +25,7 @@ public actor DialogEngine {
     public let store: JournalStore
     private let makeChain: @Sendable () async -> ProviderChain
     public var policy: ContextPolicy
+    private var replyOptionsOn = false
     private var summarizing: Set<String> = []
     private var debriefing: Set<String> = []
     private var reportingWeek = false
@@ -47,6 +48,9 @@ public actor DialogEngine {
     }
 
     public func setPolicy(_ p: ContextPolicy) { policy = p }
+
+    /// The "Reply options" switch (LINGO-09 MR-49): applies from the next request; the running reply is not cut.
+    public func setReplyOptions(_ on: Bool) { replyOptionsOn = on }
 
     /// A warm-up and an exam never request a recap or a summary (PX-04).
     static func skipsRecapAndSummary(_ s: SessionSettings) -> Bool { s.activity?.kind == .warmup || s.activity?.kind == .exam }
@@ -152,7 +156,8 @@ public actor DialogEngine {
         let profile = frozen.keepingLiveFacts(of: st)  // a deleted fact or the switch applies at once; the rest stays frozen
         let req = PromptBuilder.dialogRequest(settings: s.settings, summary: s.summary, messages: history, command: command, policy: policy,
                                               profile: profile, vocabulary: st.vocabTargets(session: session), warmup: warmup,
-                                              scenarioDone: s.settings.scenario?.tasks.isEmpty == false ? (st.scenarioTasks[session] ?? []) : nil, exam: exam)
+                                              scenarioDone: s.settings.scenario?.tasks.isEmpty == false ? (st.scenarioTasks[session] ?? []) : nil, exam: exam,
+                                              replyOptions: replyOptionsOn && ReplyOptions.isOffered(s.settings, ended: s.state == .ended))
         let chain = await makeChain()
         var parser = ReplyStreamParser(studyLang: s.settings.lang)
         var step: StepInfo?

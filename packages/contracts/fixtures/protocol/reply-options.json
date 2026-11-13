@@ -1,0 +1,130 @@
+{
+  "rule": "LINGO-09 MR-50, MAC-31: the silent @reply tag. `options` is what both ReplyOptions.parse (Swift) and parseReplyOptions (TypeScript) return from the raw text; `spokenText` and `violations` are what the ordinary reply parser returns (an @reply line is never spoken, never a segment, never a violation); `hints` counts the @hint segments. Written by hand; checked by Swift ReplyOptionsTests and TypeScript reply-options.test.ts.",
+  "cases": [
+    {
+      "name": "three options with languages",
+      "studyLang": "de",
+      "text": "@say de: Was machen Sie am Wochenende?\n@reply de: Ich gehe am Samstag schwimmen. | Я иду плавать в субботу.\n@reply de: Ich bleibe zu Hause und lese. | Я остаюсь дома и читаю.\n@reply de: Ich besuche meine Eltern. | Я навещаю родителей.",
+      "options": [
+        {"lang": "de", "text": "Ich gehe am Samstag schwimmen.", "translation": "Я иду плавать в субботу."},
+        {"lang": "de", "text": "Ich bleibe zu Hause und lese.", "translation": "Я остаюсь дома и читаю."},
+        {"lang": "de", "text": "Ich besuche meine Eltern.", "translation": "Я навещаю родителей."}
+      ],
+      "spokenText": "Was machen Sie am Wochenende?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "missing and unknown language mean the study language",
+      "studyLang": "en",
+      "text": "@say en: Where do you live?\n@reply: I live in Berlin. | Я живу в Берлине.\n@reply fr: I live near the sea. | Я живу у моря.",
+      "options": [
+        {"lang": "en", "text": "I live in Berlin.", "translation": "Я живу в Берлине."},
+        {"lang": "en", "text": "I live near the sea.", "translation": "Я живу у моря."}
+      ],
+      "spokenText": "Where do you live?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "more than three keep the first three",
+      "studyLang": "en",
+      "text": "@say en: What do you like?\n@reply en: Tea. | Чай.\n@reply en: Coffee. | Кофе.\n@reply en: Juice. | Сок.\n@reply en: Water. | Вода.",
+      "options": [
+        {"lang": "en", "text": "Tea.", "translation": "Чай."},
+        {"lang": "en", "text": "Coffee.", "translation": "Кофе."},
+        {"lang": "en", "text": "Juice.", "translation": "Сок."}
+      ],
+      "spokenText": "What do you like?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "malformed lines are skipped",
+      "studyLang": "de",
+      "text": "@say de: Und Sie?\n@reply de: Ohne Trennzeichen\n@reply de: | nur Übersetzung\n@reply de:   |   \n@reply\n@reply de: Ich auch. | Я тоже.",
+      "options": [
+        {"lang": "de", "text": "Ich auch.", "translation": "Я тоже."}
+      ],
+      "spokenText": "Und Sie?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "empty translation is kept",
+      "studyLang": "de",
+      "text": "@say de: Wie geht es Ihnen?\n@reply de: Gut, danke. |",
+      "options": [
+        {"lang": "de", "text": "Gut, danke.", "translation": ""}
+      ],
+      "spokenText": "Wie geht es Ihnen?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "list and bold markup and CRLF",
+      "studyLang": "en",
+      "text": "@say en: Tell me more.\r\n- @reply en: I work as a nurse. | Я работаю медсестрой.\r\n**@reply en:** I study law. | Я учусь на юриста.\r\n",
+      "options": [
+        {"lang": "en", "text": "I work as a nurse.", "translation": "Я работаю медсестрой."},
+        {"lang": "en", "text": "I study law.", "translation": "Я учусь на юриста."}
+      ],
+      "spokenText": "Tell me more.",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "a bar inside the translation stays in it",
+      "studyLang": "en",
+      "text": "@say en: Which one?\n@reply en: The red one. | Красный | тот, что слева.",
+      "options": [
+        {"lang": "en", "text": "The red one.", "translation": "Красный | тот, что слева."}
+      ],
+      "spokenText": "Which one?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "reasoning blocks are ignored",
+      "studyLang": "en",
+      "text": "<think>@reply en: not this | не это</think>@say en: Ready?\n@reply en: Yes, ready. | Да, готов.",
+      "options": [
+        {"lang": "en", "text": "Yes, ready.", "translation": "Да, готов."}
+      ],
+      "spokenText": "Ready?",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "hint keeps its meaning next to reply",
+      "studyLang": "de",
+      "text": "@say de: Was essen Sie gern?\n@hint de: Ich esse gern Pizza. | Я люблю пиццу.\n@reply de: Ich esse gern Suppe. | Я люблю суп.",
+      "options": [
+        {"lang": "de", "text": "Ich esse gern Suppe.", "translation": "Я люблю суп."}
+      ],
+      "spokenText": "Was essen Sie gern?",
+      "violations": 0,
+      "hints": 1
+    },
+    {
+      "name": "no reply lines",
+      "studyLang": "en",
+      "text": "@say en: Nice to meet you.",
+      "options": [],
+      "spokenText": "Nice to meet you.",
+      "violations": 0,
+      "hints": 0
+    },
+    {
+      "name": "only reply lines leave no spoken text",
+      "studyLang": "en",
+      "text": "@reply en: Fine. | Хорошо.",
+      "options": [
+        {"lang": "en", "text": "Fine.", "translation": "Хорошо."}
+      ],
+      "spokenText": "",
+      "violations": 0,
+      "hints": 0
+    }
+  ]
+}
