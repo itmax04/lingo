@@ -1,0 +1,87 @@
+# Provider CORS probe for LINGO-11 (ADR-0008). Run 2026-11-13 17:16 UTC from the owner's Mac with curl, no API key.
+# Origin sent: http://localhost:5173. Preflight: OPTIONS with Access-Control-Request-Headers: authorization,content-type.
+# Shown: status line and every access-control-* / vary response header. Request bodies were '{}' (no user data).
+
+##### https://api.groq.com/openai/v1/chat/completions
+--- preflight
+HTTP/2 204
+access-control-allow-headers: authorization,content-type
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+--- actual POST without key
+HTTP/2 401
+access-control-allow-origin: *
+vary: Origin
+##### https://api.groq.com/openai/v1/audio/transcriptions
+--- preflight
+HTTP/2 204
+access-control-allow-headers: authorization,content-type
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+--- actual POST without key
+HTTP/2 401
+access-control-allow-origin: *
+vary: Origin
+##### https://api.groq.com/openai/v1/models
+--- preflight
+HTTP/2 204
+access-control-allow-headers: authorization,content-type
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,DELETE
+access-control-allow-origin: *
+vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+--- actual GET without key
+HTTP/2 401
+access-control-allow-origin: *
+vary: Origin
+##### https://api.mistral.ai/v1/chat/completions
+--- preflight
+HTTP/2 200
+access-control-allow-origin: *
+access-control-allow-headers: Authorization,Content-Type,User-Agent,Cache-Control,Keep-Alive,X-Mistral-User-Agent,X-External-Organization-Id,X-External-Workspace-Id
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,OPTIONS,DELETE
+access-control-max-age: 3600
+--- actual POST without key
+HTTP/2 401
+access-control-allow-origin: *
+##### https://api.mistral.ai/v1/models
+--- preflight
+HTTP/2 200
+access-control-allow-origin: *
+access-control-allow-headers: Authorization,Content-Type,User-Agent,Cache-Control,Keep-Alive,X-Mistral-User-Agent,X-External-Organization-Id,X-External-Workspace-Id
+access-control-allow-methods: GET,HEAD,PUT,PATCH,POST,OPTIONS,DELETE
+access-control-max-age: 3600
+--- actual GET without key
+HTTP/2 401
+access-control-allow-origin: *
+##### https://openrouter.ai/api/v1/chat/completions
+--- preflight
+HTTP/2 204
+access-control-allow-origin: *
+vary: Access-Control-Request-Headers
+access-control-allow-headers: Authorization,User-Agent,X-Api-Key,X-CSRF-Token,X-Requested-With,Accept,Accept-Version,Content-Length,Content-Encoding,Content-MD5,Content-Type,Date,X-Api-Version,HTTP-Referer,X-Windowai-Title,X-Openrouter-Title,X-Title,X-Openrouter-Categories,X-Openrouter-App-Visibility,X-Session-Id,X-Openrouter-Trace,X-Stainless-Lang,X-Stainless-Package-Version,X-Stainless-OS,X-Stainless-Arch,X-Stainless-Runtime,X-Stainless-Runtime-Version,X-Stainless-Retry-Count,X-Stainless-Timeout,X-Stainless-Helper-Method,Protection-Key,Idempotency-Key,Payment-Authorization,PAYMENT-SIGNATURE,traceparent,tracestate,b3
+access-control-allow-methods: GET,OPTIONS,PATCH,DELETE,POST,PUT
+access-control-expose-headers: WWW-Authenticate,PAYMENT-REQUIRED,Payment-Receipt,PAYMENT-RESPONSE,Location,X-Generation-Id,x-openrouter-error-origin,x-openrouter-error-tool,X-Provider-Name,request-id,cf-ray
+--- actual POST without key
+HTTP/2 401
+access-control-allow-origin: *
+access-control-expose-headers: WWW-Authenticate,PAYMENT-REQUIRED,Payment-Receipt,PAYMENT-RESPONSE,Location,X-Generation-Id,x-openrouter-error-origin,x-openrouter-error-tool,X-Provider-Name,request-id,cf-ray
+##### https://openrouter.ai/api/v1/models
+--- preflight
+HTTP/2 204
+access-control-allow-origin: *
+vary: Access-Control-Request-Headers
+access-control-allow-headers: Authorization,User-Agent,X-Api-Key,X-CSRF-Token,X-Requested-With,Accept,Accept-Version,Content-Length,Content-Encoding,Content-MD5,Content-Type,Date,X-Api-Version,HTTP-Referer,X-Windowai-Title,X-Openrouter-Title,X-Title,X-Openrouter-Categories,X-Openrouter-App-Visibility,X-Session-Id,X-Openrouter-Trace,X-Stainless-Lang,X-Stainless-Package-Version,X-Stainless-OS,X-Stainless-Arch,X-Stainless-Runtime,X-Stainless-Runtime-Version,X-Stainless-Retry-Count,X-Stainless-Timeout,X-Stainless-Helper-Method,Protection-Key,Idempotency-Key,Payment-Authorization,PAYMENT-SIGNATURE,traceparent,tracestate,b3
+access-control-allow-methods: GET,OPTIONS,PATCH,DELETE,POST,PUT
+access-control-expose-headers: WWW-Authenticate,PAYMENT-REQUIRED,Payment-Receipt,PAYMENT-RESPONSE,Location,X-Generation-Id,x-openrouter-error-origin,x-openrouter-error-tool,X-Provider-Name,request-id,cf-ray
+--- actual GET without key
+HTTP/2 200
+access-control-allow-origin: *
+vary: Host, User-Agent, Originator, Anthropic-Version
+access-control-expose-headers: WWW-Authenticate,PAYMENT-REQUIRED,Payment-Receipt,PAYMENT-RESPONSE,Location,X-Generation-Id,x-openrouter-error-origin,x-openrouter-error-tool,X-Provider-Name,request-id,cf-ray
+##### https://api.cloudflare.com/client/v4/accounts/00000000000000000000000000000000/ai/v1/chat/completions
+--- preflight
+HTTP/2 405
+--- actual POST without key
+HTTP/2 401

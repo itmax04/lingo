@@ -6,6 +6,8 @@ Part of the documentation set: [ARCHITECTURE.md](ARCHITECTURE.md) (whole system,
 Requirements: [LINGO-03 spec](../changes/LINGO-03/spec.md) (WR-01…WR-29, WAC-01…WAC-14). Decisions: ADR-0002 (stack), ADR-0003
 (sign-in), ADR-0004 (layout and contracts), ADR-0005 (routing and quota).
 
+> **LINGO-11 notice (2026-11-13).** This file still describes the LINGO-03 design (GitHub sign-in, prompts, model routing and keys in the engine). The owner decided on 2026-11-13 to build the web for friends instead: accounts by invite, keys on the device, all dialogue logic in the browser, a small engine. That design is in [ADR-0008](../decisions/ADR-0008-web-for-friends.md) (accepted, H-11-0) and the [LINGO-11 spec](../changes/LINGO-11/spec.md); where they differ from this file, they win. Still valid here: the stack, `packages/core-ts`, the journal and the free-plan limits of §6. Not valid: the engine's role in §1, §2, the engine parts of §3–§5 (including the planned engine folders of §4), the D1 tables `turns`, attempts, leases and budgets of §6, §7 steps 2–5, §8, the light-theme and Russian screenshots of §9, and the engine prompt builder and i18n rows of §10. This file is rewritten from the built state in LINGO-11 step F-23.
+
 Read this file before touching `apps/web/`, `services/engine/` or `packages/core-ts/`. Everything below that is marked *planned*
 must be created exactly at the given path. When you add, move or delete a module, update this file in the same PR.
 

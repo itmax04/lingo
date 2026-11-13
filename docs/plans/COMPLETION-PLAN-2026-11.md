@@ -14,6 +14,9 @@ is always "documents", and nothing after it starts before the owner's H-0.
   LINGO-05 documents (#67) and T-1…T-9 (#68, #70–#73, #82–#84, #86, #88–#91).
 - **Accepted:** LINGO-05 (H-05, #80), by the owner on 2026-11-12; report in `docs/changes/LINGO-05/report.md`. Next: LINGO-09 (B1).
 - **Parked by the owner (2026-11-01, "Mac first"):** the web part of LINGO-03 (draft PR #62 P-07c2 and P-08…P-20).
+- **Owner priority since 2026-11-13: LINGO-11 — Lingo Web for friends** (section F below). New features are paused, including
+  LINGO-09 (row B; its PRs #119 and #141–#145 stay open). LINGO-11 supersedes the web part of LINGO-03 (row C) once its documents
+  are accepted at H-11-0.
 - **GitHub:** stale Stage 0 issues #2–#7 and #9 closed with `gh` with links to their PRs (CX-03; #8 was already closed); #10 stays open for #62.
 - **Owner decisions in force:** LINGO-05 Q-01…Q-04 (Mac now; all four blocks; no night evals; teacher before the new modes),
   CX-01…CX-03 ([CODEX.md](../process/CODEX.md) §1).
@@ -46,7 +49,7 @@ repository**: Codex must not guess it. B1 starts with the owner's description.
 | B2… | Steps from the accepted plan | issues created in B1 |
 | **H-09-1** | **Owner: accept LINGO-09** | |
 
-### C. LINGO-03 Stages 1–2 — Lingo Web and the engine (resume needs the owner)
+### C. LINGO-03 Stages 1–2 — Lingo Web and the engine (superseded by section F when H-11-0 is passed)
 
 Issues #10…#27 exist (milestones "LINGO-03 · Stage 1 — Evidence" and "Stage 2 — Lingo Web"). The documents were accepted at H-0, but
 they predate LINGO-05/08 and the redesign; the teacher, vocabulary and prompting v2 now exist only on the Mac.
@@ -71,6 +74,18 @@ they predate LINGO-05/08 and the redesign; the teacher, vocabulary and prompting
 |---|---|---|
 | E1 | Documents (STAGE-PROMPTS Prompt 7, written with CODEX.md §8.2): free signing matrix, locked screen, real-time budget | stop at H-06-0 |
 | E2… | Steps of the accepted plan; owner gates H-06-1…H-06-3 | the owner installs on iPhone Air and iPhone 11 |
+
+### F. LINGO-11 — Lingo Web for friends (current; owner priority 2026-11-13)
+
+Documents: [intent](../changes/LINGO-11/intent.md), [spec](../changes/LINGO-11/spec.md), [plan](../changes/LINGO-11/plan.md),
+[ADR-0008](../decisions/ADR-0008-web-for-friends.md). Row C is superseded by this section when H-11-0 is passed; row D (LINGO-04)
+then follows LINGO-11 instead of LINGO-03 H-5.
+
+| # | Step | Notes |
+|---|---|---|
+| F0 | Documents, provider CORS check, AI review, docs PR | done, this PR |
+| **H-11-0** | **Owner: accept the LINGO-11 documents — accepted 2026-11-13, CX-02 extended to the LINGO-11 plan** | also decides whether CX-02 covers the LINGO-11 plan: CX-02 was given for the steps of this plan as it stood on 2026-11-03, so the executor does not apply it to section F without the owner's word (LINGO-11 intent A-13) |
+| F1… | Steps F-1…F-24 of the accepted plan, with owner gates H-11-1 (core on devices), H-11-2 (strict tutor order), H-11-3 (deploy), H-11-4 (acceptance) | issues and milestones are created after H-11-0 |
 
 ## 3. What "finished" means
 
