@@ -1,3 +1,4 @@
+import { idField } from "./admin";
 import type { Ctx } from "./app";
 import { codeHash, nameField, randomCode } from "./auth";
 import { hmacHex, randomToken } from "./crypto";
@@ -8,11 +9,6 @@ import { authenticate, clearedCookie, type Me } from "./session";
 export const PAIRING_MS = 10 * 60 * 1000;
 
 const ok = (body: unknown, setCookie: string | null): Response => json(200, body, setCookie === null ? undefined : { "Set-Cookie": setCookie });
-
-function idField(value: unknown): string {
-  if (typeof value !== "string" || value === "" || value.length > 64) throw new ApiError("invalid_request");
-  return value;
-}
 
 /** The account's devices with a working session, oldest first (spec FR-07). */
 async function deviceList(ctx: Ctx, me: Me): Promise<{ devices: unknown[] }> {
@@ -72,13 +68,16 @@ export async function signOutDevice(ctx: Ctx): Promise<Response> {
   return ok(await deviceList(ctx, me), deviceId === me.device.id ? clearedCookie(ctx.config) : setCookie);
 }
 
-/** POST /api/devices/sign-out-others — every other device, and the unused pairing record a stranger may hold. */
+/**
+ * POST /api/devices/sign-out-others — every other device, and every unused way in that somebody else may hold: the
+ * pairing record and the sign-in link (review N6 of F-2a). The admin can make a new sign-in link.
+ */
 export async function signOutOthers(ctx: Ctx): Promise<Response> {
   const { me, setCookie } = await authenticate(ctx);
   const { db } = ctx.config;
   await db.batch([
     db.prepare("DELETE FROM devices WHERE account_id = ? AND id <> ?").bind(me.account.id, me.device.id),
-    db.prepare("DELETE FROM links WHERE account_id = ? AND kind = 'pair' AND used_at IS NULL").bind(me.account.id),
+    db.prepare("DELETE FROM links WHERE account_id = ? AND kind IN ('pair', 'signin') AND used_at IS NULL").bind(me.account.id),
   ]);
   return ok(await deviceList(ctx, me), setCookie);
 }

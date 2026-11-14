@@ -177,6 +177,12 @@ export async function pair(ctx: Ctx): Promise<Response> {
   throw new ApiError("invalid_request");
 }
 
+/** POST /api/sign-in — redeem a one-time sign-in link made by the admin (spec FR-08). */
+export async function signIn(ctx: Ctx): Promise<Response> {
+  if (typeof ctx.body.token !== "string") throw new ApiError("invalid_request");
+  return redeemForAccount(ctx, "signin", { token: ctx.body.token });
+}
+
 /** GET /api/me */
 export async function me(ctx: Ctx): Promise<Response> {
   const { me, setCookie } = await authenticate(ctx);
