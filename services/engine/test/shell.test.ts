@@ -239,12 +239,15 @@ describe("migration 0001", () => {
 
     await expect(env.DB.prepare("UPDATE accounts SET status = 'blocked' WHERE id = 'root'").run()).rejects.toThrow(/admin/);
     await expect(env.DB.prepare("UPDATE accounts SET is_admin = 0 WHERE id = 'root'").run()).rejects.toThrow(/admin/);
-    await expect(env.DB.prepare("UPDATE accounts SET is_admin = 1 WHERE id = 'a'").run()).rejects.toThrow(/admin|UNIQUE/);
-    await expect(env.DB.prepare("INSERT INTO accounts (id, name, is_admin, status, created_at, updated_at) VALUES ('x', 'N', 1, 'blocked', 1, 1)").run()).rejects.toThrow(/admin|UNIQUE/);
+    await expect(env.DB.prepare("UPDATE accounts SET is_admin = 1 WHERE id = 'a'").run()).rejects.toThrow(/admin flag is fixed/);
+    await expect(env.DB.prepare("INSERT INTO accounts (id, name, is_admin, status, created_at, updated_at) VALUES ('x', 'N', 1, 'blocked', 1, 1)").run()).rejects.toThrow(/admin cannot be blocked/);
     await env.DB.prepare("UPDATE accounts SET status = 'blocked' WHERE id = 'a'").run();
     await env.DB.prepare("UPDATE accounts SET status = 'active', name = 'M' WHERE id = 'a'").run();
     await env.DB.prepare("UPDATE accounts SET name = 'Root' WHERE id = 'root'").run();
     expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM accounts WHERE is_admin = 1 AND status = 'active'").first("n")).toBe(1);
+    // Without an admin row the unique index cannot be what refuses a blocked admin.
+    await env.DB.prepare("DELETE FROM accounts WHERE id = 'root'").run();
+    await expect(env.DB.prepare("INSERT INTO accounts (id, name, is_admin, status, created_at, updated_at) VALUES ('x', 'N', 1, 'blocked', 1, 1)").run()).rejects.toThrow(/admin cannot be blocked/);
   });
 
   it("creates the six tables", async () => {

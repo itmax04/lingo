@@ -261,7 +261,7 @@ revoking an invite through the API is F-2 (tests insert link rows directly):
 Run on 2026-11-14 on the commit that contains this text (Node 26, wrangler 4.162.0):
 | Check | Result | Output |
 |---|---|---|
-| `npm test` (all workspaces) | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 3 files, 67 tests passed |
+| `npm test` (all workspaces) | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 3 files, 67 tests passed (again after the review fixes) |
 | `npm run build` | PASS | exit 0 |
 | `npm run smoke -w services/engine` | PASS | 14 lines `ok`, among them `POST /api/pair with the typed code → 200 and a second session`, `GET /api/devices → two devices`, `POST /api/sign-out → 200, then GET /api/me → 401`; `smoke: PASS` (migration 0002 applied by wrangler) |
 | Mutation check of the tests (by hand, not in CI) | PASS | 16 guards removed one at a time — the reservation's limit condition, the global codes limit, the refund, the refund's guard, the kind check, `used_at IS NULL`, the expiry, the active-account condition, the `code:` prefix, the account condition of rename and of sign-out, "others keeps the caller", "others cancels the pairing record", the live-session filter of the list, cancelling the previous record, the hashed bucket — each made 1–3 tests fail (the prefix after a test was added for it); restored, all passed |
@@ -281,6 +281,20 @@ Acceptance covered by F-2a (`services/engine/test/devices.test.ts`, `shell.test.
 Open review items of F-1 after F-2a: R5 fixed (D-26, D-22); R8 fixed (D-27; admin deletion in F-2b); R9 fixed (charset
 parameter, invalid UTF-8, `PUT`/`PATCH`/`DELETE`/`HEAD`, route table equal to the contract); B2/N1 decided (D-25).
 Still open: R3 (F-3), R4 (F-4), R11 (F-3 / F-23), N2 (F-23), R1 (F-15).
+
+### Independent AI review of F-2a
+Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 153`) on `4fa07f7`. Verdict: **approve with notes**, no P0/P1/P2. It ran
+`npm test -w services/engine` (67 tests), `devices.test.ts` six times, the smoke run, both scripts — PASS — and the reserve
+statement in sqlite3 3.43.2 (client 9 / global 100 → 2 rows changed; the next call 0). Not checked by it: real D1
+concurrency, production D1's `meta.changes` for upserts, core-ts, the mutation check. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| N1 | P3 | Two assertions of the 0002 test matched `/admin\|UNIQUE/` and would pass without the triggers | fixed: exact trigger messages, and a blocked admin inserted while no admin exists |
+| N2 | P3 | FR-06 says "10 minutes", the code refuses for up to 20 | fixed: wording of FR-06 in `spec.md` |
+| N3 | P3 | `POST /api/pairings` deletes expired links of every account, against the letter of FR-14 | answered: housekeeping of dead rows, returns nothing (D-22). **Constraint for F-2b**: the admin's invite list shows unexpired invites only |
+| N4 | P3 | Contract: no 400 on three paths, 403 `origin_refused`/`json_required` not listed for signed-in `POST`s, no `Set-Cookie` on the 200 of `/api/devices/sign-out` | fixed in `openapi.yaml` |
+| N5 | P3 | No test that the device cleanup leaves another account's ended device alone | fixed: test |
+| N6 | P3 | "Sign out everywhere else" cancels only `pair` records | **constraint for F-2b**: decide and test whether an unused `signin` link is cancelled too |
 
 ### Independent AI review of F-1a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
@@ -331,12 +345,8 @@ miniflare runs requests one by one, so the race tests check the guards, not real
 Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it himself after green CI and review (as for
 #151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
 
-1. **F-2a is built** on `feat/148-engine-pairing`, PR #153 (see "Checks (F-2a)"). **Not done yet:** the independent review
-   is not recorded. A fresh `sdlc:reviewer` (Opus, high, mode `pr 153`) was started on `b83a5d0` in the building session
-   and its result was not received before that session ended. First action of the next session: run a fresh
-   `sdlc:reviewer` (Opus, high) on PR #153, check each finding against the code, fix P0/P1 and fix or answer P2, add the
-   table "Independent AI review of F-2a" here, rerun the checks, push; CI on #153 was pending (3 checks) at hand-over. Then
-   ask the owner to merge (`gh pr merge` is denied to agents).
+1. **F-2a is built and reviewed** on `feat/148-engine-pairing`, PR #153 (see "Checks (F-2a)" and its review): it waits for
+   green CI and the owner's merge (`gh pr merge` is denied to agents).
 2. **F-2b** (strong tier: security — admin operations and account deletion), issue #148, branch `feat/148-engine-admin`
    stacked on F-2a: the contract first (sign-in link, admin invites / friends / block / unblock / delete, own-account rename
    and delete), then the code. Reuse `redeemForAccount(ctx, "signin", …)`, `nameField`, `authenticate`; non-admins get 404

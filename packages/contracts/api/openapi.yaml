@@ -136,6 +136,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Pairing" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Blocked" }
         "500": { $ref: "#/components/responses/Misconfigured" }
@@ -233,6 +234,10 @@ paths:
       responses:
         "200":
           description: The devices after the change
+          headers:
+            Set-Cookie:
+              description: Only when the device was the caller's own - the cleared cookie
+              schema: { type: string }
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DeviceList" }
@@ -256,6 +261,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Blocked" }
         "500": { $ref: "#/components/responses/Misconfigured" }
@@ -280,6 +286,7 @@ paths:
           content:
             application/json:
               schema: { type: object }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Blocked" }
         "500": { $ref: "#/components/responses/Misconfigured" }
@@ -297,7 +304,7 @@ components:
         `session_ended`: the session is unknown, revoked or expired; the cookie is cleared and the client deletes its local stores.
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Blocked:
-      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09)"
+      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09). A `POST` can also answer 403 `origin_refused` or `json_required`, which wipe nothing"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     NotFound:
       description: "`not_found`: no such object in the caller's account"

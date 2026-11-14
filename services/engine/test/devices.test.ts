@@ -381,14 +381,16 @@ describe("devices (FR-07, FAC-03)", () => {
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
     const first = await joined();
     const other = await second(first.cookie);
+    await joined("Stranger"); // never used again: its session ends too, and only its own account may remove it
     vi.setSystemTime(new Date("2026-03-01T00:00:00Z"));
     expect((await call(get("/api/me", { Cookie: first.cookie }))).status).toBe(200); // extends the first device only
     vi.setSystemTime(new Date("2026-04-05T00:00:00Z"));
     expect((await devices(first.cookie)).map((d) => d.id)).toEqual([first.deviceId]);
     expect(await errorCode(await call(get("/api/me", { Cookie: other.cookie })))).toBe("session_ended");
-    expect(await count("devices")).toBe(2);
+    expect(await count("devices")).toBe(3);
     await pairing(first.cookie);
-    expect(await count("devices")).toBe(1);
+    expect(await count("devices")).toBe(2);
+    expect(await env.DB.prepare("SELECT COUNT(DISTINCT account_id) AS n FROM devices").first("n")).toBe(2);
   });
 
   it("refuses every device operation of a blocked account and of a request from another origin", async () => {
