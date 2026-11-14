@@ -264,17 +264,22 @@ A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §1
 (step F-1) in a new session.
 
 ## Next step
-State on 2026-11-13 (end of the building session): PR #151 (F-1a, `feat/147-engine-skeleton`, head `03c8f37`, reviewed, no open
-P0/P1) and PR #152 (F-1b, `feat/147-engine-auth`, stacked on #151, base = the F-1a branch). Not finished:
-Update of the delivery session (same day): the review of #152 is done (two runs, no P0/P1/P2, table above), the smoke step
-that hung on Linux is fixed, and CI is **green** on both PRs (`test`, `hygiene`, `swift-test`; #151 at `5434501`). What is
-left waits only for the owner's approval of `gh pr merge` (denied in `.claude/settings.json`):
-1. **Merge #151**: `gh pr merge 151 --squash --delete-branch=false`.
-2. **Retarget #152**: `gh pr edit 152 --base main`; merge `origin/main` into `feat/147-engine-auth` with a normal merge commit
-   (the F-1a content is already in the branch, so no conflicts are expected), publish the branch and wait for green CI.
-3. **Merge #152**: `gh pr merge 152 --squash --delete-branch=false`; issue #147 closes with it.
-4. Then **F-2** (strong tier, issue #148): pairing by link and code with the global typed-code limit, devices list and sign-out,
-   sign-in link, admin API, own-account rename and delete — the contract first. It reuses `lookupSession`/`authenticate`, the
-   stamped batch of `join` and the counters of `attempts.ts`. It also takes the open review items R5, R8 and R9 of F-1a and
-   B2/N1 of F-1b (a conditional increment for the typed codes); N2 belongs to F-23.
-In a separate worktree **F-5** (standard tier) can start: its milestone and issue are not created yet.
+State on 2026-11-14: **F-1 is done.** PR #151 (F-1a) and PR #152 (F-1b) are squash-merged into `main` (`4d0c03c`, `1fed4e1`);
+issue #147 is closed; CI on `main` at `1fed4e1` is green (`ts`, `repo`, `mac`). Verified on `1fed4e1`'s tree before the merge:
+engine 45 tests, core-ts 304 tests, smoke, check-english PASS, secret-scan 0 findings. NOT RUN: real D1 concurrency (local
+miniflare runs requests one by one, so the race tests check the guards, not real interleaving).
+Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it himself after green CI and review (as for
+#151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
+
+1. **F-2** (strong tier: security — typed codes of about 40 bits need an atomic attempt limit), issue #148, branch
+   `feat/148-engine-pairing` from `main` (created with this update): pairing by link and code with the global typed-code
+   limit, devices list and sign-out, sign-in link, admin API (invites, friends, block, delete), own-account rename and delete
+   (FR-05…FR-10, FR-12, FR-13; FAC-02, FAC-03, FAC-04 engine parts). The contract (`packages/contracts/api/openapi.yaml`)
+   first. Reuse `lookupSession`/`authenticate` (`services/engine/src/session.ts`), the stamped batch of `join`
+   (`src/auth.ts`) and the counters of `src/attempts.ts`. Take the open review items: R5 (hash the attempt bucket, clean
+   expired links), R8 (session account = device account; the admin cannot be blocked), R9 (charset parameter, invalid UTF-8,
+   `PUT`/`DELETE` cases) of F-1a, and B2/N1 of F-1b (a conditional increment for typed codes, keeping "no write when refused").
+   N2 belongs to F-23. Split into F-2a/F-2b if over about 600 lines. Done when: engine tests, smoke, check-english,
+   secret-scan pass; a fresh independent `sdlc:reviewer` (Opus, high) has no open P0/P1 and every P2 is fixed or answered;
+   CI green; then ask the owner to merge.
+2. In a separate worktree **F-5** (stage B, standard tier) can start in parallel: its milestone and issue are not created yet.
