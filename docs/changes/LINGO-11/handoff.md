@@ -307,24 +307,39 @@ parameter, invalid UTF-8, `PUT`/`PATCH`/`DELETE`/`HEAD`, route table equal to th
 Still open: R3 (F-3), R4 (F-4), R11 (F-3 / F-23), N2 (F-23), R1 (F-15).
 
 ## Checks (F-2b)
-Run on 2026-11-14 on `e7b06a5` (Node 26, wrangler 4.162.0):
+First run on 2026-11-14 on `e7b06a5`; rerun after the review fixes on `eb81229` (Node 26, wrangler 4.162.0), same results
+unless noted:
 | Check | Result | Output |
 |---|---|---|
 | `npm test` (all workspaces) | PASS | core-ts: 7 files, 304 tests; engine: `tsc` clean, 4 files, 90 tests |
 | `npm run build` | PASS | exit 0 |
 | `npm run smoke -w services/engine` | PASS | 21 lines `ok`, among them `GET /api/admin/accounts as the friend → 404`, `POST /api/sign-in with the admin's link → 200 in the friend's account`, `POST /api/admin/accounts/block for the admin's own account → 403`, `delete with a wrong name → 400; with the name → 200, then GET /api/me as the friend → 401`; `smoke: PASS` |
-| Mutation check (by hand, not in CI) | PASS | 25 guards removed one at a time (admin gate; invite list unused/unexpired/kind/revoked; revoke kind/unused; invites switch; housekeeping; sign-in link active-only, cancels previous, this account only, kind; block not-admin, removes links, keeps used invite; delete not-admin, typed name; `admin_protected`; live-session filter of the list; sign-out-others cancels sign-in link; own rename/delete take the session's account; unblock target only) — each made 1–6 tests fail (unblock after a test was added); restored, all pass |
+| Mutation check (by hand, not in CI) | PASS | on `eb81229`: the new `is_admin = 0` of the sign-in link removed → 1 test fails ("is made for an active, existing friend's account only"); restored. The `status = 'active'` of the pairing insert (review N3) has no test: the race needs two interleaved requests, which miniflare does not run. On `e7b06a5`: 25 guards removed one at a time (admin gate; invite list unused/unexpired/kind/revoked; revoke kind/unused; invites switch; housekeeping; sign-in link active-only, cancels previous, this account only, kind; block not-admin, removes links, keeps used invite; delete not-admin, typed name; `admin_protected`; live-session filter of the list; sign-out-others cancels sign-in link; own rename/delete take the session's account; unblock target only) — each made 1–6 tests fail (unblock after a test was added); restored, all pass |
 | `scripts/check-english.sh` | PASS | `check-english: PASS` |
 | `scripts/secret-scan.sh` | PASS | `0 findings` |
 | `git diff --check` | PASS | no output |
-| Independent review | RUNNING | fresh `sdlc:reviewer` (Opus, high) on `4c40ba9..e7b06a5` was started in the session that built F-2b; its result is not recorded here yet |
-| CI | NOT RUN | branch not pushed |
+| Independent review | PASS | fresh `sdlc:reviewer` (Opus, high) on `4c40ba9..655330a`: approve with notes, no P0/P1/P2; see "Independent AI review of F-2b" |
+| CI | see the PR | pushed with `eb81229` and this handoff |
 | `swift test` | NOT RUN | no Swift file changed |
 
 Acceptance covered (`services/engine/test/admin.test.ts`): FAC-04 engine part (sign-in link, block, unblock, delete, non-admin
 404 on every admin path, admin cannot block or delete itself, no request grants the flag, own rename and delete, blocked
 message); FAC-05 part (two friends and the admin against every route: no answer holds the other account's data; admin
 answers hold no events, device names or session data). The `/admin` page itself is F-9…F-10.
+
+### Independent AI review of F-2b
+Fresh `sdlc:reviewer` (Opus, high effort, mode `pr feat/148-engine-admin`) on `655330a`, run from a separate session's
+worktree with no history of the build. Verdict: **approve with notes**, no P0/P1/P2. It ran `npm test -w services/engine`
+(90 tests, admin 23), the smoke run, both scripts — PASS. Not checked by it: production D1 (foreign-key enforcement assumed
+from D1's default, seen in miniflare and local `wrangler dev`), real concurrency, the 25-guard mutation check, CI, `npm run
+build`, core-ts. Fixes in `eb81229`. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| N1 | P3 | D-30 said `requireAdmin` runs before the body is read; the shell's method, `Origin`/JSON and session checks run first, so admin paths can be told from unknown ones | answered: FR-12 holds for well-formed requests of signed-in non-admins, and the paths are public in the contract; D-30 and the contract's `NotAdmin` reworded |
+| N2 | P3 | The housekeeping of expired links also removes a used invite after 7 days, against D-32 | answered: kept (fewer rows holding a name); D-32 reworded |
+| N3 | P3 | A block landing between a friend's session check and the pairing insert leaves a record that an unblock within 10 minutes revives | fixed: the insert runs only for an active account, else 403 `account_blocked`; contract says so. No test (needs real interleaving) |
+| N4 | P3 | A sign-in link can be made for the admin's own account: a 24-hour bearer admin credential | fixed: refused with 403 `admin_protected` (D-36), test and mutation check |
+| N5 | P3 | Contract said "no count of sessions" while `deviceCount` counts sign-in sessions; handoff said 22 tests (23); `/api/account/delete` can answer 404 after a concurrent delete | fixed: "conversation sessions" and a note on `deviceCount`; count 23; 404 added to the contract |
 
 ### Independent AI review of F-2a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 153`) on `4fa07f7`. Verdict: **approve with notes**, no P0/P1/P2. It ran
@@ -390,10 +405,10 @@ Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it h
 #151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
 
 1. **F-2a is built and reviewed** on `feat/148-engine-pairing`, PR #153: it waits for green CI and the owner's merge.
-2. **F-2b is built** on `feat/148-engine-admin` (`c05862c` contract, `e7b06a5` code; clean tree, not pushed); see
-   "Checks (F-2b)" and decisions D-30…D-35. Remaining, in order: (a) get a fresh independent `sdlc:reviewer` (Opus, high,
-   `git diff 4c40ba9..HEAD`) — rerun it if its result is not in this file; fix every P0/P1, fix or answer every P2; record
-   the table "Independent AI review of F-2b"; (b) rerun the checks of "Checks (F-2b)" on the final commit; (c) push,
-   open the PR against `main` (stacked on #153, note it in the body), bind it, wait for green CI; (d) ask the owner to
-   merge #153 then F-2b (`gh pr merge` is denied to agents). That closes #148; next is F-3 (sync, strong tier).
+2. **F-2b is built and reviewed** on `feat/148-engine-admin` (`c05862c` contract, `e7b06a5` code, `eb81229` review
+   fixes); see "Checks (F-2b)", its review and decisions D-30…D-36. The PR is open, stacked on #153; it waits for green CI
+   and the owner's merge: #153 first, then F-2b (`gh pr merge` is denied to agents). That closes #148.
+   The local branch `feat/148-engine-admin` in the worktree `148-engine-admin-274c14` still points at `655330a`; the remote
+   branch holds the reviewed commits (pushed from a detached HEAD in another worktree). Fetch before using it.
+   Next after the merge: **F-3** (sync, strong tier: data loss and concurrency).
 3. In a separate worktree **F-5** (stage B, standard tier) can start in parallel: its milestone and issue are not created yet.
