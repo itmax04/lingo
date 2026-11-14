@@ -1,6 +1,6 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR open), F-2b next** · Date: 2026-11-14
+Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR #153 open), F-2b built (review running, no PR yet)** · Date: 2026-11-14
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
@@ -28,6 +28,7 @@ Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR open), F-2b n
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
 | F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
 | F-2a: pairing, limits, devices (#148, part 1 of 2) | #153 | see "Checks (F-2a)" | contract first; `/api/pairings`, `/api/pair` (link and typed code), the atomic typed-code limit, `/api/devices`, rename, sign-out (one, others, this device); migration 0002 (triggers); hashed attempt buckets; cleanup of expired links; review items R5, R8, R9, B2/N1 |
+| F-2b: admin and own account (#148, part 2 of 2) | not opened yet (branch `feat/148-engine-admin`, stacked on F-2a) | see "Checks (F-2b)" | contract first; `/api/sign-in`; `src/admin.ts` (invites create/list/revoke, accounts list with total size, sign-in link, block, unblock, delete with typed name); `src/account.ts` (own rename, delete); N3 and N6 decided; `test/admin.test.ts` (22 tests); smoke extended |
 
 ## Split of F-2 (plan "Size" rule)
 - **F-2a — devices**: FR-05, FR-06, FR-07 (engine part); FAC-02 and the devices part of FAC-03; the open review items of F-1.
@@ -136,6 +137,21 @@ Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR open), F-2b n
 - D-28 (F-2a): a record of a blocked account is refused like an unknown one and is not used up.
 - D-29 (F-2a, R9): a leading byte order mark in a JSON body is ignored (RFC 8259 allows it); invalid UTF-8 and an empty body
   are `json_required`.
+- D-30 (F-2b): admin paths are `/api/admin/…`; `requireAdmin` runs before the body is read, and a signed-in non-admin gets
+  404 `not_found` (an unknown path's answer). An invite's public id is the first 32 hex characters of its token's HMAC: not
+  redeemable, the token cannot be derived from it.
+- D-31 (F-2b): new error codes: 403 `admin_protected` (blocking or deleting the admin; wipes nothing on the client),
+  400 `confirmation_mismatch` (typed name differs from the current name; compared after trimming, case-sensitive),
+  409 `account_not_active` (sign-in link for a blocked account).
+- D-32 (F-2b, decides N6): "Sign out everywhere else" also deletes the account's unused sign-in link; blocking deletes the
+  unused pairing record and sign-in link, so unblocking does not revive them. The used invite stays (it carries the name
+  until the account is deleted).
+- D-33 (F-2b): "last sign-in" in the accounts list is the creation time of the newest device with a working session
+  (`null` when none); no new column. Device count counts working sessions only.
+- D-34 (F-2b, decides N3): the invite list holds unused, unrevoked, unexpired invites; creating an invite or a sign-in link
+  deletes expired links of every kind (housekeeping, as `createPairing`). Revoking deletes the row; a used invite is 404.
+- D-35 (F-2b): the admin row is protected in code (`is_admin = 0` in the delete and block statements), tested on both
+  delete paths; migration 0002 still refuses blocking only.
 
 ## Constraints found in F-1
 - A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text
@@ -282,6 +298,26 @@ Open review items of F-1 after F-2a: R5 fixed (D-26, D-22); R8 fixed (D-27; admi
 parameter, invalid UTF-8, `PUT`/`PATCH`/`DELETE`/`HEAD`, route table equal to the contract); B2/N1 decided (D-25).
 Still open: R3 (F-3), R4 (F-4), R11 (F-3 / F-23), N2 (F-23), R1 (F-15).
 
+## Checks (F-2b)
+Run on 2026-11-14 on `e7b06a5` (Node 26, wrangler 4.162.0):
+| Check | Result | Output |
+|---|---|---|
+| `npm test` (all workspaces) | PASS | core-ts: 7 files, 304 tests; engine: `tsc` clean, 4 files, 90 tests |
+| `npm run build` | PASS | exit 0 |
+| `npm run smoke -w services/engine` | PASS | 21 lines `ok`, among them `GET /api/admin/accounts as the friend → 404`, `POST /api/sign-in with the admin's link → 200 in the friend's account`, `POST /api/admin/accounts/block for the admin's own account → 403`, `delete with a wrong name → 400; with the name → 200, then GET /api/me as the friend → 401`; `smoke: PASS` |
+| Mutation check (by hand, not in CI) | PASS | 25 guards removed one at a time (admin gate; invite list unused/unexpired/kind/revoked; revoke kind/unused; invites switch; housekeeping; sign-in link active-only, cancels previous, this account only, kind; block not-admin, removes links, keeps used invite; delete not-admin, typed name; `admin_protected`; live-session filter of the list; sign-out-others cancels sign-in link; own rename/delete take the session's account; unblock target only) — each made 1–6 tests fail (unblock after a test was added); restored, all pass |
+| `scripts/check-english.sh` | PASS | `check-english: PASS` |
+| `scripts/secret-scan.sh` | PASS | `0 findings` |
+| `git diff --check` | PASS | no output |
+| Independent review | RUNNING | fresh `sdlc:reviewer` (Opus, high) on `4c40ba9..e7b06a5` was started in the session that built F-2b; its result is not recorded here yet |
+| CI | NOT RUN | branch not pushed |
+| `swift test` | NOT RUN | no Swift file changed |
+
+Acceptance covered (`services/engine/test/admin.test.ts`): FAC-04 engine part (sign-in link, block, unblock, delete, non-admin
+404 on every admin path, admin cannot block or delete itself, no request grants the flag, own rename and delete, blocked
+message); FAC-05 part (two friends and the admin against every route: no answer holds the other account's data; admin
+answers hold no events, device names or session data). The `/admin` page itself is F-9…F-10.
+
 ### Independent AI review of F-2a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 153`) on `4fa07f7`. Verdict: **approve with notes**, no P0/P1/P2. It ran
 `npm test -w services/engine` (67 tests), `devices.test.ts` six times, the smoke run, both scripts — PASS — and the reserve
@@ -345,14 +381,11 @@ miniflare runs requests one by one, so the race tests check the guards, not real
 Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it himself after green CI and review (as for
 #151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
 
-1. **F-2a is built and reviewed** on `feat/148-engine-pairing`, PR #153 (see "Checks (F-2a)" and its review): it waits for
-   green CI and the owner's merge (`gh pr merge` is denied to agents).
-2. **F-2b** (strong tier: security — admin operations and account deletion), issue #148, branch `feat/148-engine-admin`
-   stacked on F-2a: the contract first (sign-in link, admin invites / friends / block / unblock / delete, own-account rename
-   and delete), then the code. Reuse `redeemForAccount(ctx, "signin", …)`, `nameField`, `authenticate`; non-admins get 404
-   from every admin path; the admin cannot block or delete the own account (code check and test; the triggers of 0002
-   already refuse blocking); a new sign-in link cancels the previous unused one; deleting needs the typed name; the friends
-   list returns name, created, last sign-in, device count, stored size and status, and nothing of the events (FR-13).
-   Done when: engine tests, smoke, check-english, secret-scan pass; a fresh independent `sdlc:reviewer` (Opus, high) has no
-   open P0/P1 and every P2 is fixed or answered; CI green; then ask the owner to merge. That closes #148.
+1. **F-2a is built and reviewed** on `feat/148-engine-pairing`, PR #153: it waits for green CI and the owner's merge.
+2. **F-2b is built** on `feat/148-engine-admin` (`c05862c` contract, `e7b06a5` code; clean tree, not pushed); see
+   "Checks (F-2b)" and decisions D-30…D-35. Remaining, in order: (a) get a fresh independent `sdlc:reviewer` (Opus, high,
+   `git diff 4c40ba9..HEAD`) — rerun it if its result is not in this file; fix every P0/P1, fix or answer every P2; record
+   the table "Independent AI review of F-2b"; (b) rerun the checks of "Checks (F-2b)" on the final commit; (c) push,
+   open the PR against `main` (stacked on #153, note it in the body), bind it, wait for green CI; (d) ask the owner to
+   merge #153 then F-2b (`gh pr merge` is denied to agents). That closes #148; next is F-3 (sync, strong tier).
 3. In a separate worktree **F-5** (stage B, standard tier) can start in parallel: its milestone and issue are not created yet.
