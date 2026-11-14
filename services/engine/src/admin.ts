@@ -122,7 +122,11 @@ export async function listAccounts(ctx: Ctx): Promise<Response> {
   return ok(await accountList(ctx), setCookie);
 }
 
-/** POST /api/admin/sign-in-links — for an active account; the previous unused link of that account is cancelled (spec FR-08). */
+/**
+ * POST /api/admin/sign-in-links — for an active friend's account; the previous unused link of that account is cancelled
+ * (spec FR-08). The admin's own account is refused: a 24-hour bearer link to it would be an admin credential, and the
+ * admin adds devices by pairing or by setup recovery (review N4 of F-2b, D-36).
+ */
 export async function createSignInLink(ctx: Ctx): Promise<Response> {
   const { setCookie } = await requireAdmin(ctx);
   const { db, pepper } = ctx.config;
@@ -132,13 +136,10 @@ export async function createSignInLink(ctx: Ctx): Promise<Response> {
   const results = await db.batch([
     db.prepare("DELETE FROM links WHERE (account_id = ?1 AND kind = 'signin' AND used_at IS NULL) OR expires_at <= ?2").bind(accountId, ctx.now),
     db
-      .prepare("INSERT INTO links (hash, kind, account_id, created_at, expires_at) SELECT ?1, 'signin', id, ?3, ?4 FROM accounts WHERE id = ?2 AND status = 'active'")
+      .prepare("INSERT INTO links (hash, kind, account_id, created_at, expires_at) SELECT ?1, 'signin', id, ?3, ?4 FROM accounts WHERE id = ?2 AND status = 'active' AND is_admin = 0")
       .bind(await hmacHex(pepper, token), accountId, ctx.now, expiresAt),
   ]);
-  if (results[1]!.meta.changes === 0) {
-    const exists = await db.prepare("SELECT 1 AS x FROM accounts WHERE id = ?").bind(accountId).first();
-    throw new ApiError(exists === null ? "not_found" : "account_not_active");
-  }
+  if (results[1]!.meta.changes === 0) throw await refusal(db, accountId, "account_not_active");
   return ok({ token, expiresAt }, setCookie);
 }
 

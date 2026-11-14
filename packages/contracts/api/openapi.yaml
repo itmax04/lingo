@@ -124,8 +124,8 @@ paths:
     post:
       summary: Start adding a device
       description: |
-        Spec FR-05. Creates a pairing record valid 10 minutes and returns its link token and its typed code; both are shown
-        once and stored only as HMACs. The client draws `https://<host>/pair#<token>` as a QR code. Creating a record removes
+        Spec FR-05. Creates a pairing record valid 10 minutes, for an active account only, and returns its link token and its
+        typed code; both are shown once and stored only as HMACs. The client draws `https://<host>/pair#<token>` as a QR code. Creating a record removes
         the account's previous unused one, and removes expired links of every kind.
       requestBody:
         required: true
@@ -376,6 +376,9 @@ paths:
         "400": { $ref: "#/components/responses/Confirmation" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/BlockedOrAdmin" }
+        "404":
+          description: "`not_found`: the account was deleted by a concurrent request between the session check and the delete"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
         "500": { $ref: "#/components/responses/Misconfigured" }
   /api/admin/invites:
     get:
@@ -457,8 +460,8 @@ paths:
       summary: "Admin: every account and the total stored size"
       description: |
         Spec FR-12, FR-13. Name, creation time, last sign-in, number of signed-in devices, stored size and status of each
-        account, the admin's own included, oldest first. Nothing of an account's events, settings or sessions is returned,
-        and no count of them.
+        account, the admin's own included, oldest first. Nothing of an account's events, settings or conversation sessions
+        is returned, and no count of them; `deviceCount` counts signed-in devices (working sign-in sessions) only.
       responses:
         "200":
           description: OK
@@ -473,8 +476,9 @@ paths:
     post:
       summary: "Admin: create a one-time sign-in link for an account"
       description: |
-        Spec FR-08. Valid 24 hours, for an active account only; the account's previous unused sign-in link stops working.
-        The token is returned once, for `https://<host>/signin#<token>`, and stored only as an HMAC.
+        Spec FR-08. Valid 24 hours, for an active friend's account only; the account's previous unused sign-in link stops
+        working. The admin's own account is refused with 403 `admin_protected` (the admin adds devices by pairing, or by
+        setup recovery, FR-11). The token is returned once, for `https://<host>/signin#<token>`, and stored only as an HMAC.
       requestBody:
         required: true
         content:
@@ -493,7 +497,7 @@ paths:
                   expiresAt: { type: integer, description: "24 hours after creation" }
         "400": { $ref: "#/components/responses/InvalidRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Blocked" }
+        "403": { $ref: "#/components/responses/BlockedOrAdmin" }
         "404": { $ref: "#/components/responses/NotAdmin" }
         "409":
           description: "`account_not_active`: the account is blocked; unblock it first"
@@ -589,10 +593,10 @@ components:
       description: "`not_found`: no such object in the caller's account"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     NotAdmin:
-      description: "`not_found`: the caller is not the admin (every `/api/admin/` path answers a signed-in non-admin like an unknown path, spec FR-12), or no such object exists"
+      description: "`not_found`: the caller is not the admin (every `/api/admin/` path answers a signed-in non-admin like an unknown path, spec FR-12), or no such object exists. The checks that come before the handler still answer as on any path: a wrong method 405, a `POST` without the right `Origin` or JSON 403, a caller without a session 401; so the admin paths can be told from unknown ones, as the contract itself lists them"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     BlockedOrAdmin:
-      description: "`admin_protected`: the target is the admin account, which cannot be blocked or deleted (spec FR-09); the client wipes nothing. Or `account_blocked` (the caller's account; the client deletes its local stores), `origin_refused`, `json_required`"
+      description: "`admin_protected`: the target is the admin account, which cannot be blocked or deleted (spec FR-09) and gets no sign-in link; the client wipes nothing. Or `account_blocked` (the caller's account; the client deletes its local stores), `origin_refused`, `json_required`"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Confirmation:
       description: "`confirmation_mismatch`: the typed name is not the account's current name; nothing is deleted. Or `invalid_request`"

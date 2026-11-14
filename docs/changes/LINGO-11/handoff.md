@@ -28,7 +28,7 @@ Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR #153 open), F
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
 | F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
 | F-2a: pairing, limits, devices (#148, part 1 of 2) | #153 | see "Checks (F-2a)" | contract first; `/api/pairings`, `/api/pair` (link and typed code), the atomic typed-code limit, `/api/devices`, rename, sign-out (one, others, this device); migration 0002 (triggers); hashed attempt buckets; cleanup of expired links; review items R5, R8, R9, B2/N1 |
-| F-2b: admin and own account (#148, part 2 of 2) | not opened yet (branch `feat/148-engine-admin`, stacked on F-2a) | see "Checks (F-2b)" | contract first; `/api/sign-in`; `src/admin.ts` (invites create/list/revoke, accounts list with total size, sign-in link, block, unblock, delete with typed name); `src/account.ts` (own rename, delete); N3 and N6 decided; `test/admin.test.ts` (22 tests); smoke extended |
+| F-2b: admin and own account (#148, part 2 of 2) | PR from `feat/148-engine-admin`, stacked on #153 | see "Checks (F-2b)" | contract first; `/api/sign-in`; `src/admin.ts` (invites create/list/revoke, accounts list with total size, sign-in link, block, unblock, delete with typed name); `src/account.ts` (own rename, delete); N3 and N6 decided; `test/admin.test.ts` (23 tests); smoke extended; review notes of F-2b fixed or answered |
 
 ## Split of F-2 (plan "Size" rule)
 - **F-2a — devices**: FR-05, FR-06, FR-07 (engine part); FAC-02 and the devices part of FAC-03; the open review items of F-1.
@@ -137,21 +137,29 @@ Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR #153 open), F
 - D-28 (F-2a): a record of a blocked account is refused like an unknown one and is not used up.
 - D-29 (F-2a, R9): a leading byte order mark in a JSON body is ignored (RFC 8259 allows it); invalid UTF-8 and an empty body
   are `json_required`.
-- D-30 (F-2b): admin paths are `/api/admin/…`; `requireAdmin` runs before the body is read, and a signed-in non-admin gets
-  404 `not_found` (an unknown path's answer). An invite's public id is the first 32 hex characters of its token's HMAC: not
+- D-30 (F-2b): admin paths are `/api/admin/…`; `requireAdmin` runs before any body field is looked at, and a signed-in
+  non-admin gets 404 `not_found` (an unknown path's answer). The checks before the handler (method 405, `Origin`/JSON 403,
+  no session 401) answer as on any path, so admin paths can be told from unknown ones; they are public in the contract
+  anyway (review N1 of F-2b). An invite's public id is the first 32 hex characters of its token's HMAC: not
   redeemable, the token cannot be derived from it.
 - D-31 (F-2b): new error codes: 403 `admin_protected` (blocking or deleting the admin; wipes nothing on the client),
   400 `confirmation_mismatch` (typed name differs from the current name; compared after trimming, case-sensitive),
   409 `account_not_active` (sign-in link for a blocked account).
 - D-32 (F-2b, decides N6): "Sign out everywhere else" also deletes the account's unused sign-in link; blocking deletes the
-  unused pairing record and sign-in link, so unblocking does not revive them. The used invite stays (it carries the name
-  until the account is deleted).
+  unused pairing record and sign-in link, so unblocking does not revive them; a pairing record is inserted only while the
+  account is active, so a block racing with `POST /api/pairings` leaves none (review N3 of F-2b). A used invite is removed
+  by the housekeeping of expired links once its 7 days pass, or with its account, whichever is first (review N2 of F-2b:
+  fewer rows holding the name).
 - D-33 (F-2b): "last sign-in" in the accounts list is the creation time of the newest device with a working session
   (`null` when none); no new column. Device count counts working sessions only.
 - D-34 (F-2b, decides N3): the invite list holds unused, unrevoked, unexpired invites; creating an invite or a sign-in link
   deletes expired links of every kind (housekeeping, as `createPairing`). Revoking deletes the row; a used invite is 404.
 - D-35 (F-2b): the admin row is protected in code (`is_admin = 0` in the delete and block statements), tested on both
   delete paths; migration 0002 still refuses blocking only.
+- D-36 (F-2b, review N4): no sign-in link for the admin's own account (403 `admin_protected`): a 24-hour bearer link would
+  be an admin credential; the admin adds devices by pairing (10 minutes) or by setup recovery (FR-11). This narrows FR-08
+  ("an existing active account") to friends, in line with FR-12, which lists the actions on friends. The message of
+  `admin_protected` became "This is not possible for the admin account."
 
 ## Constraints found in F-1
 - A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text

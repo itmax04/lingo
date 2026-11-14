@@ -31,15 +31,18 @@ export async function createPairing(ctx: Ctx): Promise<Response> {
   const token = randomToken();
   const code = randomCode();
   const expiresAt = ctx.now + PAIRING_MS;
-  await db.batch([
+  const results = await db.batch([
     // The previous unused record of the account is cancelled; expired links of every kind and devices whose session
     // ended go with it, so neither table grows (review R5 of F-1a).
     db.prepare("DELETE FROM links WHERE (account_id = ?1 AND kind = 'pair' AND used_at IS NULL) OR expires_at <= ?2").bind(me.account.id, ctx.now),
     db.prepare("DELETE FROM devices WHERE account_id = ?1 AND id IN (SELECT device_id FROM sessions WHERE account_id = ?1 AND (revoked_at IS NOT NULL OR expires_at <= ?2))").bind(me.account.id, ctx.now),
+    // Only while the account is active: a block that lands between the session check and this batch leaves no record
+    // that an unblock would revive (review N3 of F-2b).
     db
-      .prepare("INSERT INTO links (hash, code_hash, kind, account_id, created_at, expires_at) VALUES (?, ?, 'pair', ?, ?, ?)")
+      .prepare("INSERT INTO links (hash, code_hash, kind, account_id, created_at, expires_at) SELECT ?1, ?2, 'pair', id, ?4, ?5 FROM accounts WHERE id = ?3 AND status = 'active'")
       .bind(await hmacHex(pepper, token), await codeHash(pepper, code), me.account.id, ctx.now, expiresAt),
   ]);
+  if (results[2]!.meta.changes === 0) throw new ApiError("account_blocked");
   return ok({ token, code, expiresAt }, setCookie);
 }
 

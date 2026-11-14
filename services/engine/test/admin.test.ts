@@ -255,13 +255,16 @@ describe("sign-in link (FR-08, FAC-04)", () => {
     expect(((await response.json()) as { account: { id: string } }).account.id).toBe(boris.accountId);
   });
 
-  it("is made for an active, existing account only", async () => {
+  it("is made for an active, existing friend's account only", async () => {
     const owner = await admin();
     const friend = await joined("Anna");
     await call(post("/api/admin/accounts/block", { accountId: friend.accountId }, as(owner)));
     const before = await snapshot();
     const blocked = await call(post("/api/admin/sign-in-links", { accountId: friend.accountId }, as(owner)));
     expect([blocked.status, await errorCode(blocked)]).toEqual([409, "account_not_active"]);
+    // Not for the admin's own account: a 24-hour bearer link to it would be an admin credential (review N4, D-36).
+    const self = await call(post("/api/admin/sign-in-links", { accountId: owner.accountId }, as(owner)));
+    expect([self.status, await errorCode(self)]).toEqual([403, "admin_protected"]);
     expect(await errorCode(await call(post("/api/admin/sign-in-links", { accountId: "nope" }, as(owner))))).toBe("not_found");
     expect(await errorCode(await call(post("/api/admin/sign-in-links", {}, as(owner))))).toBe("invalid_request");
     expect(await snapshot()).toBe(before);
@@ -333,7 +336,7 @@ describe("block and unblock (FR-09, FAC-04)", () => {
     const pairing = (await (await call(post("/api/pairings", {}, as(owner)))).json()) as { token: string };
     const before = await snapshot();
     const self = await call(post("/api/admin/accounts/block", { accountId: owner.accountId }, as(owner)));
-    expect([self.status, await self.json()]).toEqual([403, { code: "admin_protected", message: "The admin account cannot be blocked or deleted." }]);
+    expect([self.status, await self.json()]).toEqual([403, { code: "admin_protected", message: "This is not possible for the admin account." }]);
     for (const path of ["/api/admin/accounts/block", "/api/admin/accounts/unblock"]) {
       expect(await errorCode(await call(post(path, { accountId: "nope" }, as(owner))))).toBe("not_found");
       expect(await errorCode(await call(post(path, {}, as(owner))))).toBe("invalid_request");
