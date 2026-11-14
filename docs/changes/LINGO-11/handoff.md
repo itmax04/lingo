@@ -27,7 +27,7 @@ Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR open), F-2b n
 | Stage 0: documents | #146 | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
 | F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
-| F-2a: pairing, limits, devices (#148, part 1 of 2) | this PR | see "Checks (F-2a)" | contract first; `/api/pairings`, `/api/pair` (link and typed code), the atomic typed-code limit, `/api/devices`, rename, sign-out (one, others, this device); migration 0002 (triggers); hashed attempt buckets; cleanup of expired links; review items R5, R8, R9, B2/N1 |
+| F-2a: pairing, limits, devices (#148, part 1 of 2) | #153 | see "Checks (F-2a)" | contract first; `/api/pairings`, `/api/pair` (link and typed code), the atomic typed-code limit, `/api/devices`, rename, sign-out (one, others, this device); migration 0002 (triggers); hashed attempt buckets; cleanup of expired links; review items R5, R8, R9, B2/N1 |
 
 ## Split of F-2 (plan "Size" rule)
 - **F-2a — devices**: FR-05, FR-06, FR-07 (engine part); FAC-02 and the devices part of FAC-03; the open review items of F-1.
@@ -331,7 +331,12 @@ miniflare runs requests one by one, so the race tests check the guards, not real
 Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it himself after green CI and review (as for
 #151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
 
-1. **F-2a is built** on `feat/148-engine-pairing` (see "Checks (F-2a)"); its PR waits for green CI and the owner's merge.
+1. **F-2a is built** on `feat/148-engine-pairing`, PR #153 (see "Checks (F-2a)"). **Not done yet:** the independent review
+   is not recorded. A fresh `sdlc:reviewer` (Opus, high, mode `pr 153`) was started on `b83a5d0` in the building session
+   and its result was not received before that session ended. First action of the next session: run a fresh
+   `sdlc:reviewer` (Opus, high) on PR #153, check each finding against the code, fix P0/P1 and fix or answer P2, add the
+   table "Independent AI review of F-2a" here, rerun the checks, push; CI on #153 was pending (3 checks) at hand-over. Then
+   ask the owner to merge (`gh pr merge` is denied to agents).
 2. **F-2b** (strong tier: security — admin operations and account deletion), issue #148, branch `feat/148-engine-admin`
    stacked on F-2a: the contract first (sign-in link, admin invites / friends / block / unblock / delete, own-account rename
    and delete), then the code. Reuse `redeemForAccount(ctx, "signin", …)`, `nameField`, `authenticate`; non-admins get 404
