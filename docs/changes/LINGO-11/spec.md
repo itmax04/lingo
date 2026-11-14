@@ -51,7 +51,8 @@ web requirements WR-01…WR-29 and WAC-01…WAC-14 of the LINGO-03 spec.
   signed out and is signed in by pairing from the browser, and its `/pair` page says so.
 - **FR-06 Guessing limits.** Failed redemptions are counted in D1: at most 10 per client address in 10 minutes for all link kinds
   together (an IPv6 address counts by its /64 prefix); at more than 100 failed typed codes in 10 minutes over all clients, typed
-  codes are refused for 10 minutes while QR and link tokens keep working. A refused attempt gets the FR-02 answer and status 429.
+  codes are refused for 10 minutes while QR and link tokens keep working (the engine counts the current and the previous
+  10-minute window, so a refusal lasts between 10 and 20 minutes; handoff D-16, D-25). A refused attempt gets the FR-02 answer and status 429.
   A client that is over its limit is refused from the counter read alone, without a further database write. Known and accepted: a
   stranger can switch typed codes off for 10 minutes at a time (QR and links keep working), and anonymous traffic can use up the
   day's free requests, after which the site is down until 00:00 UTC without data loss (threat table).

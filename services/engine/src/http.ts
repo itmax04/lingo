@@ -35,6 +35,9 @@ export const ERRORS = {
   invites_disabled: [503, "Invites are switched off."],
   secret_invalid: [403, "The setup secret is not correct."],
   too_many_attempts: [429, "Too many attempts. Try again later."],
+  admin_protected: [403, "This is not possible for the admin account."],
+  confirmation_mismatch: [400, "The typed name does not match the account's name."],
+  account_not_active: [409, "This account is blocked. Unblock it first."],
 } as const satisfies Record<string, readonly [number, string]>;
 
 export type ErrorCode = keyof typeof ERRORS;

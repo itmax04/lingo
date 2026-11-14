@@ -1,3 +1,5 @@
+import { hmacHex } from "./crypto";
+
 /** Failed redemptions (spec FR-06): counted per bucket in 10-minute windows; no request content is stored. */
 export const WINDOW_MS = 10 * 60 * 1000;
 /** Per client address, all link kinds and setup together. */
@@ -5,6 +7,9 @@ export const CLIENT_LIMIT = 10;
 /** Failed setup attempts of all clients together (executor decision, spec FR-11). */
 export const SETUP_GLOBAL_LIMIT = 20;
 export const SETUP_BUCKET = "setup";
+/** Failed typed pairing codes of all clients together (spec FR-06): above this, typed codes are refused for everybody. */
+export const CODES_GLOBAL_LIMIT = 100;
+export const CODES_BUCKET = "codes";
 
 /** The client's bucket: the address Cloudflare reports; an IPv6 address counts by its /64 prefix. */
 export function clientBucket(request: Request): string {
@@ -26,6 +31,14 @@ export function clientBucket(request: Request): string {
     return `ip:${[24, 16, 8, 0].map((s) => (n >>> s) & 255).join(".")}`;
   }
   return `ip6:${hex.slice(0, 4).join(":")}`;
+}
+
+/**
+ * The client's bucket as it is stored: a keyed hash, so that the table holds no client address (review R5 of F-1a).
+ * The global buckets keep their plain names.
+ */
+export async function clientKey(pepper: string, request: Request): Promise<string> {
+  return (await hmacHex(pepper, clientBucket(request))).slice(0, 32);
 }
 
 const windowStart = (now: number): number => Math.floor(now / WINDOW_MS) * WINDOW_MS;
@@ -52,4 +65,37 @@ export async function recordFailure(db: D1Database, buckets: readonly string[], 
     ),
     db.prepare("DELETE FROM attempts WHERE window_start < ?").bind(start - WINDOW_MS),
   ]);
+}
+
+/**
+ * Typed codes (about 40 bits): the attempt is counted before the code is looked at, by one statement that writes only
+ * while the client and all clients together are within their limits. Requests that arrive together are serialized by
+ * the database, so a burst cannot pass a limit (review B2/N1 of F-1b), and a refused request writes nothing.
+ * Returns false when refused. A successful redemption takes the count back with `refundCodeAttempt` in its own batch.
+ */
+export async function reserveCodeAttempt(db: D1Database, client: string, now: number): Promise<boolean> {
+  const start = windowStart(now);
+  const sum = "(SELECT COALESCE(SUM(failures), 0) FROM attempts WHERE bucket = ?1 AND window_start >= ?3)";
+  const result = await db
+    .prepare(
+      `INSERT INTO attempts (bucket, window_start, failures)
+       SELECT b, ?4, 1 FROM (SELECT ?1 AS b UNION ALL SELECT ?2)
+       WHERE ${sum} < ?5 AND ${sum.replace("?1", "?2")} <= ?6
+       ON CONFLICT (bucket, window_start) DO UPDATE SET failures = failures + 1`,
+    )
+    .bind(client, CODES_BUCKET, start - WINDOW_MS, start, CLIENT_LIMIT, CODES_GLOBAL_LIMIT)
+    .run();
+  return result.meta.changes > 0;
+}
+
+/** Undoes `reserveCodeAttempt` when `guard` (an SQL condition over ?1, ?2) holds; also drops windows that no longer count. */
+export function refundCodeAttempt(db: D1Database, client: string, now: number, guard: string, guardValues: readonly [string, string]): D1PreparedStatement[] {
+  const start = windowStart(now);
+  return [
+    db
+      .prepare(`UPDATE attempts SET failures = failures - 1 WHERE bucket IN (?3, ?4) AND window_start = ?5 AND failures > 0 AND ${guard}`)
+      .bind(...guardValues, client, CODES_BUCKET, start),
+    // Rows the refund emptied go too, so a successful pairing leaves nothing behind.
+    db.prepare("DELETE FROM attempts WHERE window_start < ? OR failures <= 0").bind(start - WINDOW_MS),
+  ];
 }

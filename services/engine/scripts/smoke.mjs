@@ -1,6 +1,7 @@
 // Starts the Worker with `wrangler dev` on a throw-away local D1 and checks what unit tests cannot see: the entry module
 // loads in the real runtime, the platform applies `_headers` to static files, API answers carry the same headers
-// (spec FR-55, FAC-18), and the local run works end to end: migration, setup, session cookie, me (spec FR-62, FAC-19).
+// (spec FR-55, FAC-18), and the local run works end to end: migrations, setup, session cookie, me, pairing by code, devices,
+// sign-out, and the admin's invite, sign-in link, block, unblock and delete (spec FR-62, FAC-19).
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -58,8 +59,45 @@ try {
   check(setup.status === 200 && cookie.startsWith("lingo_session="), "POST /api/setup → 200 and the development cookie");
   const me = await fetch(base + "/api/me", { headers: { Cookie: cookie } });
   check(me.status === 200 && (await me.json()).account.isAdmin === true, "GET /api/me with the cookie → the admin");
+  // Pairing end to end on the real runtime: migration 0002's triggers, the conditional counter statement and the batch.
+  const pairing = await (await fetch(base + "/api/pairings", { method: "POST", headers: { ...json, Cookie: cookie }, body: "{}" })).json();
+  const wrongCode = await fetch(base + "/api/pair", { method: "POST", headers: json, body: JSON.stringify({ code: pairing.code === "AAAAAAAA" ? "BBBBBBBB" : "AAAAAAAA" }) });
+  check(wrongCode.status === 410, "POST /api/pair with a wrong code → 410");
+  const paired = await fetch(base + "/api/pair", { method: "POST", headers: json, body: JSON.stringify({ code: pairing.code, deviceName: "Smoke" }) });
+  const second = (paired.headers.get("set-cookie") ?? "").split(";")[0];
+  check(paired.status === 200 && second.startsWith("lingo_session=") && second !== cookie, "POST /api/pair with the typed code → 200 and a second session");
+  const list = await (await fetch(base + "/api/devices", { headers: { Cookie: second } })).json();
+  check(list.devices?.length === 2 && list.devices[1].current === true, "GET /api/devices → two devices, the second is the caller's");
+  const out = await fetch(base + "/api/sign-out", { method: "POST", headers: { ...json, Cookie: second }, body: "{}" });
+  const after = await fetch(base + "/api/me", { headers: { Cookie: second } });
+  check(out.status === 200 && after.status === 401, "POST /api/sign-out → 200, then GET /api/me → 401");
   const join = await fetch(base + "/api/join", { method: "POST", headers: json, body: JSON.stringify({ token: secret() }) });
   check(join.status === 410, "POST /api/join with an unknown token → 410");
+  // Admin end to end: invite → join → the friend is refused by the admin API → sign-in link → block → unblock → delete.
+  const admin = (path, body) => fetch(base + path, { method: "POST", headers: { ...json, Cookie: cookie }, body: JSON.stringify(body) });
+  const invited = await (await admin("/api/admin/invites/create", { name: "Smoke friend" })).json();
+  const joined = await fetch(base + "/api/join", { method: "POST", headers: json, body: JSON.stringify({ token: invited.token }) });
+  const friend = (joined.headers.get("set-cookie") ?? "").split(";")[0];
+  const friendId = (await joined.json()).account?.id;
+  check(joined.status === 200 && friend.startsWith("lingo_session="), "POST /api/admin/invites/create, then POST /api/join with its token → 200");
+  const refused = await fetch(base + "/api/admin/accounts", { headers: { Cookie: friend } });
+  check(refused.status === 404, "GET /api/admin/accounts as the friend → 404");
+  const listed = await (await fetch(base + "/api/admin/accounts", { headers: { Cookie: cookie } })).json();
+  check(listed.accounts?.length === 2 && listed.accounts[1].deviceCount === 1 && listed.totalStoredBytes === 0, "GET /api/admin/accounts as the admin → two accounts");
+  const link = await (await admin("/api/admin/sign-in-links", { accountId: friendId })).json();
+  const signedIn = await fetch(base + "/api/sign-in", { method: "POST", headers: json, body: JSON.stringify({ token: link.token }) });
+  check(signedIn.status === 200 && (await signedIn.json()).account.id === friendId, "POST /api/sign-in with the admin's link → 200 in the friend's account");
+  const self = await admin("/api/admin/accounts/block", { accountId: listed.accounts?.[0].id });
+  check(self.status === 403, "POST /api/admin/accounts/block for the admin's own account → 403");
+  await admin("/api/admin/accounts/block", { accountId: friendId });
+  const blocked = await fetch(base + "/api/me", { headers: { Cookie: friend } });
+  await admin("/api/admin/accounts/unblock", { accountId: friendId });
+  const restored = await fetch(base + "/api/me", { headers: { Cookie: friend } });
+  check(blocked.status === 403 && restored.status === 200, "block → GET /api/me as the friend 403; unblock → 200");
+  const wrongName = await admin("/api/admin/accounts/delete", { accountId: friendId, name: "Somebody else" });
+  const deleted = await admin("/api/admin/accounts/delete", { accountId: friendId, name: "Smoke friend" });
+  const gone = await fetch(base + "/api/me", { headers: { Cookie: friend } });
+  check(wrongName.status === 400 && deleted.status === 200 && (await deleted.json()).accounts.length === 1 && gone.status === 401, "delete with a wrong name → 400; with the name → 200, then GET /api/me as the friend → 401");
 } catch (e) {
   failures.push(String(e));
 } finally {

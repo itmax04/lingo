@@ -6,18 +6,24 @@ info:
     HTTP API of the Lingo Engine (Cloudflare Worker + D1) used by Lingo Web. Version 2 replaces the LINGO-03 design contract as a
     whole (ADR-0008): accounts by invite, no provider keys, no prompts and no model calls in the engine.
     Status: **contract of LINGO-11**. The API grows step by step and each step changes this file before the code:
-    F-1 (this version) setup, join, me · F-2 pairing, devices, sign-in links, admin, own account · F-3 sync · F-4 relay.
+    F-1 setup, join, me · F-2a pairing, devices, sign-out · F-2b (this version) sign-in links, admin, own account · F-3 sync ·
+    F-4 relay.
 
     Conventions
     - JSON bodies are UTF-8; times are milliseconds since the Unix epoch; ids are opaque strings.
     - Auth: the session cookie (`HttpOnly; Secure; SameSite=Lax; Path=/`). Its name is `__Host-lingo_session`; local development
       over plain `http://localhost` uses `lingo_session` without `Secure` (spec FR-04).
     - Every state-changing request (`POST`) must carry an `Origin` header equal to the site's own origin and a JSON object body
-      with `Content-Type: application/json`; others get 403 `origin_refused` or `json_required` (spec FR-58). No `GET` redeems,
+      with `Content-Type: application/json` (a `charset` parameter is allowed; the bytes must be valid UTF-8); others get 403
+      `origin_refused` or `json_required` (spec FR-58). The API has no path parameters: ids travel in the body. No `GET` redeems,
       creates or deletes anything; a `GET` with a session only refreshes that session's expiry and the device's last-seen time.
     - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English and never contains tokens, keys
       or utterance text. A client deletes its local stores only on the codes `session_ended` and `account_blocked` (spec FR-07);
       any other 401 or 403 wipes nothing.
+    - An operation with a session takes the account from the session only, never from the request (spec FR-14). An id of
+      another account's device is answered like an unknown id, 404 `not_found`. Only the `/api/admin/` operations take an
+      account id from the body, and only for the admin's session; they return nothing of an account's events, settings or
+      sessions (spec FR-13).
     - Every response carries the security headers of spec FR-55 and `Cache-Control: no-store`.
     - Request bodies are limited to 16 KB unless an operation states another limit.
 servers:
@@ -114,6 +120,459 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Blocked" }
         "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/pairings:
+    post:
+      summary: Start adding a device
+      description: |
+        Spec FR-05. Creates a pairing record valid 10 minutes, for an active account only, and returns its link token and its
+        typed code; both are shown once and stored only as HMACs. The client draws `https://<host>/pair#<token>` as a QR code. Creating a record removes
+        the account's previous unused one, and removes expired links of every kind.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: The pairing record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pairing" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/pair:
+    post:
+      summary: Redeem a pairing link or a typed pairing code
+      description: |
+        Spec FR-05, FR-06. Uses the pairing record once and creates a device and a session for the record's account, in one
+        atomic batch like `/api/join`. The body carries exactly one of `token` and `code`. A used, expired, cancelled or
+        unknown record, a token of another link kind, a malformed code and a record of a blocked account all get 410
+        `link_invalid`.
+
+        Typed codes have about 40 bits, so their limit is atomic: the attempt is counted before the code is looked at, by
+        one conditional statement that writes only while the caller has fewer than 10 failures and all callers together
+        have at most 100 failed typed codes in the last two 10-minute windows; a successful redemption takes its count
+        back in the redeeming batch. A burst of parallel guesses therefore cannot pass the limit. Over either limit the
+        answer is 429 with the `link_invalid` body and nothing is written; link tokens keep working while typed codes are
+        refused for everybody.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PairRequest" }
+      responses:
+        "200":
+          description: Signed in to the record's account; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookie" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "403":
+          description: "`origin_refused` or `json_required`"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { $ref: "#/components/responses/AlreadySignedIn" }
+        "410": { $ref: "#/components/responses/LinkInvalid" }
+        "429":
+          description: "`link_invalid` with the same message as 410: the caller, or typed codes as a whole, are over the failure limit; nothing is written"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices:
+    get:
+      summary: The account's signed-in devices
+      description: Spec FR-07. Devices whose session was signed out or has expired are not listed.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/rename:
+    post:
+      summary: Rename a device of the account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId, name]
+              properties:
+                deviceId: { type: string }
+                name: { $ref: "#/components/schemas/DeviceName" }
+      responses:
+        "200":
+          description: The devices after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/sign-out:
+    post:
+      summary: Sign a device of the account out
+      description: |
+        Spec FR-07. Removes the device and its session; that device's next request answers 401 `session_ended`. When the
+        device is the caller's own, the answer also clears the cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId: { type: string }
+      responses:
+        "200":
+          description: The devices after the change
+          headers:
+            Set-Cookie:
+              description: Only when the device was the caller's own - the cleared cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/sign-out-others:
+    post:
+      summary: Sign out everywhere else
+      description: Removes every other device of the account with its session, and the account's unused pairing record and sign-in link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: The devices after the change (this device only)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/sign-out:
+    post:
+      summary: Sign this device out
+      description: |
+        Spec FR-07. Removes the caller's device and session and clears the cookie. The client pushes unsent events before
+        the call and deletes its local stores after it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Signed out; the cookie is cleared
+          headers:
+            Set-Cookie:
+              description: The session cookie with an empty value and `Max-Age=0`
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/sign-in:
+    post:
+      summary: Redeem a one-time sign-in link
+      description: |
+        Spec FR-08. Uses the sign-in link once and creates a device and a session for the link's account, in one atomic
+        batch like `/api/pair`; the account's existing sessions stay. A used, expired, cancelled or unknown token, a token
+        of another link kind and a link of a blocked account all get 410 `link_invalid`. A failure counts against the
+        caller's link-attempt limit (spec FR-06).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RedeemRequest" }
+      responses:
+        "200":
+          description: Signed in to the link's account; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookie" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "403":
+          description: "`origin_refused` or `json_required`"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { $ref: "#/components/responses/AlreadySignedIn" }
+        "410": { $ref: "#/components/responses/LinkInvalid" }
+        "429":
+          description: "`link_invalid` with the same message as 410: the caller is over the failure limit; nothing is written"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/account/rename:
+    post:
+      summary: Rename the caller's own account
+      description: Spec FR-10. Every account, the admin included, may rename itself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { $ref: "#/components/schemas/AccountName" }
+      responses:
+        "200":
+          description: The account with its new name, and this device
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/account/delete:
+    post:
+      summary: Delete the caller's own account
+      description: |
+        Spec FR-10, FR-09. Removes the account with its sessions, devices, events and links; it cannot be undone from the
+        app. The body repeats the account's current name as the typed confirmation. The admin account is refused. The
+        client deletes its local stores after a 200.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, description: "The account's current name, as typed by the user (surrounding spaces are ignored)" }
+      responses:
+        "200":
+          description: Deleted; the cookie is cleared
+          headers:
+            Set-Cookie:
+              description: The session cookie with an empty value and `Max-Age=0`
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/Confirmation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/BlockedOrAdmin" }
+        "404":
+          description: "`not_found`: the account was deleted by a concurrent request between the session check and the delete"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/invites:
+    get:
+      summary: "Admin: the invites that can still be used"
+      description: |
+        Spec FR-12. Unused invites that have not expired, oldest first. Used and expired invites are never listed. The
+        token of an invite is not stored and cannot be shown again.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InviteList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/invites/create:
+    post:
+      summary: "Admin: create an invite"
+      description: |
+        Spec FR-03. An invite with the friend's name, valid 7 days. The token is returned once, for
+        `https://<host>/join#<token>`, and stored only as an HMAC. Refused while invites are switched off. Creating an
+        invite removes expired links of every kind.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { $ref: "#/components/schemas/AccountName" }
+      responses:
+        "200":
+          description: The new invite with its token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, invite]
+                properties:
+                  token: { type: string, description: "Link token for `/join#<token>`: 32 random bytes, base64url" }
+                  invite: { $ref: "#/components/schemas/Invite" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+        "503":
+          description: "`invites_disabled`: the Worker variable `INVITES_ENABLED` is not `1` (spec FR-65)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+  /api/admin/invites/revoke:
+    post:
+      summary: "Admin: revoke an unused invite"
+      description: Spec FR-03. Removes the invite; its token then gets 410 `link_invalid`. A used invite cannot be revoked (404).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [inviteId]
+              properties:
+                inviteId: { type: string }
+      responses:
+        "200":
+          description: The invites after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InviteList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/accounts:
+    get:
+      summary: "Admin: every account and the total stored size"
+      description: |
+        Spec FR-12, FR-13. Name, creation time, last sign-in, number of signed-in devices, stored size and status of each
+        account, the admin's own included, oldest first. Nothing of an account's events, settings or conversation sessions
+        is returned, and no count of them; `deviceCount` counts signed-in devices (working sign-in sessions) only.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/sign-in-links:
+    post:
+      summary: "Admin: create a one-time sign-in link for an account"
+      description: |
+        Spec FR-08. Valid 24 hours, for an active friend's account only; the account's previous unused sign-in link stops
+        working. The admin's own account is refused with 403 `admin_protected` (the admin adds devices by pairing, or by
+        setup recovery, FR-11). The token is returned once, for `https://<host>/signin#<token>`, and stored only as an HMAC.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccountRef" }
+      responses:
+        "200":
+          description: The link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, expiresAt]
+                properties:
+                  token: { type: string, description: "Link token: 32 random bytes, base64url" }
+                  expiresAt: { type: integer, description: "24 hours after creation" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/BlockedOrAdmin" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "409":
+          description: "`account_not_active`: the account is blocked; unblock it first"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/accounts/block:
+    post:
+      summary: "Admin: block an account"
+      description: |
+        Spec FR-09. Every request of the account then answers 403 `account_blocked`; its data and sessions stay, and its
+        unused pairing record and sign-in link are removed. Blocking a blocked account changes nothing. The admin account
+        is refused.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccountRef" }
+      responses:
+        "200":
+          description: The accounts after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/BlockedOrAdmin" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/accounts/unblock:
+    post:
+      summary: "Admin: unblock an account"
+      description: Spec FR-09. Restores access on the devices that were signed in. Unblocking an active account changes nothing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccountRef" }
+      responses:
+        "200":
+          description: The accounts after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/admin/accounts/delete:
+    post:
+      summary: "Admin: delete an account"
+      description: |
+        Spec FR-09. Removes the account with its sessions, devices, events and links; it cannot be undone from the app.
+        The body repeats the account's current name as the typed confirmation. The admin account is refused.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accountId, name]
+              properties:
+                accountId: { type: string }
+                name: { type: string, description: "The account's current name, as typed by the admin (surrounding spaces are ignored)" }
+      responses:
+        "200":
+          description: The accounts after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountList" }
+        "400": { $ref: "#/components/responses/Confirmation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/BlockedOrAdmin" }
+        "404": { $ref: "#/components/responses/NotAdmin" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
 components:
   securitySchemes:
     sessionCookie: { type: apiKey, in: cookie, name: __Host-lingo_session }
@@ -128,7 +587,19 @@ components:
         `session_ended`: the session is unknown, revoked or expired; the cookie is cleared and the client deletes its local stores.
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Blocked:
-      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09)"
+      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09). A `POST` can also answer 403 `origin_refused` or `json_required`, which wipe nothing"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: "`not_found`: no such object in the caller's account"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotAdmin:
+      description: "`not_found`: the caller is not the admin (every `/api/admin/` path answers a signed-in non-admin like an unknown path, spec FR-12), or no such object exists. The checks that come before the handler still answer as on any path: a wrong method 405, a `POST` without the right `Origin` or JSON 403, a caller without a session 401; so the admin paths can be told from unknown ones, as the contract itself lists them"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    BlockedOrAdmin:
+      description: "`admin_protected`: the target is the admin account, which cannot be blocked or deleted (spec FR-09) and gets no sign-in link; the client wipes nothing. Or `account_blocked` (the caller's account; the client deletes its local stores), `origin_refused`, `json_required`"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Confirmation:
+      description: "`confirmation_mismatch`: the typed name is not the account's current name; nothing is deleted. Or `invalid_request`"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     AlreadySignedIn:
       description: "`already_signed_in`: the request carries a valid session; links are not redeemed on a signed-in device (spec FR-02)"
@@ -168,6 +639,9 @@ components:
             - invites_disabled
             - secret_invalid
             - too_many_attempts
+            - admin_protected
+            - confirmation_mismatch
+            - account_not_active
         message: { type: string }
     DeviceName:
       type: string
@@ -187,6 +661,90 @@ components:
       properties:
         token: { type: string, description: "The link token from the URL fragment: 32 random bytes, base64url (43 characters)" }
         deviceName: { $ref: "#/components/schemas/DeviceName" }
+    PairRequest:
+      type: object
+      description: Exactly one of `token` and `code`.
+      properties:
+        token: { type: string, description: "The pairing link token from the URL fragment (43 characters)" }
+        code:
+          type: string
+          description: |
+            The typed pairing code: 8 symbols of `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Lower case, spaces and hyphens are
+            accepted and ignored; any other string is a failed attempt, not 400.
+        deviceName: { $ref: "#/components/schemas/DeviceName" }
+    Pairing:
+      type: object
+      required: [token, code, expiresAt]
+      properties:
+        token: { type: string, description: "Link token for `/pair#<token>`: 32 random bytes, base64url" }
+        code: { type: string, pattern: "^[A-HJ-NP-Z2-9]{8}$" }
+        expiresAt: { type: integer, description: "10 minutes after creation" }
+    Device:
+      type: object
+      required: [id, name, createdAt, lastSeenAt, current]
+      properties:
+        id: { type: string }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        createdAt: { type: integer }
+        lastSeenAt: { type: integer, description: "Updated at most once a day, with the session's expiry" }
+        current: { type: boolean, description: "The caller's own device" }
+    DeviceList:
+      type: object
+      required: [devices]
+      properties:
+        devices:
+          type: array
+          description: Oldest first
+          items: { $ref: "#/components/schemas/Device" }
+    AccountName:
+      type: string
+      minLength: 1
+      maxLength: 40
+      description: Display name of an account; surrounding spaces are removed; control characters are refused.
+    AccountRef:
+      type: object
+      required: [accountId]
+      properties:
+        accountId: { type: string }
+    Invite:
+      type: object
+      required: [id, name, createdAt, expiresAt]
+      properties:
+        id: { type: string, description: "Opaque; not the token and not usable as one" }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        createdAt: { type: integer }
+        expiresAt: { type: integer, description: "7 days after creation" }
+    InviteList:
+      type: object
+      required: [invites]
+      properties:
+        invites:
+          type: array
+          description: Unused and unexpired, oldest first
+          items: { $ref: "#/components/schemas/Invite" }
+    AdminAccount:
+      type: object
+      required: [id, name, isAdmin, status, createdAt, lastSignInAt, deviceCount, storedBytes]
+      properties:
+        id: { type: string }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        isAdmin: { type: boolean }
+        status: { type: string, enum: [active, blocked] }
+        createdAt: { type: integer }
+        lastSignInAt:
+          type: [integer, "null"]
+          description: When the newest of the account's signed-in devices was added; `null` when no device is signed in
+        deviceCount: { type: integer, description: "Devices with a working session" }
+        storedBytes: { type: integer, description: "Bytes of the account's event bodies (spec FR-13, FR-26)" }
+    AccountList:
+      type: object
+      required: [accounts, totalStoredBytes]
+      properties:
+        accounts:
+          type: array
+          description: Oldest first
+          items: { $ref: "#/components/schemas/AdminAccount" }
+        totalStoredBytes: { type: integer, description: "Stored bytes of all accounts together (spec FR-26)" }
     Me:
       type: object
       required: [account, device]
