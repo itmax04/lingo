@@ -1,6 +1,7 @@
 // Starts the Worker with `wrangler dev` on a throw-away local D1 and checks what unit tests cannot see: the entry module
 // loads in the real runtime, the platform applies `_headers` to static files, API answers carry the same headers
-// (spec FR-55, FAC-18), and the local run works end to end: migration, setup, session cookie, me (spec FR-62, FAC-19).
+// (spec FR-55, FAC-18), and the local run works end to end: migrations, setup, session cookie, me, pairing by code, devices,
+// sign-out (spec FR-62, FAC-19).
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -58,6 +59,18 @@ try {
   check(setup.status === 200 && cookie.startsWith("lingo_session="), "POST /api/setup → 200 and the development cookie");
   const me = await fetch(base + "/api/me", { headers: { Cookie: cookie } });
   check(me.status === 200 && (await me.json()).account.isAdmin === true, "GET /api/me with the cookie → the admin");
+  // Pairing end to end on the real runtime: migration 0002's triggers, the conditional counter statement and the batch.
+  const pairing = await (await fetch(base + "/api/pairings", { method: "POST", headers: { ...json, Cookie: cookie }, body: "{}" })).json();
+  const wrongCode = await fetch(base + "/api/pair", { method: "POST", headers: json, body: JSON.stringify({ code: pairing.code === "AAAAAAAA" ? "BBBBBBBB" : "AAAAAAAA" }) });
+  check(wrongCode.status === 410, "POST /api/pair with a wrong code → 410");
+  const paired = await fetch(base + "/api/pair", { method: "POST", headers: json, body: JSON.stringify({ code: pairing.code, deviceName: "Smoke" }) });
+  const second = (paired.headers.get("set-cookie") ?? "").split(";")[0];
+  check(paired.status === 200 && second.startsWith("lingo_session=") && second !== cookie, "POST /api/pair with the typed code → 200 and a second session");
+  const list = await (await fetch(base + "/api/devices", { headers: { Cookie: second } })).json();
+  check(list.devices?.length === 2 && list.devices[1].current === true, "GET /api/devices → two devices, the second is the caller's");
+  const out = await fetch(base + "/api/sign-out", { method: "POST", headers: { ...json, Cookie: second }, body: "{}" });
+  const after = await fetch(base + "/api/me", { headers: { Cookie: second } });
+  check(out.status === 200 && after.status === 401, "POST /api/sign-out → 200, then GET /api/me → 401");
   const join = await fetch(base + "/api/join", { method: "POST", headers: json, body: JSON.stringify({ token: secret() }) });
   check(join.status === 410, "POST /api/join with an unknown token → 410");
 } catch (e) {

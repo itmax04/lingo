@@ -1,42 +1,12 @@
 import { env } from "cloudflare:test";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createHandler } from "../src/app";
-import { clientBucket } from "../src/attempts";
+import { clientBucket, clientKey } from "../src/attempts";
 import { hmacHex } from "../src/crypto";
-import { routes } from "../src/routes";
-import { errorCode, get, ORIGIN, PEPPER, post, randomSecret, SETUP_SECRET, testEnv } from "./helpers";
+import { call, cookieOf, count, errorCode, get, invite, ip, joined, ORIGIN, PEPPER, post, randomSecret, SETUP_SECRET } from "./helpers";
 
-const handle = createHandler(routes);
-const call = (request: Request, overrides = {}) => handle(request, testEnv(overrides));
 const DAY = 24 * 60 * 60 * 1000;
 const LINK_INVALID = { code: "link_invalid", message: "This link is no longer valid. Ask for a new one." };
-
-const count = async (table: string) => (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<number>("n"))!;
 const counts = async () => Promise.all(["accounts", "devices", "sessions"].map(count));
-const ip = (address: string) => ({ "CF-Connecting-IP": address });
-
-async function invite(options: { name?: string; kind?: string; expiresIn?: number; revoked?: boolean; accountId?: string } = {}): Promise<string> {
-  const token = randomSecret();
-  const kind = options.kind ?? "invite";
-  await env.DB.prepare("INSERT INTO links (hash, kind, account_id, name, created_at, expires_at, revoked_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(await hmacHex(PEPPER, token), kind, options.accountId ?? null, kind === "invite" ? (options.name ?? "Friend") : null,
-      Date.now(), Date.now() + (options.expiresIn ?? 7 * DAY), options.revoked ? Date.now() : null)
-    .run();
-  return token;
-}
-
-/** `name=value` of the session cookie an answer sets, ready for a `Cookie` header. */
-function cookieOf(response: Response): string {
-  return (response.headers.get("Set-Cookie") ?? "").split(";")[0]!;
-}
-
-async function joined(name = "Friend"): Promise<{ cookie: string; token: string; accountId: string }> {
-  const token = await invite({ name });
-  const response = await call(post("/api/join", { token }));
-  expect(response.status).toBe(200);
-  const body = (await response.json()) as { account: { id: string } };
-  return { cookie: cookieOf(response), token, accountId: body.account.id };
-}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -270,7 +240,11 @@ describe("POST /api/setup (FR-11)", () => {
     }
     expect(await count("accounts")).toBe(0);
     const rows = (await env.DB.prepare("SELECT bucket, failures FROM attempts ORDER BY bucket").all()).results;
-    expect(rows).toEqual([{ bucket: "ip:203.0.113.7", failures: 4 }, { bucket: "setup", failures: 4 }]);
+    // The client's bucket is a keyed hash: no address is stored (review R5 of F-1a).
+    const key = await clientKey(PEPPER, new Request(ORIGIN, { headers: ip("203.0.113.7") }));
+    expect(key).toMatch(/^[0-9a-f]{32}$/);
+    expect(rows).toEqual([{ bucket: key, failures: 4 }, { bucket: "setup", failures: 4 }]);
+    expect(JSON.stringify(rows)).not.toContain("203.0.113");
   });
 
   it("shares the client limit with link attempts and has a global limit of 20 failures; refusals write nothing", async () => {
