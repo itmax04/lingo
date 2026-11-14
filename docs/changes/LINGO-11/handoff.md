@@ -1,6 +1,6 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11-13
+Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next** · Date: 2026-11-13
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
@@ -24,6 +24,7 @@ Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11
 |---|---|---|---|
 | Stage 0: documents | #146 | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
+| F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
 
 ## Split of F-1 (plan "Size" rule)
 - **F-1a — foundation**: OpenAPI v2, workspaces, Worker shell, security headers and `_headers`, migration 0001, CI. No route yet:
@@ -82,6 +83,24 @@ Status: **stage A (engine) in progress: F-1a built, F-1b next** · Date: 2026-11
   `core-ts` stays on 5.0.5.
 - D-13 (F-1a): a smoke script (`npm run smoke -w services/engine`) starts `wrangler dev` in CI: unit tests call the handler
   directly and cannot see that the entry module loads in the real runtime or that the platform applies `_headers` to static files.
+- D-14 (F-1b): account and device ids are random UUIDs. Display names are trimmed and counted in characters (1–40), as SQLite's
+  `length()` counts them; control characters (C0, DEL, C1) and bidirectional overrides are refused with 400 (review B1).
+- D-15 (F-1b): the common refusal of a link is 410 `link_invalid`; over the client limit it is the same body with status 429.
+  `/api/setup` is not a link and answers 403 `secret_invalid`, and 429 `too_many_attempts` over a limit. The global setup limit is
+  20 failures in 10 minutes. A request without the secret or the token field is 400 and is not counted as a guess.
+- D-16 (F-1b): limits look at the current and the previous 10-minute window, so sequential attempts never put more than the
+  limit into 10 minutes; the price is that a client at the limit waits up to 20 minutes. The check reads before the failure is
+  written, so a burst of parallel requests can pass the limit (review B2/N1): accepted for 256-bit link tokens and the setup
+  secret; F-2 decides it again for typed codes. The client is the `CF-Connecting-IP` address (an IPv6 /64; an IPv4-mapped
+  address, dotted or hex, as IPv4); without the header (local runs) every client shares one bucket.
+- D-17 (F-1b): `/api/setup` and `/api/join` answer 409 `already_signed_in` only for a working session. A request with an ended
+  session or a blocked account's session may redeem; the new cookie replaces the old one.
+- D-18 (F-1b): a cookie value that is not a 43-character token is `session_ended`, like an unknown token. `account_blocked` does
+  not clear the cookie, so unblocking restores access on the same device (FR-09).
+- D-19 (F-1b): the cookie's `Max-Age` is 90 days and is sent again whenever the expiry is extended; the extension also updates
+  the device's `last_seen_at`, so "last seen" has a resolution of one day and costs at most two row writes per device and day.
+  The session update is conditional on the `extended_at` that was read, so parallel requests at the day boundary extend once.
+- D-20 (F-1b): the setup request may carry `name` (default "Admin"); it is used only when the account is created.
 
 ## Constraints found in F-1
 - A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text
@@ -182,6 +201,27 @@ Acceptance covered by F-1a: FAC-18 (part: headers on static files and API answer
 missing pepper gives 500, not 401), FAC-19 (part: migration and local start by the commands of `services/engine/README.md`).
 FAC-01 and the session part of FAC-03 belong to F-1b.
 
+## Checks (F-1b)
+Run on 2026-11-13 on the commit that contains this text (Node 26, wrangler 4.162.0):
+| Check | Result | Output |
+|---|---|---|
+| `npm ci && npm test` | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 2 files, 43 tests passed |
+| `npm run build` | PASS | exit 0 |
+| `npm run smoke -w services/engine` | PASS | 10 lines `ok`, among them `POST /api/setup → 200 and the development cookie`, `GET /api/me with the cookie → the admin`; `smoke: PASS` |
+| Mutation check of the tests (by hand, not in CI) | PASS | seven guards removed one at a time — the `used_at IS NULL` condition, the stamp guard of the inserts, the client limit, the revoked check, the once-a-day extension, the global setup limit, the blocked check — each made 1–2 tests fail; restored, all passed |
+| `scripts/secret-scan.sh` | PASS | `0 findings` |
+| `scripts/check-english.sh` | PASS | `check-english: PASS` |
+| `swift test` | NOT RUN | no Swift file changed |
+
+Acceptance covered by F-1 after F-1b — engine part; the pages of FAC-01 ("the page shows the account name") are F-9, creating and
+revoking an invite through the API is F-2 (tests insert link rows directly):
+| Check | Tests (`services/engine/test/auth.test.ts`) |
+|---|---|
+| FAC-01 | redeem; one refusal for used, expired, revoked, unknown, malformed and other-kind tokens; four concurrent redemptions → one account and session; `GET` changes nothing; no token in D1 in clear; no redemption on a signed-in device |
+| FAC-03 (part) | once-a-day extension; a session unused for 91 days refused; `session_ended` and `account_blocked` typed; no cookie → `not_signed_in`; missing pepper or database → 500 |
+| FAC-04 (setup part, ahead of F-2) | admin created once; recovery signs the same admin in and creates nothing else; 404 without or with a short secret; client and global limits; refusals write nothing |
+| FAC-18 (part), FAC-19 (part) | `shell.test.ts` and the smoke run |
+
 ### Independent AI review of F-1a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
 Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decision.
@@ -200,12 +240,41 @@ Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decis
 | R11 | P3 | A D1 point-in-time restore reissues `seq` values | **constraint for F-3 / F-23**: a cursor epoch, or a forced full pull after a restore in the deploy guide |
 | R12 | P3 | No `Allow` header on 405; a clone path with spaces breaks the vitest config | path fixed (`fileURLToPath`); `Allow` not added |
 
+### Independent AI review of F-1b
+Two fresh `sdlc:reviewer` runs (Opus, high effort, mode `pr 152`): run 1 on `7473f32` (findings N1–N6), run 2 on `e6e2f5e`
+(findings B1–B4). Both: verdict **approve with notes**, no P0/P1/P2; both ran `npm test -w services/engine` (43 tests) and the
+smoke run, PASS. Fixes in `2bfe80e`. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| B1 | P3 | A name with NUL passes the 1–40 check in JS but fails SQLite's `CHECK (length(name) …)` (which stops at NUL), giving 500 instead of 400; newlines and bidi overrides were stored | fixed: control characters (C0, DEL, C1) and bidi overrides are `invalid_request`; tests for `deviceName` and `name`; D-14 |
+| B2 / N1 | P3 | The limit is read before the failure is written, so a burst of parallel attempts passes it; D-16 overstated | answered: accepted for 256-bit tokens and the setup secret, wording of D-16 corrected. **Constraint for F-2**: decide a conditional increment for the typed codes (about 40 bits) |
+| B3 / N5 | P3 | D-17 (an ended or blocked account's session may redeem) and the default names "Admin"/"Browser" untested | fixed: two tests |
+| B4 / N4 | P3 | Any IPv6 with a `.` counted as IPv4-mapped (NAT64 `64:ff9b::…` too); hex `::ffff:cb00:7109` fell into an IPv6 bucket | fixed: only the `::ffff:` prefix, dotted or hex, maps to IPv4; tests. A missing `CF-Connecting-IP` still shares one bucket (local runs only, D-16) |
+| N2 | P3 | While the setup secret is set, a stranger can keep the global setup limit tripped and block admin recovery | **constraint for F-23**: the deploy guide removes the setup secret after the first setup and explains that recovery means setting it again; threat table entry |
+| N3 | P3 | `InvalidRequest` said a wrong length gives 400, but a token or secret of the wrong length is a counted failure (410 / 403) | fixed: wording in `openapi.yaml` |
+| N6 | P3 | The daily extension was not conditional, so parallel requests at the day boundary each wrote | fixed: `AND extended_at = ?` the value read; D-19 |
+
+Found while waiting for CI: the smoke step hung on the Linux runner after its checks, because `npx` did not pass SIGTERM on to
+wrangler and workerd. Fixed on F-1a (`5434501`, merged into F-1b): wrangler runs in its own process group, the script exits
+explicitly, and the CI step has a 3-minute timeout.
+
 ## Owner's answers at H-11-0 (2026-11-13, in chat)
 Accepted: the documents (intent, spec, plan, ADR-0008); CX-02 extended to the LINGO-11 plan; assumptions A-05, A-06, A-08, A-11, A-16,
 A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §11). The owner asked to start writing the engine
 (step F-1) in a new session.
 
 ## Next step
-**F-1b** (strong tier, issue #147, branch `feat/147-engine-auth` stacked on F-1a): tokens, sessions and cookie, attempt counters,
-`/api/setup`, `/api/join`, `/api/me`. Then F-2 (#148). In a separate worktree **F-5** (standard tier) can start: its milestone and
-issue are not created yet.
+State on 2026-11-13 (end of the building session): PR #151 (F-1a, `feat/147-engine-skeleton`, head `03c8f37`, reviewed, no open
+P0/P1) and PR #152 (F-1b, `feat/147-engine-auth`, stacked on #151, base = the F-1a branch). Not finished:
+Update of the delivery session (same day): the review of #152 is done (two runs, no P0/P1/P2, table above), the smoke step
+that hung on Linux is fixed, and CI is **green** on both PRs (`test`, `hygiene`, `swift-test`; #151 at `5434501`). What is
+left waits only for the owner's approval of `gh pr merge` (denied in `.claude/settings.json`):
+1. **Merge #151**: `gh pr merge 151 --squash --delete-branch=false`.
+2. **Retarget #152**: `gh pr edit 152 --base main`; merge `origin/main` into `feat/147-engine-auth` with a normal merge commit
+   (the F-1a content is already in the branch, so no conflicts are expected), publish the branch and wait for green CI.
+3. **Merge #152**: `gh pr merge 152 --squash --delete-branch=false`; issue #147 closes with it.
+4. Then **F-2** (strong tier, issue #148): pairing by link and code with the global typed-code limit, devices list and sign-out,
+   sign-in link, admin API, own-account rename and delete — the contract first. It reuses `lookupSession`/`authenticate`, the
+   stamped batch of `join` and the counters of `attempts.ts`. It also takes the open review items R5, R8 and R9 of F-1a and
+   B2/N1 of F-1b (a conditional increment for the typed codes); N2 belongs to F-23.
+In a separate worktree **F-5** (standard tier) can start: its milestone and issue are not created yet.

@@ -1,7 +1,11 @@
-// Starts the Worker with `wrangler dev` (local D1, the real asset routing) and checks what unit tests cannot see:
-// the entry module loads, static files carry the headers of `_headers`, API answers carry the same ones (spec FR-55, FAC-18).
-import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+// Starts the Worker with `wrangler dev` on a throw-away local D1 and checks what unit tests cannot see: the entry module
+// loads in the real runtime, the platform applies `_headers` to static files, API answers carry the same headers
+// (spec FR-55, FAC-18), and the local run works end to end: migration, setup, session cookie, me (spec FR-62, FAC-19).
+import { execFileSync, spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const port = 8797;
 const base = `http://localhost:${port}`;
@@ -11,14 +15,25 @@ const expected = Object.fromEntries(
     .filter((l) => l.startsWith("  "))
     .map((l) => [l.slice(0, l.indexOf(":")).trim().toLowerCase(), l.slice(l.indexOf(":") + 1).trim()]),
 );
+const state = mkdtempSync(join(tmpdir(), "lingo-smoke-"));
+const secret = () => randomBytes(32).toString("base64url");
+const setupSecret = secret();
+const failures = [];
+const check = (ok, text) => (ok ? console.log(`ok   ${text}`) : (console.log(`FAIL ${text}`), failures.push(text)));
+const json = { Origin: base, "Content-Type": "application/json" };
+
+execFileSync("npx", ["wrangler", "d1", "migrations", "apply", "lingo", "--local", "--persist-to", state], { stdio: "ignore" });
 // Its own process group: `npx` does not pass SIGTERM on to wrangler and workerd on Linux, whose open pipes kept the script
 // (and the CI step) running after the checks.
-const child = spawn("npx", ["wrangler", "dev", "--port", String(port)], { stdio: ["ignore", "pipe", "pipe"], detached: true });
+const child = spawn(
+  "npx",
+  ["wrangler", "dev", "--port", String(port), "--persist-to", state, "--var", `PEPPER:${secret()}`, "--var", `SETUP_SECRET:${setupSecret}`, "--var", "DEV_MODE:1"],
+  { stdio: ["ignore", "pipe", "pipe"], detached: true },
+);
 let output = "";
 child.stdout.on("data", (d) => (output += d));
 child.stderr.on("data", (d) => (output += d));
 
-const failures = [];
 try {
   let up = false;
   for (let i = 0; i < 60 && !up; i++) {
@@ -26,21 +41,25 @@ try {
     up = await fetch(base + "/").then(() => true, () => false);
   }
   if (!up) throw new Error("wrangler dev did not start");
-  const cases = [
-    ["/", 200, "text/html"],
-    ["/join", 200, "text/html"],
-    ["/api/nope", 404, "application/json"],
-  ];
-  for (const [path, status, type] of cases) {
+
+  check(Object.keys(expected).length === 3, "_headers lists three headers");
+  for (const [path, status, type] of [["/", 200, "text/html"], ["/join", 200, "text/html"], ["/api/nope", 404, "application/json"], ["/api/me", 401, "application/json"]]) {
     const r = await fetch(base + path);
-    if (r.status !== status) failures.push(`${path}: status ${r.status}, expected ${status}`);
-    if (!(r.headers.get("content-type") ?? "").startsWith(type)) failures.push(`${path}: content type ${r.headers.get("content-type")}`);
-    for (const [name, value] of Object.entries(expected)) {
-      if (r.headers.get(name) !== value) failures.push(`${path}: header ${name} is ${r.headers.get(name)}`);
-    }
-    console.log(`${path} → ${r.status} ${r.headers.get("content-type")}`);
+    const headersOk = Object.entries(expected).every(([name, value]) => r.headers.get(name) === value);
+    check(r.status === status && (r.headers.get("content-type") ?? "").startsWith(type) && headersOk, `GET ${path} → ${status} ${type} with the security headers`);
   }
-  if (Object.keys(expected).length !== 3) failures.push("_headers: expected three headers");
+
+  const foreign = await fetch(base + "/api/setup", { method: "POST", headers: { ...json, Origin: "https://evil.example" }, body: JSON.stringify({ secret: setupSecret }) });
+  check(foreign.status === 403, "POST /api/setup with a foreign Origin → 403");
+  const wrong = await fetch(base + "/api/setup", { method: "POST", headers: json, body: JSON.stringify({ secret: secret() }) });
+  check(wrong.status === 403, "POST /api/setup with a wrong secret → 403");
+  const setup = await fetch(base + "/api/setup", { method: "POST", headers: json, body: JSON.stringify({ secret: setupSecret }) });
+  const cookie = (setup.headers.get("set-cookie") ?? "").split(";")[0];
+  check(setup.status === 200 && cookie.startsWith("lingo_session="), "POST /api/setup → 200 and the development cookie");
+  const me = await fetch(base + "/api/me", { headers: { Cookie: cookie } });
+  check(me.status === 200 && (await me.json()).account.isAdmin === true, "GET /api/me with the cookie → the admin");
+  const join = await fetch(base + "/api/join", { method: "POST", headers: json, body: JSON.stringify({ token: secret() }) });
+  check(join.status === 410, "POST /api/join with an unknown token → 410");
 } catch (e) {
   failures.push(String(e));
 } finally {
@@ -49,9 +68,10 @@ try {
   } catch {
     child.kill("SIGTERM");
   }
+  rmSync(state, { recursive: true, force: true });
 }
 if (failures.length > 0) {
-  console.error(output.slice(-2000));
+  console.error(output.replaceAll(setupSecret, "<setup secret>").slice(-2000));
   console.error("smoke: FAIL\n" + failures.join("\n"));
   process.exit(1);
 }

@@ -137,7 +137,7 @@ components:
       description: "`link_invalid`: \"This link is no longer valid. Ask for a new one.\""
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     InvalidRequest:
-      description: "`invalid_request`: a field is missing or has the wrong type or length; `body_too_large` is answered with 413"
+      description: "`invalid_request`: a field is missing or has the wrong type, or a name is outside 1–40 characters or holds control characters. A token or secret string that does not match is never 400: it is a failed attempt (410 / 403). `body_too_large` is answered with 413"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Misconfigured:
       description: |
