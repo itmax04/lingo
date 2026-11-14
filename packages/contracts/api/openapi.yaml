@@ -6,18 +6,22 @@ info:
     HTTP API of the Lingo Engine (Cloudflare Worker + D1) used by Lingo Web. Version 2 replaces the LINGO-03 design contract as a
     whole (ADR-0008): accounts by invite, no provider keys, no prompts and no model calls in the engine.
     Status: **contract of LINGO-11**. The API grows step by step and each step changes this file before the code:
-    F-1 (this version) setup, join, me · F-2 pairing, devices, sign-in links, admin, own account · F-3 sync · F-4 relay.
+    F-1 setup, join, me · F-2a (this version) pairing, devices, sign-out · F-2b sign-in links, admin, own account · F-3 sync ·
+    F-4 relay.
 
     Conventions
     - JSON bodies are UTF-8; times are milliseconds since the Unix epoch; ids are opaque strings.
     - Auth: the session cookie (`HttpOnly; Secure; SameSite=Lax; Path=/`). Its name is `__Host-lingo_session`; local development
       over plain `http://localhost` uses `lingo_session` without `Secure` (spec FR-04).
     - Every state-changing request (`POST`) must carry an `Origin` header equal to the site's own origin and a JSON object body
-      with `Content-Type: application/json`; others get 403 `origin_refused` or `json_required` (spec FR-58). No `GET` redeems,
+      with `Content-Type: application/json` (a `charset` parameter is allowed; the bytes must be valid UTF-8); others get 403
+      `origin_refused` or `json_required` (spec FR-58). The API has no path parameters: ids travel in the body. No `GET` redeems,
       creates or deletes anything; a `GET` with a session only refreshes that session's expiry and the device's last-seen time.
     - Errors use the `Error` schema. `code` is stable and machine-readable; `message` is English and never contains tokens, keys
       or utterance text. A client deletes its local stores only on the codes `session_ended` and `account_blocked` (spec FR-07);
       any other 401 or 403 wipes nothing.
+    - An operation with a session takes the account from the session only, never from the request (spec FR-14). An id of
+      another account's device is answered like an unknown id, 404 `not_found`.
     - Every response carries the security headers of spec FR-55 and `Cache-Control: no-store`.
     - Request bodies are limited to 16 KB unless an operation states another limit.
 servers:
@@ -114,6 +118,178 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Blocked" }
         "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/pairings:
+    post:
+      summary: Start adding a device
+      description: |
+        Spec FR-05. Creates a pairing record valid 10 minutes and returns its link token and its typed code; both are shown
+        once and stored only as HMACs. The client draws `https://<host>/pair#<token>` as a QR code. Creating a record removes
+        the account's previous unused one, and removes expired links of every kind.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: The pairing record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pairing" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/pair:
+    post:
+      summary: Redeem a pairing link or a typed pairing code
+      description: |
+        Spec FR-05, FR-06. Uses the pairing record once and creates a device and a session for the record's account, in one
+        atomic batch like `/api/join`. The body carries exactly one of `token` and `code`. A used, expired, cancelled or
+        unknown record, a token of another link kind, a malformed code and a record of a blocked account all get 410
+        `link_invalid`.
+
+        Typed codes have about 40 bits, so their limit is atomic: the attempt is counted before the code is looked at, by
+        one conditional statement that writes only while the caller has fewer than 10 failures and all callers together
+        have at most 100 failed typed codes in the last two 10-minute windows; a successful redemption takes its count
+        back in the redeeming batch. A burst of parallel guesses therefore cannot pass the limit. Over either limit the
+        answer is 429 with the `link_invalid` body and nothing is written; link tokens keep working while typed codes are
+        refused for everybody.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PairRequest" }
+      responses:
+        "200":
+          description: Signed in to the record's account; the session cookie is set
+          headers:
+            Set-Cookie: { $ref: "#/components/headers/SessionCookie" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "403":
+          description: "`origin_refused` or `json_required`"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { $ref: "#/components/responses/AlreadySignedIn" }
+        "410": { $ref: "#/components/responses/LinkInvalid" }
+        "429":
+          description: "`link_invalid` with the same message as 410: the caller, or typed codes as a whole, are over the failure limit; nothing is written"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices:
+    get:
+      summary: The account's signed-in devices
+      description: Spec FR-07. Devices whose session was signed out or has expired are not listed.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/rename:
+    post:
+      summary: Rename a device of the account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId, name]
+              properties:
+                deviceId: { type: string }
+                name: { $ref: "#/components/schemas/DeviceName" }
+      responses:
+        "200":
+          description: The devices after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/sign-out:
+    post:
+      summary: Sign a device of the account out
+      description: |
+        Spec FR-07. Removes the device and its session; that device's next request answers 401 `session_ended`. When the
+        device is the caller's own, the answer also clears the cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId: { type: string }
+      responses:
+        "200":
+          description: The devices after the change
+          headers:
+            Set-Cookie:
+              description: Only when the device was the caller's own - the cleared cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/devices/sign-out-others:
+    post:
+      summary: Sign out everywhere else
+      description: Removes every other device of the account with its session, and the account's unused pairing record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: The devices after the change (this device only)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeviceList" }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
+  /api/sign-out:
+    post:
+      summary: Sign this device out
+      description: |
+        Spec FR-07. Removes the caller's device and session and clears the cookie. The client pushes unsent events before
+        the call and deletes its local stores after it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: Signed out; the cookie is cleared
+          headers:
+            Set-Cookie:
+              description: The session cookie with an empty value and `Max-Age=0`
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { type: object }
+        "400": { $ref: "#/components/responses/InvalidRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Blocked" }
+        "500": { $ref: "#/components/responses/Misconfigured" }
 components:
   securitySchemes:
     sessionCookie: { type: apiKey, in: cookie, name: __Host-lingo_session }
@@ -128,7 +304,10 @@ components:
         `session_ended`: the session is unknown, revoked or expired; the cookie is cleared and the client deletes its local stores.
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     Blocked:
-      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09)"
+      description: "`account_blocked`: the account is blocked; the client deletes its local stores (spec FR-09). A `POST` can also answer 403 `origin_refused` or `json_required`, which wipe nothing"
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: "`not_found`: no such object in the caller's account"
       content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
     AlreadySignedIn:
       description: "`already_signed_in`: the request carries a valid session; links are not redeemed on a signed-in device (spec FR-02)"
@@ -187,6 +366,41 @@ components:
       properties:
         token: { type: string, description: "The link token from the URL fragment: 32 random bytes, base64url (43 characters)" }
         deviceName: { $ref: "#/components/schemas/DeviceName" }
+    PairRequest:
+      type: object
+      description: Exactly one of `token` and `code`.
+      properties:
+        token: { type: string, description: "The pairing link token from the URL fragment (43 characters)" }
+        code:
+          type: string
+          description: |
+            The typed pairing code: 8 symbols of `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Lower case, spaces and hyphens are
+            accepted and ignored; any other string is a failed attempt, not 400.
+        deviceName: { $ref: "#/components/schemas/DeviceName" }
+    Pairing:
+      type: object
+      required: [token, code, expiresAt]
+      properties:
+        token: { type: string, description: "Link token for `/pair#<token>`: 32 random bytes, base64url" }
+        code: { type: string, pattern: "^[A-HJ-NP-Z2-9]{8}$" }
+        expiresAt: { type: integer, description: "10 minutes after creation" }
+    Device:
+      type: object
+      required: [id, name, createdAt, lastSeenAt, current]
+      properties:
+        id: { type: string }
+        name: { type: string, minLength: 1, maxLength: 40 }
+        createdAt: { type: integer }
+        lastSeenAt: { type: integer, description: "Updated at most once a day, with the session's expiry" }
+        current: { type: boolean, description: "The caller's own device" }
+    DeviceList:
+      type: object
+      required: [devices]
+      properties:
+        devices:
+          type: array
+          description: Oldest first
+          items: { $ref: "#/components/schemas/Device" }
     Me:
       type: object
       required: [account, device]

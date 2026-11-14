@@ -73,6 +73,35 @@ describe("request origin and JSON body (FR-58)", () => {
     }
   });
 
+  it("accepts a charset parameter and any case of the media type", async () => {
+    for (const type of ["application/json; charset=utf-8", "application/json;charset=UTF-8", "Application/JSON ; charset=utf-8"]) {
+      const r = await call(post("/api/t/echo", { a: "ü" }, { "Content-Type": type }));
+      expect(r.status).toBe(200);
+      expect(await r.json()).toEqual({ a: "ü" });
+    }
+    expect(await errorCode(await call(post("/api/t/echo", {}, { "Content-Type": "application/jsonx" })))).toBe("json_required");
+    expect(await errorCode(await call(post("/api/t/echo", {}, { "Content-Type": "text/plain; charset=application/json" })))).toBe("json_required");
+  });
+
+  it("refuses bytes that are not UTF-8 and an empty body; a byte order mark is ignored", async () => {
+    const raw = (bytes: number[]) => new Request(ORIGIN + "/api/t/echo", { method: "POST", headers: { Origin: ORIGIN, "Content-Type": "application/json" }, body: new Uint8Array(bytes) });
+    const text = (t: string) => [...new TextEncoder().encode(t)];
+    const cases: Array<[string, number[]]> = [
+      ["invalid byte", [...text('{"a":"'), 0xff, 0xfe, ...text('"}')]],
+      ["truncated sequence", [...text('{"a":"'), 0xc3, ...text('"}')]],
+      ["empty", []],
+    ];
+    for (const [label, bytes] of cases) {
+      const r = await call(raw(bytes));
+      expect([label, r.status]).toEqual([label, 403]);
+      expect(await errorCode(r)).toBe("json_required");
+    }
+    // RFC 8259 lets a parser ignore a leading byte order mark; the decoder strips it.
+    const bom = await call(raw([0xef, 0xbb, 0xbf, ...text('{"a":1}')]));
+    expect(bom.status).toBe(200);
+    expect(await bom.json()).toEqual({ a: 1 });
+  });
+
   it("refuses a body that is not JSON", async () => {
     for (const request of [
       post("/api/t/echo", "a=1", { "Content-Type": "application/x-www-form-urlencoded" }),
@@ -99,7 +128,16 @@ describe("routing and failures", () => {
     const wrong = await call(get("/api/t/echo"));
     expect(wrong.status).toBe(405);
     expect(await errorCode(wrong)).toBe("method_not_allowed");
-    expect((await call(new Request(ORIGIN + "/api/t/ok", { method: "OPTIONS" }))).status).toBe(405);
+    // The engine has GET and POST only (D-06): every other method on a known path is 405, with or without a body.
+    for (const method of ["OPTIONS", "PUT", "PATCH", "DELETE", "HEAD"]) {
+      for (const path of ["/api/t/ok", "/api/t/echo"]) {
+        const headers = { Origin: ORIGIN, "Content-Type": "application/json" };
+        const withBody = method === "PUT" || method === "PATCH" || method === "DELETE";
+        const r = await call(new Request(ORIGIN + path, withBody ? { method, headers, body: "{}" } : { method, headers }));
+        expect(r.status).toBe(405);
+      }
+    }
+    expect((await call(new Request(ORIGIN + "/api/nope", { method: "DELETE" }))).status).toBe(404);
   });
 
   it("answers 500, never 401, when the pepper or the database is missing or the pepper is short (FR-07, FAC-03)", async () => {
@@ -120,7 +158,15 @@ describe("routing and failures", () => {
     const worker = (await import("../src/index")).default;
     const r = await worker.fetch(get("/api/nope"), testEnv());
     expect(r.status).toBe(404);
-    for (const route of routes) expect(openapi).toContain(`\n  ${route.path}:\n    ${route.method.toLowerCase()}:`);
+  });
+
+  it("the route table and openapi.yaml list the same operations", () => {
+    const described = [...openapi.matchAll(/^  (\/api\/[^:\n]+):\n    (get|post):/gm)].map((m) => `${m[2]!.toUpperCase()} ${m[1]}`);
+    expect(described.length).toBeGreaterThan(3);
+    expect(described.sort()).toEqual(routes.map((r) => `${r.method} ${r.path}`).sort());
+    // One method per path, so the pattern above sees every operation.
+    expect([...openapi.matchAll(/^  \/api\//gm)].length).toBe(described.length);
+    expect(openapi).not.toMatch(/^    (put|patch|delete|options|head):/m);
   });
 });
 
@@ -178,6 +224,31 @@ describe("configuration and contract", () => {
 describe("migration 0001", () => {
   const account = (id: string, admin: number) =>
     env.DB.prepare("INSERT INTO accounts (id, name, is_admin, created_at, updated_at) VALUES (?, 'N', ?, 1, 1)").bind(id, admin);
+
+  it("a session belongs to its device's account; the admin flag is fixed and the admin is never blocked (0002, review R8)", async () => {
+    const device = (id: string, acc: string) => env.DB.prepare("INSERT INTO devices (id, account_id, name, created_at, last_seen_at) VALUES (?, ?, 'D', 1, 1)").bind(id, acc);
+    const session = (hash: string, acc: string, dev: string) =>
+      env.DB.prepare("INSERT INTO sessions (hash, account_id, device_id, created_at, expires_at, extended_at) VALUES (?, ?, ?, 1, 2, 1)").bind(hash, acc, dev);
+    await env.DB.batch([account("a", 0), account("b", 0), account("root", 1), device("da", "a"), device("db", "b"), session("ha", "a", "da")]);
+    await expect(session("hx", "a", "db").run()).rejects.toThrow(/session account/);
+    await expect(env.DB.prepare("UPDATE sessions SET account_id = 'b' WHERE hash = 'ha'").run()).rejects.toThrow(/session account/);
+    await expect(env.DB.prepare("UPDATE sessions SET device_id = 'db' WHERE hash = 'ha'").run()).rejects.toThrow(/session account/);
+    await expect(env.DB.prepare("UPDATE devices SET account_id = 'b' WHERE id = 'da'").run()).rejects.toThrow(/does not change/);
+    await env.DB.prepare("UPDATE sessions SET expires_at = 3 WHERE hash = 'ha'").run();
+    await env.DB.prepare("UPDATE devices SET name = 'E' WHERE id = 'da'").run();
+
+    await expect(env.DB.prepare("UPDATE accounts SET status = 'blocked' WHERE id = 'root'").run()).rejects.toThrow(/admin/);
+    await expect(env.DB.prepare("UPDATE accounts SET is_admin = 0 WHERE id = 'root'").run()).rejects.toThrow(/admin/);
+    await expect(env.DB.prepare("UPDATE accounts SET is_admin = 1 WHERE id = 'a'").run()).rejects.toThrow(/admin flag is fixed/);
+    await expect(env.DB.prepare("INSERT INTO accounts (id, name, is_admin, status, created_at, updated_at) VALUES ('x', 'N', 1, 'blocked', 1, 1)").run()).rejects.toThrow(/admin cannot be blocked/);
+    await env.DB.prepare("UPDATE accounts SET status = 'blocked' WHERE id = 'a'").run();
+    await env.DB.prepare("UPDATE accounts SET status = 'active', name = 'M' WHERE id = 'a'").run();
+    await env.DB.prepare("UPDATE accounts SET name = 'Root' WHERE id = 'root'").run();
+    expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM accounts WHERE is_admin = 1 AND status = 'active'").first("n")).toBe(1);
+    // Without an admin row the unique index cannot be what refuses a blocked admin.
+    await env.DB.prepare("DELETE FROM accounts WHERE id = 'root'").run();
+    await expect(env.DB.prepare("INSERT INTO accounts (id, name, is_admin, status, created_at, updated_at) VALUES ('x', 'N', 1, 'blocked', 1, 1)").run()).rejects.toThrow(/admin cannot be blocked/);
+  });
 
   it("creates the six tables", async () => {
     const { results } = await env.DB.prepare(

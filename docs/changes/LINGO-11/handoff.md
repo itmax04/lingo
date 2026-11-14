@@ -1,6 +1,6 @@
 # LINGO-11: Handoff — Lingo Web for friends
 
-Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next** · Date: 2026-11-13
+Status: **stage A (engine) in progress: F-1 merged, F-2a built (PR open), F-2b next** · Date: 2026-11-14
 
 ## Identity
 - Change LINGO-11, risk R3. Documents: [intent](intent.md), [spec](spec.md), [plan](plan.md),
@@ -9,6 +9,8 @@ Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next*
   #149 (F-3), #150 (F-4). Milestones and issues of stages B…H are created when their stage starts.
 - F-1 worktree `.claude/worktrees/lingo-11-f1-engine-cc30f9`: branch `feat/147-engine-skeleton` (F-1a) from `origin/main`
   `46bfe4e`; F-1b is stacked on it as `feat/147-engine-auth`.
+- F-2 uses the same worktree: branch `feat/148-engine-pairing` (F-2a) from `origin/main` `1fed4e1`; F-2b is stacked on it as
+  `feat/148-engine-admin`.
 
 ## State
 - The owner's goal and decisions 1…16 (brainstorm 2026-11-13) are in `intent.md`. New features are paused; LINGO-09 on the Mac is
@@ -25,6 +27,14 @@ Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next*
 | Stage 0: documents | #146 | see "Checks" below | intent, spec (FR-01…FR-67, FAC-01…FAC-22), plan (F-1…F-24, H-11-0…H-11-4), ADR-0008, CORS evidence; notes in WEB.md, ARCHITECTURE.md, CODEBASE.md, docs/README.md, ADR-0002/0003/0005, AGENTS.md, ROADMAP, completion plan, LINGO-03 handoff |
 | F-1a: engine foundation (#147, part 1 of 2) | this PR | see "Checks (F-1a)" | workspaces `services/engine`, `apps/web` (shell); OpenAPI v2 (setup, join, me) replacing the LINGO-03 contract; Worker shell (routing, typed errors, `Origin` and JSON checks, log line, security headers); `_headers`; migration 0001; the two switches as variables; CI steps |
 | F-1b: engine auth (#147, part 2 of 2) | this PR (stacked on F-1a) | see "Checks (F-1b)" | link and session tokens as HMACs; session cookie with sliding expiry; attempt counters; `/api/setup` (first admin and recovery), `/api/join` (atomic invite redemption), `/api/me`; the invites switch; `npm run dev:init`; the smoke run walks setup → cookie → me |
+| F-2a: pairing, limits, devices (#148, part 1 of 2) | #153 | see "Checks (F-2a)" | contract first; `/api/pairings`, `/api/pair` (link and typed code), the atomic typed-code limit, `/api/devices`, rename, sign-out (one, others, this device); migration 0002 (triggers); hashed attempt buckets; cleanup of expired links; review items R5, R8, R9, B2/N1 |
+
+## Split of F-2 (plan "Size" rule)
+- **F-2a — devices**: FR-05, FR-06, FR-07 (engine part); FAC-02 and the devices part of FAC-03; the open review items of F-1.
+- **F-2b — admin and own account**: sign-in link (FR-08, reusing `redeemForAccount` in `src/auth.ts` with kind `signin`), admin
+  API (FR-09, FR-12, FR-13: invites, friends, block, unblock, delete), own-account rename and delete (FR-10); FAC-04. Both
+  parts keep the tier (strong). Each part changes `openapi.yaml` for its own paths: a test now requires the route table and
+  the file to list the same operations.
 
 ## Split of F-1 (plan "Size" rule)
 - **F-1a — foundation**: OpenAPI v2, workspaces, Worker shell, security headers and `_headers`, migration 0001, CI. No route yet:
@@ -101,6 +111,31 @@ Status: **stage A (engine) in progress: F-1a and F-1b built (two PRs), F-2 next*
   the device's `last_seen_at`, so "last seen" has a resolution of one day and costs at most two row writes per device and day.
   The session update is conditional on the `extended_at` that was read, so parallel requests at the day boundary extend once.
 - D-20 (F-1b): the setup request may carry `name` (default "Admin"); it is used only when the account is created.
+- D-21 (F-2a): the API has no path parameters and no method but `GET` and `POST`; ids travel in the body
+  (`/api/devices/rename`, `/api/devices/sign-out`). A device id of another account is answered like an unknown one, 404.
+- D-22 (F-2a): signing a device out deletes its row (the session cascades); `sessions.revoked_at` is still honoured but no
+  code sets it. The list shows devices with a working session only. Creating a pairing record removes the account's devices
+  whose session ended and expired links of every account (used invites included, once past their expiry).
+- D-23 (F-2a): the previous unused pairing record is deleted, not marked revoked; "Sign out everywhere else" also deletes the
+  account's unused pairing record, so a stranger who was just signed out cannot come back with a pending code.
+- D-24 (F-2a): typed-code alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no I, O, 0, 1), 8 symbols, 40 bits. Lower case, spaces
+  and hyphens are ignored. The code's HMAC has the prefix `code:`, so it lives in another domain than token hashes. A
+  malformed code is a counted failure (410), not 400. A code collision between two live records (2^-40 per pair) would
+  answer 500 to the creating request; not handled.
+- D-25 (F-2a, decides B2/N1): a typed-code attempt is counted *before* the code is looked at, by one conditional upsert
+  (`reserveCodeAttempt`): it writes the client's and the global `codes` counter only while the client has fewer than 10 and
+  all clients at most 100 failures in the current and previous window. D1 runs statements one at a time, so parallel
+  requests cannot pass a limit, and a refused request writes nothing. A successful redemption takes the count back in its
+  own batch, guarded on the request's stamp. Link tokens (256 bits) keep the read-then-record order of D-16. The global
+  limit therefore lets 101 failures through and then refuses for up to 20 minutes (the two-window rule of D-16).
+- D-26 (F-2a, R5): client buckets in `attempts` are the first 32 hex characters of `HMAC(pepper, bucket)`; the global
+  buckets keep the names `setup` and `codes`.
+- D-27 (F-2a, R8): migration 0002 adds triggers: a session's account equals its device's account; a device never changes
+  its account; the admin flag never changes on an existing row; an admin row is never blocked. Deleting the admin is not
+  stopped by the database (the tests' cleanup deletes every account); F-2b refuses it in code, with a test.
+- D-28 (F-2a): a record of a blocked account is refused like an unknown one and is not used up.
+- D-29 (F-2a, R9): a leading byte order mark in a JSON body is ignored (RFC 8259 allows it); invalid UTF-8 and an empty body
+  are `json_required`.
 
 ## Constraints found in F-1
 - A project hook blocks any command line that contains the deploy, secret or login sub-commands of wrangler, even inside a text
@@ -222,6 +257,45 @@ revoking an invite through the API is F-2 (tests insert link rows directly):
 | FAC-04 (setup part, ahead of F-2) | admin created once; recovery signs the same admin in and creates nothing else; 404 without or with a short secret; client and global limits; refusals write nothing |
 | FAC-18 (part), FAC-19 (part) | `shell.test.ts` and the smoke run |
 
+## Checks (F-2a)
+Run on 2026-11-14 on the commit that contains this text (Node 26, wrangler 4.162.0):
+| Check | Result | Output |
+|---|---|---|
+| `npm test` (all workspaces) | PASS | core-ts: 7 files, 304 tests passed; engine: `tsc` clean, 3 files, 67 tests passed (again after the review fixes) |
+| `npm run build` | PASS | exit 0 |
+| `npm run smoke -w services/engine` | PASS | 14 lines `ok`, among them `POST /api/pair with the typed code → 200 and a second session`, `GET /api/devices → two devices`, `POST /api/sign-out → 200, then GET /api/me → 401`; `smoke: PASS` (migration 0002 applied by wrangler) |
+| Mutation check of the tests (by hand, not in CI) | PASS | 16 guards removed one at a time — the reservation's limit condition, the global codes limit, the refund, the refund's guard, the kind check, `used_at IS NULL`, the expiry, the active-account condition, the `code:` prefix, the account condition of rename and of sign-out, "others keeps the caller", "others cancels the pairing record", the live-session filter of the list, cancelling the previous record, the hashed bucket — each made 1–3 tests fail (the prefix after a test was added for it); restored, all passed |
+| `scripts/secret-scan.sh` | PASS | `0 findings` |
+| `scripts/check-english.sh` | PASS | `check-english: PASS` |
+| `git diff --check origin/main` | PASS | no output |
+| `swift test` | NOT RUN | no Swift file changed |
+| Real D1 concurrency | NOT RUN | local miniflare runs statements one by one; the burst tests (30 and 120 parallel requests) prove the statement's condition, not real interleaving. The design relies on D1 executing one statement at a time |
+
+Acceptance covered by F-2a (`services/engine/test/devices.test.ts`, `shell.test.ts`):
+| Check | Tests |
+|---|---|
+| FAC-02 | by link; by code; one refusal for reused, expired, cancelled, unknown, malformed, other-kind; one record used once by concurrent token and code requests; nothing in clear; client limit shared with link attempts, refused without a write, recovery; IPv6 /64 burst; global typed-code limit with links still working |
+| FAC-03 (engine part) | list with the current device; rename; sign-out of another device, of this device, of all others; an expired device is not listed; blocked account refused. The browser-store parts are F-10 |
+| FAC-05 (ahead of F-3) | another account's device id is 404 for rename and sign-out; lists hold own devices only |
+
+Open review items of F-1 after F-2a: R5 fixed (D-26, D-22); R8 fixed (D-27; admin deletion in F-2b); R9 fixed (charset
+parameter, invalid UTF-8, `PUT`/`PATCH`/`DELETE`/`HEAD`, route table equal to the contract); B2/N1 decided (D-25).
+Still open: R3 (F-3), R4 (F-4), R11 (F-3 / F-23), N2 (F-23), R1 (F-15).
+
+### Independent AI review of F-2a
+Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 153`) on `4fa07f7`. Verdict: **approve with notes**, no P0/P1/P2. It ran
+`npm test -w services/engine` (67 tests), `devices.test.ts` six times, the smoke run, both scripts — PASS — and the reserve
+statement in sqlite3 3.43.2 (client 9 / global 100 → 2 rows changed; the next call 0). Not checked by it: real D1
+concurrency, production D1's `meta.changes` for upserts, core-ts, the mutation check. Reviewer output is not an owner decision.
+| ID | Sev | Finding | Result |
+|---|---|---|---|
+| N1 | P3 | Two assertions of the 0002 test matched `/admin\|UNIQUE/` and would pass without the triggers | fixed: exact trigger messages, and a blocked admin inserted while no admin exists |
+| N2 | P3 | FR-06 says "10 minutes", the code refuses for up to 20 | fixed: wording of FR-06 in `spec.md` |
+| N3 | P3 | `POST /api/pairings` deletes expired links of every account, against the letter of FR-14 | answered: housekeeping of dead rows, returns nothing (D-22). **Constraint for F-2b**: the admin's invite list shows unexpired invites only |
+| N4 | P3 | Contract: no 400 on three paths, 403 `origin_refused`/`json_required` not listed for signed-in `POST`s, no `Set-Cookie` on the 200 of `/api/devices/sign-out` | fixed in `openapi.yaml` |
+| N5 | P3 | No test that the device cleanup leaves another account's ended device alone | fixed: test |
+| N6 | P3 | "Sign out everywhere else" cancels only `pair` records | **constraint for F-2b**: decide and test whether an unused `signin` link is cancelled too |
+
 ### Independent AI review of F-1a
 Fresh `sdlc:reviewer` (Opus, high effort, mode `pr 151`) on commit `c9fc12b`, read through git only; it ran no command.
 Verdict: **approve with notes**, no P0/P1. Reviewer output is not an owner decision.
@@ -264,17 +338,21 @@ A-17, A-18, A-19 confirmed; the package `qrcode-generator` allowed (ADR-0008 §1
 (step F-1) in a new session.
 
 ## Next step
-State on 2026-11-13 (end of the building session): PR #151 (F-1a, `feat/147-engine-skeleton`, head `03c8f37`, reviewed, no open
-P0/P1) and PR #152 (F-1b, `feat/147-engine-auth`, stacked on #151, base = the F-1a branch). Not finished:
-Update of the delivery session (same day): the review of #152 is done (two runs, no P0/P1/P2, table above), the smoke step
-that hung on Linux is fixed, and CI is **green** on both PRs (`test`, `hygiene`, `swift-test`; #151 at `5434501`). What is
-left waits only for the owner's approval of `gh pr merge` (denied in `.claude/settings.json`):
-1. **Merge #151**: `gh pr merge 151 --squash --delete-branch=false`.
-2. **Retarget #152**: `gh pr edit 152 --base main`; merge `origin/main` into `feat/147-engine-auth` with a normal merge commit
-   (the F-1a content is already in the branch, so no conflicts are expected), publish the branch and wait for green CI.
-3. **Merge #152**: `gh pr merge 152 --squash --delete-branch=false`; issue #147 closes with it.
-4. Then **F-2** (strong tier, issue #148): pairing by link and code with the global typed-code limit, devices list and sign-out,
-   sign-in link, admin API, own-account rename and delete — the contract first. It reuses `lookupSession`/`authenticate`, the
-   stamped batch of `join` and the counters of `attempts.ts`. It also takes the open review items R5, R8 and R9 of F-1a and
-   B2/N1 of F-1b (a conditional increment for the typed codes); N2 belongs to F-23.
-In a separate worktree **F-5** (standard tier) can start: its milestone and issue are not created yet.
+State on 2026-11-14: **F-1 is done.** PR #151 (F-1a) and PR #152 (F-1b) are squash-merged into `main` (`4d0c03c`, `1fed4e1`);
+issue #147 is closed; CI on `main` at `1fed4e1` is green (`ts`, `repo`, `mac`). Verified on `1fed4e1`'s tree before the merge:
+engine 45 tests, core-ts 304 tests, smoke, check-english PASS, secret-scan 0 findings. NOT RUN: real D1 concurrency (local
+miniflare runs requests one by one, so the race tests check the guards, not real interleaving).
+Merging: `gh pr merge` is denied in `.claude/settings.json`; the owner runs it himself after green CI and review (as for
+#151/#152). The branches `feat/147-engine-skeleton` and `feat/147-engine-auth` are kept (never deleted by agents).
+
+1. **F-2a is built and reviewed** on `feat/148-engine-pairing`, PR #153 (see "Checks (F-2a)" and its review): it waits for
+   green CI and the owner's merge (`gh pr merge` is denied to agents).
+2. **F-2b** (strong tier: security — admin operations and account deletion), issue #148, branch `feat/148-engine-admin`
+   stacked on F-2a: the contract first (sign-in link, admin invites / friends / block / unblock / delete, own-account rename
+   and delete), then the code. Reuse `redeemForAccount(ctx, "signin", …)`, `nameField`, `authenticate`; non-admins get 404
+   from every admin path; the admin cannot block or delete the own account (code check and test; the triggers of 0002
+   already refuse blocking); a new sign-in link cancels the previous unused one; deleting needs the typed name; the friends
+   list returns name, created, last sign-in, device count, stored size and status, and nothing of the events (FR-13).
+   Done when: engine tests, smoke, check-english, secret-scan pass; a fresh independent `sdlc:reviewer` (Opus, high) has no
+   open P0/P1 and every P2 is fixed or answered; CI green; then ask the owner to merge. That closes #148.
+3. In a separate worktree **F-5** (stage B, standard tier) can start in parallel: its milestone and issue are not created yet.
